@@ -105,7 +105,7 @@ const formatApiError = (error: any, defaultMsg: string): string => {
   }
 
   if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('high demand')) {
-    return 'Muita gente usando a IA agora. Ja estou tentando de novo — se continuar, aguarde 1 minuto.';
+    return 'Muita gente usando a IA agora. Já estou tentando de novo — se continuar, aguarde 1 minuto.';
   }
   if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) {
     return 'Calma, professor! Muitas perguntas de uma vez. Aguarde alguns segundos e tente de novo.';
@@ -246,7 +246,7 @@ function useFirestoreSync<T extends { id: string }>(
     } catch (err) {
       console.error(`Error in useFirestoreSync for ${collectionName}:`, err);
       setData(previousData);
-      toast.error("A internet cochilou. Suas mudancas nao foram salvas — tente de novo.");
+      toast.error("A internet cochilou. Suas mudanças não foram salvas — tente de novo.");
     }
   };
 
@@ -285,7 +285,7 @@ function useFirestoreDoc<T>(
     } catch (err) {
       console.error(`Error in useFirestoreDoc for ${docPath}:`, err);
       setData(previousData);
-      toast.error("A internet cochilou. Suas mudancas nao foram salvas — tente de novo.");
+      toast.error("A internet cochilou. Suas mudanças não foram salvas — tente de novo.");
     }
   };
 
@@ -313,7 +313,7 @@ class ErrorBoundary extends React.Component<
               <span className="text-3xl">🦉</span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Ih, o Corujão tropeçou!</h2>
-            <p className="text-sm text-gray-500 mb-2">Algo inesperado aconteceu. Seus dados estao salvos na nuvem — so recarregue a pagina.</p>
+            <p className="text-sm text-gray-500 mb-2">Algo inesperado aconteceu. Seus dados estão salvos na nuvem — só recarregue a página.</p>
             <p className="text-xs text-red-500 mb-6 bg-red-50 p-2 rounded-xl font-mono break-all">{this.state.error?.message}</p>
             <button
               onClick={() => window.location.reload()}
@@ -480,7 +480,7 @@ interface BackgroundTask {
   meta?: Record<string, any>;
 }
 
-const STUDIO_TASK_TYPES = ['story', 'quiz', 'wordsearch', 'crossword', 'bingo', 'escape', 'memory'] as const;
+const STUDIO_TASK_TYPES = ['story', 'quiz', 'wordsearch', 'crossword', 'bingo', 'escape', 'memory', 'sequencia', 'flashcard'] as const;
 const isStudioTaskType = (t: string) => (STUDIO_TASK_TYPES as readonly string[]).includes(t);
 
 interface UserProfile {
@@ -2526,77 +2526,12 @@ const PlannerScreen = ({
 
   const loadingMessage = useFunnyLoadingMessage(loading, 'planner');
 
-  const getSlidesPrompt = (topicText: string, className: string, tone: string, complexity: string, focus: string, groundingContent: string, slideCount: number) => `Você é um Diretor de Arte Sênior. Sua tarefa é analisar o conteúdo do usuário e transformá-lo em uma apresentação de ${slideCount} slides sobre "${topicText}". 
-        Turma: "${className}"
-        Tom: ${tone}
-        Complexidade: ${complexity}
-        Foco: ${focus}
-        ${groundingContent ? `Conteúdo Base para Grounding: ${groundingContent}` : ''}
-        
-        Crie uma apresentação adaptada a estes parâmetros.
-        
-        LAYOUTS DISPONÍVEIS — escolha o mais adequado para cada slide:
-        1. LAYOUT_COVER: Capa. Título à esquerda, subtítulo abaixo, imagem à direita. Campos: title, subtitle, illustrationQuery.
-        2. LAYOUT_CONTENT_LEFT: Conteúdo com imagem. Título + texto à esquerda, imagem à direita. Campos: title, text, illustrationQuery.
-        3. LAYOUT_CONTENT_RIGHT: Conteúdo invertido. Imagem à esquerda, título + texto à direita. Campos: title, text, illustrationQuery.
-        4. LAYOUT_CONTENT_TOP: Horizontal. Título + texto no topo, imagem larga embaixo. Campos: title, text, illustrationQuery.
-        5. LAYOUT_TOPICS: 3 colunas de tópicos com ícone Lucide, título e texto curto. Campos: title, topics[{title,content,icon}].
-        6. LAYOUT_REFERENCES: Referências com fundo na cor primária. Campos: title, references[].
-        7. LAYOUT_QUOTE: Citação impactante centralizada com aspas gigantes. Ideal para abrir ou fechar seções. Campos: title, quote, author.
-        8. LAYOUT_TWO_COLUMNS: Dois blocos de texto lado a lado. Ideal para comparação, prós/contras, causa/efeito. Campos: title, column1, column2.
-        9. LAYOUT_FULL_IMAGE: Imagem em tela cheia com sobreposição de gradiente escuro e título em destaque. Máximo impacto visual. Campos: title, subtitle, illustrationQuery.
-        10. LAYOUT_STATS: 3 ou 4 cards de estatísticas/dados com valor em destaque, rótulo e ícone. Ideal para dados numéricos. Campos: title, stats[{value,label,icon}].
-        11. LAYOUT_TIMELINE: Linha do tempo horizontal com 3 a 5 eventos. Ideal para cronologias e processos. Campos: title, events[{year,title,description}].
-
-        REGRAS DE DESIGN:
-        - Use pelo menos 4 layouts diferentes para variar o ritmo visual.
-        - Use LAYOUT_QUOTE, LAYOUT_FULL_IMAGE ou LAYOUT_STATS para criar momentos de impacto.
-        - Use LAYOUT_TIMELINE para conteúdos históricos ou sequenciais.
-        - Use LAYOUT_TWO_COLUMNS para comparações ou definições contrastantes.
-        - PALETA MONOCROMÁTICA: escolha UMA única cor base (primaryColor) adequada ao tema. Acento e fundo devem ser tons da MESMA cor (mais claro/mais escuro). NUNCA combine cores de matizes diferentes (ex: azul com amarelo, azul com verde). primaryColor deve ser escura o suficiente para texto branco por cima.
-        - KICKER (obrigatório em TODO slide): campo "kicker" com um rótulo editorial curto de 1-2 palavras em MAIÚSCULAS que aparece acima do título (ex: "CONCEITO", "CONTEXTO", "EXEMPLO", "APLICAÇÃO", "RESUMO", "DEFINIÇÃO"). Deve resumir o papel do slide.
-        - ALTO CONTRASTE: nunca texto claro sobre fundo claro.
-        - CONCISÃO (REGRA CRÍTICA — slide NÃO é documento):
-            • Campo "text" (LAYOUT_CONTENT_*): no MÁXIMO 4 a 5 linhas curtas OU ~60 palavras. Frases curtas e diretas, nunca parágrafos longos.
-            • Cada "topics[].content": 1 frase curta, no máximo 12 palavras.
-            • Colunas (column1/column2): no máximo 4 linhas curtas cada, além do título da coluna.
-            • Prefira listas curtas a texto corrido. Cada linha = uma ideia. Não encha o slide.
-            • É melhor cortar conteúdo e criar mais slides do que espremer texto demais em um só.
-        - FORMATAÇÃO DE TEXTO RICA (use com MODERAÇÃO nos campos "text", "column1", "column2"):
-            **palavra** → negrito para termos-chave (feche SEMPRE com **; sem espaço logo após o ** de abertura)
-            ==palavra== → termo em destaque com cor de acento (use em definições e conceitos centrais)
-            [[palavra]] → palavra-chave colorida em destaque primário (2-3 por slide máximo)
-            {IconName} → ícone Lucide inline antes de tópicos (ex: {Target} Objetivo, {Brain} Conceito)
-            ## Subtítulo → use no MÁXIMO 1 vez por slide, só para separar dois blocos
-            - item → listas: comece a linha com "- " (hífen e espaço). Uma ideia por linha.
-        - Combine as marcações: ex: {Target} **[[Objetivo]]**: ==aprender a== estrutura...
-        - NUNCA use emojis. NUNCA coloque nomes de ícones entre parênteses no texto (ERRADO: "(CheckCircle) Título", "(User) Pessoas", "(Nature) Natureza"). Use APENAS a sintaxe {IconName}. NUNCA use ### ou mais de dois # para títulos.
-        - LAYOUT_TWO_COLUMNS — IMPORTANTE: a PRIMEIRA linha de column1 e column2 é tratada como título da coluna (renderizado em destaque). Coloque o título da coluna na primeira linha, depois uma quebra de linha (\n), depois o conteúdo. Ex: column1: "Título da Coluna 1\n\nConteúdo detalhado com **marcações**..."
-        - illustrationQuery: 2-3 palavras-chave em inglês (ex: 'science lab', 'ancient rome').
-
-        SAÍDA: JSON estrito (sem Markdown ao redor):
-        {
-          "presentationTitle": "...",
-          "theme": { "primaryColor": "#hex", "accentColor": "#hex", "backgroundColor": "#hex", "fontTitle": "...", "fontBody": "..." },
-          "slides": [
-            { "layoutID": "LAYOUT_COVER",        "data": { "kicker": "APRESENTAÇÃO", "title": "...", "subtitle": "...", "illustrationQuery": "..." } },
-            { "layoutID": "LAYOUT_QUOTE",         "data": { "kicker": "REFLEXÃO", "title": "...", "quote": "...", "author": "..." } },
-            { "layoutID": "LAYOUT_TWO_COLUMNS",   "data": { "kicker": "COMPARAÇÃO", "title": "...", "column1": "Título Coluna A\n\nConteúdo com **marcações**...", "column2": "Título Coluna B\n\nConteúdo com **marcações**..." } },
-            { "layoutID": "LAYOUT_FULL_IMAGE",    "data": { "kicker": "VISUAL", "title": "...", "subtitle": "...", "illustrationQuery": "..." } },
-            { "layoutID": "LAYOUT_STATS",         "data": { "kicker": "DADOS", "title": "...", "stats": [{ "value": "...", "label": "...", "icon": "TrendingUp" }] } },
-            { "layoutID": "LAYOUT_TIMELINE",      "data": { "kicker": "HISTÓRIA", "title": "...", "events": [{ "year": "...", "title": "...", "description": "..." }] } },
-            { "layoutID": "LAYOUT_TOPICS",        "data": { "kicker": "ESTRUTURA", "title": "...", "topics": [{ "title": "...", "content": "...", "icon": "BookOpen" }] } },
-            { "layoutID": "LAYOUT_CONTENT_LEFT",  "data": { "kicker": "CONCEITO", "title": "...", "text": "...", "illustrationQuery": "..." } },
-            { "layoutID": "LAYOUT_REFERENCES",    "data": { "kicker": "FONTES", "title": "Referências", "references": ["..."] } }
-          ]
-        }`;
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Arquivo pesado demais! O limite e 10 MB.');
+      toast.error('Arquivo pesado demais! O limite é 10 MB.');
       e.target.value = '';
       return;
     }
@@ -2624,7 +2559,7 @@ const PlannerScreen = ({
           setTopic(prev => prev + (prev ? '\n\n' : '') + text);
         } catch (error) {
           console.error("Error extracting text from file:", error);
-          toast.error(formatApiError(error, "Nao consegui ler esse arquivo. Tente outro formato."));
+          toast.error(formatApiError(error, "Não consegui ler esse arquivo. Tente outro formato."));
         }
       };
       reader.readAsDataURL(file);
@@ -3413,39 +3348,57 @@ const PlannerScreen = ({
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{currentResult as string}</ReactMarkdown>
                   </div>
                 </div>
-                <button
-                    onClick={async () => {
-                      if (preparingDoc !== null) return;
-                      setPreparingDoc('main');
-                      try {
-                        const docType = mode === 'exam' ? 'exam' : mode === 'activities' ? 'activities' : 'plan';
-                        const blob = await buildDocx(currentResult as string, docType, {
-                          school: selectedClass?.school || profileSchoolName || '',
-                          teacher: profileName || '',
-                          subject: selectedClass?.subject || profile.subject || '',
-                          topic,
-                          className: selectedClass?.name || '',
-                          duration,
-                          lessonTime,
-                          turn,
-                          examValue,
-                          examDuration,
-                        });
-                        const label = docType === 'plan' ? 'plano' : docType === 'exam' ? 'avaliacao' : 'atividades';
-                        const filename = `${label}-${(topic || 'material').replace(/\s+/g, '-')}.docx`;
-                        downloadBlob(blob, filename);
-                      } catch (e) {
-                        console.error('Erro ao exportar Word:', e);
-                        toast.error('O documento Word fugiu! Tenta gerar de novo.');
-                      } finally {
-                        setPreparingDoc(null);
-                      }
+                <div className="flex gap-2">
+                  <button
+                      onClick={async () => {
+                        if (preparingDoc !== null) return;
+                        setPreparingDoc('main');
+                        try {
+                          const docType = mode === 'exam' ? 'exam' : mode === 'activities' ? 'activities' : 'plan';
+                          const blob = await buildDocx(currentResult as string, docType, {
+                            school: selectedClass?.school || profileSchoolName || '',
+                            teacher: profileName || '',
+                            subject: selectedClass?.subject || profile.subject || '',
+                            topic,
+                            className: selectedClass?.name || '',
+                            duration,
+                            lessonTime,
+                            turn,
+                            examValue,
+                            examDuration,
+                          });
+                          const label = docType === 'plan' ? 'plano' : docType === 'exam' ? 'avaliacao' : 'atividades';
+                          const filename = `${label}-${(topic || 'material').replace(/\s+/g, '-')}.docx`;
+                          downloadBlob(blob, filename);
+                        } catch (e) {
+                          console.error('Erro ao exportar Word:', e);
+                          toast.error('O documento Word fugiu! Tenta gerar de novo.');
+                        } finally {
+                          setPreparingDoc(null);
+                        }
+                      }}
+                      disabled={preparingDoc !== null}
+                      className="flex-1 bg-indigo-600 text-white rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60"
+                    >
+                      {preparingDoc === 'main' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Exportar Word
+                    </button>
+                  <button
+                    onClick={() => {
+                      const docType = mode === 'exam' ? 'exam' : mode === 'activities' ? 'activities' : 'plan';
+                      printPlannerContent(
+                        topic || 'Material',
+                        currentResult as string,
+                        docType,
+                        profileName,
+                        selectedClass?.school || profileSchoolName
+                      );
                     }}
-                    disabled={preparingDoc !== null}
-                    className="w-full bg-indigo-600 text-white rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="px-4 bg-gray-100 text-gray-700 rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                    title="Imprimir / PDF"
                   >
-                    {preparingDoc === 'main' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Exportar Word
+                    <FileText size={16} /> PDF
                   </button>
+                </div>
               </motion.div>
             )}
 
@@ -3695,7 +3648,7 @@ const ChatScreen = ({
   };
   const cancelLongPress = () => { if (longPressTimer.current) clearTimeout(longPressTimer.current); };
 
-  const SUGGESTIONS = ['Como montar uma aula?', 'Me dê ideias para atividades', 'Crie um plano de aula', 'Avaliações criativas'];
+  const SUGGESTIONS = ['Como montar uma aula?', 'Me dê ideias para atividades', 'Minha turma está agitada, o que fazer?', 'Como adaptar para aluno com TDAH?', 'Escreva um bilhete para os pais', 'Avaliações criativas'];
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'auto' });
@@ -3770,8 +3723,8 @@ const ChatScreen = ({
 
       const turmas = schedules.map(s => s.name).join(', ') || 'Nenhuma turma cadastrada';
 
-      const basePrompt = `Você é o "Prof. Corujão", o assistente pessoal definitivo para professores.
-      Você atua como um CONTROLE REMOTO total do aplicativo. Você pode navegar entre telas, criar materiais, agendar aulas e atualizar o perfil.
+      const basePrompt = `Você é o "Prof. Corujão", assistente pedagógico pessoal e parceiro de sala de aula do professor.
+      Você atua como um CONTROLE REMOTO total do aplicativo (navegar entre telas, criar materiais, agendar aulas, atualizar perfil) E como um coordenador pedagógico experiente, sempre disponível para apoiar o dia a dia da docência.
 
       Hoje é: ${today}.
 
@@ -3787,11 +3740,19 @@ const ChatScreen = ({
       ${acervoSummary}
       - Conteúdo do Estúdio: ${estudioContext ? `${estudioContext.substring(0, 300)}...` : 'Vazio'}
 
-      Suas Capacidades (USE AS FUNÇÕES SEMPRE QUE POSSÍVEL):
+      Suas Capacidades no App (USE AS FUNÇÕES SEMPRE QUE POSSÍVEL):
       1. NAVEGAÇÃO: Mudar para as telas 'home', 'planner', 'chat', 'calendar', 'profile', 'estudio', 'biblioteca'.
       2. MATERIAL DIDÁTICO: Gerar Planos de Aula, Slides, Atividades ou Provas. Os materiais ficam disponíveis no histórico ao concluir.
       3. AGENDAMENTO: Marcar uma aula individual (schedule_class) ou uma série de aulas (schedule_lesson_series).
       4. PERFIL: Atualizar nome, disciplina ou escola.
+
+      Sua Expertise Pedagógica (responda diretamente no chat, sem funções):
+      - GESTÃO DE SALA: estratégias práticas para indisciplina, turmas agitadas, conflitos entre alunos, engajamento.
+      - INCLUSÃO: adaptações para alunos com TDAH, TEA, dislexia e outras necessidades; sugestões alinhadas ao PEI.
+      - DIDÁTICA: metodologias ativas, avaliação formativa, recuperação de aprendizagem, dúvidas sobre BNCC.
+      - COMUNICAÇÃO: redigir bilhetes e comunicados para famílias, devolutivas de avaliação, relatórios de aluno.
+      - CONTEÚDO: explicar qualquer conteúdo escolar, sugerir analogias e exemplos para usar em aula.
+      Ao dar conselhos pedagógicos, seja concreto e acionável: passos numerados, frases prontas para usar, exemplos reais. Considere o nível de ensino das turmas do professor.
 
       Regras de Comportamento:
       1. Seja proativo, conciso e profissional.
@@ -3799,6 +3760,7 @@ const ChatScreen = ({
       3. Se o usuário pedir algo genérico como "Gere um material sobre X", pergunte se ele quer Slides, Plano, Atividades ou Prova, ou sugira um deles.
       4. Quando usar uma função de geração, informe que o material ficará disponível no histórico ao concluir.
       5. Se o professor disser apenas "Oi", faça um resumo do dia baseado nas aulas e sugira algo.
+      6. Se o professor desabafar sobre dificuldades em sala, acolha brevemente e ofereça 2-3 estratégias práticas imediatas.
 
       Histórico:
       ${sortedHistory.slice(-20).map(m => `[${new Date(m.date).toLocaleTimeString()}] ${m.role === 'user' ? 'Professor' : 'Assistente'}: ${m.text}`).join('\n')}
@@ -6202,7 +6164,7 @@ const CalendarScreen = ({
   );
 };
 
-type GameMode = 'story' | 'quiz' | 'wordsearch' | 'crossword' | 'bingo' | 'escape' | 'memory';
+type GameMode = 'story' | 'quiz' | 'wordsearch' | 'crossword' | 'bingo' | 'escape' | 'memory' | 'sequencia' | 'flashcard';
 type EscapeTheme = 'medieval' | 'lab' | 'detective' | 'space';
 
 const buildWordSearchGrid = (rawWords: string[], size = 15): { grid: string[][], placements: {word: string, row: number, col: number, dir: string}[] } => {
@@ -7355,12 +7317,12 @@ const EstudioScreen = ({
   }, [studioReopenTaskId, activeTasks, removeTask, setStudioReopenTaskId]);
 
   const generate = async () => {
-    if (!topic.trim()) { toast.error('Qual e o tema? O Corujao precisa saber para criar!'); return; }
+    if (!topic.trim()) { toast.error('Qual é o tema? O Corujão precisa saber para criar!'); return; }
     if (!activeMode) return;
     setIsGenerating(true);
     setResult(null);
     localGenActiveRef.current = true;
-    const modeLabels: Record<GameMode, string> = { story: 'Storytelling', quiz: 'Quiz', wordsearch: 'Caça-Palavras', crossword: 'Cruzadas', bingo: 'Bingo', escape: 'Escape Room', memory: 'Memória' };
+    const modeLabels: Record<GameMode, string> = { story: 'Storytelling', quiz: 'Quiz', wordsearch: 'Caça-Palavras', crossword: 'Cruzadas', bingo: 'Bingo', escape: 'Escape Room', memory: 'Memória', sequencia: 'Sequência Didática', flashcard: 'Flashcards' };
     const taskId = addTask({
       type: activeMode,
       title: `${modeLabels[activeMode]}: ${topic.trim().slice(0, 40)}`,
@@ -7444,6 +7406,38 @@ Retorne APENAS JSON válido (sem markdown):
         prompt = `Gere ${count} pares conceito↔definição sobre "${topic}" (${defaultSubject}, ${defaultLevel}) para jogo da memória.
 Cada conceito: 1-3 palavras. Cada definição: 1 frase curta (max 12 palavras). Inclua 1 emoji representando o conceito.
 Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"...","emoji":"🎯"}]}`;
+      } else if (activeMode === 'sequencia') {
+        prompt = `Você é um pedagogo especialista em metodologias ativas. Crie uma SEQUÊNCIA DIDÁTICA completa e profissional sobre "${topic}".
+${context}
+Duração: ${duration}
+
+Retorne em Markdown brasileiro com EXATAMENTE as seções abaixo (substitua [ ] por conteúdo real, sem introduções nem comentários fora da estrutura):
+
+## 🎯 Objetivos de Aprendizagem
+[3-5 objetivos com verbos de ação alinhados à BNCC]
+
+## 📋 Conhecimentos Prévios
+[O que os alunos precisam saber antes + 1 estratégia rápida de diagnóstico inicial]
+
+## 🗺️ Etapas da Sequência
+[${duration === '1 aula' ? '3' : duration.includes('semana') ? '5' : '8'} etapas numeradas. Para CADA etapa: **Etapa N — Nome** (tempo estimado), objetivo da etapa, descrição detalhada da atividade com metodologia ativa, papel do professor e papel do aluno.]
+
+## 🧩 Diferenciação e Inclusão
+[2-3 adaptações concretas para alunos com dificuldades e 1-2 desafios extras para alunos avançados]
+
+## 📊 Avaliação ao Longo da Sequência
+[Instrumentos de avaliação formativa por etapa + critérios de êxito observáveis]
+
+## 📦 Materiais Necessários
+[Lista de materiais por etapa, priorizando recursos simples e acessíveis]
+
+NÃO use código nem tabelas Markdown. Português brasileiro natural.`;
+      } else if (activeMode === 'flashcard') {
+        prompt = `Gere ${count} flashcards de estudo sobre "${topic}" (${defaultSubject}, ${defaultLevel}) para revisão de conteúdo.
+FRENTE: pergunta curta, termo ou conceito-chave (máx. 12 palavras).
+VERSO: resposta/explicação clara e completa em 1-2 frases (máx. 30 palavras).
+Varie os tipos: definição, "o que é", causa/efeito, exemplo, comparação.
+Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji":"💡"}]}`;
       }
       let finalResult: any = null;
       if (activeMode === 'story') {
@@ -7452,6 +7446,9 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
           generateStoryImages(topic, genre)
         ]);
         finalResult = { markdown: response.text || '', sectionImages };
+      } else if (activeMode === 'sequencia') {
+        const response = await generateContentWithRetry({ model: AI_MODEL, contents: prompt });
+        finalResult = { markdown: response.text || '', title: `Sequência Didática: ${topic}` };
       } else if (activeMode === 'escape') {
         const response = await generateContentWithRetry({ model: AI_MODEL, contents: prompt });
         const raw = response.text || '';
@@ -7517,16 +7514,18 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
     bingo: { title: 'Bingo Educativo', icon: Dice5, color: 'text-pink-600', bg: 'bg-pink-50 border-pink-200', desc: 'Cartelas com termos do conteúdo da aula' },
     escape: { title: 'Escape Room', icon: KeyRound, color: 'text-rose-600', bg: 'bg-rose-50 border-rose-200', desc: 'Enigmas encadeados temáticos para imprimir' },
     memory: { title: 'Memória', icon: Layers3, color: 'text-teal-600', bg: 'bg-teal-50 border-teal-200', desc: 'Pares de conceito e definição para combinar' },
+    sequencia: { title: 'Sequência Didática', icon: ClipboardList, color: 'text-violet-600', bg: 'bg-violet-50 border-violet-200', desc: 'Passo a passo completo com etapas, inclusão e avaliação' },
+    flashcard: { title: 'Flashcards', icon: Layers, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', desc: 'Cartões de revisão frente e verso para imprimir' },
   };
 
-  const smallActivities: GameMode[] = ['story', 'quiz', 'wordsearch', 'crossword', 'bingo', 'memory'];
+  const smallActivities: GameMode[] = ['sequencia', 'flashcard', 'story', 'quiz', 'wordsearch', 'crossword', 'bingo', 'memory'];
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="pb-40">
       <Header setScreen={setScreen} title="Estúdio" subtitle="Gamificação de Aulas" profile={profile} notifications={notifications} setNotifications={setNotifications} bannerImage="https://i.ibb.co/tPMphWm0/Design-sem-nome-20260520-142758-0000.png" />
 
       <div className="px-1 mb-6">
-        <p className="text-sm text-gray-500 leading-relaxed">Transforme qualquer conteúdo em atividades gamificadas que prendem a atenção da turma.</p>
+        <p className="text-sm text-gray-500 leading-relaxed">Transforme qualquer conteúdo em sequências didáticas, flashcards e atividades gamificadas que prendem a atenção da turma.</p>
       </div>
 
       {/* ESCAPE ROOM — destaque */}
@@ -7691,12 +7690,23 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
                       </div>
                     </>
                   )}
-                  {(activeMode === 'crossword' || activeMode === 'memory') && (
+                  {(activeMode === 'crossword' || activeMode === 'memory' || activeMode === 'flashcard') && (
                     <div>
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        {activeMode === 'memory' ? 'Quantidade de pares' : 'Quantidade de palavras'}
+                        {activeMode === 'memory' ? 'Quantidade de pares' : activeMode === 'flashcard' ? 'Quantidade de cartões' : 'Quantidade de palavras'}
                       </label>
                       <input type="number" min={5} max={20} value={count} onChange={e => setCount(Math.max(5, Math.min(20, parseInt(e.target.value) || 10)))} className="w-full mt-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm" />
+                    </div>
+                  )}
+
+                  {activeMode === 'sequencia' && (
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Duração</label>
+                      <select value={duration} onChange={e => setDuration(e.target.value)} className="w-full mt-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm">
+                        <option value="1 aula">1 aula (3 etapas)</option>
+                        <option value="1 semana">1 semana (5 etapas)</option>
+                        <option value="1 bimestre">1 bimestre (8 etapas)</option>
+                      </select>
                     </div>
                   )}
 
@@ -7781,8 +7791,9 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
 
               {result && (() => {
                 const activityLabels: Record<GameMode, string> = {
-                  story: 'Campanha Narrativa', quiz: 'Quiz Avaliativo', wordsearch: 'Caca-Palavras',
-                  crossword: 'Palavras Cruzadas', bingo: 'Bingo Educativo', escape: 'Escape Room', memory: 'Jogo da Memoria'
+                  story: 'Campanha Narrativa', quiz: 'Quiz Avaliativo', wordsearch: 'Caça-Palavras',
+                  crossword: 'Palavras Cruzadas', bingo: 'Bingo Educativo', escape: 'Escape Room', memory: 'Jogo da Memória',
+                  sequencia: 'Sequência Didática', flashcard: 'Flashcards'
                 };
                 const printOpts = {
                   title: result.title || topic,
@@ -7845,7 +7856,7 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
 
                     {activeMode === 'quiz' && result.questions && (
                       <>
-                        <div className="instructions"><b>Instrucoes:</b> Leia cada questao com atencao e marque a alternativa correta.</div>
+                        <div className="instructions"><b>Instruções:</b> Leia cada questão com atenção e marque a alternativa correta.</div>
                         <div className="space-y-3">
                           {result.questions.map((q: any, i: number) => (
                             <div key={i} className="quiz-q">
@@ -7870,7 +7881,7 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
 
                     {activeMode === 'wordsearch' && result.grid && (
                       <>
-                        <div className="instructions"><b>Instrucoes:</b> Encontre todas as palavras da lista escondidas na grade. Elas podem aparecer na horizontal, vertical ou diagonal.</div>
+                        <div className="instructions"><b>Instruções:</b> Encontre todas as palavras da lista escondidas na grade. Elas podem aparecer na horizontal, vertical ou diagonal.</div>
                         <div className="ws-wrapper">
                           <div className="ws-grid" style={{ gridTemplateColumns: `repeat(${result.grid.length}, 24px)` }}>
                             {result.grid.flatMap((row: string[], r: number) => row.map((cell: string, c: number) => (
@@ -7887,7 +7898,7 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
 
                     {activeMode === 'crossword' && result.words && (
                       <>
-                        <div className="instructions"><b>Instrucoes:</b> Leia cada definição e preencha as palavras na grade — uma letra por quadrado.</div>
+                        <div className="instructions"><b>Instruções:</b> Leia cada definição e preencha as palavras na grade — uma letra por quadrado.</div>
                         {result.crossword ? (
                           <>
                             <div className="overflow-x-auto">
@@ -8001,7 +8012,7 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
 
                     {activeMode === 'memory' && result.pairs && (
                       <>
-                        <div className="instructions"><b>Como jogar:</b> Imprima, recorte pelas linhas tracejadas e embaralhe as cartas. Cada aluno (ou dupla) tenta encontrar os pares conceito-definicao virando duas cartas por vez.</div>
+                        <div className="instructions"><b>Como jogar:</b> Imprima, recorte pelas linhas tracejadas e embaralhe as cartas. Cada aluno (ou dupla) tenta encontrar os pares conceito-definição virando duas cartas por vez.</div>
                         <div className="memory-grid">
                           {result.pairs.flatMap((p: any, i: number) => [
                             <div key={`c-${i}`} className="memory-pair concept">
@@ -8010,6 +8021,33 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
                             </div>,
                             <div key={`d-${i}`} className="memory-pair">{p.definition}</div>
                           ])}
+                        </div>
+                      </>
+                    )}
+
+                    {activeMode === 'sequencia' && result.markdown && (
+                      <div className="markdown-body prose prose-sm max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.markdown}</ReactMarkdown>
+                      </div>
+                    )}
+
+                    {activeMode === 'flashcard' && result.cards && (
+                      <>
+                        <div className="instructions"><b>Como usar:</b> Imprima, recorte pelas linhas tracejadas e dobre cada cartão ao meio — a pergunta fica na frente e a resposta no verso. Ideal para revisão individual, em duplas ou jogo rápido de perguntas.</div>
+                        <div className="memory-grid">
+                          {result.cards.map((c: any, i: number) => (
+                            <React.Fragment key={i}>
+                              <div className="memory-pair concept">
+                                {c.emoji && <span style={{fontSize:18,display:'block',marginBottom:2}}>{c.emoji}</span>}
+                                <span style={{fontSize:9,display:'block',opacity:0.6,marginBottom:2,letterSpacing:1}}>FRENTE · {i + 1}</span>
+                                {c.front}
+                              </div>
+                              <div className="memory-pair">
+                                <span style={{fontSize:9,display:'block',opacity:0.6,marginBottom:2,letterSpacing:1}}>VERSO · {i + 1}</span>
+                                {c.back}
+                              </div>
+                            </React.Fragment>
+                          ))}
                         </div>
                       </>
                     )}
@@ -8025,32 +8063,188 @@ Retorne APENAS JSON: {"title":"...","pairs":[{"concept":"...","definition":"..."
   );
 };
 
+const printPlannerContent = (title: string, content: string, type: 'plan' | 'activities' | 'exam', teacherName?: string, schoolName?: string) => {
+  const w = window.open('', '_blank', 'width=900,height=700');
+  if (!w) return;
+  const typeLabel = { plan: 'Plano de Aula', activities: 'Atividades', exam: 'Avaliação' }[type];
+  const today = new Date().toLocaleDateString('pt-BR');
+  const htmlContent = content
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^---$/gm, '<hr>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`)
+    .replace(/\n/g, '<br>');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>
+    @page { size: A4; margin: 2cm; }
+    * { box-sizing: border-box; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1f2937; line-height: 1.6; margin: 0; font-size: 12px; }
+    .header { background: #4338ca; color: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .header-left h1 { margin: 0 0 4px; font-size: 20px; font-weight: 900; }
+    .header-left .tag { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 3px 10px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; margin-bottom: 8px; }
+    .header-meta { font-size: 9px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 8px; }
+    .field { border-bottom: 1px solid rgba(255,255,255,0.4); padding-bottom: 2px; }
+    .field-label { font-size: 7.5px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 1px; text-transform: uppercase; }
+    .field-val { font-size: 10px; color: white; font-weight: 600; min-height: 14px; }
+    h1 { font-size: 16px; font-weight: 900; color: #1e293b; margin: 20px 0 6px; border-left: 4px solid #4338ca; padding-left: 10px; }
+    h2 { font-size: 13px; font-weight: 900; color: white; background: #4338ca; padding: 4px 12px; border-radius: 6px; display: inline-block; margin: 14px 0 6px; }
+    h3 { font-size: 12px; font-weight: 700; color: #334155; margin: 10px 0 4px; }
+    p, li { margin: 4px 0; font-size: 11.5px; }
+    ul { padding-left: 20px; margin: 4px 0; }
+    hr { border: none; border-top: 1px solid #e2e8f0; margin: 16px 0; }
+    strong { font-weight: 800; color: #0f172a; }
+    .footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 9px; color: #94a3b8; text-align: center; }
+  </style></head><body>
+  <div class="header">
+    <div class="header-left">
+      <div class="tag">${typeLabel}</div>
+      <h1>${title}</h1>
+      <div class="header-meta">Gerado pelo Prof. Corujão · ${today}</div>
+      <div class="fields">
+        <div class="field"><div class="field-label">PROFESSOR(A)</div><div class="field-val">${teacherName || ''}</div></div>
+        <div class="field"><div class="field-label">DATA</div><div class="field-val"></div></div>
+        <div class="field"><div class="field-label">ESCOLA</div><div class="field-val">${schoolName || ''}</div></div>
+        <div class="field"><div class="field-label">TURMA</div><div class="field-val"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="content">${htmlContent}</div>
+  <div class="footer">Prof. Corujão — Material gerado por IA · Revise antes de usar</div>
+  <script>window.onload = () => { window.print(); }<\/script>
+  </body></html>`);
+  w.document.close();
+};
+
 const AcervoScreen = ({ savedResources, setSavedResources, profile, setScreen, notifications, setNotifications }: { savedResources: SavedResource[], setSavedResources: (r: SavedResource[]) => void, profile: UserProfile, setScreen: (s: Screen) => void, notifications?: any[], setNotifications?: (n: any[]) => void }) => {
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const typeMeta: Record<string, { color: string; label: string; icon: React.ReactNode }> = {
+    slides:     { color: 'bg-indigo-500',  label: 'Slides',     icon: <Presentation size={18} /> },
+    activities: { color: 'bg-amber-500',   label: 'Atividades', icon: <FileText size={18} /> },
+    exam:       { color: 'bg-emerald-500', label: 'Prova',      icon: <FileQuestion size={18} /> },
+    plan:       { color: 'bg-cyan-500',    label: 'Plano',      icon: <BookOpen size={18} /> },
+  };
+
+  const filtered = savedResources
+    .filter(r => typeFilter === 'all' || r.type === typeFilter)
+    .filter(r => !search.trim() || r.title.toLowerCase().includes(search.trim().toLowerCase()))
+    .sort((a, b) => b.date - a.date);
+
+  const handleDelete = (id: string) => {
+    setSavedResources(savedResources.filter(r => r.id !== id));
+    setDeleteConfirmId(null);
+  };
+
+  const handlePrint = (resource: SavedResource) => {
+    const content = typeof resource.content === 'string' ? resource.content : '';
+    if (!content) { toast.info('Esse material não tem conteúdo de texto para imprimir.'); return; }
+    printPlannerContent(resource.title, content, resource.type as 'plan' | 'activities' | 'exam', profile.name, profile.schoolName);
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="pb-40">
       <Header setScreen={setScreen} title="Histórico" subtitle="Materiais gerados recentemente" profile={profile} notifications={notifications} setNotifications={setNotifications} />
+
+      {savedResources.length > 0 && (
+        <>
+          {/* Search */}
+          <div className="relative mb-3">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por título..."
+              className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-2xl focus:outline-none focus:border-indigo-400 bg-white"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Type filter chips */}
+          <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+            {[['all','Todos'], ['slides','Slides'], ['activities','Atividades'], ['exam','Provas'], ['plan','Planos']].map(([v, l]) => (
+              <button key={v} onClick={() => setTypeFilter(v)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0 transition-colors ${typeFilter === v ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* Count */}
+          <p className="text-xs text-gray-400 font-medium mb-3 px-1">
+            {filtered.length} {filtered.length === 1 ? 'material' : 'materiais'}{typeFilter !== 'all' || search ? ' encontrados' : ' no total'}
+          </p>
+        </>
+      )}
+
       {savedResources.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           <Archive size={44} className="mx-auto mb-3 opacity-20" />
           <p className="text-sm font-medium">Nenhum material salvo</p>
           <button onClick={() => setScreen('planner')} className="mt-4 bg-indigo-600 text-white px-6 py-2.5 rounded-full text-sm font-bold">Criar Material</button>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-10 text-gray-400">
+          <Search size={36} className="mx-auto mb-3 opacity-20" />
+          <p className="text-sm font-medium">Nenhum material encontrado</p>
+          <button onClick={() => { setSearch(''); setTypeFilter('all'); }} className="mt-3 text-indigo-600 text-sm font-bold">Limpar filtros</button>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {savedResources.map(resource => (
-            <div key={resource.id} className="bg-white rounded-2xl p-4 border border-gray-50 shadow-sm flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 ${resource.type === 'slides' ? 'bg-indigo-500' : resource.type === 'activities' ? 'bg-amber-500' : resource.type === 'plan' ? 'bg-cyan-500' : 'bg-emerald-500'}`}>
-                {resource.type === 'slides' ? <Presentation size={20} /> : resource.type === 'activities' ? <FileText size={20} /> : resource.type === 'plan' ? <BookOpen size={20} /> : <FileQuestion size={20} />}
+        <div className="space-y-3">
+          {filtered.map(resource => {
+            const meta = typeMeta[resource.type] || typeMeta.plan;
+            const hasTextContent = typeof resource.content === 'string' && !!resource.content;
+            return (
+              <div key={resource.id} className="bg-white rounded-2xl p-4 border border-gray-50 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 ${meta.color}`}>
+                    {meta.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-900 text-sm leading-snug truncate">{resource.title}</h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white ${meta.color}`}>{meta.label}</span>
+                      <span className="text-[10px] text-gray-400">{new Date(resource.date).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {hasTextContent && (
+                      <button
+                        onClick={() => handlePrint(resource)}
+                        className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-indigo-400 active:scale-90 transition-transform"
+                        title="Imprimir / PDF"
+                      >
+                        <Download size={15} />
+                      </button>
+                    )}
+                    {deleteConfirmId === resource.id ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleDelete(resource.id)} className="px-2.5 py-1.5 bg-red-500 text-white text-xs font-bold rounded-xl">Excluir</button>
+                        <button onClick={() => setDeleteConfirmId(null)} className="px-2.5 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-xl">Não</button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setDeleteConfirmId(resource.id)}
+                        className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-red-300 active:scale-90 transition-transform"
+                        title="Excluir"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-gray-900 truncate">{resource.title}</h3>
-                <span className="text-xs text-gray-400">{new Date(resource.date).toLocaleDateString()}</span>
-              </div>
-              <button onClick={() => setSavedResources(savedResources.filter(r => r.id !== resource.id))} className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors">
-                <Plus size={20} className="rotate-45" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </motion.div>
@@ -9797,13 +9991,13 @@ function AppInner() {
     }]);
   };
 
-  const getSlidesPrompt = (topicText: string, className: string, tone: string, complexity: string, focus: string, groundingContent: string, slideCount: number) => `Você é um Diretor de Arte Sênior. Sua tarefa é analisar o conteúdo do usuário e transformá-lo em uma apresentação de ${slideCount} slides sobre "${topicText}". 
-        Turma: "${className}"
+  const getSlidesPrompt = (topicText: string, className: string, tone: string, complexity: string, focus: string, groundingContent: string, slideCount: number, level?: string) => `Você é um Diretor de Arte Sênior. Sua tarefa é analisar o conteúdo do usuário e transformá-lo em uma apresentação de ${slideCount} slides sobre "${topicText}".
+        Turma: "${className}"${level ? `\n        Nível de ensino: ${level}${level.toLowerCase().includes('infantil') ? ' — linguagem MUITO simples e lúdica, frases curtíssimas, priorize slides visuais (LAYOUT_FULL_IMAGE, LAYOUT_TOPICS com poucos itens), sem textos longos' : level.toLowerCase().includes('fundamental') ? ' — linguagem clara e acessível, exemplos do cotidiano' : level.toLowerCase().includes('médio') || level.toLowerCase().includes('medio') ? ' — pode aprofundar conceitos e usar vocabulário técnico com definições' : ''}` : ''}
         Tom: ${tone}
         Complexidade: ${complexity}
         Foco: ${focus}
         ${groundingContent ? `Conteúdo Base para Grounding: ${groundingContent}` : ''}
-        
+
         Crie uma apresentação adaptada a estes parâmetros.
         
         LAYOUTS DISPONÍVEIS — escolha o mais adequado para cada slide:
@@ -9951,22 +10145,46 @@ function AppInner() {
       const desenvolvimento = Math.round(plannerLessonTime * 0.65);
       const fechamento = plannerLessonTime - abertura - desenvolvimento;
 
+      const classLevel = selectedClass?.level || '';
+      const isEarlyChildhood = classLevel.toLowerCase().includes('infantil');
+      const isFundamental = classLevel.toLowerCase().includes('fundamental');
+      const isMedio = classLevel.toLowerCase().includes('médio') || classLevel.toLowerCase().includes('medio');
+
       // ── Solução 2: selecionar habilidades BNCC do banco local ──────────────
-      const bnccSkills = selectBnccSkills(selectedClass?.subject || profile.subject || '', className, targetTopic, 4);
+      const bnccSkills = isEarlyChildhood ? [] : selectBnccSkills(selectedClass?.subject || profile.subject || '', className, targetTopic, 4);
       const bnccBlock  = bnccSkills.length > 0
         ? bnccSkills.map(s => `- ${s.code} — ${s.desc}`).join('\n')
-        : '- [escolha habilidades BNCC reais para a disciplina e série]';
+        : isEarlyChildhood
+          ? '- [Campos de Experiências da BNCC-EI pertinentes]'
+          : '- [escolha habilidades BNCC reais para a disciplina e série]';
+
+      const levelContext = isEarlyChildhood
+        ? `NÍVEL: Educação Infantil — use linguagem lúdica, brincadeiras, histórias, músicas e atividades sensoriais. Foco no brincar, explorar e interagir. Evite avaliações formais.`
+        : isFundamental
+          ? `NÍVEL: Ensino Fundamental — equilibre teoria e prática, use exemplos do cotidiano, atividades em grupo e recursos visuais.`
+          : isMedio
+            ? `NÍVEL: Ensino Médio — aprofunde conceitos, estimule pensamento crítico, análise e produção textual. Conecte com ENEM e vestibular quando pertinente.`
+            : '';
+
+      const bnccSectionTitle = isEarlyChildhood ? 'CAMPOS DE EXPERIÊNCIAS (BNCC-EI)' : 'HABILIDADE (BNCC)';
+      const bnccSectionInstructions = isEarlyChildhood
+        ? 'Liste os Campos de Experiências da BNCC da Educação Infantil relacionados (ex: O eu, o outro e o nós; Corpo, gestos e movimentos; Traços, sons, cores e formas; Espaços, tempos, quantidades, relações e transformações; Escuta, fala, pensamento e imaginação).'
+        : 'USE OBRIGATORIAMENTE as habilidades abaixo (são códigos reais verificados). Copie os códigos exatamente:';
+
+      const avaliacaoBlock = isEarlyChildhood
+        ? '## AVALIAÇÃO / REGISTRO\n[Formas de registro e observação — ex: portfólio, registros fotográficos, roda de conversa, observação sistemática. SEM provas ou notas na Ed. Infantil.]'
+        : `## AVALIAÇÃO\n[Instrumento de avaliação e critérios — ex: observação, exercícios, portfólio, rubricas]`;
 
       // ── Solução 1: injetar habilidades reais no prompt ──────────────────
       const prompt = `Você é um pedagogo especialista. Gere um PLANO DE AULA completo e profissional.
-Tópico: "${targetTopic}" | Turma: "${className}" | Turno: ${plannerTurn.charAt(0).toUpperCase() + plannerTurn.slice(1)} | Tom: ${toneMap[plannerTone]} | Complexidade: ${complexityMap[plannerComplexity]} | Foco: ${focusMap[plannerFocus]}
+${levelContext ? levelContext + '\n' : ''}Tópico: "${targetTopic}" | Turma: "${className}" | Turno: ${plannerTurn.charAt(0).toUpperCase() + plannerTurn.slice(1)} | Tom: ${toneMap[plannerTone]} | Complexidade: ${complexityMap[plannerComplexity]} | Foco: ${focusMap[plannerFocus]}
 Quantidade de aulas: ${plannerDuration} | Duração por aula: ${plannerLessonTime} min (abertura: ${abertura}min · desenvolvimento: ${desenvolvimento}min · fechamento: ${fechamento}min)
 
 Responda SOMENTE com as seções abaixo em Markdown, substituindo todos os campos [ ] por conteúdo real e pertinente.
 PROIBIDO: introduções, saudações, comentários, tabelas Markdown (| coluna |) ou qualquer texto fora da estrutura abaixo.
 
 ## ÁREA DE CONHECIMENTO
-[Área — ex: Ciências da Natureza, Linguagens, Matemática, Ciências Humanas, Ensino Religioso]
+[Área — ex: Ciências da Natureza, Linguagens, Matemática, Ciências Humanas${isEarlyChildhood ? ', Educação Infantil' : ''}]
 
 ## EIXO/UNIDADE TEMÁTICA
 [Eixo temático ou unidade curricular que abrange "${targetTopic}"]
@@ -9974,30 +10192,29 @@ PROIBIDO: introduções, saudações, comentários, tabelas Markdown (| coluna |
 ## CONTEÚDO
 [Lista dos conteúdos a serem trabalhados na(s) aula(s)]
 
-## OBJETIVOS
-[Lista de objetivos de aprendizagem em verbos de ação — identificar, analisar, comparar, produzir, etc.]
+## OBJETIVOS${isEarlyChildhood ? ' DE APRENDIZAGEM E DESENVOLVIMENTO' : ''}
+[Lista de objetivos em verbos de ação — ${isEarlyChildhood ? 'explorar, criar, expressar, interagir, investigar, brincar, desenvolver' : 'identificar, analisar, comparar, produzir, argumentar, resolver'}]
 
 ## PERGUNTAS MOBILIZADORAS DE APRENDIZAGEM
-[2 ou 3 perguntas que orientam e motivam a aprendizagem sobre "${targetTopic}"]
+[2 ou 3 perguntas que orientam e motivam a aprendizagem sobre "${targetTopic}"${isEarlyChildhood ? ' — linguagem acessível e lúdica para crianças' : ''}]
 
 ## METODOLOGIA
 [Sequência didática detalhada:
-• Abertura (${abertura}min): estratégia de motivação ou levantamento de conhecimentos prévios
-• Desenvolvimento (${desenvolvimento}min): sequência de atividades com metodologia ativa, explicação e fixação
-• Fechamento (${fechamento}min): síntese, avaliação formativa e consolidação]
+• Abertura (${abertura}min): ${isEarlyChildhood ? 'roda de conversa, música, história ou brincadeira de apresentação do tema' : 'estratégia de motivação ou levantamento de conhecimentos prévios'}
+• Desenvolvimento (${desenvolvimento}min): ${isEarlyChildhood ? 'atividades lúdicas, exploração sensorial, brincadeiras dirigidas, arte e expressão corporal relacionadas ao tema' : 'sequência de atividades com metodologia ativa, explicação e fixação'}
+• Fechamento (${fechamento}min): ${isEarlyChildhood ? 'roda de socialização, registro expressivo (desenho, colagem), cantinho da descoberta' : 'síntese, avaliação formativa e consolidação'}]
 
-## Habilidade (BNCC)
-USE OBRIGATORIAMENTE as habilidades abaixo (são códigos reais verificados). Copie os códigos exatamente:
+## ${bnccSectionTitle}
+${bnccSectionInstructions}
 ${bnccBlock}
 
 ## RECURSOS DIDÁTICOS
-[Lista de recursos necessários — ex: quadro branco, projetor, materiais manipulativos, textos]
+[Lista de recursos — ${isEarlyChildhood ? 'ex: livros ilustrados, fantasias, tintas, massinha, instrumentos musicais, natureza, fantoches, blocos, jogos simbólicos' : 'ex: quadro branco, projetor, materiais manipulativos, textos'}]
 
-## AVALIAÇÃO
-[Instrumento de avaliação e critérios — ex: observação, lista de exercícios, portfólio, rubricas]
+${avaliacaoBlock}
 
 ## REFERÊNCIAS
-[2 ou 3 referências bibliográficas em formato ABNT]`;
+[2 ou 3 referências bibliográficas em formato ABNT${isEarlyChildhood ? ' — inclua documentos BNCC e Referencial Curricular Nacional para Educação Infantil (RCNEI)' : ''}]`;
 
       const response = await generateContentWithRetry({ model: AI_MODEL, contents: prompt });
       const planDraft = response.text || '';
@@ -10024,7 +10241,7 @@ ${bnccBlock}
       updateTask(taskId, { status: 'completed', result: planResult });
       recordGeneration();
     } catch (error) {
-      updateTask(taskId, { status: 'error', error: formatApiError(error, 'Nao consegui montar o plano dessa vez. Tente novamente.') });
+      updateTask(taskId, { status: 'error', error: formatApiError(error, 'Não consegui montar o plano dessa vez. Tente novamente.') });
     }
   };
 
@@ -10040,7 +10257,7 @@ ${bnccBlock}
       const className = selectedClass ? selectedClass.name : 'Geral';
 
       if (type === 'slides') {
-        const prompt = getSlidesPrompt(targetTopic, className, plannerTone, plannerComplexity, plannerFocus, plannerGroundingContent, plannerSlideCount);
+        const prompt = getSlidesPrompt(targetTopic, className, plannerTone, plannerComplexity, plannerFocus, plannerGroundingContent, plannerSlideCount, selectedClass?.level);
         const response = await generateContentWithRetry({ model: AI_MODEL, contents: prompt });
         let text = (response.text || '{}').replace(/```json/g, '').replace(/```/g, '').trim();
         // Recover JSON even if the model wraps it in extra text
@@ -10084,13 +10301,17 @@ ${bnccBlock}
         const professorStr = profile.name || '_________________';
         const disciplinaStr = selectedClass?.subject || profile.subject || '_________________';
         
+        const resClassLevel = selectedClass?.level || '';
+        const resIsEarlyChildhood = resClassLevel.toLowerCase().includes('infantil');
         const complexityLabel = { basic: 'Básico (Ensino Fundamental)', intermediate: 'Intermediário (Ensino Médio)', advanced: 'Avançado (Superior/Técnico)' }[plannerComplexity] || plannerComplexity;
         const mcPts  = parseFloat((plannerExamValue / 10).toFixed(1));
         const dissPts = parseFloat((plannerExamValue / 4).toFixed(1));
         const examDurStr = plannerExamDuration < 60 ? `${plannerExamDuration} min` : plannerExamDuration === 60 ? '1 hora' : `${Math.floor(plannerExamDuration/60)}h${plannerExamDuration%60 > 0 ? plannerExamDuration%60+'min' : ''}`;
 
         const qtLabel: Record<string, string> = { mista: 'Varie os tipos entre as questões: múltipla escolha, completar lacunas, V/F com justificativa, relacionar colunas, produção textual ou resolução de problema.', multipla_escolha: 'Todas as questões são de MÚLTIPLA ESCOLHA com 4 alternativas (A, B, C, D), apenas uma correta.', dissertativa: 'Todas as questões são DISSERTATIVAS (resposta aberta), com 5 linhas de resposta.' };
-        const qtInstruction = qtLabel[plannerQuestionType] || qtLabel.mista;
+        const qtInstruction = resIsEarlyChildhood
+          ? 'Use atividades LÚDICAS e visuais adequadas à Ed. Infantil: colorir, ligar com setas, identificar figuras, completar com desenho, circular a resposta correta com imagens. SEM leitura extensa ou escrita formal.'
+          : qtLabel[plannerQuestionType] || qtLabel.mista;
 
         const prompt = type === 'exam'
           ? `Você é um professor especialista. Gere uma AVALIAÇÃO FORMAL sobre "${targetTopic}" para a turma "${className}" (nível: ${complexityLabel}).
@@ -10209,7 +10430,7 @@ REGRAS: Substitua TODOS os [ ] por conteúdo real sobre "${targetTopic}". PROIBI
         recordGeneration();
       }
     } catch (error) {
-      updateTask(taskId, { status: 'error', error: formatApiError(error, 'Esse material nao saiu como esperado. Tente novamente.') });
+      updateTask(taskId, { status: 'error', error: formatApiError(error, 'Esse material não saiu como esperado. Tente novamente.') });
     }
   };
 
