@@ -9798,6 +9798,7 @@ const DiarioModal = ({ user, schedules, profile, onClose, setScreen }: {
   }, [schedules, classId]);
   const [showGrades, setShowGrades] = useState(false);
   const [newStudentName, setNewStudentName] = useState('');
+  const [diarioBulkNames, setDiarioBulkNames] = useState('');
 
   const cls = gamiClasses.find(c => c.id === classId);
   const students = useMemo(() => [...(cls?.students ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')), [cls]);
@@ -9902,20 +9903,41 @@ const DiarioModal = ({ user, schedules, profile, onClose, setScreen }: {
             <button onClick={() => { onClose(); setScreen('calendar'); }} className="mt-4 bg-indigo-600 text-white text-sm font-bold px-5 py-2.5 rounded-2xl">Ir para a Agenda</button>
           </div>
         ) : students.length === 0 ? (
-          <div className="text-center py-10 space-y-4">
-            <span className="text-5xl">🦉</span>
-            <p className="text-gray-500 text-sm font-bold">Essa turma ainda não tem alunos cadastrados.</p>
-            <div className="flex gap-2 max-w-xs mx-auto">
-              <input
-                value={newStudentName}
-                onChange={e => setNewStudentName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addStudent()}
-                placeholder="Nome do aluno"
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white"
-              />
-              <button onClick={addStudent} className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold"><Plus size={16} /></button>
+          <div className="py-6 space-y-4">
+            <div className="text-center">
+              <span className="text-5xl">🦉</span>
+              <p className="text-gray-700 text-sm font-bold mt-3">Nenhum aluno nessa turma ainda.</p>
+              <p className="text-[11px] text-gray-400 mt-1">Cole a lista da chamada abaixo — um nome por linha. Funciona nas duas telas.</p>
             </div>
-            <p className="text-[11px] text-gray-400">A lista é a mesma da Turma Gamificada — cadastre uma vez, use nas duas.</p>
+            <textarea
+              value={diarioBulkNames}
+              onChange={e => setDiarioBulkNames(e.target.value)}
+              rows={8}
+              placeholder={"Ana Beatriz\nCarlos Eduardo\nMariana Souza\nPedro Henrique\n..."}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400 resize-none bg-white"
+            />
+            {(() => {
+              const names = diarioBulkNames.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+              return (
+                <button
+                  onClick={() => {
+                    if (names.length === 0 || !classId) return;
+                    const newStudents: GamiStudent[] = names.map(name => ({ id: gamiRid(), name, xp: 0, totalXp: 0, weekXp: 0, coins: 0, badges: [], streak: 0 }));
+                    setGamiClasses(list => {
+                      const existing = list.find(c => c.id === classId);
+                      if (existing) return list.map(c => c.id === classId ? { ...c, students: [...c.students, ...newStudents] } : c);
+                      return [...list, { ...gamiDefaultClass(classId), students: newStudents }];
+                    });
+                    setDiarioBulkNames('');
+                    toast.success(`${names.length} aluno${names.length > 1 ? 's' : ''} cadastrado${names.length > 1 ? 's' : ''}!`);
+                  }}
+                  disabled={diarioBulkNames.trim().length === 0}
+                  className="w-full bg-indigo-600 disabled:opacity-40 text-white font-bold py-3 rounded-xl text-sm active:scale-[0.98] transition-transform"
+                >
+                  {names.length > 0 ? `+ Cadastrar ${names.length} aluno${names.length > 1 ? 's' : ''}` : 'Digite os nomes acima'}
+                </button>
+              );
+            })()}
           </div>
         ) : (
           <>
@@ -9962,18 +9984,51 @@ const DiarioModal = ({ user, schedules, profile, onClose, setScreen }: {
             </div>
 
             {/* Adicionar aluno inline */}
-            <div className="flex gap-2 mb-4">
-              <input
-                value={newStudentName}
-                onChange={e => setNewStudentName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addStudent()}
-                placeholder="+ Adicionar aluno"
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white"
-              />
-              {newStudentName.trim() && (
-                <button onClick={addStudent} className="bg-indigo-600 text-white px-4 rounded-xl font-bold"><Plus size={16} /></button>
-              )}
-            </div>
+            {diarioBulkNames ? (
+              <div className="space-y-2 mb-4">
+                <textarea
+                  value={diarioBulkNames}
+                  onChange={e => setDiarioBulkNames(e.target.value)}
+                  rows={5}
+                  placeholder={"Um nome por linha:\nAna\nCarlos\n..."}
+                  className="w-full border border-indigo-300 rounded-xl px-3 py-2 text-sm focus:outline-none bg-white resize-none"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => setDiarioBulkNames('')} className="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-sm">Cancelar</button>
+                  <button
+                    onClick={() => {
+                      const names = diarioBulkNames.split('\n').map(n => n.trim()).filter(n => n.length > 0 && !cls?.students.some(s => s.name.toLowerCase() === n.toLowerCase()));
+                      if (names.length === 0 || !classId) { setDiarioBulkNames(''); return; }
+                      const newStudents: GamiStudent[] = names.map(name => ({ id: gamiRid(), name, xp: 0, totalXp: 0, weekXp: 0, coins: 0, badges: [], streak: 0 }));
+                      setGamiClasses(list => {
+                        const existing = list.find(c => c.id === classId);
+                        if (existing) return list.map(c => c.id === classId ? { ...c, students: [...c.students, ...newStudents] } : c);
+                        return [...list, { ...gamiDefaultClass(classId), students: newStudents }];
+                      });
+                      setDiarioBulkNames('');
+                      toast.success(`${names.length} aluno${names.length > 1 ? 's' : ''} adicionado${names.length > 1 ? 's' : ''}!`);
+                    }}
+                    className="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl text-sm"
+                  >Adicionar lista</button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2 mb-4 items-center">
+                <input
+                  value={newStudentName}
+                  onChange={e => setNewStudentName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addStudent()}
+                  placeholder="+ Adicionar aluno"
+                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white"
+                />
+                {newStudentName.trim() ? (
+                  <button onClick={addStudent} className="bg-indigo-600 text-white px-4 rounded-xl font-bold py-2"><Plus size={16} /></button>
+                ) : (
+                  <button onClick={() => setDiarioBulkNames(' ')} className="text-indigo-500 text-xs font-bold whitespace-nowrap px-1">Colar lista</button>
+                )}
+              </div>
+            )}
 
             {/* Anotações do dia */}
             <div>
@@ -10024,6 +10079,8 @@ const GamificacaoScreen = ({
   const [newBehaviorPoints, setNewBehaviorPoints] = useState('3');
   const [newRewardLabel, setNewRewardLabel] = useState('');
   const [newRewardCost, setNewRewardCost] = useState('15');
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkNames, setBulkNames] = useState('');
 
   // Schedules chegam do Firestore de forma assíncrona: garante turma selecionada válida
   useEffect(() => {
@@ -10555,20 +10612,77 @@ const GamificacaoScreen = ({
 
             {configSection === 'students' && (
               <div className="space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    value={newStudentName}
-                    onChange={e => setNewStudentName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && addStudent()}
-                    placeholder="Nome do aluno"
-                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400"
-                  />
-                  <button onClick={addStudent} className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold">
-                    <Plus size={16} />
+                {/* Modo individual vs. lista em lote */}
+                <div className="flex gap-2 mb-1">
+                  <button onClick={() => { setBulkMode(false); setBulkNames(''); }} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${!bulkMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200'}`}>
+                    Um por vez
+                  </button>
+                  <button onClick={() => setBulkMode(true)} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${bulkMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200'}`}>
+                    Lista em lote
                   </button>
                 </div>
+
+                {!bulkMode ? (
+                  <div className="flex gap-2">
+                    <input
+                      value={newStudentName}
+                      onChange={e => setNewStudentName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && addStudent()}
+                      placeholder="Nome do aluno (Enter para adicionar)"
+                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400"
+                    />
+                    <button onClick={addStudent} className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold">
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <textarea
+                      value={bulkNames}
+                      onChange={e => setBulkNames(e.target.value)}
+                      rows={8}
+                      placeholder={"Cole ou escreva os nomes — um por linha:\n\nAna Beatriz\nCarlos Eduardo\nMariana\nPedro Henrique\n..."}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400 resize-none bg-white"
+                    />
+                    {(() => {
+                      const names = bulkNames.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+                      const newNames = names.filter(n => !currentCls.students.some(s => s.name.toLowerCase() === n.toLowerCase()));
+                      return (
+                        <button
+                          onClick={() => {
+                            if (newNames.length === 0) return;
+                            updateCls(cls => ({
+                              ...cls,
+                              students: [
+                                ...cls.students,
+                                ...newNames.map(name => ({ id: gamiRid(), name, xp: 0, totalXp: 0, weekXp: 0, coins: 0, badges: [], streak: 0 }))
+                              ]
+                            }));
+                            setBulkNames('');
+                            setBulkMode(false);
+                            toast.success(`${newNames.length} aluno${newNames.length > 1 ? 's' : ''} adicionado${newNames.length > 1 ? 's' : ''}!`);
+                          }}
+                          disabled={newNames.length === 0}
+                          className="w-full bg-indigo-600 disabled:opacity-40 text-white font-bold py-3 rounded-xl text-sm active:scale-[0.98] transition-transform"
+                        >
+                          {newNames.length > 0 ? `+ Adicionar ${newNames.length} aluno${newNames.length > 1 ? 's' : ''}` : 'Digite nomes acima'}
+                        </button>
+                      );
+                    })()}
+                    {bulkNames.split('\n').some(n => {
+                      const t = n.trim();
+                      return t.length > 0 && currentCls.students.some(s => s.name.toLowerCase() === t.toLowerCase());
+                    }) && (
+                      <p className="text-[11px] text-amber-600 font-medium px-1">Nomes já cadastrados serão ignorados automaticamente.</p>
+                    )}
+                  </div>
+                )}
+
                 {currentCls.students.length === 0 && (
                   <p className="text-center text-gray-400 text-sm py-4">Adicione alunos para começar a gamificação.</p>
+                )}
+                {currentCls.students.length > 0 && (
+                  <p className="text-[11px] text-gray-400 px-1">{currentCls.students.length} aluno{currentCls.students.length !== 1 ? 's' : ''} cadastrado{currentCls.students.length !== 1 ? 's' : ''} — ficam salvos automaticamente.</p>
                 )}
                 {currentCls.students.map(s => (
                   <div key={s.id} className="bg-white rounded-xl px-3 py-2.5 flex items-center justify-between shadow-sm border border-gray-100">
