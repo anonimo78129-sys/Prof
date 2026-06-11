@@ -10020,6 +10020,10 @@ const GamificacaoScreen = ({
   const [missionGoal, setMissionGoal] = useState('50');
   const [missionReward, setMissionReward] = useState('Recreio livre 5 min');
   const [teamStudentId, setTeamStudentId] = useState<string | null>(null);
+  const [newBehaviorLabel, setNewBehaviorLabel] = useState('');
+  const [newBehaviorPoints, setNewBehaviorPoints] = useState('3');
+  const [newRewardLabel, setNewRewardLabel] = useState('');
+  const [newRewardCost, setNewRewardCost] = useState('15');
 
   // Schedules chegam do Firestore de forma assíncrona: garante turma selecionada válida
   useEffect(() => {
@@ -10583,10 +10587,22 @@ const GamificacaoScreen = ({
 
             {configSection === 'teams' && (
               <div className="space-y-3">
-                {currentCls.teams.length === 0 && (
+                {currentCls.teams.length === 0 ? (
                   <button onClick={() => updateCls(cls => ({ ...cls, teams: GAMI_TEAM_PRESETS.slice(0, 4).map(t => ({ ...t, id: gamiRid() })) }))} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-sm active:scale-[0.98] transition-transform">
                     + Criar 4 equipes padrão
                   </button>
+                ) : (
+                  <div className="flex gap-2 flex-wrap">
+                    {GAMI_TEAM_PRESETS.filter(p => !currentCls.teams.some(t => t.name === p.name)).map(p => (
+                      <button
+                        key={p.name}
+                        onClick={() => updateCls(cls => ({ ...cls, teams: [...cls.teams, { ...p, id: gamiRid() }] }))}
+                        className="flex items-center gap-1 bg-white border border-gray-200 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full active:scale-95 transition-transform"
+                      >
+                        {p.emoji} + {p.name}
+                      </button>
+                    ))}
+                  </div>
                 )}
                 {currentCls.teams.map(team => {
                   const members = currentCls.students.filter(s => s.teamId === team.id);
@@ -10630,7 +10646,8 @@ const GamificacaoScreen = ({
                   <div key={b.id} className="bg-white rounded-xl px-3 py-2.5 flex items-center gap-3 shadow-sm border border-gray-100">
                     <span className="text-xl">{b.emoji}</span>
                     <span className="flex-1 text-sm font-bold text-gray-800">{b.label}</span>
-                    <span className={`text-sm font-black tabular-nums ${b.points > 0 ? 'text-emerald-500' : 'text-red-400'}`}>{b.points > 0 ? '+' : ''}{b.points} XP</span>
+                    <span className={`text-sm font-black tabular-nums mr-1 ${b.points > 0 ? 'text-emerald-500' : 'text-red-400'}`}>{b.points > 0 ? '+' : ''}{b.points} XP</span>
+                    <button onClick={() => updateCls(cls => ({ ...cls, behaviors: cls.behaviors.filter(x => x.id !== b.id) }))} className="text-red-300 hover:text-red-500 p-1 transition-colors"><Trash2 size={14} /></button>
                   </div>
                 ))}
                 {currentCls.behaviors.length === 0 && (
@@ -10638,6 +10655,28 @@ const GamificacaoScreen = ({
                     + Restaurar ações padrão
                   </button>
                 )}
+                <div className="bg-gray-50 rounded-xl p-3 space-y-2 border border-gray-200">
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Nova ação personalizada</p>
+                  <input value={newBehaviorLabel} onChange={e => setNewBehaviorLabel(e.target.value)} placeholder="Ex: Apresentou trabalho..." maxLength={60} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white" />
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] font-bold text-gray-400 mb-0.5 block">Pontos (negativo = penalidade)</label>
+                      <input type="number" value={newBehaviorPoints} onChange={e => setNewBehaviorPoints(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white" />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const label = newBehaviorLabel.trim();
+                        const pts = parseInt(newBehaviorPoints) || 0;
+                        if (!label) return;
+                        const emoji = pts > 0 ? '⭐' : '⚠️';
+                        updateCls(cls => ({ ...cls, behaviors: [...cls.behaviors, { id: gamiRid(), label, points: pts, emoji }] }));
+                        setNewBehaviorLabel(''); setNewBehaviorPoints('3');
+                        toast.success('Ação adicionada!');
+                      }}
+                      className="self-end bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm"
+                    >+ Add</button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -10659,6 +10698,27 @@ const GamificacaoScreen = ({
                     + Restaurar recompensas padrão
                   </button>
                 )}
+                <div className="bg-gray-50 rounded-xl p-3 space-y-2 border border-gray-200">
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Nova recompensa personalizada</p>
+                  <input value={newRewardLabel} onChange={e => setNewRewardLabel(e.target.value)} placeholder="Ex: Jogar jogo no computador..." maxLength={60} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white" />
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] font-bold text-gray-400 mb-0.5 block">Custo em 🪙 corujinhas</label>
+                      <input type="number" value={newRewardCost} onChange={e => setNewRewardCost(e.target.value)} min={1} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white" />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const label = newRewardLabel.trim();
+                        const cost = parseInt(newRewardCost) || 1;
+                        if (!label) return;
+                        updateCls(cls => ({ ...cls, rewards: [...cls.rewards, { id: gamiRid(), label, cost, emoji: '🎁' }] }));
+                        setNewRewardLabel(''); setNewRewardCost('15');
+                        toast.success('Recompensa adicionada!');
+                      }}
+                      className="self-end bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-sm"
+                    >+ Add</button>
+                  </div>
+                </div>
               </div>
             )}
 
