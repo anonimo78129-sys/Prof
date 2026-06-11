@@ -6327,15 +6327,15 @@ const buildCrosswordGrid = (rawWords: {word: string, clue: string}[]) => {
   return {grid: trimmed, cellNumbers: Object.fromEntries(cellNum), across, down};
 };
 
-const STORY_SECTIONS = ['🌍 Cenário', '👥 Classes de Personagens', '⚔️ Missões', '🏆 Sistema de Pontos', '👑 Boss Final', '📋 Roteiro do Professor'];
+const STORY_SECTIONS = ['🗺️ Quem é Quem', '📖 A História', '🎬 Atividade'];
 
-const generateStoryImages = async (topic: string, genre: string): Promise<Record<string, string>> => {
+const generateStoryImages = async (topic: string, popTheme: string): Promise<Record<string, string>> => {
   const apiKey = process.env.PIXABAY_API_KEY;
   if (!apiKey) return {};
   try {
-    const keywordPrompt = `For a gamified storytelling campaign about "${topic}" (genre: ${genre}), generate one short English search keyword (2-4 words) per section to find an illustration on Pixabay.
+    const keywordPrompt = `For an educational narrative-metaphor story that teaches "${topic}" set in the pop-culture universe of "${popTheme}", generate one short English search keyword (2-4 words) per section to find an illustration on Pixabay.
 Return ONLY valid JSON with these exact keys:
-{"🌍 Cenário":"...","👥 Classes de Personagens":"...","⚔️ Missões":"...","🏆 Sistema de Pontos":"...","👑 Boss Final":"...","📋 Roteiro do Professor":"..."}`;
+{"🗺️ Quem é Quem":"...","📖 A História":"...","🎬 Atividade":"..."}`;
     const response = await generateContentWithRetry({ model: AI_MODEL, contents: keywordPrompt });
     const raw = response.text || '';
     const cleaned = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
@@ -6587,7 +6587,7 @@ const printGameResult = (opts: { title: string, subject?: string, level?: string
     (function(){
       var label = "${opts.activityLabel}";
       var themes = {
-        'Campanha Narrativa':    { ac:'#7c3aed', light:'#f5f3ff', emoji:'📖' },
+        'Metafora Narrativa':    { ac:'#c026d3', light:'#fdf4ff', emoji:'📖' },
         'Quiz Avaliativo':       { ac:'#ea580c', light:'#fff7ed', emoji:'⚡' },
         'Caca-Palavras':         { ac:'#2563eb', light:'#eff6ff', emoji:'🔍' },
         'Palavras Cruzadas':     { ac:'#0d9488', light:'#f0fdfa', emoji:'✏️' },
@@ -6595,7 +6595,9 @@ const printGameResult = (opts: { title: string, subject?: string, level?: string
         'Trilha do Conhecimento':{ ac:'#16a34a', light:'#f0fdf4', emoji:'🎲' },
         'Jogo da Memoria':       { ac:'#db2777', light:'#fdf2f8', emoji:'🃏' }
       };
-      var t = themes[label] || { ac:'#4338ca', light:'#eef2ff', emoji:'🎮' };
+      // labels chegam acentuados; keys do objeto são sem acento — normaliza para casar
+      var norm = function(s){ return s.normalize('NFD').replace(/[\\u0300-\\u036f]/g, ''); };
+      var t = themes[norm(label)] || { ac:'#4338ca', light:'#eef2ff', emoji:'🎮' };
       document.documentElement.style.setProperty('--ac', t.ac);
       document.documentElement.style.setProperty('--ac-light', t.light);
       document.documentElement.style.setProperty('--bingo-dim', '${opts.bingoDim || 5}');
@@ -6665,16 +6667,16 @@ const printGameResult = (opts: { title: string, subject?: string, level?: string
           + '<rect x="8" y="8" width="2" height="2" fill="#ccfbf1"/>'
           + '<rect x="11" y="10" width="2" height="1" fill="#f59e0b"/><rect x="12" y="11" width="2" height="1" fill="#f59e0b"/><rect x="13" y="12" width="2" height="1" fill="#f59e0b"/><rect x="14" y="13" width="1" height="2" fill="#451a03"/>'
           + '</svg>',
-        'Campanha Narrativa': '<svg viewBox="0 0 16 16"' + SR + '>'
-          + '<rect x="2" y="2" width="12" height="1" fill="#3730a3"/><rect x="2" y="3" width="1" height="10" fill="#3730a3"/><rect x="13" y="3" width="1" height="10" fill="#3730a3"/><rect x="2" y="13" width="12" height="1" fill="#3730a3"/>'
+        'Metafora Narrativa': '<svg viewBox="0 0 16 16"' + SR + '>'
+          + '<rect x="2" y="2" width="12" height="1" fill="#86198f"/><rect x="2" y="3" width="1" height="10" fill="#86198f"/><rect x="13" y="3" width="1" height="10" fill="#86198f"/><rect x="2" y="13" width="12" height="1" fill="#86198f"/>'
           + '<rect x="3" y="3" width="10" height="10" fill="#fef3c7"/>'
-          + '<rect x="7" y="3" width="2" height="10" fill="#3730a3"/>'
+          + '<rect x="7" y="3" width="2" height="10" fill="#86198f"/>'
           + '<rect x="4" y="5" width="3" height="1" fill="#92400e"/><rect x="4" y="7" width="3" height="1" fill="#92400e"/><rect x="4" y="9" width="3" height="1" fill="#92400e"/><rect x="4" y="11" width="2" height="1" fill="#92400e"/>'
           + '<rect x="9" y="5" width="3" height="1" fill="#92400e"/><rect x="9" y="7" width="3" height="1" fill="#92400e"/><rect x="9" y="9" width="3" height="1" fill="#92400e"/><rect x="9" y="11" width="2" height="1" fill="#92400e"/>'
           + '<rect x="10" y="3" width="1" height="1" fill="#fbbf24"/><rect x="9" y="4" width="3" height="1" fill="#fbbf24"/><rect x="10" y="5" width="1" height="1" fill="#fbbf24"/>'
           + '</svg>'
       };
-      var pxArt = pixelArts[label] || '<div style="font-size:34px;text-align:center;line-height:52px">🎮</div>';
+      var pxArt = pixelArts[norm(label)] || '<div style="font-size:34px;text-align:center;line-height:52px">🎮</div>';
 
       // ── Instructions box: pixel art + title ─────────────
       var instr = document.querySelector('.instructions');
@@ -6865,7 +6867,7 @@ const printGameResult = (opts: { title: string, subject?: string, level?: string
       }
 
       // ── BOA SORTE line + SCORE TRACKER ───────────────────
-      // For Campanha Narrativa the tracker is embedded in the character-card page (see below).
+      // For Metafora Narrativa the tracker is embedded in the Mapa da Metafora page (see below).
       var akPage = document.querySelector('.answer-key-page');
       var boaSorte = document.createElement('div');
       boaSorte.className = 'boa-sorte';
@@ -6878,8 +6880,8 @@ const printGameResult = (opts: { title: string, subject?: string, level?: string
         + '<div class="score-row"><span class="score-label">Acertos</span><div class="score-field">___ / ___</div><span class="score-label">Nota</span><div class="score-field">___________</div></div>';
 
       // Only inject standalone tracker for non-storytelling activities.
-      // For 'Campanha Narrativa' the tracker is bundled with the character-card page.
-      if (label !== 'Campanha Narrativa') {
+      // For 'Metafora Narrativa' the tracker is bundled with the Mapa da Metafora page.
+      if (norm(label) !== 'Metafora Narrativa') {
         if (akPage) {
           akPage.before(boaSorte);
           akPage.before(tracker);
@@ -6906,65 +6908,50 @@ const printGameResult = (opts: { title: string, subject?: string, level?: string
         akTitle.replaceWith(wrap);
       }
 
-      // ── STORY: character card page ────────────────────────
-      // ── STORY: last page = score tracker + character cards ─
-      if (label === 'Campanha Narrativa') {
-        var xpBoxes = Array(10).fill('<div style="width:22px;height:18px;border:2px solid var(--ac,#4338ca);border-radius:4px;background:white;flex-shrink:0;"></div>').join('');
-        var missionBoxes = ['M1','M2','M3'].map(function(m){
-          return '<div style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:800;color:var(--ac,#4338ca);">'
-            + '<div style="width:17px;height:17px;border:2px solid var(--ac,#4338ca);border-radius:3px;flex-shrink:0;"></div>'
-            + m + '</div>';
-        }).join('');
-        var charDefs = [
-          { emoji:'🧙', label:'Personagem 1' },
-          { emoji:'⚔️', label:'Personagem 2' },
-          { emoji:'🏹', label:'Personagem 3' },
-          { emoji:'🛡️', label:'Personagem 4' }
-        ];
-        var cards = charDefs.map(function(ch){
-          return '<div style="border:2.5px solid var(--ac,#4338ca);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">'
-            + '<div style="background:var(--ac,#4338ca);padding:9px 14px;display:flex;align-items:center;gap:8px;">'
-            + '<span style="font-size:18px;">' + ch.emoji + '</span>'
-            + '<span style="font-weight:900;font-size:12px;color:white;letter-spacing:0.3px;">' + ch.label + '</span>'
+      // ── STORY: last page = score tracker + Mapa da Metafora ─
+      // Folha do aluno: decodificar a metáfora durante a leitura
+      // (personagem → conceito real → pista da história que entrega a conexão)
+      if (norm(label) === 'Metafora Narrativa') {
+        var detEmojis = ['🧭','🔮','⭐','🗝️'];
+        var detCards = detEmojis.map(function(em, i){
+          return '<div style="border:2.5px solid var(--ac,#c026d3);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">'
+            + '<div style="background:var(--ac,#c026d3);padding:9px 14px;display:flex;align-items:center;gap:8px;">'
+            + '<span style="font-size:18px;">' + em + '</span>'
+            + '<span style="font-weight:900;font-size:12px;color:white;letter-spacing:0.3px;">Descoberta ' + (i + 1) + '</span>'
             + '</div>'
             + '<div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:9px;">'
-            // Nome
-            + '<div><div style="font-size:7.5px;color:#6b7280;font-weight:800;letter-spacing:1.2px;margin-bottom:4px;">NOME DO ALUNO</div>'
+            // Personagem
+            + '<div><div style="font-size:7.5px;color:#6b7280;font-weight:800;letter-spacing:1.2px;margin-bottom:4px;">PERSONAGEM OU ELEMENTO DA HISTÓRIA</div>'
             + '<div style="border-bottom:1.5px solid #d1d5db;min-height:20px;"></div></div>'
-            // Classe
-            + '<div><div style="font-size:7.5px;color:#6b7280;font-weight:800;letter-spacing:1.2px;margin-bottom:4px;">CLASSE</div>'
-            + '<div style="border-bottom:1.5px solid #d1d5db;min-height:20px;"></div></div>'
-            // XP
-            + '<div><div style="font-size:7.5px;color:var(--ac,#4338ca);font-weight:800;letter-spacing:1.2px;margin-bottom:5px;">XP GANHO</div>'
-            + '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + xpBoxes + '</div></div>'
-            // Missões
-            + '<div><div style="font-size:7.5px;color:#6b7280;font-weight:800;letter-spacing:1.2px;margin-bottom:5px;">MISSÕES CONCLUÍDAS</div>'
-            + '<div style="display:flex;gap:14px;">' + missionBoxes + '</div></div>'
-            // Anotações
+            // Conceito real
+            + '<div><div style="font-size:7.5px;color:var(--ac,#c026d3);font-weight:800;letter-spacing:1.2px;margin-bottom:4px;">REPRESENTA NA VIDA REAL</div>'
+            + '<div style="border-bottom:1.5px solid var(--ac,#c026d3);min-height:20px;"></div></div>'
+            // Pista
             + '<div style="flex:1;display:flex;flex-direction:column;">'
-            + '<div style="font-size:7.5px;color:#6b7280;font-weight:800;letter-spacing:1.2px;margin-bottom:5px;">ANOTAÇÕES</div>'
-            + '<div style="flex:1;border:1.5px dashed #d1d5db;border-radius:7px;min-height:44px;background:#fafafa;"></div>'
+            + '<div style="font-size:7.5px;color:#6b7280;font-weight:800;letter-spacing:1.2px;margin-bottom:5px;">A PISTA: QUE MOMENTO DA HISTÓRIA ENTREGOU A CONEXÃO?</div>'
+            + '<div style="flex:1;border:1.5px dashed #d1d5db;border-radius:7px;min-height:52px;background:#fafafa;"></div>'
             + '</div>'
             + '</div>'
             + '</div>';
         }).join('');
 
-        var cardPage = document.createElement('div');
-        cardPage.style.cssText = 'page-break-before:always;padding:14px;';
-        cardPage.innerHTML =
+        var mapPage = document.createElement('div');
+        mapPage.style.cssText = 'page-break-before:always;padding:14px;';
+        mapPage.innerHTML =
           // ── Compact score tracker at the top ──
           '<div class="score-tracker" style="margin:0 0 16px;">'
           + '<div class="score-header"><div class="score-px-star">' + pxStar + '</div><div class="score-title">Minha Pontuação</div><div class="score-px-star">' + pxStar + '</div></div>'
           + '<div class="score-stars">&#11088; &#11088; &#11088; &#11088; &#11088;</div>'
           + '<div class="score-row"><span class="score-label">Acertos</span><div class="score-field">___ / ___</div><span class="score-label">Nota</span><div class="score-field">___________</div></div>'
           + '</div>'
-          // ── Characters section header ──
-          + '<div style="background:var(--ac,#4338ca);color:white;padding:8px 14px;border-radius:8px;font-weight:900;font-size:13px;margin-bottom:14px;letter-spacing:0.3px;">🎭 Fichas dos Personagens</div>'
+          // ── Header da folha do aluno ──
+          + '<div style="background:var(--ac,#c026d3);color:white;padding:8px 14px;border-radius:8px;font-weight:900;font-size:13px;margin-bottom:6px;letter-spacing:0.3px;">🗺️ Mapa da Metáfora — Missão do Detetive</div>'
+          + '<div style="font-size:10px;color:#6b7280;margin-bottom:12px;line-height:1.5;">Durante a história, descubra quem é quem: anote o personagem, o conceito real que ele representa e o momento da história que entregou a conexão. Cada descoberta certa vale ponto!</div>'
           // ── 2×2 grid — cards fill the remaining page space ──
           + '<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;min-height:420px;">'
-          + cards
+          + detCards
           + '</div>';
-        document.body.appendChild(cardPage);
+        document.body.appendChild(mapPage);
       }
 
       // ── marca d'água: injetada após TODO o conteúdo dinâmico ──
@@ -7287,7 +7274,9 @@ const EstudioScreen = ({
   const [classId, setClassId] = useState<string>('');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'fácil' | 'média' | 'difícil'>('média');
-  const [genre, setGenre] = useState('aventura');
+  const [popTheme, setPopTheme] = useState('');
+  const [chapterCount, setChapterCount] = useState<3 | 4 | 5>(4);
+  const [storyActivity, setStoryActivity] = useState<'surpresa' | 'reescrever' | 'inverter' | 'ilustrar' | 'debate'>('surpresa');
   const [duration, setDuration] = useState('1 aula');
   const [count, setCount] = useState(10);
   const [quizType, setQuizType] = useState<'multipla' | 'misto'>('multipla');
@@ -7307,18 +7296,19 @@ const EstudioScreen = ({
 
   const closeModal = () => {
     localGenActiveRef.current = false;
-    setActiveMode(null); setResult(null); setTopic(''); setIsGenerating(false);
+    setActiveMode(null); setResult(null); setTopic(''); setPopTheme(''); setIsGenerating(false);
   };
 
   useEffect(() => {
     if (!studioReopenTaskId) return;
     const task = activeTasks[studioReopenTaskId];
     if (!task || task.status !== 'completed' || !task.meta) return;
-    const meta = task.meta as { mode?: GameMode; topic?: string; classId?: string; escapeTheme?: EscapeTheme; bingoSize?: 3 | 5 };
+    const meta = task.meta as { mode?: GameMode; topic?: string; classId?: string; escapeTheme?: EscapeTheme; bingoSize?: 3 | 5; popTheme?: string };
     if (meta.mode) setActiveMode(meta.mode);
     if (meta.topic) setTopic(meta.topic);
     if (meta.classId !== undefined) setClassId(meta.classId);
     if (meta.escapeTheme) setEscapeTheme(meta.escapeTheme);
+    if (meta.popTheme) setPopTheme(meta.popTheme);
     setResult(task.result);
     removeTask(studioReopenTaskId);
     setStudioReopenTaskId(null);
@@ -7327,6 +7317,7 @@ const EstudioScreen = ({
   const generate = async () => {
     if (!topic.trim()) { toast.error('Qual é o tema? O Corujão precisa saber para criar!'); return; }
     if (!activeMode) return;
+    if (activeMode === 'story' && !popTheme.trim()) { toast.error('Escolha o universo pop que vai dar vida à história!'); return; }
     setIsGenerating(true);
     setResult(null);
     localGenActiveRef.current = true;
@@ -7334,37 +7325,46 @@ const EstudioScreen = ({
     const taskId = addTask({
       type: activeMode,
       title: `${modeLabels[activeMode]}: ${topic.trim().slice(0, 40)}`,
-      meta: { mode: activeMode, topic, classId, escapeTheme, bingoSize, bingoFreeText, bingoCardCount, wsGridSize, escapeEnigmaCount, difficulty, genre, duration, count, quizType },
+      meta: { mode: activeMode, topic, classId, escapeTheme, bingoSize, bingoFreeText, bingoCardCount, wsGridSize, escapeEnigmaCount, difficulty, popTheme, chapterCount, storyActivity, duration, count, quizType },
     });
     try {
       const context = `Disciplina: ${defaultSubject || 'Geral'} | Nível: ${defaultLevel}${selectedClass ? ` | Turma: ${selectedClass.name}` : ''} | Tema: ${topic}`;
       let prompt = '';
       if (activeMode === 'story') {
-        prompt = `Você é um designer de jogos educacionais. Crie uma CAMPANHA narrativa gamificada completa para gamificar aulas.
+        const storyActivityBriefs: Record<typeof storyActivity, string> = {
+          surpresa: 'Escolha VOCÊ o formato mais potente para este conteúdo (reescrita criativa, cenário invertido, cena para ilustrar ou debate guiado) e nomeie-o na primeira linha em negrito.',
+          reescrever: '**Capítulo do Aluno** (reescrita criativa): o aluno escreve o próximo capítulo introduzindo UM conceito novo do conteúdo como um novo personagem. Dê a instrução completa, sugira 2 conceitos candidatos, 3 critérios de avaliação observáveis e 1 frase de exemplo para começar.',
+          inverter: '**E se...?** (cenário invertido): descreva em 1 parágrafo o que teria acontecido se a decisão-chave da história fosse a oposta, e proponha 3 perguntas para a turma discutir as consequências REAIS do conceito nessa inversão.',
+          ilustrar: '**Cena Ilustrada**: roteiro de 1 cena marcante para o aluno desenhar, listando os elementos obrigatórios da cena, com a regra de ouro: a legenda do desenho deve explicar qual conceito real cada elemento representa.',
+          debate: '**Debate Guiado**: 1 questão polêmica nascida da história, 2 posições possíveis com argumento inicial de cada lado, e a fala de fechamento do professor conectando tudo ao conteúdo real.',
+        };
+        prompt = `Você é um mestre em storytelling pedagógico. Crie uma METÁFORA NARRATIVA: uma história ambientada no universo de "${popTheme.trim()}" em que cada personagem ou elemento representa um conceito real do conteúdo estudado.
 ${context}
-Gênero: ${genre} | Duração: ${duration}
 
-Retorne em Markdown brasileiro com EXATAMENTE as seções abaixo:
+Retorne em Markdown brasileiro com EXATAMENTE estas seções (títulos h2 idênticos aos abaixo):
 
-## 🌍 Cenário
-(2 parágrafos imersivos onde os alunos são protagonistas. Inclua ambientação, conflito central e papel dos alunos.)
+## 🗺️ Quem é Quem
+(Tabela Markdown com colunas: Personagem/Elemento | Conceito real | Por que a metáfora funciona. 4 a 6 linhas. Personagens inspirados no universo de "${popTheme.trim()}". É o guia que o professor segue durante a leitura.)
 
-## 👥 Classes de Personagens
-(4 classes que os alunos podem escolher, com nome criativo, descrição curta e habilidade especial em 1 frase. Use lista.)
+## 📖 A História
+(${chapterCount} capítulos, cada um com "### Capítulo N — Título". 2-3 parágrafos por capítulo, narrativa envolvente em que as AÇÕES dos personagens espelham fielmente como os conceitos reais se comportam — a lógica do conteúdo deve estar correta dentro da metáfora. Encerre CADA capítulo com:
+> ⏸️ **Pausa pedagógica:** [pergunta oral curta que faz a turma conectar a cena ao conceito real antes de continuar]
+)
 
-## ⚔️ Missões
-(${duration === '1 aula' ? '3' : duration.includes('semana') ? '5' : '8'} missões em sequência, cada uma com: **Missão N — Nome**, narrativa de abertura curta (3-4 linhas), desafio (relacionado ao conteúdo "${topic}"), recompensa em XP/moedas.)
+## 🎬 Atividade
+(${storyActivityBriefs[storyActivity]})
 
-## 🏆 Sistema de Pontos
-(Tabela: ação → XP/moedas ganhos. Inclua: participar, acertar resposta, completar missão, ajudar colega.)
+## 🧠 Desafio do Conhecimento
+(3 questões de múltipla escolha com 4 alternativas A-D, uma de cada tipo, neste formato:
+**1. [Compreensão]** — sobre o que aconteceu na história
+**2. [Conexão]** — sobre o que determinado personagem/elemento representa
+**3. [Aplicação]** — aplica o conceito real a uma situação nova, fora da história
+Depois das questões, um bloco "**Gabarito comentado:**" com a letra correta e 1 frase de justificativa para cada.)
 
-## 👑 Boss Final
-(Desafio épico de encerramento, narrativa de 2-3 linhas + descrição da prova/trabalho final tematizada.)
+## 💡 Síntese da Metáfora
+(1 parágrafo que desmonta a metáfora explicitamente: "Na história, X representava Y porque...; na vida real, isso significa que...". É o fechamento que garante que toda a turma captou a simbologia.)
 
-## 📋 Roteiro do Professor
-(Lista numerada de 5 passos práticos para conduzir essa campanha em sala.)
-
-NÃO use código, NÃO use emojis fora dos títulos. Português brasileiro natural.`;
+REGRAS: fidelidade conceitual absoluta — a metáfora NUNCA pode ensinar o conceito errado; linguagem adequada ao nível da turma, envolvente sem infantilizar; NÃO copie diálogos nem trechos de obras — inspire-se no universo e crie cenas originais. Português brasileiro natural.`;
       } else if (activeMode === 'quiz') {
         if (quizType === 'misto') {
           const mc = Math.ceil(count * 0.65), vf = count - Math.ceil(count * 0.65);
@@ -7451,7 +7451,7 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
       if (activeMode === 'story') {
         const [response, sectionImages] = await Promise.all([
           generateContentWithRetry({ model: AI_MODEL, contents: prompt }),
-          generateStoryImages(topic, genre)
+          generateStoryImages(topic, popTheme)
         ]);
         finalResult = { markdown: response.text || '', sectionImages };
       } else if (activeMode === 'sequencia') {
@@ -7515,7 +7515,7 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
   };
 
   const modeMeta: Record<GameMode, { title: string, icon: any, color: string, bg: string, desc: string }> = {
-    story: { title: 'Storytelling', icon: ScrollText, color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-200', desc: 'Campanha narrativa com missões e personagens' },
+    story: { title: 'Storytelling', icon: ScrollText, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50 border-fuchsia-200', desc: 'A matéria vira história: personagens da cultura pop são os conceitos' },
     quiz: { title: 'Quiz', icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', desc: 'Perguntas de múltipla escolha ou V/F' },
     wordsearch: { title: 'Caça-Palavras', icon: Grid3x3, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', desc: 'Grade com palavras escondidas para achar' },
     crossword: { title: 'Palavras Cruzadas', icon: Puzzle, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', desc: 'Grade cruzada com pistas e definições' },
@@ -7593,7 +7593,7 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
             >
               <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
-                  {(() => { const Icon = modeMeta[activeMode].icon; return <Icon size={22} className={activeMode === 'story' ? 'text-indigo-600' : modeMeta[activeMode].color} />; })()}
+                  {(() => { const Icon = modeMeta[activeMode].icon; return <Icon size={22} className={modeMeta[activeMode].color} />; })()}
                   <h3 className="font-bold text-lg text-gray-900">{modeMeta[activeMode].title}</h3>
                 </div>
                 <button
@@ -7629,26 +7629,65 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
 
                   {activeMode === 'story' && (
                     <>
-                      <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Gênero narrativo</label>
-                        <select value={genre} onChange={e => setGenre(e.target.value)} className="w-full mt-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm">
-                          <option value="aventura">Aventura</option>
-                          <option value="mistério">Mistério / Detetive</option>
-                          <option value="ficção científica">Ficção Científica</option>
-                          <option value="fantasia medieval">Fantasia Medieval</option>
-                          <option value="exploração espacial">Exploração Espacial</option>
-                          <option value="época histórica">Época Histórica</option>
-                          <option value="apocalíptico">Pós-apocalíptico</option>
-                          <option value="terror leve">Terror leve / Suspense</option>
-                        </select>
+                      <div className="bg-fuchsia-50 border border-fuchsia-100 rounded-2xl p-3.5">
+                        <p className="text-xs text-fuchsia-800 leading-relaxed"><b>Como funciona:</b> seu conteúdo vira uma história no universo que a turma ama — cada personagem representa um conceito real. Vem com guia de leitura, pausas para discutir, atividade e desafio final.</p>
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Duração</label>
-                        <select value={duration} onChange={e => setDuration(e.target.value)} className="w-full mt-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm">
-                          <option value="1 aula">1 aula (3 missões)</option>
-                          <option value="1 semana">1 semana (5 missões)</option>
-                          <option value="1 bimestre">1 bimestre (8 missões)</option>
-                        </select>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Universo pop da história *</label>
+                        <input value={popTheme} onChange={e => setPopTheme(e.target.value)} placeholder="Ex: Harry Potter, Minecraft, futebol, Naruto..." className="w-full mt-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-fuchsia-400" />
+                        <div className="flex gap-1.5 mt-2 overflow-x-auto no-scrollbar pb-1">
+                          {['🧙 Harry Potter', '⛏️ Minecraft', '⚽ Futebol', '🦸 Super-heróis', '🍥 Naruto', '🎮 Videogame', '🚀 Star Wars', '🏴‍☠️ Piratas'].map(t => {
+                            const value = t.slice(t.indexOf(' ') + 1);
+                            return (
+                              <button
+                                key={t}
+                                type="button"
+                                onClick={() => setPopTheme(value)}
+                                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 ${popTheme === value ? 'bg-fuchsia-600 text-white border-fuchsia-600' : 'bg-white text-gray-500 border-gray-200'}`}
+                              >
+                                {t}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Capítulos</label>
+                        <div className="grid grid-cols-3 gap-2 mt-1">
+                          {([3, 4, 5] as const).map(n => (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() => setChapterCount(n)}
+                              className={`py-2.5 rounded-2xl border-2 text-center transition-colors ${chapterCount === n ? 'border-fuchsia-500 bg-fuchsia-50' : 'border-gray-200 bg-white'}`}
+                            >
+                              <p className={`text-sm font-black ${chapterCount === n ? 'text-fuchsia-700' : 'text-gray-600'}`}>{n}</p>
+                              <p className="text-[10px] text-gray-400">{n === 3 ? 'história curta' : n === 4 ? 'equilibrado' : 'saga completa'}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Atividade da história</label>
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          {([
+                            { v: 'surpresa', label: '🦉 Corujão decide', sub: 'A IA escolhe a melhor' },
+                            { v: 'reescrever', label: '✍️ Capítulo do aluno', sub: 'Turma escreve a sequência' },
+                            { v: 'inverter', label: '🔄 E se...?', sub: 'Cenário invertido p/ discutir' },
+                            { v: 'ilustrar', label: '🎨 Cena ilustrada', sub: 'Desenho com legenda conceitual' },
+                            { v: 'debate', label: '🗣️ Debate guiado', sub: 'Questão polêmica da história' },
+                          ] as { v: typeof storyActivity; label: string; sub: string }[]).map(a => (
+                            <button
+                              key={a.v}
+                              type="button"
+                              onClick={() => setStoryActivity(a.v)}
+                              className={`p-3 rounded-2xl border-2 text-left transition-colors ${storyActivity === a.v ? 'border-fuchsia-500 bg-fuchsia-50' : 'border-gray-200 bg-white'} ${a.v === 'surpresa' ? 'col-span-2' : ''}`}
+                            >
+                              <p className={`text-sm font-bold ${storyActivity === a.v ? 'text-fuchsia-700' : 'text-gray-700'}`}>{a.label}</p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">{a.sub}</p>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}
@@ -7799,7 +7838,7 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
 
               {result && (() => {
                 const activityLabels: Record<GameMode, string> = {
-                  story: 'Campanha Narrativa', quiz: 'Quiz Avaliativo', wordsearch: 'Caça-Palavras',
+                  story: 'Metáfora Narrativa', quiz: 'Quiz Avaliativo', wordsearch: 'Caça-Palavras',
                   crossword: 'Palavras Cruzadas', bingo: 'Bingo Educativo', escape: 'Escape Room', memory: 'Jogo da Memória',
                   sequencia: 'Sequência Didática', flashcard: 'Flashcards'
                 };
@@ -7811,7 +7850,7 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
                   teacherName: profile.name,
                   schoolName: profile.schoolName || selectedClass?.school,
                   activityLabel: activityLabels[activeMode!],
-                  genre: activeMode === 'story' ? genre : undefined,
+                  genre: activeMode === 'story' ? popTheme : undefined,
                   topic: activeMode === 'story' ? topic : undefined,
                   bingoDim: result.bingoSize || 5,
                 };
