@@ -11,7 +11,8 @@ import {
   BrainCircuit, Layers, MessageCircle, MessageSquare, Camera, Database, Archive, Download, FileUp, Headphones, Square, Upload, Paperclip, Shield, LogOut, Trash2,
   MapPin, RefreshCw, ClipboardList, Coffee, Users, Library, Filter, HardDrive, FolderOpen, X,
   Wand2, Grid3x3, Puzzle, Dice5, Map as MapIcon, Layers3, Trophy, ScrollText, AlertCircle, KeyRound, Lock, Pencil,
-  Volume2, Shuffle, Swords, Medal, Crown, Flame, Zap, Gift, Undo2, UserPlus, Pause, RotateCcw, Dices, MonitorPlay, Timer as TimerIcon, Star, Minus, ChevronLeft, Hand
+  Volume2, Shuffle, Swords, Medal, Crown, Flame, Zap, Gift, Undo2, UserPlus, Pause, RotateCcw, Dices, MonitorPlay, Timer as TimerIcon, Star, Minus, ChevronLeft, Hand,
+  Copy, Youtube, Accessibility, ListChecks, Printer, HeartHandshake, GraduationCap, NotebookPen
 } from 'lucide-react';
 import { GoogleGenAI, Type } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
@@ -433,7 +434,7 @@ const fetchPixabayImage = async (query: string | undefined, width: number, heigh
 };
 
 // --- Types ---
-type Screen = 'home' | 'planner' | 'chat' | 'calendar' | 'dayDetail' | 'profile' | 'estudio' | 'biblioteca' | 'admin' | 'gamificacao';
+type Screen = 'home' | 'planner' | 'chat' | 'calendar' | 'dayDetail' | 'profile' | 'estudio' | 'biblioteca' | 'admin' | 'gamificacao' | 'ferramentas';
 type PlannerMode = 'plan' | 'activities' | 'slides' | 'exam';
 
 interface PresentationTheme {
@@ -861,11 +862,14 @@ const EventItem = ({ e, onComplete, color }: { e: any, onComplete: () => void, c
   );
 };
 
-const HomeScreen = ({ setScreen, setPlannerMode, classes, setClasses, profile, inboxMessages, notifications, setNotifications, setSelectedDate }: { setScreen: (s: Screen) => void, setPlannerMode: (m: PlannerMode) => void, classes: ClassItem[], setClasses: (c: ClassItem[]) => void, profile: UserProfile, inboxMessages: {id: string, role: 'user' | 'model', text: string, date: number, attachment?: { mimeType: string, url: string, data: string, name: string }}[], notifications?: any[], setNotifications?: (n: any[]) => void, setSelectedDate: (d: Date) => void }) => {
-  const quickActions = [
-    { title: 'Gamificação', illustration: 'https://i.ibb.co/5h18j8Lc/20260520-143227-0000.png', action: () => setScreen('estudio') },
+const HomeScreen = ({ setScreen, setPlannerMode, classes, setClasses, profile, inboxMessages, notifications, setNotifications, setSelectedDate, openFerramenta }: { setScreen: (s: Screen) => void, setPlannerMode: (m: PlannerMode) => void, classes: ClassItem[], setClasses: (c: ClassItem[]) => void, profile: UserProfile, inboxMessages: {id: string, role: 'user' | 'model', text: string, date: number, attachment?: { mimeType: string, url: string, data: string, name: string }}[], notifications?: any[], setNotifications?: (n: any[]) => void, setSelectedDate: (d: Date) => void, openFerramenta?: (tool: string | null) => void }) => {
+  const quickActions: { title: string; illustration?: string; icon?: any; action: () => void }[] = [
+    { title: 'Estúdio', illustration: 'https://i.ibb.co/5h18j8Lc/20260520-143227-0000.png', action: () => setScreen('estudio') },
     { title: 'Atividades', illustration: 'https://i.ibb.co/hx6b429b/20260416-183802-0002.png', action: () => { setPlannerMode('activities'); setScreen('planner'); } },
     { title: 'Slides', illustration: 'https://i.ibb.co/fYK9t24q/20260416-184831-0000.png', action: () => { setPlannerMode('slides'); setScreen('planner'); } },
+    { title: 'Kit IA', icon: Wand2, action: () => openFerramenta?.(null) },
+    { title: 'Diário', icon: NotebookPen, action: () => openFerramenta?.('diario') },
+    { title: 'Biblioteca', icon: FolderOpen, action: () => setScreen('biblioteca') },
   ];
 
   const currentHour = new Date().getHours();
@@ -905,16 +909,14 @@ const HomeScreen = ({ setScreen, setPlannerMode, classes, setClasses, profile, i
       <div className="mb-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4 pl-0 pr-[9px] !pt-[12px] pb-0">Ações Rápidas</h2>
         <div className="grid grid-cols-3 gap-4">
-          {quickActions.map((action, index) => (
+          {quickActions.map((action) => (
             <button key={action.title} onClick={action.action} className="flex flex-col items-center gap-3 relative group">
               <div className={`w-16 h-16 rounded-[1.5rem] overflow-hidden shadow-sm bg-white border-[1.5px] border-indigo-600 flex flex-col items-center justify-center relative`}>
-                {action.illustration.includes('dicebear') ? (
-                  <div className="w-full h-full border-2 border-emerald-500 bg-emerald-100 flex flex-col items-center justify-center">
-                    <span className="text-emerald-700 font-black text-[10px] leading-tight text-center">IMAGEM<br/>Ação {index + 1}</span>
-                  </div>
-                ) : (
+                {action.illustration ? (
                   <img src={action.illustration} alt={action.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                )}
+                ) : action.icon ? (
+                  <action.icon size={26} className="text-indigo-600" strokeWidth={2.2} />
+                ) : null}
               </div>
               <span className="text-sm font-medium text-gray-600 text-center leading-tight">{action.title}</span>
             </button>
@@ -8064,12 +8066,22 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
   );
 };
 
-const printPlannerContent = (title: string, content: string, type: 'plan' | 'activities' | 'exam', teacherName?: string, schoolName?: string) => {
+const printPlannerContent = (title: string, content: string, type: 'plan' | 'activities' | 'exam' | string, teacherName?: string, schoolName?: string) => {
   const w = window.open('', '_blank', 'width=900,height=700');
   if (!w) return;
-  const typeLabel = { plan: 'Plano de Aula', activities: 'Atividades', exam: 'Avaliação' }[type];
+  const typeLabel = ({ plan: 'Plano de Aula', activities: 'Atividades', exam: 'Avaliação' } as Record<string, string>)[type] || type;
   const today = new Date().toLocaleDateString('pt-BR');
   const htmlContent = content
+    // Tabelas markdown (GFM) → <table>
+    .replace(/(^\|.+\|[ \t]*\n\|[-:| \t]+\|[ \t]*\n(?:^\|.+\|[ \t]*\n?)*)/gm, (tbl) => {
+      const rows = tbl.trim().split('\n').filter(r => r.trim().startsWith('|'));
+      if (rows.length < 2) return tbl;
+      const cells = (r: string) => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim().replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'));
+      const head = cells(rows[0]);
+      const body = rows.slice(2).map(cells);
+      return '<table><thead><tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>' +
+        body.map(r => '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>').join('') + '</tbody></table>\n';
+    })
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
@@ -8098,6 +8110,10 @@ const printPlannerContent = (title: string, content: string, type: 'plan' | 'act
     ul { padding-left: 20px; margin: 4px 0; }
     hr { border: none; border-top: 1px solid #e2e8f0; margin: 16px 0; }
     strong { font-weight: 800; color: #0f172a; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10.5px; }
+    th { background: #4338ca; color: white; font-weight: 800; padding: 6px 8px; text-align: left; border: 1px solid #4338ca; }
+    td { padding: 6px 8px; border: 1px solid #e2e8f0; vertical-align: top; }
+    tr:nth-child(even) td { background: #f8fafc; }
     .footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 9px; color: #94a3b8; text-align: center; }
   </style></head><body>
   <div class="header">
@@ -9221,6 +9237,746 @@ const GamiProjetor = ({ cls, schedule, onClose }: { cls: ClassGamification; sche
           )}
         </div>
         <p className="text-center text-indigo-200/70 text-[11px] font-bold uppercase tracking-widest pb-4">Prof. Corujão · Turma Gamificada</p>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Kit do Professor (ferramentas de IA + diário de classe) ──────────────────
+type FerramentaId = 'parecer' | 'inclusao' | 'rubrica' | 'nivelador' | 'familia' | 'video' | 'pdf';
+
+interface DiarioEntry {
+  id: string;            // `${classId}_${date}`
+  classId: string;
+  date: string;          // YYYY-MM-DD
+  att: Record<string, 'P' | 'F' | 'A'>;
+  note?: string;
+  grades?: Record<string, string>;
+}
+
+const FERRAMENTAS_META: { id: FerramentaId; title: string; icon: any; color: string; bg: string; desc: string }[] = [
+  { id: 'parecer',   title: 'Parecer Descritivo',     icon: GraduationCap,  color: 'text-indigo-600',  bg: 'bg-indigo-50 border-indigo-200',   desc: 'Comentários de boletim e pareceres individuais' },
+  { id: 'inclusao',  title: 'Adaptação Inclusiva',    icon: Accessibility,  color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', desc: 'Adapte atividades para TEA, TDAH, dislexia e mais' },
+  { id: 'rubrica',   title: 'Rubrica de Avaliação',   icon: ListChecks,     color: 'text-amber-600',   bg: 'bg-amber-50 border-amber-200',     desc: 'Critérios e níveis prontos para qualquer trabalho' },
+  { id: 'nivelador', title: 'Nivelador de Texto',     icon: BookOpen,       color: 'text-blue-600',    bg: 'bg-blue-50 border-blue-200',       desc: 'Reescreva textos no nível de leitura da turma' },
+  { id: 'familia',   title: 'Comunicação c/ Famílias', icon: HeartHandshake, color: 'text-rose-600',    bg: 'bg-rose-50 border-rose-200',       desc: 'Bilhetes, comunicados e mensagens de WhatsApp' },
+  { id: 'video',     title: 'Material de Vídeo',      icon: Youtube,        color: 'text-red-600',     bg: 'bg-red-50 border-red-200',         desc: 'Transforme vídeos do YouTube em aula e atividades' },
+  { id: 'pdf',       title: 'Material do meu PDF',    icon: FileUp,         color: 'text-violet-600',  bg: 'bg-violet-50 border-violet-200',   desc: 'Gere materiais a partir do seu livro ou apostila' },
+];
+
+const FerramentaChips = ({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) => (
+  <div className="flex flex-wrap gap-1.5">
+    {options.map(o => (
+      <button key={o} type="button" onClick={() => onChange(o)} className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${value === o ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200'}`}>
+        {o}
+      </button>
+    ))}
+  </div>
+);
+
+const FerramentasScreen = ({
+  profile,
+  schedules,
+  user,
+  setScreen,
+  notifications,
+  setNotifications,
+  initialTool,
+  clearInitialTool,
+}: {
+  profile: UserProfile;
+  schedules: ClassSchedule[];
+  user: any;
+  setScreen: (s: Screen) => void;
+  notifications?: any[];
+  setNotifications?: (n: any[]) => void;
+  initialTool?: string | null;
+  clearInitialTool?: () => void;
+}) => {
+  const [activeTool, setActiveTool] = useState<FerramentaId | null>(null);
+  const [showDiario, setShowDiario] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [result, setResult] = useState('');
+  const loadingMsg = useFunnyLoadingMessage(isGenerating, 'studio');
+
+  // Campos do formulário (compartilhados entre ferramentas)
+  const [classId, setClassId] = useState('');
+  const [studentName, setStudentName] = useState('');
+  const [period, setPeriod] = useState('1º bimestre');
+  const [strengths, setStrengths] = useState('');
+  const [struggles, setStruggles] = useState('');
+  const [observations, setObservations] = useState('');
+  const [tone, setTone] = useState('acolhedor');
+  const [need, setNeed] = useState('TDAH');
+  const [originalActivity, setOriginalActivity] = useState('');
+  const [taskDesc, setTaskDesc] = useState('');
+  const [criteriaCount, setCriteriaCount] = useState(4);
+  const [levelsCount, setLevelsCount] = useState(4);
+  const [originalText, setOriginalText] = useState('');
+  const [targetLevel, setTargetLevel] = useState('3º a 5º ano');
+  const [msgType, setMsgType] = useState('Bilhete na agenda');
+  const [msgContext, setMsgContext] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoGoal, setVideoGoal] = useState('Roteiro de aula');
+  const [pdfGoal, setPdfGoal] = useState('Atividade com questões');
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+
+  const selectedClass = schedules.find(s => s.id === classId);
+  const ctxLevel = selectedClass?.level || 'Ensino Fundamental';
+  const ctxSubject = selectedClass?.subject || profile.subject || 'Geral';
+
+  useEffect(() => {
+    if (!initialTool) return;
+    if (initialTool === 'diario') setShowDiario(true);
+    else if (FERRAMENTAS_META.some(t => t.id === initialTool)) setActiveTool(initialTool as FerramentaId);
+    clearInitialTool?.();
+  }, [initialTool, clearInitialTool]);
+
+  const closeTool = () => {
+    setActiveTool(null); setResult(''); setIsGenerating(false); setPdfFile(null);
+  };
+
+  const runGeneration = async (prompt: string, extraParts?: any[]) => {
+    setIsGenerating(true);
+    setResult('');
+    try {
+      const parts: any[] = [...(extraParts || []), { text: prompt }];
+      const response = await generateContentWithRetry({
+        model: AI_MODEL,
+        contents: [{ role: 'user', parts }],
+      });
+      const text = response.text || '';
+      if (!text.trim()) throw new Error('Resposta vazia');
+      setResult(text.trim());
+    } catch (e: any) {
+      toast.error(formatApiError(e, 'A geração não saiu dessa vez. Tente de novo.'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generate = async () => {
+    if (!activeTool) return;
+    const baseCtx = `Disciplina: ${ctxSubject} | Nível: ${ctxLevel}${selectedClass ? ` | Turma: ${selectedClass.name}` : ''}`;
+
+    if (activeTool === 'parecer') {
+      if (!studentName.trim()) { toast.error('Informe o nome do aluno.'); return; }
+      await runGeneration(`Você é um professor brasileiro experiente escrevendo um PARECER DESCRITIVO individual para o boletim.
+${baseCtx} | Período: ${period} | Aluno(a): ${studentName.trim()}
+Pontos fortes observados: ${strengths.trim() || 'não informados — infira com cautela a partir do contexto'}
+Dificuldades observadas: ${struggles.trim() || 'não informadas'}
+Outras observações: ${observations.trim() || 'nenhuma'}
+Tom desejado: ${tone}
+
+Escreva o parecer em 3 a 4 parágrafos, em português brasileiro natural:
+1. Desenvolvimento cognitivo e aprendizagem (com exemplos concretos do que foi informado)
+2. Aspectos socioemocionais e convivência
+3. Evolução no período e participação
+4. Encaminhamentos e sugestões para o próximo período (parceria com a família)
+
+REGRAS: linguagem respeitosa e construtiva, NUNCA rotule a criança, descreva comportamentos e não julgamentos, evite jargão pedagógico excessivo. Comece direto no texto do parecer, sem título nem preâmbulo. NÃO invente fatos específicos que não foram informados.`);
+    } else if (activeTool === 'inclusao') {
+      if (!originalActivity.trim()) { toast.error('Descreva a atividade ou conteúdo a adaptar.'); return; }
+      await runGeneration(`Você é um especialista em educação inclusiva brasileira (AEE).
+${baseCtx}
+Necessidade do aluno: ${need}
+Atividade/conteúdo original: ${originalActivity.trim()}
+
+Crie uma ADAPTAÇÃO completa em Markdown com as seções:
+
+## 🎯 Objetivo Flexibilizado
+(o mesmo objetivo de aprendizagem, com critério de sucesso adequado)
+
+## ✂️ Atividade Adaptada
+(versão pronta para aplicar, passo a passo, com os ajustes específicos para ${need})
+
+## 🛠️ Recursos e Apoios
+(materiais concretos, apoios visuais, tecnologia assistiva de baixo custo)
+
+## 🧭 Estratégias de Mediação
+(4-5 dicas práticas de manejo durante a atividade, específicas para ${need})
+
+## 📋 Avaliação Adaptada
+(como avaliar o mesmo objetivo por outros meios)
+
+REGRAS: baseie-se em práticas reconhecidas (DUA - Desenho Universal para Aprendizagem), seja concreto e aplicável amanhã de manhã, sem teoria longa. Português brasileiro.`);
+    } else if (activeTool === 'rubrica') {
+      if (!taskDesc.trim()) { toast.error('Descreva o trabalho ou atividade a avaliar.'); return; }
+      const levelNames = levelsCount === 3 ? 'Iniciante | Em desenvolvimento | Proficiente' : 'Iniciante | Em desenvolvimento | Proficiente | Avançado';
+      await runGeneration(`Você é um especialista em avaliação educacional. Crie uma RUBRICA DE AVALIAÇÃO em Markdown.
+${baseCtx}
+Trabalho/atividade avaliada: ${taskDesc.trim()}
+Número de critérios: ${criteriaCount} | Níveis de desempenho: ${levelNames}
+
+Formato EXATO:
+1. Título curto da rubrica (linha com ##)
+2. Uma TABELA Markdown: primeira coluna "Critério" (com peso sugerido em %), demais colunas os níveis (${levelNames}). Cada célula descreve de forma OBSERVÁVEL o que o aluno demonstra naquele nível (1-2 frases).
+3. Após a tabela, seção "## Como usar" com 3 dicas rápidas de aplicação e devolutiva.
+
+REGRAS: critérios relevantes para a atividade descrita, descrições paralelas entre níveis (mesma dimensão, intensidade crescente), linguagem que o próprio aluno entenda. Português brasileiro.`);
+    } else if (activeTool === 'nivelador') {
+      if (!originalText.trim()) { toast.error('Cole o texto que deseja adaptar.'); return; }
+      await runGeneration(`Você é um especialista em leiturabilidade e alfabetização no Brasil.
+Reescreva o texto abaixo para o nível de leitura: ${targetLevel}.
+
+TEXTO ORIGINAL:
+"""
+${originalText.trim()}
+"""
+
+Retorne em Markdown:
+
+## 📖 Texto Adaptado
+(o texto reescrito: vocabulário, tamanho de frases e complexidade sintática adequados a ${targetLevel}; preserve TODAS as informações essenciais e o sentido original)
+
+## 🔤 Glossário
+(4-6 palavras que permaneceram desafiadoras, com definição simples de 1 linha)
+
+## 💬 Perguntas de Compreensão
+(3 perguntas sobre o texto adaptado, em ordem crescente de complexidade)
+
+REGRAS: não infantilize além do necessário, não adicione informações novas, mantenha o gênero textual. Português brasileiro.`);
+    } else if (activeTool === 'familia') {
+      if (!msgContext.trim()) { toast.error('Descreva o assunto da mensagem.'); return; }
+      await runGeneration(`Você é um professor brasileiro experiente em comunicação com famílias.
+Escreva: ${msgType}
+Contexto/assunto: ${msgContext.trim()}
+${selectedClass ? `Turma: ${selectedClass.name}` : ''} | Tom: ${tone}
+
+REGRAS:
+- ${msgType.includes('WhatsApp') ? 'Mensagem curta de WhatsApp (máx. 6 linhas), pode usar 1-2 emojis discretos' : 'Texto pronto para copiar, com saudação e despedida'}
+- Linguagem ${tone === 'formal' ? 'formal e institucional' : 'acolhedora, próxima e respeitosa'}
+- Se o assunto for delicado (comportamento, dificuldade), use abordagem construtiva: comece com algo positivo, descreva o fato sem julgamento, proponha parceria
+- NUNCA exponha ou compare a criança
+- Inclua espaço [NOME] onde o nome do aluno deve entrar, se aplicável
+- Comece direto na mensagem, sem título nem explicações antes ou depois. Português brasileiro.`);
+    } else if (activeTool === 'video') {
+      const url = videoUrl.trim();
+      if (!/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(url)) { toast.error('Cole um link válido do YouTube.'); return; }
+      await runGeneration(`Você é um designer instrucional brasileiro. Assista ao vídeo e crie: ${videoGoal}.
+${baseCtx}
+
+Formato em Markdown conforme o tipo:
+- "Resumo para a turma": ## Resumo (linguagem adequada ao nível) + ## Pontos-chave (lista) + ## Vocabulário novo
+- "Roteiro de aula": ## Antes do vídeo (ativação, 2-3 min) + ## Durante (3 pausas estratégicas com minutagem e pergunta) + ## Depois (atividade de consolidação de 10 min)
+- "Atividade com questões": ## Atividade sobre o vídeo com 6 questões variadas (compreensão, análise, opinião) + gabarito comentado no final
+- "Debate guiado": ## Pergunta disparadora + ## 4 perguntas de aprofundamento + ## Posições possíveis + ## Fechamento
+
+Cite minutagens do vídeo quando relevante. Português brasileiro.`, [{ fileData: { fileUri: url } }]);
+    } else if (activeTool === 'pdf') {
+      if (!pdfFile) { toast.error('Selecione um arquivo PDF primeiro.'); return; }
+      if (pdfFile.size > 15 * 1024 * 1024) { toast.error('PDF pesado demais! O limite é 15 MB.'); return; }
+      setIsGenerating(true);
+      try {
+        const base64 = await fileToBase64(pdfFile);
+        await runGeneration(`Você é um designer instrucional brasileiro. Com base EXCLUSIVAMENTE no conteúdo do PDF anexado (livro/apostila do professor), crie: ${pdfGoal}.
+${baseCtx}
+
+Formato em Markdown conforme o tipo:
+- "Resumo do capítulo": ## Resumo + ## Conceitos-chave + ## O que cai na prova
+- "Atividade com questões": ## Atividade com 8 questões baseadas no material (cite a página quando possível) + gabarito no final
+- "Prova rápida": ## Avaliação com 5 questões objetivas + 2 dissertativas + gabarito
+- "Plano de aula": plano completo de 1 aula usando o material como base (objetivos, momentos da aula com tempos, avaliação)
+- "Slides em tópicos": ## estrutura de 8-10 slides, cada um com título + 3-4 bullets prontos
+
+REGRAS: fidelidade total ao material anexado, não invente conteúdo externo. Português brasileiro.`, [{ inlineData: { data: base64, mimeType: pdfFile.type || 'application/pdf' } }]);
+      } catch (e: any) {
+        toast.error('Não consegui ler esse PDF. Tente outro arquivo.');
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  const copyResult = () => {
+    navigator.clipboard.writeText(result).then(() => toast.success('Copiado!')).catch(() => toast.error('Não foi possível copiar.'));
+  };
+
+  const toolTitle = activeTool ? FERRAMENTAS_META.find(t => t.id === activeTool)!.title : '';
+
+  const printResult = () => {
+    if (!result) return;
+    printPlannerContent(toolTitle, result, toolTitle, profile.name, profile.schoolName);
+  };
+
+  const classSelectorEl = schedules.length > 0 ? (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">Turma (opcional)</label>
+      <select value={classId} onChange={e => setClassId(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm">
+        <option value="">Sem turma específica</option>
+        {schedules.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+      </select>
+    </div>
+  ) : null;
+
+  const Chips = FerramentaChips;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="pb-40">
+      <Header setScreen={setScreen} title="Kit do Professor" subtitle="Ferramentas inteligentes" profile={profile} notifications={notifications} setNotifications={setNotifications} />
+
+      <div className="px-1 mb-6">
+        <p className="text-sm text-gray-500 leading-relaxed">Pareceres, adaptações, rubricas e comunicação com as famílias — o trabalho invisível do professor, resolvido em minutos.</p>
+      </div>
+
+      {/* Diário de Classe — destaque */}
+      <button
+        onClick={() => setShowDiario(true)}
+        className="w-full relative overflow-hidden rounded-[2rem] p-6 mb-4 shadow-xl text-left bg-gradient-to-br from-indigo-600 to-indigo-800 active:scale-[0.98] transition-transform"
+      >
+        <div className="absolute -top-6 -right-6 opacity-20">
+          <NotebookPen size={130} className="text-white" />
+        </div>
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-black tracking-widest uppercase text-amber-300 bg-white/10 px-2 py-0.5 rounded-full backdrop-blur">★ Dia a dia</span>
+          </div>
+          <h2 className="text-3xl font-black text-white mb-2 leading-tight">Diário de Classe</h2>
+          <p className="text-sm text-indigo-100 max-w-[80%] leading-relaxed mb-4">
+            Chamada, anotações e notas do dia — rápido, offline e sincronizado com sua turma gamificada.
+          </p>
+          <div className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-4 py-2 rounded-full text-sm">
+            <NotebookPen size={16} /> Abrir diário
+          </div>
+        </div>
+      </button>
+
+      {/* Ferramentas de IA */}
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        {FERRAMENTAS_META.map(t => {
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTool(t.id)}
+              className={`relative rounded-3xl p-4 text-left shadow-sm border-2 ${t.bg} active:scale-[0.97] transition-transform`}
+            >
+              <Icon size={28} className={`${t.color} mb-2`} />
+              <h3 className={`font-bold text-sm ${t.color}`}>{t.title}</h3>
+              <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{t.desc}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* MODAL de ferramenta */}
+      <AnimatePresence>
+        {activeTool && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4"
+            onClick={() => { if (!isGenerating) closeTool(); }}
+          >
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              className="bg-white w-full sm:max-w-lg rounded-t-[2rem] sm:rounded-[2rem] max-h-[92vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
+                <div className="flex items-center gap-3">
+                  {(() => { const meta = FERRAMENTAS_META.find(t => t.id === activeTool)!; const Icon = meta.icon; return <Icon size={22} className={meta.color} />; })()}
+                  <h3 className="font-bold text-lg text-gray-900">{toolTitle}</h3>
+                </div>
+                <button onClick={closeTool} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4">
+                {!result && !isGenerating && (
+                  <>
+                    {classSelectorEl}
+
+                    {activeTool === 'parecer' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Nome do aluno *</label>
+                          <input value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="Ex: Maria Clara" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Período</label>
+                          <Chips options={['1º bimestre', '2º bimestre', '3º bimestre', '4º bimestre', '1º semestre', '2º semestre']} value={period} onChange={setPeriod} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Pontos fortes observados</label>
+                          <textarea value={strengths} onChange={e => setStrengths(e.target.value)} rows={2} placeholder="Ex: participa bastante, ajuda os colegas, evoluiu na leitura..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Dificuldades observadas</label>
+                          <textarea value={struggles} onChange={e => setStruggles(e.target.value)} rows={2} placeholder="Ex: dispersa com facilidade, dificuldade em frações..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Outras observações (opcional)</label>
+                          <textarea value={observations} onChange={e => setObservations(e.target.value)} rows={2} placeholder="Contexto familiar, saúde, episódios marcantes..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Tom</label>
+                          <Chips options={['acolhedor', 'formal', 'objetivo']} value={tone} onChange={setTone} />
+                        </div>
+                      </>
+                    )}
+
+                    {activeTool === 'inclusao' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Necessidade do aluno</label>
+                          <Chips options={['TDAH', 'TEA (autismo)', 'Dislexia', 'Deficiência intelectual', 'Baixa visão', 'Surdez', 'Altas habilidades', 'Dificuldade de aprendizagem']} value={need} onChange={setNeed} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Atividade ou conteúdo original *</label>
+                          <textarea value={originalActivity} onChange={e => setOriginalActivity(e.target.value)} rows={4} placeholder="Descreva ou cole a atividade que será adaptada..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                        </div>
+                      </>
+                    )}
+
+                    {activeTool === 'rubrica' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Trabalho ou atividade avaliada *</label>
+                          <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} rows={3} placeholder="Ex: Seminário em grupo sobre biomas brasileiros, com cartaz e apresentação oral de 10 min" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Critérios</label>
+                            <select value={criteriaCount} onChange={e => setCriteriaCount(parseInt(e.target.value))} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm">
+                              {[3, 4, 5, 6].map(n => <option key={n} value={n}>{n} critérios</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Níveis</label>
+                            <select value={levelsCount} onChange={e => setLevelsCount(parseInt(e.target.value))} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm">
+                              <option value={3}>3 níveis</option>
+                              <option value={4}>4 níveis</option>
+                            </select>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {activeTool === 'nivelador' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Texto original *</label>
+                          <textarea value={originalText} onChange={e => setOriginalText(e.target.value)} rows={6} placeholder="Cole aqui o texto do livro, notícia ou material que deseja simplificar (ou sofisticar)..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Nível de leitura alvo</label>
+                          <Chips options={['1º e 2º ano', '3º a 5º ano', '6º e 7º ano', '8º e 9º ano', 'Ensino Médio', 'EJA']} value={targetLevel} onChange={setTargetLevel} />
+                        </div>
+                      </>
+                    )}
+
+                    {activeTool === 'familia' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de mensagem</label>
+                          <Chips options={['Bilhete na agenda', 'Mensagem de WhatsApp', 'Comunicado geral', 'Convite para reunião', 'Elogio ao aluno', 'Alerta construtivo']} value={msgType} onChange={setMsgType} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Assunto / contexto *</label>
+                          <textarea value={msgContext} onChange={e => setMsgContext(e.target.value)} rows={3} placeholder="Ex: festa junina dia 20/06, trazer prato típico. Ou: aluno melhorou muito em matemática este mês." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Tom</label>
+                          <Chips options={['acolhedor', 'formal']} value={tone} onChange={setTone} />
+                        </div>
+                      </>
+                    )}
+
+                    {activeTool === 'video' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Link do vídeo (YouTube) *</label>
+                          <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." inputMode="url" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm" />
+                          <p className="text-[11px] text-gray-400 mt-1">A IA assiste ao vídeo e gera o material com base no conteúdo real.</p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">O que gerar</label>
+                          <Chips options={['Roteiro de aula', 'Resumo para a turma', 'Atividade com questões', 'Debate guiado']} value={videoGoal} onChange={setVideoGoal} />
+                        </div>
+                      </>
+                    )}
+
+                    {activeTool === 'pdf' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Seu material (PDF, máx. 15 MB) *</label>
+                          <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-2xl p-6 cursor-pointer transition-colors ${pdfFile ? 'border-violet-300 bg-violet-50' : 'border-gray-200 bg-gray-50'}`}>
+                            <FileUp size={28} className={pdfFile ? 'text-violet-500' : 'text-gray-300'} />
+                            <span className={`text-sm font-bold ${pdfFile ? 'text-violet-700' : 'text-gray-400'}`}>
+                              {pdfFile ? pdfFile.name : 'Toque para escolher o PDF'}
+                            </span>
+                            {pdfFile && <span className="text-[11px] text-violet-400">{fmtBytes(pdfFile.size)}</span>}
+                            <input type="file" accept="application/pdf" className="hidden" onChange={e => setPdfFile(e.target.files?.[0] || null)} />
+                          </label>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">O que gerar</label>
+                          <Chips options={['Atividade com questões', 'Resumo do capítulo', 'Prova rápida', 'Plano de aula', 'Slides em tópicos']} value={pdfGoal} onChange={setPdfGoal} />
+                        </div>
+                      </>
+                    )}
+
+                    <button
+                      onClick={generate}
+                      className="w-full bg-indigo-600 text-white rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                    >
+                      <Sparkles size={16} /> Gerar com o Corujão
+                    </button>
+                  </>
+                )}
+
+                {isGenerating && (
+                  <div className="flex flex-col items-center justify-center py-14 gap-4">
+                    <Loader2 size={36} className="animate-spin text-indigo-500" />
+                    <p className="text-sm text-gray-500 font-medium">{loadingMsg || 'Gerando...'}</p>
+                    {(activeTool === 'video' || activeTool === 'pdf') && <p className="text-[11px] text-gray-400 text-center max-w-[240px]">Analisar {activeTool === 'video' ? 'o vídeo' : 'o PDF'} pode levar um pouco mais de tempo.</p>}
+                  </div>
+                )}
+
+                {result && !isGenerating && (
+                  <>
+                    <div className="markdown-body prose prose-sm max-w-none bg-gray-50 border border-gray-100 rounded-2xl p-4 max-h-[48vh] overflow-y-auto">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown>
+                    </div>
+                    <p className="text-[11px] text-gray-400 text-center">Material gerado por IA — revise antes de usar.</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button onClick={copyResult} className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 rounded-2xl py-3 text-sm font-bold active:scale-[0.98] transition-transform">
+                        <Copy size={15} /> Copiar
+                      </button>
+                      <button onClick={printResult} className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 rounded-2xl py-3 text-sm font-bold active:scale-[0.98] transition-transform">
+                        <Printer size={15} /> Imprimir
+                      </button>
+                      {activeTool === 'familia' && (
+                        <button
+                          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(result)}`, '_blank')}
+                          className="col-span-2 flex items-center justify-center gap-2 bg-emerald-500 text-white rounded-2xl py-3 text-sm font-bold active:scale-[0.98] transition-transform"
+                        >
+                          <MessageCircle size={15} /> Enviar pelo WhatsApp
+                        </button>
+                      )}
+                      <button onClick={() => setResult('')} className="col-span-2 flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-2xl py-3 text-sm font-bold active:scale-[0.98] transition-transform">
+                        <RefreshCw size={15} /> Gerar outro
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* DIÁRIO DE CLASSE */}
+      <AnimatePresence>
+        {showDiario && (
+          <DiarioModal user={user} schedules={schedules} profile={profile} onClose={() => setShowDiario(false)} setScreen={setScreen} />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+const DiarioModal = ({ user, schedules, profile, onClose, setScreen }: {
+  user: any; schedules: ClassSchedule[]; profile: UserProfile; onClose: () => void; setScreen: (s: Screen) => void;
+}) => {
+  const [gamiClasses, setGamiClasses] = useFirestoreSync<ClassGamification>('gamification', user, []);
+  const [entries, setEntries] = useFirestoreSync<DiarioEntry>('diario', user, []);
+  const [classId, setClassId] = useState(schedules[0]?.id ?? '');
+  const [date, setDate] = useState(() => gamiTodayKey());
+  const [showGrades, setShowGrades] = useState(false);
+  const [newStudentName, setNewStudentName] = useState('');
+
+  const cls = gamiClasses.find(c => c.id === classId);
+  const students = useMemo(() => [...(cls?.students ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')), [cls]);
+  const entryId = `${classId}_${date}`;
+  const entry = entries.find(e => e.id === entryId);
+
+  const updateEntry = (updater: (prev: DiarioEntry) => DiarioEntry) => {
+    const prev: DiarioEntry = entry ?? { id: entryId, classId, date, att: {} };
+    const next = updater(prev);
+    setEntries(list => entry ? list.map(e => e.id === entryId ? next : e) : [...list, next]);
+  };
+
+  const cycleAtt = (studentId: string) => {
+    const order: ('P' | 'F' | 'A')[] = ['P', 'F', 'A'];
+    updateEntry(e => {
+      const cur = e.att[studentId];
+      const next = cur === undefined ? 'P' : order[(order.indexOf(cur) + 1) % 3];
+      return { ...e, att: { ...e.att, [studentId]: next } };
+    });
+  };
+
+  const markAll = (v: 'P' | 'F') => {
+    updateEntry(e => ({ ...e, att: Object.fromEntries(students.map(s => [s.id, v])) }));
+  };
+
+  const addStudent = () => {
+    const name = newStudentName.trim();
+    if (!name || !classId) return;
+    setGamiClasses(list => {
+      const existing = list.find(c => c.id === classId);
+      const newStudent: GamiStudent = { id: gamiRid(), name, xp: 0, totalXp: 0, weekXp: 0, coins: 0, badges: [], streak: 0 };
+      if (existing) return list.map(c => c.id === classId ? { ...c, students: [...c.students, newStudent] } : c);
+      return [...list, { ...gamiDefaultClass(classId), students: [newStudent] }];
+    });
+    setNewStudentName('');
+  };
+
+  const presentCount = students.filter(s => entry?.att[s.id] === 'P').length;
+  const absentCount = students.filter(s => entry?.att[s.id] === 'F').length;
+  const lateCount = students.filter(s => entry?.att[s.id] === 'A').length;
+
+  const printDay = () => {
+    const schedule = schedules.find(s => s.id === classId);
+    const dateBr = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR');
+    const lines = [
+      `## Chamada — ${schedule?.name ?? 'Turma'} — ${dateBr}`,
+      '',
+      '| Nº | Aluno | Presença | Nota |',
+      '|---|---|---|---|',
+      ...students.map((s, i) => {
+        const a = entry?.att[s.id];
+        const label = a === 'P' ? 'Presente' : a === 'F' ? 'Falta' : a === 'A' ? 'Atraso' : '—';
+        return `| ${i + 1} | ${s.name} | ${label} | ${entry?.grades?.[s.id] ?? ''} |`;
+      }),
+      '',
+      `**Presentes:** ${presentCount} · **Faltas:** ${absentCount} · **Atrasos:** ${lateCount}`,
+      '',
+      entry?.note ? `## Anotações do dia\n${entry.note}` : '',
+    ].join('\n');
+    printPlannerContent(`Diário de Classe — ${dateBr}`, lines, 'Diário de Classe', profile.name, profile.schoolName);
+  };
+
+  const attStyle = (a?: 'P' | 'F' | 'A') =>
+    a === 'P' ? 'bg-emerald-500 text-white' :
+    a === 'F' ? 'bg-red-500 text-white' :
+    a === 'A' ? 'bg-amber-400 text-white' :
+    'bg-gray-100 text-gray-400';
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] bg-[#F8F9FE] flex flex-col">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3">
+        <div className="flex items-center gap-2">
+          <NotebookPen size={22} className="text-indigo-600" />
+          <h2 className="text-lg font-black text-gray-900">Diário de Classe</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          {students.length > 0 && (
+            <button onClick={printDay} className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+              <Printer size={16} />
+            </button>
+          )}
+          <button onClick={onClose} className="w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center">
+            <X size={18} />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 pb-10">
+        {/* Seletores */}
+        <div className="flex gap-2 mb-3">
+          <select value={classId} onChange={e => setClassId(e.target.value)} className="flex-1 bg-white border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold min-w-0">
+            {schedules.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {schedules.length === 0 && <option value="">Sem turmas</option>}
+          </select>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-white border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold" />
+        </div>
+
+        {schedules.length === 0 ? (
+          <div className="text-center py-16">
+            <span className="text-5xl">📅</span>
+            <p className="text-gray-500 mt-3 text-sm font-bold">Cadastre suas turmas na Agenda primeiro.</p>
+            <button onClick={() => { onClose(); setScreen('calendar'); }} className="mt-4 bg-indigo-600 text-white text-sm font-bold px-5 py-2.5 rounded-2xl">Ir para a Agenda</button>
+          </div>
+        ) : students.length === 0 ? (
+          <div className="text-center py-10 space-y-4">
+            <span className="text-5xl">🦉</span>
+            <p className="text-gray-500 text-sm font-bold">Essa turma ainda não tem alunos cadastrados.</p>
+            <div className="flex gap-2 max-w-xs mx-auto">
+              <input
+                value={newStudentName}
+                onChange={e => setNewStudentName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addStudent()}
+                placeholder="Nome do aluno"
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white"
+              />
+              <button onClick={addStudent} className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold"><Plus size={16} /></button>
+            </div>
+            <p className="text-[11px] text-gray-400">A lista é a mesma da Turma Gamificada — cadastre uma vez, use nas duas.</p>
+          </div>
+        ) : (
+          <>
+            {/* Resumo + ações em massa */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex gap-3 text-xs font-bold">
+                <span className="text-emerald-600">{presentCount} P</span>
+                <span className="text-red-500">{absentCount} F</span>
+                <span className="text-amber-500">{lateCount} A</span>
+                <span className="text-gray-300">/ {students.length}</span>
+              </div>
+              <div className="flex gap-1.5">
+                <button onClick={() => markAll('P')} className="text-[11px] font-bold bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-200">Todos P</button>
+                <button onClick={() => markAll('F')} className="text-[11px] font-bold bg-red-50 text-red-500 px-2.5 py-1 rounded-full border border-red-200">Todos F</button>
+                <button onClick={() => setShowGrades(g => !g)} className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${showGrades ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200'}`}>Notas</button>
+              </div>
+            </div>
+
+            {/* Lista de alunos */}
+            <div className="space-y-1.5 mb-4">
+              {students.map((s, i) => {
+                const a = entry?.att[s.id];
+                return (
+                  <div key={s.id} className="bg-white rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-sm border border-gray-100">
+                    <span className="text-[10px] font-black text-gray-300 w-5 text-right shrink-0">{i + 1}</span>
+                    <p className="flex-1 text-sm font-bold text-gray-800 truncate">{s.name}</p>
+                    {showGrades && (
+                      <input
+                        value={entry?.grades?.[s.id] ?? ''}
+                        onChange={e => updateEntry(en => ({ ...en, grades: { ...(en.grades ?? {}), [s.id]: e.target.value } }))}
+                        placeholder="nota"
+                        className="w-14 text-center text-xs font-bold border border-gray-200 rounded-lg py-1.5 bg-gray-50"
+                      />
+                    )}
+                    <button
+                      onClick={() => cycleAtt(s.id)}
+                      className={`w-9 h-9 rounded-xl font-black text-sm shrink-0 transition-colors ${attStyle(a)}`}
+                    >
+                      {a ?? '·'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Adicionar aluno inline */}
+            <div className="flex gap-2 mb-4">
+              <input
+                value={newStudentName}
+                onChange={e => setNewStudentName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addStudent()}
+                placeholder="+ Adicionar aluno"
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white"
+              />
+              {newStudentName.trim() && (
+                <button onClick={addStudent} className="bg-indigo-600 text-white px-4 rounded-xl font-bold"><Plus size={16} /></button>
+              )}
+            </div>
+
+            {/* Anotações do dia */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Anotações do dia</label>
+              <textarea
+                value={entry?.note ?? ''}
+                onChange={e => updateEntry(en => ({ ...en, note: e.target.value }))}
+                rows={3}
+                placeholder="Conteúdo dado, ocorrências, lembretes..."
+                className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-4 text-sm resize-none"
+              />
+            </div>
+            <p className="text-[11px] text-gray-400 text-center mt-2">P = presente · F = falta · A = atraso. Toque para alternar. Salva automaticamente.</p>
+          </>
+        )}
       </div>
     </motion.div>
   );
@@ -11138,6 +11894,7 @@ function AppInner() {
 
   const [screen, setScreen] = useState<Screen>('home');
   const [plannerMode, setPlannerMode] = useState<PlannerMode>('plan');
+  const [ferramentasTool, setFerramentasTool] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<number>(new Date().getDate());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -12537,7 +13294,7 @@ REGRAS: Substitua TODOS os [ ] por conteúdo real sobre "${targetTopic}". PROIBI
 
       <div className="max-w-md mx-auto h-screen relative px-6 pt-12 overflow-y-auto no-scrollbar">
         <AnimatePresence mode="wait">
-          {screen === 'home' && <HomeScreen key="home" setScreen={setScreen} setPlannerMode={setPlannerMode} classes={classes} setClasses={setClasses} profile={profile} inboxMessages={inboxMessages} notifications={allNotifications} setNotifications={handleSetNotifications} setSelectedDate={(d: Date) => {
+          {screen === 'home' && <HomeScreen key="home" setScreen={setScreen} setPlannerMode={setPlannerMode} classes={classes} setClasses={setClasses} profile={profile} inboxMessages={inboxMessages} notifications={allNotifications} setNotifications={handleSetNotifications} openFerramenta={(tool) => { setFerramentasTool(tool); setScreen('ferramentas'); }} setSelectedDate={(d: Date) => {
             setSelectedDate(d.getDate());
             setCurrentMonth(d.getMonth());
             setCurrentYear(d.getFullYear());
@@ -12687,6 +13444,7 @@ REGRAS: Substitua TODOS os [ ] por conteúdo real sobre "${targetTopic}". PROIBI
           {screen === 'estudio' && <EstudioScreen key="estudio" estudioContext={estudioContext} setEstudioContext={setEstudioContext} studioMessages={studioMessages} setStudioMessages={setStudioMessages} profile={profile} setScreen={setScreen} setPlannerMode={setPlannerMode} notifications={allNotifications} setNotifications={handleSetNotifications} schedules={schedules} addTask={addTask} updateTask={updateTask} activeTasks={activeTasks} removeTask={removeTask} studioReopenTaskId={studioReopenTaskId} setStudioReopenTaskId={setStudioReopenTaskId} />}
           {screen === 'biblioteca' && <LibraryScreen key="biblioteca" user={user} setScreen={setScreen} profile={profile} notifications={allNotifications} setNotifications={handleSetNotifications} />}
           {screen === 'gamificacao' && <GamificacaoScreen key="gamificacao" schedules={schedules} user={user} profile={profile} setScreen={setScreen} />}
+          {screen === 'ferramentas' && <FerramentasScreen key="ferramentas" profile={profile} schedules={schedules} user={user} setScreen={setScreen} notifications={allNotifications} setNotifications={handleSetNotifications} initialTool={ferramentasTool} clearInitialTool={() => setFerramentasTool(null)} />}
           {screen === 'admin' && (profile?.role === 'admin' || user?.email?.toLowerCase() === 'lyelsonmf520@gmail.com') && <AdminScreen key="admin" />}
         </AnimatePresence>
 
