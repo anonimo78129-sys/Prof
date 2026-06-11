@@ -17,6 +17,23 @@
 - Storytelling gamificado, Quiz, Caça-Palavras, Palavras Cruzadas, Bingo e Jogo da Memória
 - Tudo pronto para imprimir em A4
 
+### 🏆 Turma Gamificada
+- **Pontos e níveis** com avatares corujinha que evoluem (🥚 → 👑), medalhas automáticas e sequências de dias
+- **Equipes** com ranking semanal, **missões coletivas** e **loja de privilégios** (moedas 🪙 trocadas por recompensas sem custo)
+- **Temporadas** por bimestre com Hall da Fama
+- **Kit ao Vivo** para usar na aula com projetor ou só com o celular do professor: sorteador justo, timer com coruja, gerador de grupos com regras de separação, medidor de barulho (microfone do celular), semáforo, dado, placar, evento do dia, contador de participação e **Batalha de Revisão** (quiz oral por equipes gerado por IA — sem precisar de celular dos alunos)
+- **Modo Projetor** com missão, pódio de equipes e destaques da semana
+
+### 🧰 Kit do Professor
+- **Parecer descritivo** individual para o boletim, por período e com tom configurável
+- **Adaptação inclusiva** de atividades (TEA, TDAH, dislexia, baixa visão, surdez e mais), com base no DUA
+- **Rubrica de avaliação** em tabela pronta para imprimir
+- **Nivelador de texto** para o nível de leitura da turma, com glossário e perguntas
+- **Comunicação com famílias**: bilhetes, comunicados e mensagens com envio direto pelo WhatsApp
+- **Material de vídeo**: a IA assiste a um vídeo do YouTube e gera roteiro de aula, resumo, atividade ou debate
+- **Material do meu PDF**: atividades, provas e planos gerados a partir do livro/apostila do professor
+- **Diário de classe**: chamada P/F/A com um toque, notas, anotações do dia e impressão — lista de alunos compartilhada com a gamificação
+
 ### 💬 Assistente
 - Chat pedagógico com contexto das suas turmas e agenda
 - Apoio em **gestão de sala**, **inclusão** (TDAH, TEA, dislexia), comunicação com famílias e dúvidas de conteúdo

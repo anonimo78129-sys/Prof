@@ -434,7 +434,7 @@ const fetchPixabayImage = async (query: string | undefined, width: number, heigh
 };
 
 // --- Types ---
-type Screen = 'home' | 'planner' | 'chat' | 'calendar' | 'dayDetail' | 'profile' | 'estudio' | 'biblioteca' | 'admin' | 'gamificacao' | 'ferramentas';
+type Screen = 'home' | 'planner' | 'chat' | 'calendar' | 'dayDetail' | 'profile' | 'estudio' | 'biblioteca' | 'admin' | 'gamificacao' | 'ferramentas' | 'acervo';
 type PlannerMode = 'plan' | 'activities' | 'slides' | 'exam';
 
 interface PresentationTheme {
@@ -3805,10 +3805,10 @@ const ChatScreen = ({
                 parameters: {
                   type: Type.OBJECT,
                   properties: {
-                    screen: { 
-                      type: Type.STRING, 
-                      enum: ['home', 'planner', 'chat', 'calendar', 'profile', 'estudio', 'biblioteca'],
-                      description: 'Nome da tela de destino'
+                    screen: {
+                      type: Type.STRING,
+                      enum: ['home', 'planner', 'chat', 'calendar', 'profile', 'estudio', 'biblioteca', 'gamificacao', 'ferramentas', 'acervo'],
+                      description: 'Nome da tela de destino. gamificacao = Turma Gamificada (pontos, equipes, sorteador, timer); ferramentas = Kit do Professor (pareceres, rubricas, adaptações de inclusão, diário de classe); acervo = Histórico de materiais gerados'
                     }
                   },
                   required: ['screen']
@@ -4488,14 +4488,19 @@ const ProfileScreen = ({
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
           { label: 'Turmas', value: schedules.length, emoji: '👥' },
-          { label: 'Materiais', value: savedResources.length, emoji: '📄' },
+          { label: 'Materiais', value: savedResources.length, emoji: '📄', action: () => setScreen('acervo') },
           { label: 'Gerações', value: profile.generationsUsed ?? 0, emoji: '✨' },
         ].map(stat => (
-          <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 text-center">
+          <button
+            key={stat.label}
+            onClick={stat.action}
+            disabled={!stat.action}
+            className={`bg-white rounded-2xl p-4 shadow-sm border border-gray-50 text-center ${stat.action ? 'active:scale-95 transition-transform' : 'cursor-default'}`}
+          >
             <div className="text-2xl mb-1">{stat.emoji}</div>
             <div className="text-xl font-black text-gray-900">{stat.value}</div>
-            <div className="text-xs text-gray-400 font-medium">{stat.label}</div>
-          </div>
+            <div className="text-xs text-gray-400 font-medium">{stat.label}{stat.action ? ' →' : ''}</div>
+          </button>
         ))}
       </div>
 
@@ -6366,7 +6371,7 @@ const printGameResult = (opts: { title: string, subject?: string, level?: string
   const node = document.getElementById('game-print-area');
   if (!node) return;
   const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) return;
+  if (!w) { toast.error('O navegador bloqueou a janela de impressão. Permita pop-ups e tente de novo.'); return; }
   const todayStr = new Date().toLocaleDateString('pt-BR');
   const owlSvg = `<svg width="84" height="84" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style="opacity:0.88;flex-shrink:0">
     <ellipse cx="30" cy="43" rx="19" ry="16" fill="rgba(255,255,255,0.18)"/>
@@ -7069,7 +7074,7 @@ const ESCAPE_THEMES: Record<EscapeTheme, {
 const printEscapeRoom = (data: EscapeRoomData, opts: { className?: string; teacherName?: string; schoolName?: string; subject?: string; level?: string }) => {
   const theme = ESCAPE_THEMES[data.theme];
   const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) return;
+  if (!w) { toast.error('O navegador bloqueou a janela de impressão. Permita pop-ups e tente de novo.'); return; }
   const todayStr = new Date().toLocaleDateString('pt-BR');
   const enigmaPages = data.enigmas.map((en, i) => `
     <section class="page enigma-page">
@@ -8068,7 +8073,7 @@ Retorne APENAS JSON: {"title":"...","cards":[{"front":"...","back":"...","emoji"
 
 const printPlannerContent = (title: string, content: string, type: 'plan' | 'activities' | 'exam' | string, teacherName?: string, schoolName?: string) => {
   const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) return;
+  if (!w) { toast.error('O navegador bloqueou a janela de impressão. Permita pop-ups e tente de novo.'); return; }
   const typeLabel = ({ plan: 'Plano de Aula', activities: 'Atividades', exam: 'Avaliação' } as Record<string, string>)[type] || type;
   const today = new Date().toLocaleDateString('pt-BR');
   const htmlContent = content
@@ -8716,6 +8721,7 @@ const GamiBarulho = ({ onClose, onRewardClass }: { onClose: () => void; onReward
         src.connect(analyser);
         const data = new Uint8Array(analyser.fftSize);
         const loop = () => {
+          if (cancelled) return;
           analyser.getByteTimeDomainData(data);
           let sum = 0;
           for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
@@ -9591,7 +9597,7 @@ REGRAS: fidelidade total ao material anexado, não invente conteúdo externo. Po
                       <>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Nome do aluno *</label>
-                          <input value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="Ex: Maria Clara" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm" />
+                          <input value={studentName} onChange={e => setStudentName(e.target.value)} maxLength={80} placeholder="Ex: Maria Clara" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Período</label>
@@ -9599,15 +9605,15 @@ REGRAS: fidelidade total ao material anexado, não invente conteúdo externo. Po
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Pontos fortes observados</label>
-                          <textarea value={strengths} onChange={e => setStrengths(e.target.value)} rows={2} placeholder="Ex: participa bastante, ajuda os colegas, evoluiu na leitura..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                          <textarea value={strengths} onChange={e => setStrengths(e.target.value)} rows={2} maxLength={1500} placeholder="Ex: participa bastante, ajuda os colegas, evoluiu na leitura..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Dificuldades observadas</label>
-                          <textarea value={struggles} onChange={e => setStruggles(e.target.value)} rows={2} placeholder="Ex: dispersa com facilidade, dificuldade em frações..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                          <textarea value={struggles} onChange={e => setStruggles(e.target.value)} rows={2} maxLength={1500} placeholder="Ex: dispersa com facilidade, dificuldade em frações..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Outras observações (opcional)</label>
-                          <textarea value={observations} onChange={e => setObservations(e.target.value)} rows={2} placeholder="Contexto familiar, saúde, episódios marcantes..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                          <textarea value={observations} onChange={e => setObservations(e.target.value)} rows={2} maxLength={1500} placeholder="Contexto familiar, saúde, episódios marcantes..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Tom</label>
@@ -9624,7 +9630,7 @@ REGRAS: fidelidade total ao material anexado, não invente conteúdo externo. Po
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Atividade ou conteúdo original *</label>
-                          <textarea value={originalActivity} onChange={e => setOriginalActivity(e.target.value)} rows={4} placeholder="Descreva ou cole a atividade que será adaptada..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                          <textarea value={originalActivity} onChange={e => setOriginalActivity(e.target.value)} rows={4} maxLength={4000} placeholder="Descreva ou cole a atividade que será adaptada..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
                         </div>
                       </>
                     )}
@@ -9633,7 +9639,7 @@ REGRAS: fidelidade total ao material anexado, não invente conteúdo externo. Po
                       <>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Trabalho ou atividade avaliada *</label>
-                          <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} rows={3} placeholder="Ex: Seminário em grupo sobre biomas brasileiros, com cartaz e apresentação oral de 10 min" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                          <textarea value={taskDesc} onChange={e => setTaskDesc(e.target.value)} rows={3} maxLength={2000} placeholder="Ex: Seminário em grupo sobre biomas brasileiros, com cartaz e apresentação oral de 10 min" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -9657,7 +9663,7 @@ REGRAS: fidelidade total ao material anexado, não invente conteúdo externo. Po
                       <>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Texto original *</label>
-                          <textarea value={originalText} onChange={e => setOriginalText(e.target.value)} rows={6} placeholder="Cole aqui o texto do livro, notícia ou material que deseja simplificar (ou sofisticar)..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                          <textarea value={originalText} onChange={e => setOriginalText(e.target.value)} rows={6} maxLength={12000} placeholder="Cole aqui o texto do livro, notícia ou material que deseja simplificar (ou sofisticar)..." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Nível de leitura alvo</label>
@@ -9674,7 +9680,7 @@ REGRAS: fidelidade total ao material anexado, não invente conteúdo externo. Po
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Assunto / contexto *</label>
-                          <textarea value={msgContext} onChange={e => setMsgContext(e.target.value)} rows={3} placeholder="Ex: festa junina dia 20/06, trazer prato típico. Ou: aluno melhorou muito em matemática este mês." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
+                          <textarea value={msgContext} onChange={e => setMsgContext(e.target.value)} rows={3} maxLength={2000} placeholder="Ex: festa junina dia 20/06, trazer prato típico. Ou: aluno melhorou muito em matemática este mês." className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm resize-none" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Tom</label>
@@ -9784,6 +9790,12 @@ const DiarioModal = ({ user, schedules, profile, onClose, setScreen }: {
   const [entries, setEntries] = useFirestoreSync<DiarioEntry>('diario', user, []);
   const [classId, setClassId] = useState(schedules[0]?.id ?? '');
   const [date, setDate] = useState(() => gamiTodayKey());
+
+  useEffect(() => {
+    if (schedules.length > 0 && (!classId || !schedules.some(s => s.id === classId))) {
+      setClassId(schedules[0].id);
+    }
+  }, [schedules, classId]);
   const [showGrades, setShowGrades] = useState(false);
   const [newStudentName, setNewStudentName] = useState('');
 
@@ -10009,6 +10021,14 @@ const GamificacaoScreen = ({
   const [missionReward, setMissionReward] = useState('Recreio livre 5 min');
   const [teamStudentId, setTeamStudentId] = useState<string | null>(null);
 
+  // Schedules chegam do Firestore de forma assíncrona: garante turma selecionada válida
+  useEffect(() => {
+    if (schedules.length === 0) return;
+    if (!selectedClassId || !schedules.some(s => s.id === selectedClassId)) {
+      setSelectedClassId(schedules[0].id);
+    }
+  }, [schedules, selectedClassId]);
+
   const selectedSchedule = schedules.find(s => s.id === selectedClassId);
   const wk = gamiWeekKey();
 
@@ -10050,12 +10070,14 @@ const GamificacaoScreen = ({
     const today = gamiTodayKey();
 
     updateCls(cls => {
-      const students = cls.students.map(s => {
+      const isNewWeek = cls.weekKey !== wk;
+      const students = cls.students.map(raw => {
+        // Virada de semana: zera o XP semanal de todos antes de acumular
+        const s = isNewWeek ? { ...raw, weekXp: 0 } : raw;
         if (!studentIds.includes(s.id)) return s;
         const newXp = Math.max(0, s.xp + points);
         const newTotal = s.totalXp + (points > 0 ? points : 0);
-        const prevWeekXp = cls.weekKey === wk ? (s.weekXp ?? 0) : 0;
-        const newWeekXp = prevWeekXp + (points > 0 ? points : 0);
+        const newWeekXp = (s.weekXp ?? 0) + (points > 0 ? points : 0);
         const newCoins = Math.max(0, s.coins + coins);
         const streak = points > 0
           ? (s.lastPointDay === today ? s.streak : s.lastPointDay === gamiYesterdayKey() ? s.streak + 1 : 1)
@@ -13424,7 +13446,7 @@ REGRAS: Substitua TODOS os [ ] por conteúdo real sobre "${targetTopic}". PROIBI
             if (!user) return;
             const uid = user.uid;
             try {
-              const subcols = ['schedules', 'classes', 'events', 'resources', 'notifications', 'messages', 'studioMessages'];
+              const subcols = ['schedules', 'classes', 'events', 'resources', 'notifications', 'messages', 'studioMessages', 'gamification', 'diario', 'fcmTokens'];
               for (const col of subcols) {
                 const snap = await getDocs(collection(db, `users/${uid}/${col}`));
                 const batch = writeBatch(db);
@@ -13445,6 +13467,7 @@ REGRAS: Substitua TODOS os [ ] por conteúdo real sobre "${targetTopic}". PROIBI
           {screen === 'biblioteca' && <LibraryScreen key="biblioteca" user={user} setScreen={setScreen} profile={profile} notifications={allNotifications} setNotifications={handleSetNotifications} />}
           {screen === 'gamificacao' && <GamificacaoScreen key="gamificacao" schedules={schedules} user={user} profile={profile} setScreen={setScreen} />}
           {screen === 'ferramentas' && <FerramentasScreen key="ferramentas" profile={profile} schedules={schedules} user={user} setScreen={setScreen} notifications={allNotifications} setNotifications={handleSetNotifications} initialTool={ferramentasTool} clearInitialTool={() => setFerramentasTool(null)} />}
+          {screen === 'acervo' && <AcervoScreen key="acervo" savedResources={savedResources} setSavedResources={setSavedResources} profile={profile} setScreen={setScreen} notifications={allNotifications} setNotifications={handleSetNotifications} />}
           {screen === 'admin' && (profile?.role === 'admin' || user?.email?.toLowerCase() === 'lyelsonmf520@gmail.com') && <AdminScreen key="admin" />}
         </AnimatePresence>
 
