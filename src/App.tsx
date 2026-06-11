@@ -10,7 +10,8 @@ import {
   Settings, Plus, Send, Loader2, FileQuestion, Image as ImageIcon,
   BrainCircuit, Layers, MessageCircle, MessageSquare, Camera, Database, Archive, Download, FileUp, Headphones, Square, Upload, Paperclip, Shield, LogOut, Trash2,
   MapPin, RefreshCw, ClipboardList, Coffee, Users, Library, Filter, HardDrive, FolderOpen, X,
-  Wand2, Grid3x3, Puzzle, Dice5, Map as MapIcon, Layers3, Trophy, ScrollText, AlertCircle, KeyRound, Lock, Pencil
+  Wand2, Grid3x3, Puzzle, Dice5, Map as MapIcon, Layers3, Trophy, ScrollText, AlertCircle, KeyRound, Lock, Pencil,
+  Volume2, Shuffle, Swords, Medal, Crown, Flame, Zap, Gift, Undo2, UserPlus, Pause, RotateCcw, Dices, MonitorPlay, Timer as TimerIcon, Star, Minus, ChevronLeft, Hand
 } from 'lucide-react';
 import { GoogleGenAI, Type } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
@@ -432,7 +433,7 @@ const fetchPixabayImage = async (query: string | undefined, width: number, heigh
 };
 
 // --- Types ---
-type Screen = 'home' | 'planner' | 'chat' | 'calendar' | 'dayDetail' | 'profile' | 'estudio' | 'biblioteca' | 'admin';
+type Screen = 'home' | 'planner' | 'chat' | 'calendar' | 'dayDetail' | 'profile' | 'estudio' | 'biblioteca' | 'admin' | 'gamificacao';
 type PlannerMode = 'plan' | 'activities' | 'slides' | 'exam';
 
 interface PresentationTheme {
@@ -585,7 +586,7 @@ const BottomNav = ({ activeScreen, setScreen, isAdmin }: { activeScreen: Screen,
     { id: 'planner', icon: BookOpen, label: 'Planejar' },
     { id: 'chat', icon: MessageSquare, label: 'Assistente' },
     { id: 'calendar', icon: CalendarIcon, label: 'Agenda' },
-    { id: 'biblioteca', icon: FolderOpen, label: 'Biblioteca' },
+    { id: 'gamificacao', icon: Trophy, label: 'Turma' },
   ];
 
   if (isAdmin) {
@@ -8251,6 +8252,1887 @@ const AcervoScreen = ({ savedResources, setSavedResources, profile, setScreen, n
   );
 };
 
+// ─── Gamificação de Turma ─────────────────────────────────────────────────────
+interface GamiBehavior { id: string; label: string; points: number; emoji: string; }
+interface GamiReward { id: string; label: string; cost: number; emoji: string; }
+interface GamiTeam { id: string; name: string; emoji: string; color: string; }
+interface GamiStudent {
+  id: string;
+  name: string;
+  xp: number;          // XP da temporada (zera por bimestre)
+  totalXp: number;     // XP acumulado de toda a vida — nunca diminui, define o nível
+  weekXp: number;      // XP da semana corrente
+  coins: number;       // moedas gastáveis na loja
+  teamId?: string;
+  badges: string[];
+  streak: number;
+  lastPointDay?: string;
+  participatedDay?: string;
+}
+interface GamiLogEntry { id: string; studentIds: string[]; label: string; emoji: string; points: number; coins?: number; kind?: 'award' | 'purchase'; date: number; }
+interface GamiMission { goal: number; reward: string; progress: number; weekKey: string; }
+interface GamiHallEntry { season: number; date: number; top: { name: string; xp: number }[]; }
+interface ClassGamification {
+  id: string;          // == id da turma (ClassSchedule)
+  students: GamiStudent[];
+  teams: GamiTeam[];
+  behaviors: GamiBehavior[];
+  rewards: GamiReward[];
+  log: GamiLogEntry[];
+  season: number;
+  weekKey: string;
+  hallOfFame: GamiHallEntry[];
+  mission?: GamiMission | null;
+  missionDoneWeek?: string;
+  customEvents?: string[];
+  skin: 'coruja' | 'emblema';
+  soundOn: boolean;
+}
+
+const GAMI_LEVELS = [
+  { min: 0,   name: 'Aprendiz' },
+  { min: 40,  name: 'Explorador' },
+  { min: 100, name: 'Estudioso' },
+  { min: 200, name: 'Sábio' },
+  { min: 320, name: 'Mestre' },
+  { min: 480, name: 'Lenda' },
+];
+const GAMI_SKINS: Record<'coruja' | 'emblema', string[]> = {
+  coruja:  ['🥚', '🐣', '🦉', '🌟', '🎓', '👑'],
+  emblema: ['🛡️', '🥉', '🥈', '🥇', '💎', '👑'],
+};
+const gamiLevel = (totalXp: number) => {
+  let idx = 0;
+  GAMI_LEVELS.forEach((l, i) => { if (totalXp >= l.min) idx = i; });
+  return idx;
+};
+const gamiLevelProgress = (totalXp: number) => {
+  const idx = gamiLevel(totalXp);
+  if (idx >= GAMI_LEVELS.length - 1) return 1;
+  const cur = GAMI_LEVELS[idx].min, next = GAMI_LEVELS[idx + 1].min;
+  return Math.min(1, (totalXp - cur) / (next - cur));
+};
+
+const GAMI_BADGES: { id: string; name: string; emoji: string; desc: string; check: (s: GamiStudent) => boolean }[] = [
+  { id: 'primeiro',  name: 'Primeiro Passo',  emoji: '🌱', desc: 'Ganhou o primeiro ponto',        check: s => s.totalXp >= 1 },
+  { id: 'chamas',    name: 'Em Chamas',       emoji: '🔥', desc: '3 dias seguidos ganhando pontos', check: s => (s.streak || 0) >= 3 },
+  { id: 'semana',    name: 'Semana Perfeita', emoji: '⚡', desc: '5 dias seguidos ganhando pontos', check: s => (s.streak || 0) >= 5 },
+  { id: 'centuriao', name: 'Centurião',       emoji: '💯', desc: 'Alcançou 100 XP',                 check: s => s.totalXp >= 100 },
+  { id: 'foguete',   name: 'Foguete',         emoji: '🚀', desc: 'Alcançou 250 XP',                 check: s => s.totalXp >= 250 },
+  { id: 'lenda',     name: 'Lenda Viva',      emoji: '👑', desc: 'Alcançou 480 XP',                 check: s => s.totalXp >= 480 },
+];
+
+const GAMI_DEFAULT_BEHAVIORS: GamiBehavior[] = [
+  { id: 'gb1', label: 'Participou da aula', points: 1,  emoji: '🙋' },
+  { id: 'gb2', label: 'Ajudou um colega',   points: 2,  emoji: '🤝' },
+  { id: 'gb3', label: 'Tarefa completa',    points: 2,  emoji: '📘' },
+  { id: 'gb4', label: 'Esforço extra',      points: 2,  emoji: '💪' },
+  { id: 'gb5', label: 'Gentileza',          points: 1,  emoji: '💜' },
+  { id: 'gb6', label: 'Atrapalhou a aula',  points: -1, emoji: '🔇' },
+  { id: 'gb7', label: 'Sem tarefa',         points: -1, emoji: '📕' },
+];
+const GAMI_DEFAULT_REWARDS: GamiReward[] = [
+  { id: 'gr1', label: 'Ajudante do dia',              cost: 10, emoji: '⭐' },
+  { id: 'gr2', label: 'Primeiro da fila',             cost: 10, emoji: '🚶' },
+  { id: 'gr3', label: 'Sentar onde quiser (1 dia)',   cost: 15, emoji: '🪑' },
+  { id: 'gr4', label: 'Escolher a música/brincadeira', cost: 20, emoji: '🎵' },
+  { id: 'gr5', label: 'Mensagem positiva para casa',  cost: 25, emoji: '💌' },
+  { id: 'gr6', label: '+1 dia no prazo da tarefa',    cost: 30, emoji: '📅' },
+];
+const GAMI_TEAM_PRESETS = [
+  { name: 'Corujas',  emoji: '🦉', color: '#6366f1' },
+  { name: 'Fênix',    emoji: '🔥', color: '#ef4444' },
+  { name: 'Dragões',  emoji: '🐉', color: '#10b981' },
+  { name: 'Tubarões', emoji: '🦈', color: '#0ea5e9' },
+  { name: 'Águias',   emoji: '🦅', color: '#f59e0b' },
+  { name: 'Lobos',    emoji: '🐺', color: '#8b5cf6' },
+];
+const GAMI_EVENTS: { text: string; emoji: string; quick?: number }[] = [
+  { text: 'Dia da Gentileza: pontos em dobro para quem ajudar um colega hoje!', emoji: '💜' },
+  { text: 'Quem trouxe todo o material hoje ganha pontos!', emoji: '🎒', quick: 2 },
+  { text: 'Desafio do Silêncio: 10 minutos de trabalho concentrado valem pontos para a turma toda.', emoji: '🤫' },
+  { text: 'Hoje é dia de elogiar: cada elogio sincero a um colega vale ponto extra.', emoji: '🌟' },
+  { text: 'Mesa organizada no fim da aula = pontos para a equipe!', emoji: '🧹' },
+  { text: 'Pergunta de Ouro: quem fizer a melhor pergunta da aula ganha pontos em dobro.', emoji: '❓' },
+  { text: 'Dia do Capricho: trabalhos com capricho extra valem pontos a mais.', emoji: '✍️' },
+  { text: 'Toda a turma chegou no horário? Pontos para todos!', emoji: '⏰', quick: 1 },
+  { text: 'Hoje quem lê em voz alta ganha ponto de coragem.', emoji: '📖' },
+  { text: 'Modo Espião: o professor vai observar em segredo quem mais colabora hoje.', emoji: '🕵️' },
+  { text: 'Dia da Dupla: trabalhem em duplas — as duplas que terminarem juntas ganham pontos.', emoji: '👥' },
+  { text: 'Energia positiva: a equipe mais animada (sem bagunça!) ganha pontos no fim da aula.', emoji: '🎉' },
+  { text: 'Quem usar a palavra mágica do dia em uma frase correta ganha ponto!', emoji: '🪄' },
+  { text: 'Recorde da turma: superem o número de participações da última aula e todos ganham!', emoji: '🏆' },
+  { text: 'Dia do Mestre Ajudante: quem explicar algo para um colega ganha pontos de mestre.', emoji: '🎓' },
+  { text: 'Sorteio surpresa no fim da aula entre quem completou tudo!', emoji: '🎁' },
+];
+
+const gamiRid = () => Math.random().toString(36).slice(2, 10);
+const gamiWeekKey = () => {
+  const d = new Date();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, '0')}-${String(mon.getDate()).padStart(2, '0')}`;
+};
+const gamiTodayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const gamiYesterdayKey = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const playChime = (positive = true) => {
+  try {
+    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(positive ? 880 : 330, ctx.currentTime);
+    if (positive) o.frequency.exponentialRampToValueAtTime(1318, ctx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.10, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+    o.start();
+    o.stop(ctx.currentTime + 0.4);
+    setTimeout(() => { try { ctx.close(); } catch {} }, 600);
+  } catch { /* sem áudio disponível */ }
+};
+
+const gamiDefaultClass = (classId: string): ClassGamification => ({
+  id: classId,
+  students: [],
+  teams: [],
+  behaviors: GAMI_DEFAULT_BEHAVIORS,
+  rewards: GAMI_DEFAULT_REWARDS,
+  log: [],
+  season: 1,
+  weekKey: gamiWeekKey(),
+  hallOfFame: [],
+  mission: null,
+  customEvents: [],
+  skin: 'coruja',
+  soundOn: true,
+});
+
+// ─── Ferramentas ao vivo (overlay em tela cheia, ideais para projetar) ────────
+const GamiToolShell = ({ title, emoji, onClose, children, dark }: { title: string; emoji: string; onClose: () => void; children: React.ReactNode; dark?: boolean }) => (
+  <motion.div
+    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    className={`fixed inset-0 z-[130] flex flex-col ${dark ? 'bg-gray-900' : 'bg-[#F8F9FE]'}`}
+  >
+    <div className={`flex items-center justify-between px-5 pt-5 pb-3 ${dark ? 'text-white' : 'text-gray-900'}`}>
+      <div className="flex items-center gap-2">
+        <span className="text-2xl">{emoji}</span>
+        <h2 className="text-lg font-black">{title}</h2>
+      </div>
+      <button onClick={onClose} className={`w-9 h-9 rounded-full flex items-center justify-center ${dark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-500'}`}>
+        <X size={18} />
+      </button>
+    </div>
+    <div className="flex-1 overflow-y-auto px-5 pb-8 flex flex-col">{children}</div>
+  </motion.div>
+);
+
+const GamiSorteio = ({ students, onClose, onAwardParticipation }: { students: GamiStudent[]; onClose: () => void; onAwardParticipation: (id: string) => void }) => {
+  const [fair, setFair] = useState(true);
+  const [drawn, setDrawn] = useState<string[]>([]);
+  const [winner, setWinner] = useState<GamiStudent | null>(null);
+  const [spinning, setSpinning] = useState(false);
+  const [display, setDisplay] = useState('');
+  const [awarded, setAwarded] = useState(false);
+
+  const pool = students.filter(s => !fair || !drawn.includes(s.id));
+
+  const spin = () => {
+    if (pool.length === 0 || spinning) return;
+    setSpinning(true); setWinner(null); setAwarded(false);
+    const total = 20 + Math.floor(Math.random() * 8);
+    const tick = (n: number) => {
+      setDisplay(pool[Math.floor(Math.random() * pool.length)].name);
+      if (n >= total) {
+        const w = pool[Math.floor(Math.random() * pool.length)];
+        setWinner(w); setDisplay(w.name);
+        setDrawn(d => [...d, w.id]);
+        setSpinning(false);
+        return;
+      }
+      setTimeout(() => tick(n + 1), 35 + n * 9);
+    };
+    tick(0);
+  };
+
+  return (
+    <GamiToolShell title="Sorteador" emoji="🎯" onClose={onClose}>
+      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+        <motion.div
+          key={display}
+          initial={{ scale: 0.96, opacity: 0.7 }} animate={{ scale: 1, opacity: 1 }}
+          className={`w-full max-w-md rounded-[2rem] py-14 px-6 text-center shadow-xl border-2 ${winner ? 'bg-indigo-600 border-indigo-700' : 'bg-white border-indigo-100'}`}
+        >
+          <p className={`text-3xl sm:text-4xl font-black break-words ${winner ? 'text-white' : 'text-gray-900'}`}>
+            {display || (pool.length === 0 ? 'Todos já foram sorteados! 🎉' : 'Toque em Sortear')}
+          </p>
+          {winner && <p className="text-indigo-200 text-sm font-bold mt-3">✨ Sorteado!</p>}
+        </motion.div>
+        {winner && !awarded && (
+          <button
+            onClick={() => { onAwardParticipation(winner.id); setAwarded(true); }}
+            className="bg-emerald-500 text-white font-bold px-6 py-3 rounded-2xl flex items-center gap-2 active:scale-95 transition-transform"
+          >
+            🙋 +1 Participação para {winner.name.split(' ')[0]}
+          </button>
+        )}
+        {awarded && <p className="text-emerald-600 text-sm font-bold">Ponto registrado! ✓</p>}
+      </div>
+      <div className="space-y-3">
+        <label className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 border border-gray-100 shadow-sm">
+          <span className="text-sm font-bold text-gray-700">Modo justo (não repete sorteados)</span>
+          <input type="checkbox" checked={fair} onChange={e => setFair(e.target.checked)} className="w-5 h-5 accent-indigo-600" />
+        </label>
+        {fair && drawn.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-gray-400 px-1">
+            <span>{drawn.length} de {students.length} já sorteados</span>
+            <button onClick={() => setDrawn([])} className="text-indigo-500 font-bold">Reiniciar rodada</button>
+          </div>
+        )}
+        <button
+          onClick={spin}
+          disabled={spinning || pool.length === 0}
+          className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-50 active:scale-[0.98] transition-transform"
+        >
+          {spinning ? 'Sorteando…' : '🎲 Sortear'}
+        </button>
+      </div>
+    </GamiToolShell>
+  );
+};
+
+const GamiTimer = ({ onClose }: { onClose: () => void }) => {
+  const [totalSecs, setTotalSecs] = useState(0);
+  const [left, setLeft] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [customMin, setCustomMin] = useState('');
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!running) { if (intervalRef.current) clearInterval(intervalRef.current); return; }
+    intervalRef.current = setInterval(() => {
+      setLeft(l => {
+        if (l <= 1) {
+          setRunning(false);
+          playChime(true); setTimeout(() => playChime(true), 350); setTimeout(() => playChime(true), 700);
+          return 0;
+        }
+        return l - 1;
+      });
+    }, 1000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [running]);
+
+  const start = (mins: number) => {
+    const s = Math.max(1, Math.round(mins * 60));
+    setTotalSecs(s); setLeft(s); setRunning(true);
+  };
+  const mm = String(Math.floor(left / 60)).padStart(2, '0');
+  const ss = String(left % 60).padStart(2, '0');
+  const pct = totalSecs > 0 ? left / totalSecs : 0;
+  const urgent = left > 0 && left <= 10;
+  const warn = left > 10 && left <= 60;
+  const owl = left === 0 && totalSecs > 0 ? '⏰' : urgent ? '😱' : warn ? '🦉' : '😴';
+
+  return (
+    <GamiToolShell title="Timer" emoji="⏱️" onClose={onClose} dark>
+      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+        <span className="text-6xl">{owl}</span>
+        <p className={`font-black tabular-nums tracking-tight ${urgent ? 'text-red-400' : warn ? 'text-amber-300' : 'text-white'}`} style={{ fontSize: 'min(26vw, 9rem)', lineHeight: 1 }}>
+          {mm}:{ss}
+        </p>
+        {totalSecs > 0 && (
+          <div className="w-full max-w-md h-3 bg-white/10 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-1000 ${urgent ? 'bg-red-500' : warn ? 'bg-amber-400' : 'bg-indigo-500'}`} style={{ width: `${pct * 100}%` }} />
+          </div>
+        )}
+        {left === 0 && totalSecs > 0 && <p className="text-amber-300 font-black text-xl">Tempo esgotado!</p>}
+      </div>
+      <div className="space-y-3">
+        <div className="grid grid-cols-4 gap-2">
+          {[1, 2, 5, 10].map(m => (
+            <button key={m} onClick={() => start(m)} className="bg-white/10 text-white font-bold py-3 rounded-2xl active:scale-95 transition-transform">{m} min</button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="number" min={1} max={120} value={customMin} onChange={e => setCustomMin(e.target.value)}
+            placeholder="Minutos…" className="flex-1 bg-white/10 text-white placeholder-white/40 rounded-2xl px-4 py-3 font-bold focus:outline-none"
+          />
+          <button onClick={() => { const m = parseInt(customMin, 10); if (m > 0) start(Math.min(m, 120)); }} className="bg-indigo-600 text-white font-bold px-5 rounded-2xl">Iniciar</button>
+        </div>
+        {totalSecs > 0 && (
+          <div className="flex gap-2">
+            <button onClick={() => setRunning(r => !r)} disabled={left === 0} className="flex-1 bg-white/10 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-40">
+              {running ? <><Pause size={16} /> Pausar</> : <><Play size={16} /> Continuar</>}
+            </button>
+            <button onClick={() => { setRunning(false); setLeft(totalSecs); }} className="flex-1 bg-white/10 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
+              <RotateCcw size={16} /> Reiniciar
+            </button>
+          </div>
+        )}
+      </div>
+    </GamiToolShell>
+  );
+};
+
+const GamiGrupos = ({ students, onClose }: { students: GamiStudent[]; onClose: () => void }) => {
+  const [groupSize, setGroupSize] = useState(4);
+  const [separations, setSeparations] = useState<[string, string][]>([]);
+  const [selA, setSelA] = useState('');
+  const [selB, setSelB] = useState('');
+  const [groups, setGroups] = useState<GamiStudent[][] | null>(null);
+
+  const violates = (gs: GamiStudent[][]) =>
+    separations.some(([a, b]) => gs.some(g => g.some(s => s.id === a) && g.some(s => s.id === b)));
+
+  const generate = () => {
+    if (students.length === 0) return;
+    let best: GamiStudent[][] | null = null;
+    for (let attempt = 0; attempt < 250; attempt++) {
+      const shuffled = [...students].sort(() => Math.random() - 0.5);
+      const count = Math.max(1, Math.ceil(shuffled.length / groupSize));
+      const gs: GamiStudent[][] = Array.from({ length: count }, () => []);
+      shuffled.forEach((s, i) => gs[i % count].push(s));
+      if (!violates(gs)) { best = gs; break; }
+      if (!best) best = gs;
+    }
+    setGroups(best);
+  };
+
+  return (
+    <GamiToolShell title="Gerador de Grupos" emoji="👥" onClose={onClose}>
+      {!groups ? (
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Alunos por grupo</label>
+            <div className="grid grid-cols-4 gap-2">
+              {[2, 3, 4, 5].map(n => (
+                <button key={n} onClick={() => setGroupSize(n)} className={`py-3 rounded-2xl font-bold border-2 transition-colors ${groupSize === n ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-200 text-gray-500 bg-white'}`}>{n}</button>
+              ))}
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-xs font-bold text-gray-400 uppercase mb-2">Separar alunos (opcional)</p>
+            <div className="flex gap-2 items-center">
+              <select value={selA} onChange={e => setSelA(e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-2 py-2 text-sm bg-white min-w-0">
+                <option value="">Aluno…</option>
+                {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <span className="text-gray-300 font-black shrink-0">✕</span>
+              <select value={selB} onChange={e => setSelB(e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-2 py-2 text-sm bg-white min-w-0">
+                <option value="">Aluno…</option>
+                {students.filter(s => s.id !== selA).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <button
+                onClick={() => { if (selA && selB) { setSeparations(p => [...p, [selA, selB]]); setSelA(''); setSelB(''); } }}
+                disabled={!selA || !selB}
+                className="bg-indigo-600 text-white w-9 h-9 rounded-xl flex items-center justify-center disabled:opacity-40 shrink-0"
+              ><Plus size={16} /></button>
+            </div>
+            {separations.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                {separations.map(([a, b], i) => (
+                  <div key={i} className="flex items-center justify-between bg-red-50 rounded-xl px-3 py-1.5 text-xs">
+                    <span className="text-red-600 font-medium">{students.find(s => s.id === a)?.name} ✕ {students.find(s => s.id === b)?.name}</span>
+                    <button onClick={() => setSeparations(p => p.filter((_, j) => j !== i))} className="text-red-400"><X size={13} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <button onClick={generate} disabled={students.length === 0} className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-50">
+            <Shuffle size={18} className="inline mr-2 -mt-1" />Sortear grupos
+          </button>
+          {students.length === 0 && <p className="text-center text-sm text-gray-400">Cadastre os alunos da turma primeiro.</p>}
+        </div>
+      ) : (
+        <div className="flex flex-col flex-1">
+          <div className="grid grid-cols-2 gap-3 flex-1 content-start">
+            {groups.map((g, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <p className="text-xs font-black text-indigo-500 uppercase tracking-wider mb-2">Grupo {i + 1}</p>
+                {g.map(s => <p key={s.id} className="text-sm font-bold text-gray-800 leading-relaxed">{s.name}</p>)}
+              </motion.div>
+            ))}
+          </div>
+          <button onClick={generate} className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-2xl mt-4 flex items-center justify-center gap-2">
+            <Shuffle size={16} /> Sortear de novo
+          </button>
+        </div>
+      )}
+    </GamiToolShell>
+  );
+};
+
+const GamiBarulho = ({ onClose, onRewardClass }: { onClose: () => void; onRewardClass: (points: number) => void }) => {
+  const [level, setLevel] = useState(0);
+  const [err, setErr] = useState('');
+  const [challenge, setChallenge] = useState<{ left: number; total: number; strikes: number; status: 'on' | 'win' | 'fail' } | null>(null);
+  const levelRef = useRef(0);
+  const rafRef = useRef(0);
+  const streamRef = useRef<MediaStream | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+        streamRef.current = stream;
+        const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new Ctx();
+        ctxRef.current = ctx;
+        const src = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 1024;
+        src.connect(analyser);
+        const data = new Uint8Array(analyser.fftSize);
+        const loop = () => {
+          analyser.getByteTimeDomainData(data);
+          let sum = 0;
+          for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
+          const rms = Math.sqrt(sum / data.length);
+          const next = Math.min(1, levelRef.current * 0.82 + rms * 3.2 * 0.18);
+          levelRef.current = next;
+          setLevel(next);
+          rafRef.current = requestAnimationFrame(loop);
+        };
+        loop();
+      } catch {
+        if (!cancelled) setErr('Não consegui acessar o microfone. Verifique a permissão do navegador.');
+      }
+    })();
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafRef.current);
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      try { ctxRef.current?.close(); } catch {}
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!challenge || challenge.status !== 'on') return;
+    const id = setInterval(() => {
+      setChallenge(c => {
+        if (!c || c.status !== 'on') return c;
+        const noisy = levelRef.current > 0.5;
+        const strikes = noisy ? c.strikes + 1 : c.strikes;
+        if (strikes > 12) { playChime(false); return { ...c, strikes, status: 'fail' }; }
+        if (c.left <= 1) { playChime(true); setTimeout(() => playChime(true), 300); return { ...c, left: 0, status: 'win' }; }
+        return { ...c, left: c.left - 1, strikes };
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [challenge?.status]);
+
+  const owl = level < 0.25 ? '😴' : level < 0.5 ? '🦉' : level < 0.75 ? '😯' : '🙀';
+  const zoneLabel = level < 0.25 ? 'Silêncio perfeito' : level < 0.5 ? 'Murmúrio de trabalho' : level < 0.75 ? 'Está ficando alto…' : 'MUITO BARULHO!';
+  const zoneColor = level < 0.5 ? 'text-emerald-600' : level < 0.75 ? 'text-amber-500' : 'text-red-500';
+
+  return (
+    <GamiToolShell title="Medidor de Barulho" emoji="🔊" onClose={onClose}>
+      {err ? (
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
+          <Volume2 size={40} className="text-gray-300" />
+          <p className="text-sm text-gray-500 max-w-xs">{err}</p>
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 flex flex-col items-center justify-center gap-5">
+            <motion.span animate={{ scale: 1 + level * 0.5 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} className="text-7xl">{owl}</motion.span>
+            <p className={`font-black text-xl ${zoneColor}`}>{zoneLabel}</p>
+            <div className="w-full max-w-md h-7 bg-gray-100 rounded-full overflow-hidden relative border border-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-150 ${level < 0.5 ? 'bg-emerald-400' : level < 0.75 ? 'bg-amber-400' : 'bg-red-500'}`}
+                style={{ width: `${level * 100}%` }}
+              />
+              <div className="absolute top-0 bottom-0 w-0.5 bg-gray-400/70" style={{ left: '50%' }} />
+            </div>
+            {challenge && (
+              <div className={`w-full max-w-md rounded-2xl p-4 text-center border-2 ${challenge.status === 'win' ? 'bg-emerald-50 border-emerald-300' : challenge.status === 'fail' ? 'bg-red-50 border-red-200' : 'bg-white border-indigo-200'}`}>
+                {challenge.status === 'on' && (
+                  <>
+                    <p className="text-4xl font-black text-indigo-700 tabular-nums">{String(Math.floor(challenge.left / 60)).padStart(2, '0')}:{String(challenge.left % 60).padStart(2, '0')}</p>
+                    <p className="text-xs text-gray-500 font-bold mt-1">Desafio do Silêncio em andamento · avisos: {challenge.strikes}/12</p>
+                  </>
+                )}
+                {challenge.status === 'win' && (
+                  <>
+                    <p className="text-lg font-black text-emerald-700">🎉 A turma venceu o desafio!</p>
+                    <button
+                      onClick={() => { onRewardClass(2); setChallenge(null); }}
+                      className="mt-3 bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-2xl"
+                    >Dar +2 pontos para todos</button>
+                  </>
+                )}
+                {challenge.status === 'fail' && (
+                  <>
+                    <p className="text-lg font-black text-red-600">O barulho venceu desta vez… 😅</p>
+                    <button onClick={() => setChallenge(null)} className="mt-3 bg-gray-200 text-gray-700 font-bold px-5 py-2.5 rounded-2xl">Fechar desafio</button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          {!challenge && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-400 uppercase text-center">Desafio do Silêncio — turma fica abaixo da linha e ganha pontos</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[3, 5, 10].map(m => (
+                  <button key={m} onClick={() => setChallenge({ left: m * 60, total: m * 60, strikes: 0, status: 'on' })} className="bg-indigo-600 text-white font-bold py-3 rounded-2xl active:scale-95 transition-transform">{m} min</button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </GamiToolShell>
+  );
+};
+
+const GamiSemaforo = ({ onClose }: { onClose: () => void }) => {
+  const [state, setState] = useState<0 | 1 | 2>(0);
+  const meta = [
+    { bg: 'bg-emerald-500', emoji: '🟢', label: 'PODE CONVERSAR', sub: 'Trabalho em grupo liberado' },
+    { bg: 'bg-amber-400',   emoji: '🟡', label: 'VOZ BAIXA',       sub: 'Só murmúrio de trabalho' },
+    { bg: 'bg-red-500',     emoji: '🔴', label: 'SILÊNCIO',        sub: 'Atenção total ao professor' },
+  ][state];
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className={`fixed inset-0 z-[130] flex flex-col items-center justify-center ${meta.bg} transition-colors duration-500 cursor-pointer select-none`}
+      onClick={() => setState(s => ((s + 1) % 3) as 0 | 1 | 2)}
+    >
+      <button onClick={e => { e.stopPropagation(); onClose(); }} className="absolute top-5 right-5 w-10 h-10 rounded-full bg-black/20 text-white flex items-center justify-center"><X size={20} /></button>
+      <span className="text-8xl mb-6">{meta.emoji}</span>
+      <p className="text-white font-black text-5xl sm:text-6xl text-center px-6 drop-shadow-md">{meta.label}</p>
+      <p className="text-white/85 font-bold text-lg mt-3">{meta.sub}</p>
+      <p className="text-white/60 text-xs font-bold mt-10 uppercase tracking-widest">Toque na tela para mudar</p>
+    </motion.div>
+  );
+};
+
+const GamiDado = ({ onClose }: { onClose: () => void }) => {
+  const [faces, setFaces] = useState(6);
+  const [value, setValue] = useState<number | null>(null);
+  const [rolling, setRolling] = useState(false);
+  const roll = () => {
+    if (rolling) return;
+    setRolling(true);
+    let n = 0;
+    const tick = () => {
+      setValue(1 + Math.floor(Math.random() * faces));
+      n++;
+      if (n >= 14) { setRolling(false); return; }
+      setTimeout(tick, 40 + n * 14);
+    };
+    tick();
+  };
+  return (
+    <GamiToolShell title="Dado" emoji="🎲" onClose={onClose} dark>
+      <div className="flex-1 flex flex-col items-center justify-center gap-8">
+        <motion.div
+          key={`${value}-${rolling}`}
+          initial={{ rotate: rolling ? -8 : 0, scale: 0.94 }} animate={{ rotate: 0, scale: 1 }}
+          className="w-52 h-52 bg-white rounded-[2.5rem] shadow-2xl flex items-center justify-center"
+        >
+          <span className="text-8xl font-black text-indigo-700 tabular-nums">{value ?? '?'}</span>
+        </motion.div>
+        <div className="flex gap-2">
+          {[6, 10, 20].map(f => (
+            <button key={f} onClick={() => { setFaces(f); setValue(null); }} className={`px-5 py-2.5 rounded-2xl font-bold ${faces === f ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white'}`}>D{f}</button>
+          ))}
+        </div>
+      </div>
+      <button onClick={roll} disabled={rolling} className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-60">🎲 Rolar dado</button>
+    </GamiToolShell>
+  );
+};
+
+const GamiPlacar = ({ teams, onClose }: { teams: GamiTeam[]; onClose: () => void }) => {
+  const initial = (teams.length >= 2 ? teams.slice(0, 4).map(t => `${t.emoji} ${t.name}`) : ['Time A', 'Time B']);
+  const [names, setNames] = useState<string[]>(initial);
+  const [scores, setScores] = useState<number[]>(initial.map(() => 0));
+  const colors = ['bg-indigo-600', 'bg-rose-500', 'bg-emerald-500', 'bg-amber-500'];
+  return (
+    <GamiToolShell title="Placar Rápido" emoji="🏆" onClose={onClose} dark>
+      <div className={`flex-1 grid gap-3 content-center ${names.length <= 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
+        {names.map((n, i) => (
+          <div key={i} className={`${colors[i % colors.length]} rounded-[2rem] p-5 flex flex-col items-center justify-center gap-3 shadow-xl`}>
+            <input
+              value={n}
+              onChange={e => setNames(p => p.map((x, j) => j === i ? e.target.value : x))}
+              className="bg-transparent text-white font-black text-center text-sm w-full focus:outline-none placeholder-white/50"
+            />
+            <p className="text-white font-black tabular-nums" style={{ fontSize: 'min(16vw, 5.5rem)', lineHeight: 1 }}>{scores[i]}</p>
+            <div className="flex gap-2">
+              <button onClick={() => setScores(p => p.map((s, j) => j === i ? Math.max(0, s - 1) : s))} className="w-11 h-11 bg-black/20 text-white rounded-full flex items-center justify-center"><Minus size={18} /></button>
+              <button onClick={() => setScores(p => p.map((s, j) => j === i ? s + 1 : s))} className="w-11 h-11 bg-white/25 text-white rounded-full flex items-center justify-center"><Plus size={18} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2 mt-4">
+        {names.length < 4 && (
+          <button onClick={() => { setNames(p => [...p, `Time ${String.fromCharCode(65 + p.length)}`]); setScores(p => [...p, 0]); }} className="flex-1 bg-white/10 text-white font-bold py-3 rounded-2xl">+ Time</button>
+        )}
+        {names.length > 2 && (
+          <button onClick={() => { setNames(p => p.slice(0, -1)); setScores(p => p.slice(0, -1)); }} className="flex-1 bg-white/10 text-white font-bold py-3 rounded-2xl">− Time</button>
+        )}
+        <button onClick={() => setScores(p => p.map(() => 0))} className="flex-1 bg-white/10 text-white font-bold py-3 rounded-2xl">Zerar</button>
+      </div>
+    </GamiToolShell>
+  );
+};
+
+const GamiEvento = ({ customEvents, onClose, onQuickAward }: { customEvents: string[]; onClose: () => void; onQuickAward: (points: number, label: string) => void }) => {
+  const bank = [...GAMI_EVENTS, ...customEvents.map(text => ({ text, emoji: '🎲' as string, quick: undefined as number | undefined }))];
+  const [result, setResult] = useState<{ text: string; emoji: string; quick?: number } | null>(null);
+  const [spinning, setSpinning] = useState(false);
+  const [display, setDisplay] = useState<{ text: string; emoji: string } | null>(null);
+  const [applied, setApplied] = useState(false);
+  const spin = () => {
+    if (spinning) return;
+    setSpinning(true); setResult(null); setApplied(false);
+    let n = 0;
+    const tick = () => {
+      setDisplay(bank[Math.floor(Math.random() * bank.length)]);
+      n++;
+      if (n >= 16) {
+        const r = bank[Math.floor(Math.random() * bank.length)];
+        setDisplay(r); setResult(r); setSpinning(false); playChime(true);
+        return;
+      }
+      setTimeout(tick, 50 + n * 14);
+    };
+    tick();
+  };
+  return (
+    <GamiToolShell title="Evento do Dia" emoji="🎲" onClose={onClose}>
+      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+        <motion.div
+          key={display?.text || 'empty'}
+          initial={{ scale: 0.95, opacity: 0.6 }} animate={{ scale: 1, opacity: 1 }}
+          className={`w-full max-w-md rounded-[2rem] p-8 text-center shadow-xl border-2 min-h-[180px] flex flex-col items-center justify-center gap-3 ${result ? 'bg-gradient-to-br from-indigo-600 to-purple-600 border-indigo-700' : 'bg-white border-indigo-100'}`}
+        >
+          <span className="text-5xl">{display?.emoji || '🦉'}</span>
+          <p className={`text-lg font-black leading-snug ${result ? 'text-white' : 'text-gray-700'}`}>
+            {display?.text || 'Sorteie o evento que abre a aula de hoje!'}
+          </p>
+        </motion.div>
+        {result?.quick !== undefined && !applied && (
+          <button
+            onClick={() => { onQuickAward(result.quick!, result.text); setApplied(true); }}
+            className="bg-emerald-500 text-white font-bold px-6 py-3 rounded-2xl active:scale-95 transition-transform"
+          >✨ Aplicar +{result.quick} para a turma toda</button>
+        )}
+        {applied && <p className="text-emerald-600 text-sm font-bold">Pontos aplicados! ✓</p>}
+      </div>
+      <button onClick={spin} disabled={spinning} className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl text-lg disabled:opacity-60">
+        {spinning ? 'Sorteando…' : '🎲 Sortear evento'}
+      </button>
+    </GamiToolShell>
+  );
+};
+
+const GamiParticipacao = ({ students, onToggle, onClose }: { students: GamiStudent[]; onToggle: (id: string) => void; onClose: () => void }) => {
+  const today = gamiTodayKey();
+  const done = students.filter(s => s.participatedDay === today);
+  return (
+    <GamiToolShell title="Participação de Hoje" emoji="✋" onClose={onClose}>
+      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4 flex items-center justify-between">
+        <p className="text-sm font-bold text-gray-700">{done.length} de {students.length} participaram</p>
+        <div className="w-28 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${students.length ? (done.length / students.length) * 100 : 0}%` }} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        {students.map(s => {
+          const did = s.participatedDay === today;
+          return (
+            <button
+              key={s.id}
+              onClick={() => onToggle(s.id)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors ${did ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-100'}`}
+            >
+              <span className={`text-sm font-bold ${did ? 'text-emerald-700' : 'text-gray-700'}`}>{s.name}</span>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center ${did ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-300'}`}>
+                <CheckCircle2 size={15} />
+              </span>
+            </button>
+          );
+        })}
+        {students.length === 0 && <p className="text-center text-sm text-gray-400 py-8">Cadastre os alunos da turma primeiro.</p>}
+      </div>
+      <p className="text-[11px] text-gray-400 text-center mt-4">Dica: marque quem participa e dê voz a quem ainda está em branco. A lista zera todo dia.</p>
+    </GamiToolShell>
+  );
+};
+
+const GamiBatalha = ({ teams, students, subject, level, onClose, onAwardTeam }: {
+  teams: GamiTeam[];
+  students: GamiStudent[];
+  subject: string;
+  level: string;
+  onClose: () => void;
+  onAwardTeam: (teamIdx: number, names: string[], points: number) => void;
+}) => {
+  const hasRealTeams = teams.length >= 2;
+  const battleTeams = hasRealTeams ? teams.slice(0, 4).map(t => `${t.emoji} ${t.name}`) : ['🔵 Time A', '🔴 Time B'];
+  const [phase, setPhase] = useState<'setup' | 'loading' | 'play' | 'end'>('setup');
+  const [topic, setTopic] = useState('');
+  const [count, setCount] = useState(10);
+  const [difficulty, setDifficulty] = useState('média');
+  const [questions, setQuestions] = useState<{ q: string; a: string }[]>([]);
+  const [idx, setIdx] = useState(0);
+  const [turn, setTurn] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [scores, setScores] = useState<number[]>(battleTeams.map(() => 0));
+  const [error, setError] = useState('');
+  const [awarded, setAwarded] = useState(false);
+  const colors = ['bg-indigo-600', 'bg-rose-500', 'bg-emerald-500', 'bg-amber-500'];
+
+  const generate = async () => {
+    if (!topic.trim()) { setError('Informe o tema da revisão.'); return; }
+    setError(''); setPhase('loading');
+    try {
+      const prompt = `Gere ${count} perguntas CURTAS de revisão oral sobre "${topic}" (disciplina: ${subject || 'geral'}, nível: ${level}), dificuldade ${difficulty}.
+Cada pergunta deve ser respondível em voz alta em até 10 segundos, com resposta curta e objetiva (1 a 6 palavras).
+Varie os tipos: definição, complete a frase, verdadeiro ou falso, qual é, quem foi.
+Retorne APENAS JSON válido: {"questions":[{"q":"pergunta","a":"resposta curta"}]}`;
+      const response = await generateContentWithRetry({ model: AI_MODEL, contents: prompt });
+      const raw = (response.text || '').replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      const parsed = JSON.parse(raw);
+      if (!parsed.questions?.length) throw new Error('sem perguntas');
+      setQuestions(parsed.questions);
+      setIdx(0); setTurn(0); setRevealed(false); setScores(battleTeams.map(() => 0));
+      setPhase('play');
+    } catch {
+      setError('Não consegui gerar as perguntas. Tente novamente.');
+      setPhase('setup');
+    }
+  };
+
+  const next = (hit: boolean) => {
+    if (hit) { setScores(p => p.map((s, i) => i === turn ? s + 1 : s)); playChime(true); }
+    setRevealed(false);
+    if (idx + 1 >= questions.length) { setPhase('end'); return; }
+    setIdx(idx + 1);
+    setTurn((turn + 1) % battleTeams.length);
+  };
+
+  const maxScore = Math.max(...scores);
+  const winners = scores.map((s, i) => ({ s, i })).filter(x => x.s === maxScore);
+  const winnerNames = (ti: number) => hasRealTeams
+    ? students.filter(s => s.teamId === teams[ti]?.id).map(s => s.id)
+    : [];
+
+  return (
+    <GamiToolShell title="Batalha de Revisão" emoji="⚔️" onClose={onClose} dark={phase === 'play'}>
+      {phase === 'setup' && (
+        <div className="space-y-4">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+            <p className="text-sm text-indigo-800 leading-relaxed"><b>Como funciona:</b> a IA gera perguntas rápidas; você lê em voz alta e cada equipe responde na sua vez. Marque acerto ou passe — o placar é automático. Kahoot sem precisar de celular dos alunos!</p>
+          </div>
+          {error && <p className="text-sm text-red-500 font-medium bg-red-50 rounded-xl p-3">{error}</p>}
+          <div>
+            <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Tema da revisão</label>
+            <input value={topic} onChange={e => setTopic(e.target.value)} placeholder="Ex: Frações, Era Vargas, Sistema Solar…" className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-400 bg-white" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Perguntas</label>
+              <div className="flex gap-1.5">
+                {[6, 10, 14].map(n => (
+                  <button key={n} onClick={() => setCount(n)} className={`flex-1 py-2.5 rounded-xl font-bold text-sm border-2 ${count === n ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-200 text-gray-500 bg-white'}`}>{n}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Dificuldade</label>
+              <select value={difficulty} onChange={e => setDifficulty(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white">
+                <option value="fácil">Fácil</option>
+                <option value="média">Média</option>
+                <option value="difícil">Difícil</option>
+              </select>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-xs font-bold text-gray-400 uppercase mb-2">Equipes da batalha</p>
+            <div className="flex flex-wrap gap-2">
+              {battleTeams.map((t, i) => (
+                <span key={i} className={`${colors[i % colors.length]} text-white text-xs font-bold px-3 py-1.5 rounded-full`}>{t}</span>
+              ))}
+            </div>
+            {!hasRealTeams && <p className="text-[11px] text-gray-400 mt-2">Dica: crie equipes na aba Equipes para usar os nomes reais e dar XP aos vencedores.</p>}
+          </div>
+          <button onClick={generate} className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl text-lg flex items-center justify-center gap-2">
+            <Swords size={20} /> Começar batalha
+          </button>
+        </div>
+      )}
+      {phase === 'loading' && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <Loader2 size={40} className="animate-spin text-indigo-600" />
+          <p className="text-sm font-bold text-gray-500">Preparando as perguntas da batalha…</p>
+        </div>
+      )}
+      {phase === 'play' && questions[idx] && (
+        <div className="flex-1 flex flex-col">
+          <div className="flex gap-2 mb-4">
+            {battleTeams.map((t, i) => (
+              <div key={i} className={`flex-1 rounded-2xl px-2 py-2.5 text-center transition-all ${i === turn ? colors[i % colors.length] + ' shadow-lg scale-[1.03]' : 'bg-white/10'}`}>
+                <p className="text-[10px] font-black text-white/90 truncate">{t}</p>
+                <p className="text-2xl font-black text-white tabular-nums">{scores[i]}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-white/60 text-xs font-bold uppercase tracking-widest mb-2">Pergunta {idx + 1} de {questions.length} · vez de {battleTeams[turn]}</p>
+          <div className="flex-1 flex flex-col items-center justify-center gap-5">
+            <motion.div key={idx} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2rem] p-7 w-full max-w-md text-center shadow-2xl">
+              <p className="text-xl sm:text-2xl font-black text-gray-900 leading-snug">{questions[idx].q}</p>
+              {revealed && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-lg font-black text-emerald-600 bg-emerald-50 rounded-2xl py-3 px-4">
+                  {questions[idx].a}
+                </motion.p>
+              )}
+            </motion.div>
+            {!revealed ? (
+              <button onClick={() => setRevealed(true)} className="bg-white/15 text-white font-bold px-8 py-3.5 rounded-2xl">👁 Mostrar resposta</button>
+            ) : (
+              <div className="flex gap-3 w-full max-w-md">
+                <button onClick={() => next(true)} className="flex-1 bg-emerald-500 text-white font-black py-4 rounded-2xl">✓ Acertou (+1)</button>
+                <button onClick={() => next(false)} className="flex-1 bg-white/15 text-white font-bold py-4 rounded-2xl">Passou</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {phase === 'end' && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-6">
+          <span className="text-6xl">🏆</span>
+          <h3 className="text-2xl font-black text-gray-900 text-center">
+            {winners.length === 1 ? `${battleTeams[winners[0].i]} venceu!` : 'Empate épico!'}
+          </h3>
+          <div className="w-full max-w-sm space-y-2">
+            {scores.map((s, i) => ({ s, i })).sort((a, b) => b.s - a.s).map(({ s, i }, pos) => (
+              <div key={i} className={`flex items-center justify-between px-4 py-3 rounded-2xl ${pos === 0 ? 'bg-amber-50 border-2 border-amber-300' : 'bg-white border border-gray-100'}`}>
+                <span className="font-bold text-gray-800 text-sm">{pos === 0 ? '🥇' : pos === 1 ? '🥈' : pos === 2 ? '🥉' : '·'} {battleTeams[i]}</span>
+                <span className="font-black text-gray-900 tabular-nums">{s} pts</span>
+              </div>
+            ))}
+          </div>
+          {hasRealTeams && winners.length >= 1 && !awarded && winnerNames(winners[0].i).length > 0 && (
+            <button
+              onClick={() => { winners.forEach(w => onAwardTeam(w.i, winnerNames(w.i), 3)); setAwarded(true); }}
+              className="bg-emerald-500 text-white font-bold px-6 py-3 rounded-2xl"
+            >⚡ Dar +3 XP {winners.length > 1 ? 'às equipes vencedoras' : 'à equipe vencedora'}</button>
+          )}
+          {awarded && <p className="text-emerald-600 text-sm font-bold">XP entregue! ✓</p>}
+          <button onClick={() => setPhase('setup')} className="text-indigo-600 font-bold text-sm">↻ Nova batalha</button>
+        </div>
+      )}
+    </GamiToolShell>
+  );
+};
+
+const GamiProjetor = ({ cls, schedule, onClose }: { cls: ClassGamification; schedule?: ClassSchedule; onClose: () => void }) => {
+  const wk = gamiWeekKey();
+  const weekXpOf = (s: GamiStudent) => cls.weekKey === wk ? (s.weekXp || 0) : 0;
+  const skin = GAMI_SKINS[cls.skin || 'coruja'];
+  const teamTotals = cls.teams.map(t => ({
+    team: t,
+    xp: cls.students.filter(s => s.teamId === t.id).reduce((a, s) => a + s.xp, 0),
+    week: cls.students.filter(s => s.teamId === t.id).reduce((a, s) => a + weekXpOf(s), 0),
+  })).sort((a, b) => b.week - a.week || b.xp - a.xp);
+  const maxTeam = Math.max(1, ...teamTotals.map(t => t.week));
+  const topWeek = [...cls.students].sort((a, b) => weekXpOf(b) - weekXpOf(a)).slice(0, 3).filter(s => weekXpOf(s) > 0);
+  const missionProgress = cls.mission ? (cls.mission.weekKey === wk ? cls.mission.progress : 0) : 0;
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[130] bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-700 flex flex-col overflow-y-auto">
+      <div className="flex items-center justify-between px-6 pt-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🦉</span>
+          <div>
+            <h2 className="text-white font-black text-xl leading-tight">{schedule?.name || 'Turma'}</h2>
+            <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Temporada {cls.season}</p>
+          </div>
+        </div>
+        <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center"><X size={20} /></button>
+      </div>
+      <div className="flex-1 px-6 py-6 space-y-5 max-w-2xl w-full mx-auto">
+        {cls.mission && (
+          <div className="bg-white/10 backdrop-blur rounded-[2rem] p-5 border border-white/15">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-white font-black text-sm">🎯 Missão da Semana: {cls.mission.reward}</p>
+              <p className="text-indigo-100 font-black text-sm tabular-nums">{Math.min(missionProgress, cls.mission.goal)} / {cls.mission.goal}</p>
+            </div>
+            <div className="h-4 bg-white/15 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-700 ${missionProgress >= cls.mission.goal ? 'bg-emerald-400' : 'bg-amber-300'}`} style={{ width: `${Math.min(100, (missionProgress / cls.mission.goal) * 100)}%` }} />
+            </div>
+            {missionProgress >= cls.mission.goal && <p className="text-emerald-300 font-black text-center mt-2 text-sm">🎉 MISSÃO CONCLUÍDA!</p>}
+          </div>
+        )}
+        {teamTotals.length > 0 && (
+          <div className="bg-white/10 backdrop-blur rounded-[2rem] p-5 border border-white/15">
+            <p className="text-white font-black text-sm mb-4">🏆 Pódio das Equipes (semana)</p>
+            <div className="space-y-3">
+              {teamTotals.map((t, i) => (
+                <div key={t.team.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white font-bold text-sm">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '·'} {t.team.emoji} {t.team.name}</span>
+                    <span className="text-indigo-100 font-black text-sm tabular-nums">{t.week} XP</span>
+                  </div>
+                  <div className="h-3.5 bg-white/15 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(t.week / maxTeam) * 100}%`, backgroundColor: t.team.color }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="bg-white/10 backdrop-blur rounded-[2rem] p-5 border border-white/15">
+          <p className="text-white font-black text-sm mb-4">⚡ Destaques da Semana</p>
+          {topWeek.length === 0 ? (
+            <p className="text-indigo-200 text-sm text-center py-3">Os destaques aparecem aqui conforme a turma ganha pontos!</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {topWeek.map((s, i) => (
+                <div key={s.id} className={`rounded-2xl p-3 text-center ${i === 0 ? 'bg-amber-300/25 border border-amber-300/40' : 'bg-white/10'}`}>
+                  <span className="text-3xl">{skin[gamiLevel(s.totalXp)]}</span>
+                  <p className="text-white font-bold text-xs mt-1 truncate">{s.name}</p>
+                  <p className="text-indigo-100 font-black text-sm">+{weekXpOf(s)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <p className="text-center text-indigo-200/70 text-[11px] font-bold uppercase tracking-widest pb-4">Prof. Corujão · Turma Gamificada</p>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Gamificação de Turma ─────────────────────────────────────────────────────
+const GamificacaoScreen = ({
+  schedules,
+  user,
+  profile,
+  setScreen,
+}: {
+  schedules: ClassSchedule[];
+  user: any;
+  profile: UserProfile;
+  setScreen: (s: Screen) => void;
+}) => {
+  const [gamiClasses, setGamiClasses] = useFirestoreSync<ClassGamification>('gamification', user, []);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(schedules[0]?.id ?? null);
+  const [tab, setTab] = useState<'alunos' | 'equipes' | 'missao' | 'loja' | 'log' | 'config'>('alunos');
+  const [liveTool, setLiveTool] = useState<string | null>(null);
+  const [kitExpanded, setKitExpanded] = useState(false);
+  const [awardingStudentId, setAwardingStudentId] = useState<string | null>(null);
+  const [shopStudentId, setShopStudentId] = useState<string | null>(null);
+  const [configSection, setConfigSection] = useState<'students' | 'behaviors' | 'rewards' | 'teams' | 'season'>('students');
+  const [newStudentName, setNewStudentName] = useState('');
+  const [showSeasonEnd, setShowSeasonEnd] = useState(false);
+  const [editingMission, setEditingMission] = useState(false);
+  const [missionGoal, setMissionGoal] = useState('50');
+  const [missionReward, setMissionReward] = useState('Recreio livre 5 min');
+  const [teamStudentId, setTeamStudentId] = useState<string | null>(null);
+
+  const selectedSchedule = schedules.find(s => s.id === selectedClassId);
+  const wk = gamiWeekKey();
+
+  const currentCls = useMemo<ClassGamification | null>(() => {
+    if (!selectedClassId) return null;
+    return gamiClasses.find(c => c.id === selectedClassId) ?? gamiDefaultClass(selectedClassId);
+  }, [gamiClasses, selectedClassId]);
+
+  const weekXpOf = (s: GamiStudent) =>
+    currentCls?.weekKey === wk ? (s.weekXp ?? 0) : 0;
+
+  const skin = GAMI_SKINS[currentCls?.skin ?? 'coruja'];
+
+  const updateCls = (updater: (prev: ClassGamification) => ClassGamification) => {
+    if (!selectedClassId) return;
+    const existing = gamiClasses.find(c => c.id === selectedClassId);
+    const prev = existing ?? gamiDefaultClass(selectedClassId);
+    const next = updater(prev);
+    if (existing) {
+      setGamiClasses(list => list.map(c => c.id === selectedClassId ? next : c));
+    } else {
+      setGamiClasses(list => [...list, next]);
+    }
+  };
+
+  const checkBadges = (students: GamiStudent[], _cls: ClassGamification): GamiStudent[] => {
+    return students.map(s => {
+      const badges = [...s.badges];
+      GAMI_BADGES.forEach(b => {
+        if (!badges.includes(b.id) && b.check(s)) badges.push(b.id);
+      });
+      return { ...s, badges };
+    });
+  };
+
+  const awardPoints = (studentIds: string[], behavior: GamiBehavior) => {
+    const points = behavior.points;
+    const coins = points > 0 ? Math.max(1, Math.floor(points / 5)) : 0;
+    const today = gamiTodayKey();
+
+    updateCls(cls => {
+      const students = cls.students.map(s => {
+        if (!studentIds.includes(s.id)) return s;
+        const newXp = Math.max(0, s.xp + points);
+        const newTotal = s.totalXp + (points > 0 ? points : 0);
+        const prevWeekXp = cls.weekKey === wk ? (s.weekXp ?? 0) : 0;
+        const newWeekXp = prevWeekXp + (points > 0 ? points : 0);
+        const newCoins = Math.max(0, s.coins + coins);
+        const streak = points > 0
+          ? (s.lastPointDay === today ? s.streak : s.lastPointDay === gamiYesterdayKey() ? s.streak + 1 : 1)
+          : s.streak;
+        return { ...s, xp: newXp, totalXp: newTotal, weekXp: newWeekXp, coins: newCoins, streak, lastPointDay: points > 0 ? today : s.lastPointDay };
+      });
+      const checked = checkBadges(students, { ...cls, weekKey: wk, students });
+      let mission = cls.mission;
+      if (mission && mission.weekKey === wk && points > 0) {
+        mission = { ...mission, progress: mission.progress + points * studentIds.length };
+      }
+      const logEntry: GamiLogEntry = { id: gamiRid(), studentIds, label: behavior.label, emoji: behavior.emoji, points, coins, kind: 'award', date: Date.now() };
+      return { ...cls, students: checked, weekKey: wk, log: [logEntry, ...cls.log].slice(0, 200), mission };
+    });
+
+    if (currentCls?.soundOn !== false) playChime();
+    setAwardingStudentId(null);
+  };
+
+  const purchaseReward = (studentId: string, reward: GamiReward) => {
+    let ok = true;
+    updateCls(cls => {
+      const s = cls.students.find(x => x.id === studentId);
+      if (!s || s.coins < reward.cost) { ok = false; return cls; }
+      const students = cls.students.map(x => x.id === studentId ? { ...x, coins: x.coins - reward.cost } : x);
+      const logEntry: GamiLogEntry = { id: gamiRid(), studentIds: [studentId], label: reward.label, emoji: reward.emoji, points: 0, coins: -reward.cost, kind: 'purchase', date: Date.now() };
+      return { ...cls, students, log: [logEntry, ...cls.log].slice(0, 200) };
+    });
+    if (!ok) { toast.error('Corujinhas insuficientes!'); return; }
+    toast.success(`${reward.emoji} ${reward.label} resgatada!`);
+    setShopStudentId(null);
+  };
+
+  const addStudent = () => {
+    const name = newStudentName.trim();
+    if (!name) return;
+    updateCls(cls => ({ ...cls, students: [...cls.students, { id: gamiRid(), name, xp: 0, totalXp: 0, weekXp: 0, coins: 0, badges: [], streak: 0 }] }));
+    setNewStudentName('');
+  };
+
+  const removeStudent = (id: string) => {
+    updateCls(cls => ({ ...cls, students: cls.students.filter(s => s.id !== id) }));
+  };
+
+  const endSeason = () => {
+    if (!currentCls) return;
+    const top = [...currentCls.students].sort((a, b) => b.totalXp - a.totalXp).slice(0, 5);
+    const entry: GamiHallEntry = { season: currentCls.season, date: Date.now(), top: top.map(s => ({ name: s.name, xp: s.totalXp })) };
+    updateCls(cls => ({
+      ...cls,
+      season: cls.season + 1,
+      hallOfFame: [...(cls.hallOfFame ?? []), entry],
+      students: cls.students.map(s => ({ ...s, xp: 0, totalXp: 0, weekXp: 0, coins: 0, streak: 0, lastPointDay: undefined, participatedDay: undefined })),
+      log: [],
+      mission: null,
+      weekKey: gamiWeekKey(),
+    }));
+    setShowSeasonEnd(false);
+    toast.success('🏆 Nova temporada iniciada!');
+  };
+
+  const LIVE_TOOLS = [
+    { id: 'sorteio', emoji: '🎲', label: 'Sorteador' },
+    { id: 'timer', emoji: '⏱️', label: 'Timer' },
+    { id: 'grupos', emoji: '👥', label: 'Grupos' },
+    { id: 'barulho', emoji: '🔊', label: 'Barulho' },
+    { id: 'semaforo', emoji: '🚦', label: 'Semáforo' },
+    { id: 'dado', emoji: '🎯', label: 'Dado' },
+    { id: 'placar', emoji: '📊', label: 'Placar' },
+    { id: 'evento', emoji: '⚡', label: 'Evento' },
+    { id: 'participacao', emoji: '✋', label: 'Chamada' },
+    { id: 'batalha', emoji: '⚔️', label: 'Batalha' },
+    { id: 'projetor', emoji: '📽️', label: 'Projetar' },
+  ];
+
+  if (schedules.length === 0) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center min-h-[70vh] gap-6 px-6 text-center">
+        <span className="text-6xl">🦉</span>
+        <div>
+          <h2 className="text-xl font-black text-gray-900 mb-2">Nenhuma turma cadastrada</h2>
+          <p className="text-gray-500 text-sm">Cadastre suas turmas na Agenda para ativar a gamificação.</p>
+        </div>
+        <button onClick={() => setScreen('calendar')} className="bg-indigo-600 text-white font-bold px-6 py-3 rounded-2xl text-sm">
+          Ir para a Agenda
+        </button>
+      </motion.div>
+    );
+  }
+
+  if (!currentCls) return null;
+
+  const awardingStudent = currentCls.students.find(s => s.id === awardingStudentId) ?? null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="pb-44">
+      {/* Header */}
+      <div className="pt-2 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-black text-gray-900">🦉 Turma Gamificada</h1>
+            <p className="text-[11px] text-indigo-500 font-bold uppercase tracking-widest">Temporada {currentCls.season}</p>
+          </div>
+          <button
+            onClick={() => updateCls(c => ({ ...c, soundOn: c.soundOn === false ? true : false }))}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${currentCls.soundOn !== false ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400'}`}
+          >
+            <Volume2 size={16} />
+          </button>
+        </div>
+        {schedules.length > 1 && (
+          <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">
+            {schedules.map(s => (
+              <button
+                key={s.id}
+                onClick={() => { setSelectedClassId(s.id); setTab('alunos'); }}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${selectedClassId === s.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200'}`}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Summary strip */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="bg-indigo-50 rounded-2xl p-3 text-center">
+          <p className="text-xl font-black text-indigo-700">{currentCls.students.length}</p>
+          <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide">Alunos</p>
+        </div>
+        <div className="bg-amber-50 rounded-2xl p-3 text-center">
+          <p className="text-xl font-black text-amber-600">{currentCls.students.reduce((a, s) => a + weekXpOf(s), 0)}</p>
+          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wide">XP semana</p>
+        </div>
+        <div className="bg-emerald-50 rounded-2xl p-3 text-center">
+          <p className="text-xl font-black text-emerald-600">{currentCls.teams.length}</p>
+          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide">Equipes</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 overflow-x-auto no-scrollbar mb-4 -mx-1 px-1">
+        {([
+          { id: 'alunos', label: '👥 Alunos' },
+          { id: 'equipes', label: '🏆 Equipes' },
+          { id: 'missao', label: '🎯 Missão' },
+          { id: 'loja', label: '🛒 Loja' },
+          { id: 'log', label: '📜 Log' },
+          { id: 'config', label: '⚙️ Config' },
+        ] as const).map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${tab === t.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200'}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <AnimatePresence mode="wait">
+
+        {/* ── Alunos ─────────────────────────────────────────────────────────── */}
+        {tab === 'alunos' && (
+          <motion.div key="alunos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {currentCls.students.length === 0 ? (
+              <div className="text-center py-16">
+                <span className="text-5xl">🦉</span>
+                <p className="text-gray-500 mt-3 text-sm font-bold">Nenhum aluno ainda</p>
+                <p className="text-gray-400 text-xs mt-1">Adicione alunos em ⚙️ Config → Alunos</p>
+                <button onClick={() => { setTab('config'); setConfigSection('students'); }} className="mt-4 bg-indigo-600 text-white text-sm font-bold px-5 py-2.5 rounded-2xl">
+                  + Adicionar alunos
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {[...currentCls.students].sort((a, b) => b.totalXp - a.totalXp).map(s => {
+                  const lvl = gamiLevel(s.totalXp);
+                  const pct = gamiLevelProgress(s.totalXp) * 100;
+                  const sWXp = weekXpOf(s);
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setAwardingStudentId(s.id)}
+                      className="bg-white rounded-2xl p-3 text-center shadow-sm border border-gray-100 active:scale-95 transition-transform"
+                    >
+                      <div className="relative mx-auto w-10 h-10 mb-1.5 flex items-center justify-center">
+                        <span className="text-[30px] leading-none">{skin[lvl]}</span>
+                        {s.streak >= 3 && (
+                          <span className="absolute -top-1 -right-1 text-[9px] bg-orange-400 text-white rounded-full w-4 h-4 flex items-center justify-center leading-none">🔥</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-bold text-gray-800 truncate leading-tight">{s.name}</p>
+                      <p className="text-[9px] text-indigo-400 font-bold leading-tight">{GAMI_LEVELS[lvl].name}</p>
+                      <div className="h-1 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                      {sWXp > 0 && <p className="text-[9px] text-amber-500 font-black mt-1">+{sWXp}</p>}
+                      {s.coins > 0 && <p className="text-[9px] text-yellow-500 font-bold">🪙{s.coins}</p>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Equipes ─────────────────────────────────────────────────────────── */}
+        {tab === 'equipes' && (
+          <motion.div key="equipes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+            {currentCls.teams.length === 0 ? (
+              <div className="text-center py-12">
+                <span className="text-4xl">🏆</span>
+                <p className="text-gray-500 mt-2 text-sm font-bold">Nenhuma equipe configurada</p>
+                <p className="text-gray-400 text-xs mt-1">Configure em ⚙️ Config → Equipes</p>
+                <button onClick={() => { setTab('config'); setConfigSection('teams'); }} className="mt-4 bg-indigo-600 text-white text-sm font-bold px-5 py-2.5 rounded-2xl">
+                  Criar equipes
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Ranking desta semana</p>
+                {(() => {
+                  const sorted = [...currentCls.teams].map(t => ({
+                    team: t,
+                    xp: currentCls.students.filter(s => s.teamId === t.id).reduce((a, s) => a + weekXpOf(s), 0),
+                    total: currentCls.students.filter(s => s.teamId === t.id).reduce((a, s) => a + s.totalXp, 0),
+                    count: currentCls.students.filter(s => s.teamId === t.id).length,
+                  })).sort((a, b) => b.xp - a.xp || b.total - a.total);
+                  const maxXp = Math.max(1, ...sorted.map(t => t.xp));
+                  return sorted.map((t, i) => (
+                    <div key={t.team.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-black text-gray-400">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}°`}</span>
+                          <span className="text-2xl">{t.team.emoji}</span>
+                          <span className="font-black text-gray-800">{t.team.name}</span>
+                        </div>
+                        <span className="font-black text-indigo-600 text-lg tabular-nums">{t.xp} <span className="text-xs font-bold text-indigo-300">XP</span></span>
+                      </div>
+                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(t.xp / maxXp) * 100}%`, backgroundColor: t.team.color }} />
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-[10px] text-gray-400">{t.count} aluno{t.count !== 1 ? 's' : ''}</p>
+                        <p className="text-[10px] text-gray-400">{t.total} XP total</p>
+                      </div>
+                    </div>
+                  ));
+                })()}
+                {currentCls.students.some(s => !s.teamId) && (
+                  <div className="bg-amber-50 rounded-2xl p-3 border border-amber-100">
+                    <p className="text-xs font-bold text-amber-700 mb-2">Sem equipe — toque para atribuir:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {currentCls.students.filter(s => !s.teamId).map(s => (
+                        <button key={s.id} onClick={() => setTeamStudentId(s.id)} className="bg-white text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-200 active:scale-95 transition-transform">
+                          {s.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Missão ─────────────────────────────────────────────────────────── */}
+        {tab === 'missao' && (
+          <motion.div key="missao" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            {currentCls.mission && currentCls.mission.weekKey === wk ? (
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <div className="flex items-start justify-between mb-1">
+                  <div>
+                    <p className="font-black text-gray-900">🎯 Missão da Semana</p>
+                    <p className="text-sm text-indigo-600 font-bold mt-0.5">{currentCls.mission.reward}</p>
+                  </div>
+                  <button onClick={() => updateCls(c => ({ ...c, mission: null }))} className="text-gray-300 hover:text-red-400 transition-colors p-1"><X size={16} /></button>
+                </div>
+                <div className="flex items-center justify-between mt-4 mb-2">
+                  <span className="text-xs font-bold text-gray-500">Progresso da turma</span>
+                  <span className="text-sm font-black text-gray-800 tabular-nums">{Math.min(currentCls.mission.progress, currentCls.mission.goal)} / {currentCls.mission.goal} XP</span>
+                </div>
+                <div className="h-5 bg-gray-100 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${currentCls.mission.progress >= currentCls.mission.goal ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (currentCls.mission.progress / currentCls.mission.goal) * 100)}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                  />
+                </div>
+                {currentCls.mission.progress >= currentCls.mission.goal && (
+                  <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="text-emerald-500 font-black text-center mt-3 text-sm">🎉 MISSÃO CONCLUÍDA! Parabéns à turma!</motion.p>
+                )}
+              </div>
+            ) : (
+              <div className="bg-indigo-50 rounded-2xl p-5 text-center border border-indigo-100">
+                <p className="text-3xl mb-2">🎯</p>
+                <p className="text-sm font-bold text-gray-700">Nenhuma missão ativa esta semana</p>
+                <p className="text-xs text-gray-400 mt-1">Crie uma missão de grupo para motivar a turma</p>
+              </div>
+            )}
+
+            {!editingMission ? (
+              <button onClick={() => setEditingMission(true)} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-2xl text-sm active:scale-[0.98] transition-transform">
+                {currentCls.mission && currentCls.mission.weekKey === wk ? 'Substituir missão' : '+ Nova Missão da Semana'}
+              </button>
+            ) : (
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
+                <p className="font-black text-gray-900 text-sm">Nova Missão</p>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">Meta de XP coletivo</label>
+                  <input type="number" value={missionGoal} onChange={e => setMissionGoal(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold focus:outline-none focus:border-indigo-400" placeholder="50" min={1} />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">Recompensa da turma</label>
+                  <input value={missionReward} onChange={e => setMissionReward(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" placeholder="Ex: Aula livre 5 min" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setEditingMission(false)} className="flex-1 bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-sm">Cancelar</button>
+                  <button
+                    onClick={() => {
+                      const goal = parseInt(missionGoal);
+                      if (!goal || goal < 1 || !missionReward.trim()) return;
+                      updateCls(cls => ({ ...cls, mission: { goal, reward: missionReward.trim(), progress: 0, weekKey: wk } }));
+                      setEditingMission(false);
+                      toast.success('🎯 Missão criada!');
+                    }}
+                    className="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-sm"
+                  >
+                    Criar Missão
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(currentCls.hallOfFame ?? []).length > 0 && (
+              <div className="space-y-2 mt-2">
+                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">🏛️ Hall da Fama</p>
+                {[...(currentCls.hallOfFame ?? [])].reverse().map((entry, i) => (
+                  <div key={i} className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
+                    <p className="text-xs font-bold text-amber-600 mb-2">Temporada {entry.season} · {new Date(entry.date).toLocaleDateString('pt-BR')}</p>
+                    {entry.top.map((t, j) => (
+                      <div key={j} className="flex items-center justify-between py-0.5">
+                        <span className="text-xs font-bold text-gray-700">{j === 0 ? '🥇' : j === 1 ? '🥈' : j === 2 ? '🥉' : `${j + 1}°`} {t.name}</span>
+                        <span className="text-xs font-black text-amber-600 tabular-nums">{t.xp} XP</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Loja ─────────────────────────────────────────────────────────── */}
+        {tab === 'loja' && (
+          <motion.div key="loja" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+            <p className="text-xs text-gray-400 font-medium">Alunos trocam 🪙 corujinhas por privilégios. Selecione um aluno e depois resgate.</p>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+              {currentCls.students.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setShopStudentId(shopStudentId === s.id ? null : s.id)}
+                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all ${shopStudentId === s.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200'}`}
+                >
+                  <span>{skin[gamiLevel(s.totalXp)]}</span>
+                  <span className="max-w-[60px] truncate">{s.name}</span>
+                  <span className={`font-black ${shopStudentId === s.id ? 'text-amber-300' : 'text-amber-500'}`}>🪙{s.coins}</span>
+                </button>
+              ))}
+              {currentCls.students.length === 0 && <p className="text-xs text-gray-400 py-1">Adicione alunos em Config.</p>}
+            </div>
+            {currentCls.rewards.length === 0 ? (
+              <div className="text-center py-8 text-gray-400 text-sm">
+                <span className="text-3xl">🛒</span>
+                <p className="mt-2 font-bold">Sem recompensas configuradas</p>
+                <button onClick={() => { setTab('config'); setConfigSection('rewards'); }} className="mt-3 bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl">Configurar loja</button>
+              </div>
+            ) : (
+              currentCls.rewards.map(r => {
+                const buyer = shopStudentId ? currentCls.students.find(s => s.id === shopStudentId) : null;
+                const canAfford = buyer ? buyer.coins >= r.cost : false;
+                return (
+                  <div key={r.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{r.emoji}</span>
+                      <div>
+                        <p className="font-bold text-gray-800 text-sm">{r.label}</p>
+                        <p className="text-xs text-amber-500 font-black">🪙 {r.cost} corujinhas</p>
+                      </div>
+                    </div>
+                    {shopStudentId ? (
+                      <button
+                        onClick={() => purchaseReward(shopStudentId, r)}
+                        disabled={!canAfford}
+                        className={`font-bold text-xs px-3 py-2 rounded-xl active:scale-95 transition-all ${canAfford ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                      >
+                        {canAfford ? 'Resgatar' : 'Sem saldo'}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-300 font-bold">↑ selecione</span>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Log ─────────────────────────────────────────────────────────── */}
+        {tab === 'log' && (
+          <motion.div key="log" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+            {currentCls.log.length === 0 ? (
+              <div className="text-center py-16 text-gray-400">
+                <span className="text-4xl">📜</span>
+                <p className="mt-2 text-sm font-bold">Nenhuma ação registrada ainda</p>
+                <p className="text-xs mt-1">Pontue alunos na aba Alunos para começar.</p>
+              </div>
+            ) : (
+              <>
+                {currentCls.log.slice(0, 60).map(entry => {
+                  const names = entry.studentIds.map(id => currentCls.students.find(s => s.id === id)?.name ?? 'Aluno').join(', ');
+                  return (
+                    <div key={entry.id} className="bg-white rounded-xl p-3 flex items-center gap-3 shadow-sm border border-gray-100">
+                      <span className="text-xl shrink-0">{entry.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-gray-800 truncate">{names}</p>
+                        <p className="text-xs text-gray-500 truncate">{entry.label}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {entry.kind !== 'purchase' && entry.points !== 0 && (
+                          <p className={`text-xs font-black tabular-nums ${entry.points > 0 ? 'text-emerald-500' : 'text-red-400'}`}>{entry.points > 0 ? '+' : ''}{entry.points} XP</p>
+                        )}
+                        {entry.kind === 'purchase' && (
+                          <p className="text-xs font-black text-amber-500 tabular-nums">-{Math.abs(entry.coins ?? 0)}🪙</p>
+                        )}
+                        <p className="text-[10px] text-gray-300">{new Date(entry.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                {currentCls.log.length > 60 && <p className="text-center text-xs text-gray-300 pb-2">Mostrando últimas 60 ações</p>}
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Config ─────────────────────────────────────────────────────────── */}
+        {tab === 'config' && (
+          <motion.div key="config" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="flex gap-1 overflow-x-auto no-scrollbar -mx-1 px-1">
+              {([
+                { id: 'students', label: 'Alunos' },
+                { id: 'teams', label: 'Equipes' },
+                { id: 'behaviors', label: 'Ações' },
+                { id: 'rewards', label: 'Loja' },
+                { id: 'season', label: 'Temporada' },
+              ] as const).map(cs => (
+                <button
+                  key={cs.id}
+                  onClick={() => setConfigSection(cs.id)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${configSection === cs.id ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-500 border-gray-200'}`}
+                >
+                  {cs.label}
+                </button>
+              ))}
+            </div>
+
+            {configSection === 'students' && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    value={newStudentName}
+                    onChange={e => setNewStudentName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addStudent()}
+                    placeholder="Nome do aluno"
+                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400"
+                  />
+                  <button onClick={addStudent} className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold">
+                    <Plus size={16} />
+                  </button>
+                </div>
+                {currentCls.students.length === 0 && (
+                  <p className="text-center text-gray-400 text-sm py-4">Adicione alunos para começar a gamificação.</p>
+                )}
+                {currentCls.students.map(s => (
+                  <div key={s.id} className="bg-white rounded-xl px-3 py-2.5 flex items-center justify-between shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{skin[gamiLevel(s.totalXp)]}</span>
+                      <div>
+                        <p className="text-sm font-bold text-gray-800">{s.name}</p>
+                        <p className="text-[10px] text-gray-400">{GAMI_LEVELS[gamiLevel(s.totalXp)].name} · {s.totalXp} XP · 🪙{s.coins}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => removeStudent(s.id)} className="text-red-300 hover:text-red-500 p-1.5 transition-colors"><Trash2 size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {configSection === 'teams' && (
+              <div className="space-y-3">
+                {currentCls.teams.length === 0 && (
+                  <button onClick={() => updateCls(cls => ({ ...cls, teams: GAMI_TEAM_PRESETS.slice(0, 4).map(t => ({ ...t, id: gamiRid() })) }))} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-sm active:scale-[0.98] transition-transform">
+                    + Criar 4 equipes padrão
+                  </button>
+                )}
+                {currentCls.teams.map(team => {
+                  const members = currentCls.students.filter(s => s.teamId === team.id);
+                  return (
+                    <div key={team.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-black text-gray-800">{team.emoji} {team.name}</span>
+                        <button onClick={() => updateCls(cls => ({ ...cls, teams: cls.teams.filter(t => t.id !== team.id), students: cls.students.map(s => s.teamId === team.id ? { ...s, teamId: undefined } : s) }))} className="text-red-300 hover:text-red-500 transition-colors p-1">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {members.map(s => <span key={s.id} className="bg-gray-100 text-gray-700 text-xs font-bold px-2 py-0.5 rounded-full">{s.name}</span>)}
+                        {members.length === 0 && <span className="text-xs text-gray-300 italic">Sem membros</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+                {currentCls.students.some(s => !s.teamId) && currentCls.teams.length > 0 && (
+                  <div className="bg-amber-50 rounded-2xl p-3 border border-amber-100 space-y-2">
+                    <p className="text-xs font-bold text-amber-700">Atribuir equipe:</p>
+                    {currentCls.students.filter(s => !s.teamId).map(s => (
+                      <div key={s.id} className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-bold text-gray-700 shrink-0">{s.name}:</span>
+                        {currentCls.teams.map(t => (
+                          <button key={t.id} onClick={() => updateCls(cls => ({ ...cls, students: cls.students.map(x => x.id === s.id ? { ...x, teamId: t.id } : x) }))} className="text-xs bg-white font-bold px-2 py-0.5 rounded-full border border-amber-200 active:scale-95 transition-transform">
+                            {t.emoji} {t.name}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {configSection === 'behaviors' && (
+              <div className="space-y-2">
+                <p className="text-xs text-gray-400">Ações disponíveis ao pontuar alunos.</p>
+                {currentCls.behaviors.map(b => (
+                  <div key={b.id} className="bg-white rounded-xl px-3 py-2.5 flex items-center gap-3 shadow-sm border border-gray-100">
+                    <span className="text-xl">{b.emoji}</span>
+                    <span className="flex-1 text-sm font-bold text-gray-800">{b.label}</span>
+                    <span className={`text-sm font-black tabular-nums ${b.points > 0 ? 'text-emerald-500' : 'text-red-400'}`}>{b.points > 0 ? '+' : ''}{b.points} XP</span>
+                  </div>
+                ))}
+                {currentCls.behaviors.length === 0 && (
+                  <button onClick={() => updateCls(cls => ({ ...cls, behaviors: GAMI_DEFAULT_BEHAVIORS }))} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-sm">
+                    + Restaurar ações padrão
+                  </button>
+                )}
+              </div>
+            )}
+
+            {configSection === 'rewards' && (
+              <div className="space-y-2">
+                <p className="text-xs text-gray-400">Recompensas que alunos resgatam com 🪙 corujinhas.</p>
+                {currentCls.rewards.map(r => (
+                  <div key={r.id} className="bg-white rounded-xl px-3 py-2.5 flex items-center gap-3 shadow-sm border border-gray-100">
+                    <span className="text-xl">{r.emoji}</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-gray-800">{r.label}</p>
+                      <p className="text-xs text-amber-500 font-black">🪙 {r.cost}</p>
+                    </div>
+                    <button onClick={() => updateCls(cls => ({ ...cls, rewards: cls.rewards.filter(x => x.id !== r.id) }))} className="text-red-300 hover:text-red-500 p-1 transition-colors"><Trash2 size={14} /></button>
+                  </div>
+                ))}
+                {currentCls.rewards.length === 0 && (
+                  <button onClick={() => updateCls(cls => ({ ...cls, rewards: GAMI_DEFAULT_REWARDS }))} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-sm">
+                    + Restaurar recompensas padrão
+                  </button>
+                )}
+              </div>
+            )}
+
+            {configSection === 'season' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                  <p className="font-black text-gray-900 mb-1">Temporada {currentCls.season}</p>
+                  <p className="text-xs text-gray-500 mb-4">Encerrar salva o pódio no Hall da Fama e zera XP e moedas de todos os alunos. Use no fim do bimestre.</p>
+                  <button onClick={() => setShowSeasonEnd(true)} className="w-full bg-red-500 text-white font-bold py-3 rounded-xl text-sm active:scale-[0.98] transition-transform">
+                    🏆 Encerrar Temporada {currentCls.season}
+                  </button>
+                </div>
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                  <p className="font-black text-gray-900 mb-3">Visual dos avatares</p>
+                  <div className="flex gap-3">
+                    {(Object.keys(GAMI_SKINS) as Array<keyof typeof GAMI_SKINS>).map(skinKey => (
+                      <button
+                        key={skinKey}
+                        onClick={() => updateCls(cls => ({ ...cls, skin: skinKey }))}
+                        className={`flex-1 p-3 rounded-xl border-2 text-center transition-all ${(currentCls.skin ?? 'coruja') === skinKey ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}
+                      >
+                        <div className="flex justify-center gap-0.5 mb-1">{GAMI_SKINS[skinKey].slice(0, 3).map((e, i) => <span key={i} className="text-base">{e}</span>)}</div>
+                        <p className="text-[10px] font-bold text-gray-600 capitalize">{skinKey}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Award modal ───────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {awardingStudent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/50 flex items-end justify-center"
+            onClick={e => { if (e.target === e.currentTarget) setAwardingStudentId(null); }}
+          >
+            <motion.div
+              initial={{ y: 60 }}
+              animate={{ y: 0 }}
+              exit={{ y: 60 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+              className="bg-white rounded-t-3xl w-full max-w-md px-4 pb-10 pt-4 max-h-[80vh] overflow-y-auto"
+            >
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">{skin[gamiLevel(awardingStudent.totalXp)]}</span>
+                <div>
+                  <p className="font-black text-gray-900 text-base">{awardingStudent.name}</p>
+                  <p className="text-xs text-indigo-400 font-bold">{GAMI_LEVELS[gamiLevel(awardingStudent.totalXp)].name} · {awardingStudent.totalXp} XP · 🪙{awardingStudent.coins}</p>
+                </div>
+                {awardingStudent.streak >= 3 && (
+                  <span className="ml-auto bg-orange-100 text-orange-500 text-xs font-black px-2 py-1 rounded-full">🔥 {awardingStudent.streak} dias</span>
+                )}
+              </div>
+              {awardingStudent.badges.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {awardingStudent.badges.map(bid => {
+                    const badge = GAMI_BADGES.find(b => b.id === bid);
+                    return badge ? <span key={bid} className="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">{badge.emoji} {badge.name}</span> : null;
+                  })}
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                {currentCls.behaviors.map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => awardPoints([awardingStudent.id], b)}
+                    className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all active:scale-95 ${b.points > 0 ? 'border-emerald-200 bg-emerald-50' : 'border-red-100 bg-red-50'}`}
+                  >
+                    <span className="text-xl">{b.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-800 truncate">{b.label}</p>
+                      <p className={`text-xs font-black tabular-nums ${b.points > 0 ? 'text-emerald-600' : 'text-red-500'}`}>{b.points > 0 ? '+' : ''}{b.points} XP</p>
+                    </div>
+                  </button>
+                ))}
+                <button
+                  onClick={() => {
+                    const b = currentCls.behaviors.find(x => x.points > 0) ?? { id: 'all', label: 'Toda a turma', points: 5, emoji: '⭐' };
+                    awardPoints(currentCls.students.map(s => s.id), b);
+                    toast.success(`${b.emoji} +${b.points} XP para toda a turma!`);
+                  }}
+                  className="col-span-2 flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-indigo-200 bg-indigo-50 active:scale-95 transition-all"
+                >
+                  <Star size={16} className="text-indigo-500" />
+                  <span className="text-xs font-bold text-indigo-700">Pontuar toda a turma</span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Season end confirmation ───────────────────────────────────────────── */}
+      <AnimatePresence>
+        {showSeasonEnd && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center px-6">
+            <motion.div initial={{ scale: 0.92 }} animate={{ scale: 1 }} exit={{ scale: 0.92 }} className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+              <p className="text-xl font-black text-gray-900 text-center mb-2">🏆 Encerrar Temporada {currentCls.season}?</p>
+              <p className="text-sm text-gray-500 text-center mb-6">O ranking será salvo no Hall da Fama e todos os XP e moedas serão zerados.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowSeasonEnd(false)} className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-2xl text-sm">Cancelar</button>
+                <button onClick={endSeason} className="flex-1 bg-red-500 text-white font-bold py-3 rounded-2xl text-sm">Encerrar</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Team assignment modal ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {teamStudentId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/50 flex items-end justify-center"
+            onClick={e => { if (e.target === e.currentTarget) setTeamStudentId(null); }}
+          >
+            <motion.div
+              initial={{ y: 40 }}
+              animate={{ y: 0 }}
+              exit={{ y: 40 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+              className="bg-white rounded-t-3xl w-full max-w-md px-4 pb-10 pt-4"
+            >
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+              <p className="font-black text-gray-900 mb-3">Equipe de {currentCls.students.find(s => s.id === teamStudentId)?.name}</p>
+              <div className="space-y-2">
+                {currentCls.teams.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => { updateCls(cls => ({ ...cls, students: cls.students.map(s => s.id === teamStudentId ? { ...s, teamId: t.id } : s) })); setTeamStudentId(null); }}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
+                  >
+                    <span className="text-2xl">{t.emoji}</span>
+                    <span className="font-bold text-gray-800">{t.name}</span>
+                  </button>
+                ))}
+                <button onClick={() => { updateCls(cls => ({ ...cls, students: cls.students.map(s => s.id === teamStudentId ? { ...s, teamId: undefined } : s) })); setTeamStudentId(null); }} className="w-full p-3 rounded-xl bg-gray-100 text-gray-500 font-bold text-sm">
+                  Sem equipe
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Kit ao Vivo dock ──────────────────────────────────────────────────── */}
+      <div className="fixed bottom-24 left-0 right-0 z-[60] px-4 max-w-md mx-auto">
+        <AnimatePresence>
+          {kitExpanded && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+              className="bg-white rounded-2xl p-3 mb-2 shadow-xl border border-gray-100 grid grid-cols-4 gap-2"
+            >
+              {LIVE_TOOLS.map(tool => (
+                <button
+                  key={tool.id}
+                  onClick={() => { setLiveTool(tool.id); setKitExpanded(false); }}
+                  className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-indigo-50 active:scale-90 transition-transform"
+                >
+                  <span className="text-xl leading-none">{tool.emoji}</span>
+                  <span className="text-[9px] font-bold text-indigo-600 leading-tight text-center">{tool.label}</span>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <button
+          onClick={() => setKitExpanded(e => !e)}
+          className="w-full bg-indigo-600 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-transform"
+        >
+          <Zap size={16} />
+          <span className="text-sm">Kit ao Vivo</span>
+          <ChevronUp size={14} className={`transition-transform duration-200 ${kitExpanded ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+
+      {/* ── Live tool overlays ────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {liveTool === 'sorteio' && (
+          <GamiSorteio
+            students={currentCls.students}
+            onClose={() => setLiveTool(null)}
+            onAwardParticipation={id => {
+              const b = currentCls.behaviors.find(x => x.label.toLowerCase().includes('particip')) ?? { id: 'part', label: 'Participação', points: 3, emoji: '✋' };
+              awardPoints([id], b);
+            }}
+          />
+        )}
+        {liveTool === 'timer' && <GamiTimer onClose={() => setLiveTool(null)} />}
+        {liveTool === 'grupos' && (
+          <GamiGrupos students={currentCls.students} onClose={() => setLiveTool(null)} />
+        )}
+        {liveTool === 'barulho' && (
+          <GamiBarulho
+            onClose={() => setLiveTool(null)}
+            onRewardClass={points => awardPoints(currentCls.students.map(s => s.id), { id: 'silencio', label: 'Desafio do Silêncio', points, emoji: '🤫' })}
+          />
+        )}
+        {liveTool === 'semaforo' && <GamiSemaforo onClose={() => setLiveTool(null)} />}
+        {liveTool === 'dado' && <GamiDado onClose={() => setLiveTool(null)} />}
+        {liveTool === 'placar' && <GamiPlacar teams={currentCls.teams} onClose={() => setLiveTool(null)} />}
+        {liveTool === 'evento' && (
+          <GamiEvento
+            customEvents={currentCls.customEvents ?? []}
+            onClose={() => setLiveTool(null)}
+            onQuickAward={(points, label) => awardPoints(currentCls.students.map(s => s.id), { id: 'event', label, points, emoji: '⚡' })}
+          />
+        )}
+        {liveTool === 'participacao' && (
+          <GamiParticipacao
+            students={currentCls.students}
+            onToggle={id => updateCls(cls => ({ ...cls, students: cls.students.map(s => s.id === id ? { ...s, participatedDay: s.participatedDay === gamiTodayKey() ? undefined : gamiTodayKey() } : s) }))}
+            onClose={() => setLiveTool(null)}
+          />
+        )}
+        {liveTool === 'batalha' && (
+          <GamiBatalha
+            teams={currentCls.teams}
+            students={currentCls.students}
+            subject={selectedSchedule?.subject ?? selectedSchedule?.name ?? 'Geral'}
+            level={selectedSchedule?.level ?? 'Fundamental'}
+            onClose={() => setLiveTool(null)}
+            onAwardTeam={(teamIdx, _names, points) => {
+              const team = currentCls.teams[teamIdx];
+              if (!team) return;
+              const ids = currentCls.students.filter(s => s.teamId === team.id).map(s => s.id);
+              if (ids.length === 0) return;
+              awardPoints(ids, { id: 'batalha', label: 'Batalha de Revisão', points, emoji: '⚔️' });
+            }}
+          />
+        )}
+        {liveTool === 'projetor' && (
+          <GamiProjetor cls={currentCls} schedule={selectedSchedule} onClose={() => setLiveTool(null)} />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
 // --- Global Task Indicator ---
 
 const TaskCard = ({ task, onTaskClick }: { task: BackgroundTask, onTaskClick?: (task: BackgroundTask) => void }) => {
@@ -10804,6 +12686,7 @@ REGRAS: Substitua TODOS os [ ] por conteúdo real sobre "${targetTopic}". PROIBI
           }} onImportSyllabus={(cls) => setImportRequest({ mode: 'syllabus', targetClass: cls })} />}
           {screen === 'estudio' && <EstudioScreen key="estudio" estudioContext={estudioContext} setEstudioContext={setEstudioContext} studioMessages={studioMessages} setStudioMessages={setStudioMessages} profile={profile} setScreen={setScreen} setPlannerMode={setPlannerMode} notifications={allNotifications} setNotifications={handleSetNotifications} schedules={schedules} addTask={addTask} updateTask={updateTask} activeTasks={activeTasks} removeTask={removeTask} studioReopenTaskId={studioReopenTaskId} setStudioReopenTaskId={setStudioReopenTaskId} />}
           {screen === 'biblioteca' && <LibraryScreen key="biblioteca" user={user} setScreen={setScreen} profile={profile} notifications={allNotifications} setNotifications={handleSetNotifications} />}
+          {screen === 'gamificacao' && <GamificacaoScreen key="gamificacao" schedules={schedules} user={user} profile={profile} setScreen={setScreen} />}
           {screen === 'admin' && (profile?.role === 'admin' || user?.email?.toLowerCase() === 'lyelsonmf520@gmail.com') && <AdminScreen key="admin" />}
         </AnimatePresence>
 
