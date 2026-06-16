@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EnemyDef, MCQuestion } from '../../../types/game';
 import QuestionCard from './QuestionCard';
+import AnimatedHero from './AnimatedHero';
 
 interface Props {
   enemy: EnemyDef;
@@ -186,26 +187,27 @@ export default function BattleScene({ enemy, bg, questions, heroPortrait, onVict
         </div>
       )}
 
-      {/* Hero area — shown while the battle is visible (not during the question or end overlays) */}
-      {stage === 'resolving' && (
-        <div className="absolute left-0 right-0 flex flex-col items-center" style={{ bottom: 28 }}>
+      {/* Hero area — shown during battle (fighting + resolving) */}
+      {(stage === 'fighting' || stage === 'resolving') && (
+        <div className="absolute left-0 right-0 flex flex-col items-center" style={{ bottom: stage === 'fighting' ? 200 : 24 }}>
           <div className="relative flex flex-col items-center">
             <div className={`relative ${heroHurt ? 'hero-hurt' : ''}`}>
-              {heroPortrait ? (
-                <img src={heroPortrait} alt="Você" style={{ width: 64, imageRendering: 'pixelated', border: '3px solid #fff', outline: '3px solid #000', background: '#111' }} />
-              ) : (
-                <div style={{ width: 64, height: 64, border: '3px solid #fff', background: '#222' }} className="flex items-center justify-center text-3xl">🧑</div>
-              )}
+              <AnimatedHero scale={2.2} hurt={heroHurt} />
               {floats.filter(f => f.side === 'hero').map(f => (
-                <div key={f.id} className="absolute top-0 pointer-events-none float-dmg font-pixel"
-                  style={{ color: f.color, fontSize: 11, textShadow: '0 2px 0 #000' }}>
+                <div key={f.id} className="absolute top-0 left-1/2 pointer-events-none float-dmg font-pixel"
+                  style={{ color: f.color, fontSize: 11, textShadow: '0 2px 0 #000', transform: 'translateX(-50%)' }}>
                   {f.text}
                 </div>
               ))}
             </div>
             <div className="flex gap-1 mt-1">
               {Array.from({ length: HERO_HP }, (_, i) => (
-                <span key={i} style={{ fontSize: 18, filter: i < heroHp ? 'none' : 'grayscale(1) brightness(0.5)' }}>❤️</span>
+                <img
+                  key={i}
+                  src={i < heroHp ? '/assets/ui/heart-full.png' : '/assets/ui/heart-empty.png'}
+                  alt={i < heroHp ? 'coração' : 'vazio'}
+                  style={{ width: 26, height: 26, imageRendering: 'pixelated' }}
+                />
               ))}
             </div>
             {streak >= 2 && (

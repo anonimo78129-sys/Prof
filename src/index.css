@@ -8,7 +8,8 @@
 
 @layer base {
   body {
-    @apply antialiased bg-[#0a0a1a] overflow-hidden;
+    @apply antialiased overflow-hidden;
+    background: #2d5a1b;
     touch-action: manipulation;
   }
   * { box-sizing: border-box; }
@@ -18,6 +19,7 @@
   .font-pixel { font-family: 'Press Start 2P', monospace; }
   .font-vt { font-family: 'VT323', monospace; }
 
+  /* ── Classic pixel button (dark border, square) ── */
   .btn-pixel {
     font-family: 'Press Start 2P', monospace;
     border: 3px solid #1a1a1a;
@@ -33,156 +35,244 @@
     box-shadow: 0 0 0 #1a1a1a;
   }
 
+  /* ── Gold RPG button (warm, parchment style) ── */
+  .btn-rpg {
+    font-family: 'Press Start 2P', monospace;
+    background: linear-gradient(to bottom, #f0c455 0%, #c88f20 100%);
+    border: 3px solid #7a4f1a;
+    box-shadow: 0 4px 0 #4a2d08, inset 0 1px 0 rgba(255,255,255,0.3);
+    color: #2a1400;
+    border-radius: 3px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 80ms, box-shadow 80ms;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-rpg:active {
+    transform: translateY(4px);
+    box-shadow: none;
+  }
+
+  /* ── Parchment panel (menus, dialogs) ── */
+  .panel-parchment {
+    background: linear-gradient(160deg, #f7ead5 0%, #e8d4a8 100%);
+    border: 3px solid #7a4f2d;
+    box-shadow: 5px 5px 0 #3a2010;
+  }
+
+  /* ── Dark RPG dialog (NPC conversations) ── */
+  .dialog-rpg {
+    border: 3px solid #e8d4a8;
+    outline: 3px solid #1a1a1a;
+    background: rgba(8, 4, 20, 0.92);
+  }
+
+  /* ── Simple pixel panel (dark) ── */
   .panel-pixel {
     border: 3px solid #1a1a1a;
     box-shadow: 5px 5px 0px #1a1a1a;
     border-radius: 0;
   }
 
-  .dialog-rpg {
-    border: 4px solid #ffffff;
-    outline: 4px solid #1a1a1a;
-    background: rgba(0, 0, 0, 0.88);
+  /* ── RPG-style wood header bar ── */
+  .bar-wood {
+    background: linear-gradient(to bottom, #8b5e2c 0%, #6b4018 100%);
+    border-bottom: 3px solid #3a2010;
+    box-shadow: 0 3px 0 #1a0c04;
   }
 
-  .glow-teal { filter: drop-shadow(0 0 8px #00d4aa) drop-shadow(0 0 16px #00d4aa); }
-  .glow-gold { filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 16px #ffd700); }
+  /* ── Glows ── */
+  .glow-teal   { filter: drop-shadow(0 0 8px #00d4aa) drop-shadow(0 0 16px #00d4aa); }
+  .glow-gold   { filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 16px #ffd700); }
   .glow-purple { filter: drop-shadow(0 0 8px #cc44ff) drop-shadow(0 0 16px #cc44ff); }
-  .glow-white { filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 20px #ffffff); }
-  .glow-amber { filter: drop-shadow(0 0 8px #ffc800) drop-shadow(0 0 16px #ffc800); }
+  .glow-white  { filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 20px #ffffff); }
+  .glow-amber  { filter: drop-shadow(0 0 8px #ffc800) drop-shadow(0 0 16px #ffc800); }
 
-  @keyframes firefly-pulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.25); }
-  }
-  .firefly-pulse { animation: firefly-pulse 1.4s ease-in-out infinite; }
+  /* ── Scrollbar hide ── */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  @keyframes crystal-glow {
-    0%, 100% { filter: drop-shadow(0 0 4px #9333ea); }
-    50% { filter: drop-shadow(0 0 12px #cc44ff) drop-shadow(0 0 20px #9333ea); }
-  }
-  .crystal-active { animation: crystal-glow 2s ease-in-out infinite; }
+  /* ═══════════════════════════════════
+     ANIMATIONS
+  ═══════════════════════════════════ */
 
-  @keyframes fragment-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-  .fragment-float { animation: fragment-float 2.5s ease-in-out infinite; }
-
+  /* Scene transitions */
   @keyframes scene-fade-in {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
   }
   .scene-fade-in { animation: scene-fade-in 400ms ease-out forwards; }
 
   @keyframes slide-up {
     from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    to   { transform: translateY(0); opacity: 1; }
   }
   .slide-up { animation: slide-up 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-6px); }
-    40%, 80% { transform: translateX(6px); }
-  }
-  .shake { animation: shake 400ms ease-in-out; }
-
-  @keyframes iris-glow {
-    0%, 100% { box-shadow: 0 0 12px 4px #00d4aa, 0 0 24px 8px rgba(0,212,170,0.3); }
-    50% { box-shadow: 0 0 20px 8px #00d4aa, 0 0 40px 16px rgba(0,212,170,0.5); }
-  }
-  .iris-glow { animation: iris-glow 2s ease-in-out infinite; }
-
+  /* Sparkle */
   @keyframes sparkle {
     0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
-    50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+    50%       { opacity: 1; transform: scale(1.2) rotate(180deg); }
   }
   .sparkle { animation: sparkle 1.2s ease-in-out infinite; }
 
+  /* Iris orb pulse */
+  @keyframes iris-glow {
+    0%, 100% { box-shadow: 0 0 12px 4px #00d4aa, 0 0 24px 8px rgba(0,212,170,0.3); }
+    50%       { box-shadow: 0 0 20px 8px #00d4aa, 0 0 40px 16px rgba(0,212,170,0.5); }
+  }
+  .iris-glow { animation: iris-glow 2s ease-in-out infinite; }
+
+  /* Portal spin */
   @keyframes portal-spin {
     from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    to   { transform: rotate(360deg); }
   }
   .portal-spin { animation: portal-spin 8s linear infinite; }
 
+  /* Fragment float */
+  @keyframes fragment-float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
+  .fragment-float { animation: fragment-float 2.5s ease-in-out infinite; }
+
+  /* Firefly glow */
+  @keyframes firefly-pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%       { opacity: 1; transform: scale(1.25); }
+  }
+  .firefly-pulse { animation: firefly-pulse 1.4s ease-in-out infinite; }
+
+  /* Crystal glow */
+  @keyframes crystal-glow {
+    0%, 100% { filter: drop-shadow(0 0 4px #9333ea); }
+    50%       { filter: drop-shadow(0 0 12px #cc44ff) drop-shadow(0 0 20px #9333ea); }
+  }
+  .crystal-active { animation: crystal-glow 2s ease-in-out infinite; }
+
+  /* Heartbeat */
   @keyframes heartbeat {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
+    50%       { transform: scale(1.15); }
   }
   .heartbeat { animation: heartbeat 0.8s ease-in-out; }
 
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  /* ── Hero patrol (home screen) ── */
+  @keyframes hero-patrol {
+    0%    { transform: translateX(-48px) scaleX(1); }
+    44%   { transform: translateX(48px) scaleX(1); }
+    50%   { transform: translateX(48px) scaleX(-1); }
+    94%   { transform: translateX(-48px) scaleX(-1); }
+    100%  { transform: translateX(-48px) scaleX(1); }
+  }
+  .hero-patrol { animation: hero-patrol 5s ease-in-out infinite; }
+
+  /* ── Cloud drift ── */
+  @keyframes cloud-drift {
+    0%, 100% { transform: translateX(0px); }
+    50%       { transform: translateX(14px); }
+  }
+  .cloud-1 { animation: cloud-drift 9s  ease-in-out infinite; }
+  .cloud-2 { animation: cloud-drift 13s ease-in-out infinite reverse; }
+  .cloud-3 { animation: cloud-drift 7s  ease-in-out infinite 2s; }
+
+  /* ── Tree sway (subtle) ── */
+  @keyframes tree-sway {
+    0%, 100% { transform: skewX(0deg); }
+    50%       { transform: skewX(1.5deg); }
+  }
+  .tree-sway { animation: tree-sway 4s ease-in-out infinite; transform-origin: bottom center; }
+
+  /* ── Map node ── */
+  @keyframes map-node-pulse {
+    0%, 100% { box-shadow: 5px 5px 0 #3a2010; }
+    50%       { box-shadow: 5px 5px 0 #3a2010, 0 0 18px rgba(240,196,85,0.7); }
+  }
+  .node-pulse { animation: map-node-pulse 1.4s ease-in-out infinite; }
 
   /* ── Battle system ── */
   @keyframes screen-shake {
     0%, 100% { transform: translate(0, 0); }
-    20% { transform: translate(-6px, 3px); }
-    40% { transform: translate(6px, -3px); }
-    60% { transform: translate(-5px, -2px); }
-    80% { transform: translate(5px, 2px); }
+    20%       { transform: translate(-6px, 3px); }
+    40%       { transform: translate(6px, -3px); }
+    60%       { transform: translate(-5px, -2px); }
+    80%       { transform: translate(5px, 2px); }
   }
   .screen-shake { animation: screen-shake 360ms ease-in-out; }
 
   @keyframes enemy-enter {
-    0% { transform: translateY(-60px) scale(0.6); opacity: 0; }
-    70% { transform: translateY(8px) scale(1.05); opacity: 1; }
+    0%   { transform: translateY(-60px) scale(0.6); opacity: 0; }
+    70%  { transform: translateY(8px) scale(1.05); opacity: 1; }
     100% { transform: translateY(0) scale(1); opacity: 1; }
   }
 
   @keyframes battle-idle {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-7px); }
+    50%       { transform: translateY(-7px); }
   }
   .battle-idle { animation: battle-idle 2.2s ease-in-out infinite; }
 
   @keyframes enemy-hurt {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px) rotate(-3deg); }
-    50% { transform: translateX(10px) rotate(3deg); }
-    75% { transform: translateX(-6px); }
+    25%       { transform: translateX(-10px) rotate(-3deg); }
+    50%       { transform: translateX(10px) rotate(3deg); }
+    75%       { transform: translateX(-6px); }
   }
   .enemy-hurt { animation: enemy-hurt 340ms ease-in-out; }
 
   @keyframes enemy-attack {
-    0% { transform: translateY(0) scale(1); }
-    40% { transform: translateY(46px) scale(1.12); }
+    0%   { transform: translateY(0) scale(1); }
+    40%  { transform: translateY(46px) scale(1.12); }
     100% { transform: translateY(0) scale(1); }
   }
   .enemy-attack { animation: enemy-attack 500ms ease-in-out; }
 
   @keyframes hero-hurt {
     0%, 100% { transform: translateX(0); filter: none; }
-    25%, 75% { transform: translateX(-7px); filter: brightness(2) sepia(1) hue-rotate(-40deg); }
-    50% { transform: translateX(7px); }
+    25%, 75%  { transform: translateX(-7px); filter: brightness(2) sepia(1) hue-rotate(-40deg); }
+    50%        { transform: translateX(7px); }
   }
   .hero-hurt { animation: hero-hurt 340ms ease-in-out; }
 
   @keyframes float-dmg {
-    0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
-    20% { transform: translate(-50%, -16px) scale(1.15); opacity: 1; }
+    0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+    20%  { transform: translate(-50%, -16px) scale(1.15); opacity: 1; }
     100% { transform: translate(-50%, -58px) scale(1); opacity: 0; }
   }
   .float-dmg { animation: float-dmg 1.1s ease-out forwards; left: 50%; }
 
   @keyframes slash-fx {
-    0% { transform: scale(0.3) rotate(-30deg); opacity: 0; }
-    40% { transform: scale(1.3) rotate(20deg); opacity: 1; }
+    0%   { transform: scale(0.3) rotate(-30deg); opacity: 0; }
+    40%  { transform: scale(1.3) rotate(20deg); opacity: 1; }
     100% { transform: scale(1.6) rotate(40deg); opacity: 0; }
   }
   .slash-fx { animation: slash-fx 500ms ease-out forwards; }
 
   @keyframes banner-pop {
-    0% { transform: scale(0.4); opacity: 0; }
-    50% { transform: scale(1.12); opacity: 1; }
+    0%   { transform: scale(0.4); opacity: 0; }
+    50%  { transform: scale(1.12); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
   }
   .banner-pop { animation: banner-pop 360ms cubic-bezier(.2,1.4,.4,1) forwards; }
 
-  @keyframes node-pulse {
-    0%, 100% { filter: drop-shadow(0 0 0 rgba(168,85,247,0)); }
-    50% { filter: drop-shadow(0 0 10px rgba(168,85,247,0.8)); }
+  /* ── Victory confetti fall ── */
+  @keyframes fall {
+    from { transform: translateY(0) rotate(0deg); opacity: 1; }
+    to   { transform: translateY(100vh) rotate(720deg); opacity: 0; }
   }
-  .node-pulse { animation: node-pulse 1.6s ease-in-out infinite; }
+
+  /* ── Input RPG style ── */
+  .input-rpg {
+    background: #f7ead5;
+    border: 3px solid #7a4f2d;
+    box-shadow: inset 2px 2px 0 rgba(0,0,0,0.15);
+    color: #2a1400;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    border-radius: 2px;
+    outline: none;
+  }
+  .input-rpg::placeholder { color: #a88060; }
+  .input-rpg:focus { border-color: #c88f20; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(200,143,32,0.4); }
 }

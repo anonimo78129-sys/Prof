@@ -150,109 +150,143 @@ export default function SetupWizard({ onGameCreated }: Props) {
     setter: React.Dispatch<React.SetStateAction<MCQuestion[]>>;
     label: string;
   }) => (
-    <div className="flex flex-col gap-4">
-      <p className="font-pixel" style={{ color: '#9f7aea', fontSize: 7 }}>{label}</p>
+    <div className="flex flex-col gap-3">
+      <p className="font-pixel" style={{ color: '#7a4f2d', fontSize: 7 }}>{label}</p>
       {questions.map((q, idx) => (
-        <div key={idx} style={{ background: '#0a0a1a', border: '2px solid #2a2350', padding: 12 }}>
-          <p className="font-vt mb-2" style={{ color: '#ffc800', fontSize: 16 }}>Pergunta {idx + 1}</p>
+        <div key={idx} className="panel-parchment p-3" style={{ background: '#f0e4c8' }}>
+          <p className="font-vt mb-2" style={{ color: '#7a4f1a', fontSize: 16 }}>Pergunta {idx + 1}</p>
           <textarea
             value={q.text}
             onChange={e => updateQ(setter, idx, 'text', e.target.value)}
             placeholder="Digite a pergunta..."
             rows={2}
-            style={{ width: '100%', background: '#050518', border: '1px solid #333', color: '#fff', padding: 8, fontSize: 14, fontFamily: 'sans-serif', resize: 'none' }}
+            className="input-rpg w-full px-3 py-2"
+            style={{ resize: 'none', fontSize: 16, fontFamily: 'VT323, monospace' }}
           />
           <div className="flex flex-col gap-1 mt-2">
             {q.options.map((opt, oi) => (
               <div key={oi} className="flex items-center gap-2">
                 <button
                   onClick={() => updateQ(setter, idx, 'correct', oi)}
-                  style={{ width: 24, height: 24, background: q.correct === oi ? '#00ff88' : '#222', border: `2px solid ${q.correct === oi ? '#00ff88' : '#444'}`, cursor: 'pointer', flexShrink: 0 }}
+                  style={{
+                    width: 22, height: 22, flexShrink: 0, cursor: 'pointer',
+                    background: q.correct === oi ? '#2a8c2a' : '#e8d4a8',
+                    border: `2px solid ${q.correct === oi ? '#1a5c1a' : '#7a5828'}`,
+                    boxShadow: q.correct === oi ? 'inset 0 2px 0 rgba(0,0,0,0.2)' : 'none',
+                  }}
                   title="Marcar como correta"
                 />
-                <span className="font-pixel text-gray-400 flex-shrink-0" style={{ fontSize: 8, width: 12 }}>{String.fromCharCode(65 + oi)}</span>
+                <span className="font-pixel flex-shrink-0" style={{ color: '#7a4f2d', fontSize: 8, width: 12 }}>{String.fromCharCode(65 + oi)}</span>
                 <input
                   value={opt}
                   onChange={e => updateQ(setter, idx, `opt${oi}` as 'opt0', e.target.value)}
                   placeholder={`Opção ${String.fromCharCode(65 + oi)}`}
-                  style={{ flex: 1, background: '#050518', border: '1px solid #333', color: '#fff', padding: '4px 8px', fontSize: 14 }}
+                  className="input-rpg flex-1 px-2 py-1"
+                  style={{ fontSize: 15 }}
                 />
               </div>
             ))}
           </div>
-          <p className="font-vt mt-1" style={{ color: '#00ff88', fontSize: 14 }}>✓ Correta: {String.fromCharCode(65 + q.correct)}</p>
+          <p className="font-vt mt-1" style={{ color: '#2a7c1a', fontSize: 15 }}>✓ Correta: {String.fromCharCode(65 + q.correct)}</p>
         </div>
       ))}
     </div>
   );
 
+  const sceneStyle = {
+    background: 'linear-gradient(to bottom, #5ba3d8 0%, #8ec8f5 38%, #c5e8fd 58%, #a8d46b 78%, #4a8a1a 100%)',
+  };
+
   // ───────────────── INPUT ─────────────────
   if (mode === 'input') {
     return (
-      <div className="fixed inset-0 bg-[#050518] overflow-y-auto">
-        <div className="max-w-lg mx-auto px-5 py-8 pb-16">
-          <div className="text-center mb-8">
-            <h1 className="font-pixel text-white" style={{ fontSize: 14, lineHeight: 2, textShadow: '0 0 16px #7c3aed' }}>ÉTER</h1>
-            <p className="font-vt text-gray-400" style={{ fontSize: 18 }}>Crie a Jornada da sua aula</p>
-          </div>
+      <div className="fixed inset-0 overflow-y-auto no-scrollbar" style={sceneStyle}>
+        {/* Header */}
+        <div className="bar-wood flex items-center justify-between px-4 py-3">
+          <p className="font-pixel" style={{ color: '#f7ead5', fontSize: 9, textShadow: '1px 2px 0 #1a0c04' }}>🎓 PROFESSOR</p>
+          <p className="font-pixel" style={{ color: '#ffd700', fontSize: 7 }}>ÉTER</p>
+        </div>
 
-          <div className="panel-pixel p-5" style={{ background: '#0a0820', borderColor: '#2a2350' }}>
-            <label className="font-pixel block mb-2" style={{ color: '#ffc800', fontSize: 8 }}>📚 CONTEÚDO DA AULA</label>
-            <input
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-              placeholder="Ex: Fotossíntese, Revolução Francesa, Frações..."
-              style={{ width: '100%', background: '#050518', border: '2px solid #ffc800', color: '#fff', padding: '12px 14px', fontSize: 16, fontFamily: 'sans-serif' }}
-              autoFocus
-            />
+        <div className="max-w-lg mx-auto px-5 py-5 pb-16">
+          <div className="panel-parchment px-5 py-5 flex flex-col gap-4" style={{ background: 'linear-gradient(160deg,#f7ead5,#e8d4a8)' }}>
+            <div className="text-center">
+              <p className="font-pixel" style={{ color: '#3a1a00', fontSize: 10, lineHeight: 2 }}>CRIAR JORNADA</p>
+              <p className="font-vt" style={{ color: '#7a4f2d', fontSize: 16 }}>A IA vai transformar sua aula num jogo RPG</p>
+            </div>
 
-            <label className="font-pixel block mt-5 mb-2" style={{ color: '#9f7aea', fontSize: 8 }}>🎓 NÍVEL DOS ALUNOS</label>
-            <div className="grid grid-cols-2 gap-2">
-              {LEVELS.map(l => (
-                <button
-                  key={l}
-                  onClick={() => setLevel(l)}
-                  className="font-vt py-2 px-2"
-                  style={{ background: level === l ? '#7c3aed' : '#14102a', color: level === l ? '#fff' : '#9f7aea', border: `2px solid ${level === l ? '#a855f7' : '#2a2350'}`, fontSize: 15, cursor: 'pointer' }}
-                >
-                  {l}
-                </button>
-              ))}
+            <div>
+              <label className="font-pixel block mb-2" style={{ color: '#7a4f2d', fontSize: 7 }}>📚 CONTEÚDO DA AULA</label>
+              <input
+                className="input-rpg w-full px-3 py-3"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                placeholder="Ex: Fotossíntese, Revolução Francesa..."
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="font-pixel block mb-2" style={{ color: '#7a4f2d', fontSize: 7 }}>🎓 NÍVEL</label>
+              <div className="grid grid-cols-2 gap-2">
+                {LEVELS.map(l => (
+                  <button
+                    key={l}
+                    onClick={() => setLevel(l)}
+                    className="font-vt py-2 px-2"
+                    style={{
+                      background: level === l ? '#c88f20' : '#e8d4a8',
+                      color: level === l ? '#fff' : '#5a3a10',
+                      border: `3px solid ${level === l ? '#7a4f1a' : '#c4a068'}`,
+                      boxShadow: level === l ? '3px 3px 0 #4a2d08' : '2px 2px 0 #b09060',
+                      fontSize: 15,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {!hasApiKey() && (
-              <div className="mt-5">
-                <label className="font-pixel block mb-2" style={{ color: '#888', fontSize: 7 }}>🔑 CHAVE GEMINI (grátis em aistudio.google.com/apikey)</label>
+              <div>
+                <label className="font-pixel block mb-2" style={{ color: '#5a3a10', fontSize: 6 }}>
+                  🔑 CHAVE GEMINI (grátis em aistudio.google.com/apikey)
+                </label>
                 <input
+                  className="input-rpg w-full px-3 py-2"
                   value={apiKey}
                   onChange={e => setApiKeyState(e.target.value)}
-                  placeholder="Cole sua chave da IA aqui..."
+                  placeholder="Cole sua chave da IA..."
                   type="password"
-                  style={{ width: '100%', background: '#050518', border: '1px solid #333', color: '#fff', padding: '8px 12px', fontSize: 13, fontFamily: 'monospace' }}
                 />
               </div>
             )}
 
-            {error && <p className="font-vt mt-4" style={{ color: '#ff5577', fontSize: 16 }}>{error}</p>}
+            {error && (
+              <div style={{ background: '#ffe8e8', border: '2px solid #cc2222', padding: '8px 12px' }}>
+                <p className="font-vt" style={{ color: '#cc2222', fontSize: 16 }}>{error}</p>
+              </div>
+            )}
           </div>
 
           <button
             onClick={handleGenerate}
-            className="btn-pixel w-full py-4 mt-5"
-            style={{ background: '#00ff88', color: '#000', fontSize: 10 }}
+            className="btn-rpg w-full py-4 mt-4 font-pixel"
+            style={{ fontSize: 9 }}
           >
             ✨ GERAR JOGO COM IA
           </button>
-          <p className="font-vt text-center mt-2" style={{ color: '#6d5a9c', fontSize: 14 }}>
-            A IA cria as perguntas, os enigmas e a história sobre o seu conteúdo.
+          <p className="font-vt text-center mt-1" style={{ color: '#1a5a04', fontSize: 15 }}>
+            A IA cria perguntas, enigmas e história para o seu conteúdo
           </p>
 
           <button
             onClick={handleManual}
-            className="font-vt w-full mt-5"
-            style={{ background: 'none', border: '1px solid #2a2350', color: '#7c6aad', padding: '10px', fontSize: 15, cursor: 'pointer' }}
+            className="font-vt w-full mt-4"
+            style={{ background: 'rgba(255,255,255,0.4)', border: '2px solid #7a5828', color: '#3a2010', padding: '10px', fontSize: 16, cursor: 'pointer' }}
           >
-            ✏️ Prefiro montar manualmente
+            ✏️ Montar manualmente
           </button>
         </div>
       </div>
@@ -262,36 +296,38 @@ export default function SetupWizard({ onGameCreated }: Props) {
   // ───────────────── GENERATING ─────────────────
   if (mode === 'generating') {
     return (
-      <div className="fixed inset-0 bg-[#050518] flex flex-col items-center justify-center gap-6 px-6">
-        <div className="portal-spin" style={{ width: 80, height: 80, borderRadius: '50%', border: '4px solid #7c3aed', boxShadow: '0 0 30px #7c3aed, inset 0 0 30px rgba(124,58,237,0.4)' }} />
-        <p className="font-pixel text-center text-white" style={{ fontSize: 9, lineHeight: 2 }}>GERANDO SUA JORNADA</p>
-        <p className="font-vt text-center" style={{ color: '#9f7aea', fontSize: 19, minHeight: 26 }}>{genMsg}</p>
-        <p className="font-vt text-center" style={{ color: '#555', fontSize: 14 }}>Pode levar alguns segundos...</p>
+      <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 px-6" style={sceneStyle}>
+        <div className="panel-parchment px-8 py-8 flex flex-col items-center gap-5 max-w-xs w-full">
+          <div className="portal-spin" style={{ width: 72, height: 72, borderRadius: '50%', border: '4px solid #c88f20', boxShadow: '0 0 24px #c88f20, inset 0 0 20px rgba(200,143,32,0.3)' }} />
+          <p className="font-pixel text-center" style={{ color: '#3a1a00', fontSize: 8, lineHeight: 2 }}>GERANDO JORNADA</p>
+          <p className="font-vt text-center" style={{ color: '#7a4f2d', fontSize: 18, minHeight: 26 }}>{genMsg}</p>
+          <p className="font-vt text-center" style={{ color: '#a88060', fontSize: 14 }}>Pode levar alguns segundos...</p>
+        </div>
       </div>
     );
   }
 
   // ───────────────── REVIEW ─────────────────
   return (
-    <div className="fixed inset-0 bg-[#050518] overflow-y-auto">
-      <div className="max-w-lg mx-auto px-4 py-6 pb-28">
-        <div className="text-center mb-4">
-          <h1 className="font-pixel text-white" style={{ fontSize: 10, lineHeight: 2 }}>REVISÃO</h1>
-          <p className="font-vt" style={{ color: '#9f7aea', fontSize: 17 }}>{subject} · {level}</p>
-          <p className="font-vt" style={{ color: '#6d5a9c', fontSize: 14 }}>Edite o que quiser e crie o jogo.</p>
-        </div>
+    <div className="fixed inset-0 overflow-y-auto no-scrollbar" style={{ background: '#e8d4a8' }}>
+      {/* Header */}
+      <div className="bar-wood flex items-center justify-between px-4 py-3 sticky top-0 z-20">
+        <p className="font-pixel" style={{ color: '#f7ead5', fontSize: 7 }}>REVISÃO DO JOGO</p>
+        <p className="font-vt" style={{ color: '#ffd700', fontSize: 16 }}>{subject} · {level}</p>
+      </div>
 
+      <div className="max-w-lg mx-auto px-4 py-4 pb-28">
         {story?.hook && (
-          <div className="dialog-rpg p-3 mb-4" style={{ borderColor: '#a855f7' }}>
-            <p className="font-pixel mb-1" style={{ color: '#a855f7', fontSize: 6 }}>✦ HISTÓRIA (IA)</p>
-            <p className="font-vt text-white" style={{ fontSize: 16 }}>{story.hook}</p>
+          <div className="panel-parchment p-3 mb-4" style={{ background: 'linear-gradient(160deg,#fffbe8,#f0d890)', borderColor: '#c88f20' }}>
+            <p className="font-pixel mb-1" style={{ color: '#7a4f1a', fontSize: 6 }}>✦ HISTÓRIA GERADA PELA IA</p>
+            <p className="font-vt" style={{ color: '#3a1a00', fontSize: 17 }}>{story.hook}</p>
           </div>
         )}
 
         {warnings.length > 0 && (
-          <div className="mb-4 p-3" style={{ background: '#2a1a00', border: '1px solid #aa7700' }}>
+          <div className="mb-4 p-3" style={{ background: '#fff8e0', border: '2px solid #c88f20' }}>
             {warnings.map((w, i) => (
-              <p key={i} className="font-vt" style={{ color: '#ffb84d', fontSize: 14 }}>⚠ {w} Você pode completar abaixo.</p>
+              <p key={i} className="font-vt" style={{ color: '#8b5e00', fontSize: 15 }}>⚠ {w} Você pode completar abaixo.</p>
             ))}
           </div>
         )}
@@ -300,26 +336,41 @@ export default function SetupWizard({ onGameCreated }: Props) {
           <QEditor questions={forestQs} setter={setForestQs} label="🌲 FLORESTA — 3 PERGUNTAS" />
 
           <div className="flex flex-col gap-3">
-            <p className="font-pixel" style={{ color: '#9f7aea', fontSize: 7 }}>🏙️ CIDADE — 4 PARES (CONCEITO ↔ DEFINIÇÃO)</p>
+            <p className="font-pixel" style={{ color: '#7a4f2d', fontSize: 7 }}>🏙️ CIDADE — 4 PARES (CONCEITO ↔ DEFINIÇÃO)</p>
             {cityPairs.map((pair, idx) => (
-              <div key={idx} style={{ background: '#0a0a1a', border: '2px solid #2a2350', padding: 12 }}>
-                <p className="font-vt mb-2" style={{ color: '#ffc800', fontSize: 16 }}>Par {idx + 1}</p>
-                <input value={pair.concept} onChange={e => updatePair(idx, 'concept', e.target.value)} placeholder="Conceito" style={{ width: '100%', background: '#050518', border: '1px solid #333', color: '#fff', padding: '6px 10px', fontSize: 14, marginBottom: 6 }} />
-                <input value={pair.definition} onChange={e => updatePair(idx, 'definition', e.target.value)} placeholder="Definição" style={{ width: '100%', background: '#050518', border: '1px solid #333', color: '#fff', padding: '6px 10px', fontSize: 14 }} />
+              <div key={idx} className="panel-parchment p-3" style={{ background: '#f0e4c8' }}>
+                <p className="font-vt mb-2" style={{ color: '#7a4f1a', fontSize: 16 }}>Par {idx + 1}</p>
+                <input value={pair.concept} onChange={e => updatePair(idx, 'concept', e.target.value)} placeholder="Conceito" className="input-rpg w-full px-3 py-2 mb-2" />
+                <input value={pair.definition} onChange={e => updatePair(idx, 'definition', e.target.value)} placeholder="Definição" className="input-rpg w-full px-3 py-2" />
               </div>
             ))}
           </div>
 
           <QEditor questions={cavesQs} setter={setCavesQs} label="💎 CAVERNAS — 5 PERGUNTAS" />
-          <QEditor questions={towerQs} setter={setTowerQs} label="👑 TORRE/BATALHAS — 3 PERGUNTAS DE SÍNTESE" />
+          <QEditor questions={towerQs} setter={setTowerQs} label="👑 BATALHAS — 3 PERGUNTAS DE SÍNTESE" />
         </div>
 
-        {error && <p className="font-vt mt-4 text-center" style={{ color: '#ff5577', fontSize: 16 }}>{error}</p>}
+        {error && (
+          <div className="mt-4 p-3" style={{ background: '#ffe8e8', border: '2px solid #cc2222' }}>
+            <p className="font-vt text-center" style={{ color: '#cc2222', fontSize: 16 }}>{error}</p>
+          </div>
+        )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 flex gap-3 p-4" style={{ background: 'rgba(5,5,24,0.96)', borderTop: '2px solid #222' }}>
-        <button onClick={() => { setMode('input'); setError(''); }} className="btn-pixel flex-1 py-3" style={{ background: '#222', color: '#aaa', fontSize: 8 }}>← VOLTAR</button>
-        <button onClick={handleSave} disabled={saving} className="btn-pixel flex-1 py-3" style={{ background: saving ? '#333' : '#00ff88', color: '#000', fontSize: 8 }}>
+      <div className="fixed bottom-0 left-0 right-0 flex gap-3 p-4 bar-wood" style={{ borderTop: 'none', borderBottom: 'none', borderLeft: 'none', borderRight: 'none', borderTopWidth: 3 }}>
+        <button
+          onClick={() => { setMode('input'); setError(''); }}
+          className="btn-rpg flex-1 py-3 font-pixel"
+          style={{ background: 'linear-gradient(to bottom, #a87830, #886020)', fontSize: 8 }}
+        >
+          ← VOLTAR
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="btn-rpg flex-1 py-3 font-pixel"
+          style={{ fontSize: 8 }}
+        >
           {saving ? 'SALVANDO...' : '🎮 CRIAR JOGO'}
         </button>
       </div>

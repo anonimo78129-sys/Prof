@@ -143,8 +143,8 @@ export default function GameShell({ config, onExit }: GameShellProps) {
   // ── MAP ──
   if (mode === 'map') {
     return (
-      <div className="fixed inset-0 bg-black">
-        <button onClick={onExit} className="fixed z-30 btn-pixel" style={{ top: 8, left: 8, background: '#222', color: '#aaa', fontSize: 6, padding: '6px 10px' }}>
+      <div className="fixed inset-0">
+        <button onClick={onExit} className="fixed z-30 btn-rpg font-pixel" style={{ top: 8, left: 8, fontSize: 6, padding: '6px 10px' }}>
           ✕ SAIR
         </button>
         <WorldMap
@@ -178,14 +178,19 @@ export default function GameShell({ config, onExit }: GameShellProps) {
     <div className="fixed inset-0 bg-black">
       {/* HUD (puzzle phases only) */}
       {phase.kind !== 'battle' && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 py-2" style={{ background: 'rgba(0,0,0,0.7)', borderBottom: '2px solid #222' }}>
-          <button onClick={() => setMode('map')} className="font-pixel" style={{ color: '#888', fontSize: 7, background: 'none', border: 'none', cursor: 'pointer' }}>← MAPA</button>
-          <div className="flex gap-1">
+        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 py-2 bar-wood">
+          <button onClick={() => setMode('map')} className="font-pixel" style={{ color: '#f7ead5', fontSize: 7, background: 'none', border: 'none', cursor: 'pointer' }}>← MAPA</button>
+          <div className="flex gap-1 items-center">
             {Array.from({ length: 3 }, (_, i) => (
-              <span key={i} style={{ fontSize: 18, filter: i < hearts ? 'none' : 'grayscale(1) brightness(0.5)' }}>❤️</span>
+              <img
+                key={i}
+                src={i < hearts ? '/assets/ui/heart-full.png' : '/assets/ui/heart-empty.png'}
+                alt={i < hearts ? 'vida' : 'vazio'}
+                style={{ width: 24, height: 24, imageRendering: 'pixelated' }}
+              />
             ))}
           </div>
-          <span className="font-vt text-white" style={{ fontSize: 18 }}>⏱ {formatted}</span>
+          <span className="font-pixel" style={{ color: '#ffd700', fontSize: 8, textShadow: '1px 2px 0 #000' }}>⏱ {formatted}</span>
         </div>
       )}
 
