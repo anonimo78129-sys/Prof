@@ -1,1 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-vt: 'VT323', monospace;
+}
+
+@layer base {
+  body {
+    @apply antialiased bg-[#0a0a1a] overflow-hidden;
+    touch-action: manipulation;
+  }
+  * { box-sizing: border-box; }
+}
+
+@layer utilities {
+  .font-pixel { font-family: 'Press Start 2P', monospace; }
+  .font-vt { font-family: 'VT323', monospace; }
+
+  .btn-pixel {
+    font-family: 'Press Start 2P', monospace;
+    border: 3px solid #1a1a1a;
+    box-shadow: 4px 4px 0px #1a1a1a;
+    border-radius: 0;
+    transition: transform 80ms, box-shadow 80ms;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-pixel:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 #1a1a1a;
+  }
+
+  .panel-pixel {
+    border: 3px solid #1a1a1a;
+    box-shadow: 5px 5px 0px #1a1a1a;
+    border-radius: 0;
+  }
+
+  .dialog-rpg {
+    border: 4px solid #ffffff;
+    outline: 4px solid #1a1a1a;
+    background: rgba(0, 0, 0, 0.88);
+  }
+
+  .glow-teal { filter: drop-shadow(0 0 8px #00d4aa) drop-shadow(0 0 16px #00d4aa); }
+  .glow-gold { filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 16px #ffd700); }
+  .glow-purple { filter: drop-shadow(0 0 8px #cc44ff) drop-shadow(0 0 16px #cc44ff); }
+  .glow-white { filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 20px #ffffff); }
+  .glow-amber { filter: drop-shadow(0 0 8px #ffc800) drop-shadow(0 0 16px #ffc800); }
+
+  @keyframes firefly-pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.25); }
+  }
+  .firefly-pulse { animation: firefly-pulse 1.4s ease-in-out infinite; }
+
+  @keyframes crystal-glow {
+    0%, 100% { filter: drop-shadow(0 0 4px #9333ea); }
+    50% { filter: drop-shadow(0 0 12px #cc44ff) drop-shadow(0 0 20px #9333ea); }
+  }
+  .crystal-active { animation: crystal-glow 2s ease-in-out infinite; }
+
+  @keyframes fragment-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .fragment-float { animation: fragment-float 2.5s ease-in-out infinite; }
+
+  @keyframes scene-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .scene-fade-in { animation: scene-fade-in 400ms ease-out forwards; }
+
+  @keyframes slide-up {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .slide-up { animation: slide-up 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+  .shake { animation: shake 400ms ease-in-out; }
+
+  @keyframes iris-glow {
+    0%, 100% { box-shadow: 0 0 12px 4px #00d4aa, 0 0 24px 8px rgba(0,212,170,0.3); }
+    50% { box-shadow: 0 0 20px 8px #00d4aa, 0 0 40px 16px rgba(0,212,170,0.5); }
+  }
+  .iris-glow { animation: iris-glow 2s ease-in-out infinite; }
+
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+  }
+  .sparkle { animation: sparkle 1.2s ease-in-out infinite; }
+
+  @keyframes portal-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .portal-spin { animation: portal-spin 8s linear infinite; }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .heartbeat { animation: heartbeat 0.8s ease-in-out; }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
