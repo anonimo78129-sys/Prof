@@ -6,6 +6,7 @@ import GameShell from './components/EscapeRoom/GameShell';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import ShareCard from './components/TeacherSetup/ShareCard';
 import AnimatedHero from './components/EscapeRoom/mechanics/AnimatedHero';
+import { DEMO_GAME } from './data/demoGame';
 
 type View = 'home' | 'setup' | 'share' | 'play' | 'loading' | 'error';
 
@@ -199,6 +200,15 @@ export default function App() {
       {/* ── MENU PANEL (parchment) ── */}
       <div className="relative z-20 flex-shrink-0">
         <div className="panel-parchment mx-4 mb-4 px-5 py-5 flex flex-col gap-3" style={{ boxShadow: '5px 5px 0 #3a2010, 0 -3px 0 #7a4f2d inset' }}>
+
+          {/* Demo button */}
+          <button
+            onClick={() => { setGameConfig(DEMO_GAME); setView('play'); }}
+            className="btn-rpg py-3 w-full font-pixel"
+            style={{ fontSize: 7, background: 'linear-gradient(to bottom, #4aaa2a, #2a8a10)', boxShadow: '0 4px 0 #1a5a08', borderColor: '#1a5a08' }}
+          >
+            ▶ JOGAR DEMO — SISTEMA SOLAR
+          </button>
 
           {/* Professor button */}
           <button
