@@ -20,10 +20,17 @@ export interface NarrativeChoice {
   options: [NarrativeOption, NarrativeOption];
 }
 
+export interface GameStory {
+  intro: string[];
+  hook: string;
+}
+
 export interface GameConfig {
   id: string;
   subject: string;
+  level?: string;
   createdAt: number;
+  story?: GameStory;
   scenes: {
     forest: { questions: MCQuestion[]; narrative: NarrativeChoice };
     city: { pairs: MatchPair[]; narrative: NarrativeChoice };

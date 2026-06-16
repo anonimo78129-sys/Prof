@@ -137,7 +137,7 @@ export default function GameShell({ config, onExit }: GameShellProps) {
 
   // ── INTRO ──
   if (mode === 'intro') {
-    return <IntroScene irisImg="/assets/chars/char-iris.png" onComplete={() => setMode('map')} />;
+    return <IntroScene irisImg="/assets/chars/char-iris.png" lines={config.story?.intro} onComplete={() => setMode('map')} />;
   }
 
   // ── MAP ──

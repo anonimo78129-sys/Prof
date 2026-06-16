@@ -4,13 +4,17 @@ import { INTRO_LINES, IRIS_INTRO } from '../../data/narrative';
 interface Props {
   bgImg?: string;
   irisImg?: string;
+  lines?: string[];
   onComplete: () => void;
 }
 
-export default function IntroScene({ bgImg, irisImg, onComplete }: Props) {
-  const allLines = [...INTRO_LINES, ...IRIS_INTRO];
+export default function IntroScene({ bgImg, irisImg, lines, onComplete }: Props) {
+  // Quando a IA gera a história, mostramos o portal nas 2 primeiras falas e Íris nas demais.
+  const portalLines = lines && lines.length ? lines.slice(0, 2) : INTRO_LINES;
+  const irisLines = lines && lines.length ? lines.slice(2) : IRIS_INTRO;
+  const allLines = [...portalLines, ...irisLines];
   const [lineIdx, setLineIdx] = useState(0);
-  const phase = lineIdx < INTRO_LINES.length ? 'portal' : 'iris';
+  const phase = lineIdx < portalLines.length ? 'portal' : 'iris';
   const currentLine = allLines[lineIdx];
 
   const advance = () => {
