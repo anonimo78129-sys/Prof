@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { MCQuestion, NarrativeChoice, KarmaChoice } from '../../types/game';
 import QuestionCard from './mechanics/QuestionCard';
 import NarrativeChoiceModal from './mechanics/NarrativeChoice';
+import DialogBox from './ui/DialogBox';
 
 interface Props {
   bgImg?: string;
@@ -145,24 +146,19 @@ export default function CavesScene({ bgImg, celeneImg, questions, narrative, onC
         </div>
       )}
 
-      {/* Guardian */}
+      {/* Guardian dialog */}
       {!showQuestion && !allLit && (
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <div className="dialog-rpg p-3 max-w-md mx-auto flex items-start gap-3" style={{ borderColor: '#9333ea' }}>
-            {celeneImg ? (
-              <img src={celeneImg} alt="Oráculo Celene" className="w-12 h-12 object-contain flex-shrink-0" style={{ imageRendering: 'pixelated' }} />
-            ) : (
-              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl" style={{ border: '2px solid #9333ea' }}>🔮</div>
-            )}
-            <div>
-              <p className="font-pixel mb-1" style={{ color: '#9333ea', fontSize: 7 }}>ORÁCULO CELENE</p>
-              <p className="font-vt text-white" style={{ fontSize: 17 }}>
-                {currentIdx === 0
-                  ? 'Acenda os cristais com o brilho do teu saber. Toque no primeiro.'
-                  : `${lit.filter(Boolean).length} de ${questions.length} cristais acesos...`}
-              </p>
-            </div>
-          </div>
+        <div className="absolute bottom-0 left-0 right-0">
+          <DialogBox
+            portrait={celeneImg}
+            name="ORÁCULO CELENE"
+            text={
+              currentIdx === 0
+                ? 'Acenda os cristais com o brilho do teu saber. Toque no primeiro!'
+                : `${lit.filter(Boolean).length} de ${questions.length} cristais acesos...`
+            }
+            accentColor="#7c22bb"
+          />
         </div>
       )}
 

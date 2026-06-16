@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { NarrativeChoice as NarrativeChoiceType, KarmaChoice } from '../../../types/game';
+import DialogBox from '../ui/DialogBox';
 
 interface Props {
   choice: NarrativeChoiceType;
@@ -11,7 +12,6 @@ interface Props {
 
 export default function NarrativeChoice({ choice, guardianImg, guardianName, onChoose, sceneColor = '#4338ca' }: Props) {
   const [chosen, setChosen] = useState<number | null>(null);
-  const [showReaction, setShowReaction] = useState(false);
   const [reaction, setReaction] = useState('');
 
   const handleChoose = (idx: 0 | 1) => {
@@ -19,67 +19,63 @@ export default function NarrativeChoice({ choice, guardianImg, guardianName, onC
     const opt = choice.options[idx];
     setChosen(idx);
     setReaction(opt.reaction);
-    setShowReaction(true);
     setTimeout(() => {
       onChoose(opt.karma, opt.reaction);
-    }, 2000);
+    }, 2200);
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center" style={{ background: 'rgba(0,0,0,0.8)' }}>
-      <div className="w-full max-w-md slide-up">
-        <div className="dialog-rpg mx-3 mb-3 p-4" style={{ borderColor: sceneColor }}>
+    <div className="fixed inset-0 z-40 flex flex-col justify-end" style={{ background: 'rgba(0,0,0,0.72)' }}>
 
-          {/* Guardian header */}
-          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: `2px solid ${sceneColor}` }}>
-            {guardianImg ? (
-              <img src={guardianImg} alt={guardianName} className="w-12 h-12 object-contain" style={{ imageRendering: 'pixelated' }} />
-            ) : (
-              <div className="w-12 h-12 flex items-center justify-center" style={{ background: sceneColor, border: '2px solid #1a1a1a' }}>
-                <span style={{ fontSize: 24 }}>👤</span>
-              </div>
-            )}
-            <span className="font-pixel text-white" style={{ fontSize: 8 }}>{guardianName}</span>
+      {chosen === null ? (
+        /* ── Choice phase ── */
+        <div className="slide-up">
+          {/* Prompt dialog */}
+          <DialogBox
+            portrait={guardianImg}
+            name={guardianName}
+            text={choice.prompt}
+            accentColor={sceneColor}
+          />
+
+          {/* Options */}
+          <div className="max-w-md mx-auto px-3 pb-4 flex flex-col gap-2 mt-1">
+            {choice.options.map((opt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleChoose(idx as 0 | 1)}
+                style={{
+                  background: idx === 0
+                    ? 'linear-gradient(135deg, #d4f0e8 0%, #b8e0d0 100%)'
+                    : 'linear-gradient(135deg, #e8d4f0 0%, #d0b8e0 100%)',
+                  border: `3px solid ${idx === 0 ? '#2a8c6a' : '#8c2a8c'}`,
+                  boxShadow: `3px 3px 0 ${idx === 0 ? '#1a5c44' : '#5c1a5c'}`,
+                  padding: '10px 16px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  width: '100%',
+                }}
+              >
+                <span className="font-pixel" style={{ color: idx === 0 ? '#1a5c44' : '#5c1a5c', fontSize: 6, display: 'block', marginBottom: 3 }}>
+                  {idx === 0 ? '✦ LUZ' : '✦ SOMBRA'}
+                </span>
+                <span className="font-vt" style={{ color: '#1a0c00', fontSize: 19 }}>{opt.label}</span>
+              </button>
+            ))}
           </div>
-
-          {!showReaction ? (
-            <>
-              {/* Prompt */}
-              <p className="font-vt text-white mb-4" style={{ fontSize: 20, lineHeight: 1.3 }}>
-                {choice.prompt}
-              </p>
-
-              {/* Choices */}
-              <div className="flex flex-col gap-3">
-                {choice.options.map((opt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleChoose(idx as 0 | 1)}
-                    className="btn-pixel px-4 py-3 text-left w-full"
-                    style={{
-                      background: idx === 0 ? '#001a33' : '#1a0033',
-                      borderColor: idx === 0 ? '#00aaff' : '#aa44ff',
-                      color: idx === 0 ? '#00aaff' : '#aa44ff',
-                    }}
-                  >
-                    <span className="font-vt" style={{ fontSize: 18 }}>{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : (
-            /* Reaction */
-            <div className="text-center py-2">
-              <p className="font-vt text-white mb-2" style={{ fontSize: 22 }}>
-                "{reaction}"
-              </p>
-              <p className="font-vt" style={{ color: sceneColor, fontSize: 16 }}>
-                Continuando...
-              </p>
-            </div>
-          )}
         </div>
-      </div>
+      ) : (
+        /* ── Reaction phase ── */
+        <div className="slide-up">
+          <DialogBox
+            portrait={guardianImg}
+            name={guardianName}
+            text={`"${reaction}"`}
+            accentColor={sceneColor}
+            tapHint="continuando..."
+          />
+        </div>
+      )}
     </div>
   );
 }

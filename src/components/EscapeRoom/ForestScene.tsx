@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { MCQuestion, NarrativeChoice, KarmaChoice } from '../../types/game';
 import QuestionCard from './mechanics/QuestionCard';
 import NarrativeChoiceModal from './mechanics/NarrativeChoice';
+import DialogBox from './ui/DialogBox';
 
 interface Props {
   bgImg?: string;
@@ -129,26 +130,21 @@ export default function ForestScene({ bgImg, treeImg, questions, narrative, onCo
         </div>
       )}
 
-      {/* Guardian bar */}
-      {!puzzleComplete && (
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <div className="dialog-rpg p-3 max-w-md mx-auto flex items-start gap-3" style={{ borderColor: '#00d4aa' }}>
-            {treeImg ? (
-              <img src={treeImg} alt="Árvore Anciã" className="w-12 h-12 object-contain flex-shrink-0" style={{ imageRendering: 'pixelated' }} />
-            ) : (
-              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl" style={{ border: '2px solid #00d4aa' }}>🌳</div>
-            )}
-            <div>
-              <p className="font-pixel mb-1" style={{ color: '#00d4aa', fontSize: 7 }}>ÁRVORE ANCIÃ</p>
-              <p className="font-vt text-white" style={{ fontSize: 17 }}>
-                {passedCount === 0
-                  ? 'Encontre os segredos desta floresta. Toque nos vaga-lumes.'
-                  : passedCount === 1
-                  ? 'Bem feito. Falta mais um segredo para a floresta confiar em você.'
-                  : 'Você encontrou os segredos... O Fragmento desperta.'}
-              </p>
-            </div>
-          </div>
+      {/* Guardian dialog */}
+      {!puzzleComplete && activeQ === null && (
+        <div className="absolute bottom-0 left-0 right-0">
+          <DialogBox
+            portrait={treeImg}
+            name="ÁRVORE ANCIÃ"
+            text={
+              passedCount === 0
+                ? 'Encontre os segredos desta floresta. Toque nos vaga-lumes!'
+                : passedCount === 1
+                ? 'Bem feito. Falta mais um segredo para a floresta confiar em você.'
+                : 'Você encontrou os segredos... O Fragmento desperta!'
+            }
+            accentColor="#00a888"
+          />
         </div>
       )}
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EnemyDef, MCQuestion } from '../../../types/game';
 import QuestionCard from './QuestionCard';
 import AnimatedHero from './AnimatedHero';
+import DialogBox from '../ui/DialogBox';
 
 interface Props {
   enemy: EnemyDef;
@@ -231,8 +232,13 @@ export default function BattleScene({ enemy, bg, questions, heroPortrait, onVict
           <img src={enemy.sprite} alt={enemy.name} className="battle-idle" style={{ width: enemy.size, imageRendering: 'pixelated', filter: 'drop-shadow(0 10px 14px rgba(0,0,0,0.7))' }} />
           <p className="font-pixel text-center" style={{ color: enemy.color, fontSize: 9, lineHeight: 1.8, textShadow: '0 2px 0 #000' }}>{enemy.title}</p>
           <p className="font-pixel text-center text-white" style={{ fontSize: 14, textShadow: '0 0 16px ' + enemy.color }}>{enemy.name}</p>
-          <div className="dialog-rpg px-4 py-3 max-w-xs" style={{ borderColor: enemy.color }}>
-            <p className="font-vt text-center text-white" style={{ fontSize: 19, lineHeight: 1.3 }}>"{enemy.taunt}"</p>
+          <div className="w-full max-w-xs">
+            <DialogBox
+              portrait={enemy.sprite}
+              name={enemy.name}
+              text={`"${enemy.taunt}"`}
+              accentColor={enemy.color}
+            />
           </div>
           <button onClick={() => setStage('fighting')} className="btn-pixel px-8 py-4" style={{ background: enemy.color, color: '#000', fontSize: 10 }}>
             ⚔️ LUTAR

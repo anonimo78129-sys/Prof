@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { MatchPair, NarrativeChoice, KarmaChoice } from '../../types/game';
 import NarrativeChoiceModal from './mechanics/NarrativeChoice';
+import DialogBox from './ui/DialogBox';
 
 interface Props {
   bgImg?: string;
@@ -153,24 +154,19 @@ export default function CityScene({ bgImg, cogImg, pairs, narrative, onCorrect, 
         </div>
       )}
 
-      {/* Guardian */}
+      {/* Guardian dialog */}
       {!allConnected && (
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <div className="dialog-rpg p-3 max-w-md mx-auto flex items-start gap-3" style={{ borderColor: '#ffc800' }}>
-            {cogImg ? (
-              <img src={cogImg} alt="Prof. Cog" className="w-12 h-12 object-contain flex-shrink-0" style={{ imageRendering: 'pixelated' }} />
-            ) : (
-              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl" style={{ border: '2px solid #ffc800' }}>🤖</div>
-            )}
-            <div>
-              <p className="font-pixel mb-1" style={{ color: '#ffc800', fontSize: 7 }}>PROF. COG</p>
-              <p className="font-vt text-white" style={{ fontSize: 17 }}>
-                {selected !== null
-                  ? 'Agora toque na definição correspondente!'
-                  : `${connected.filter(Boolean).length}/${pairs.length} fios reconectados. Continue!`}
-              </p>
-            </div>
-          </div>
+        <div className="absolute bottom-0 left-0 right-0">
+          <DialogBox
+            portrait={cogImg}
+            name="PROF. COG"
+            text={
+              selected !== null
+                ? 'Agora toque na definição correspondente!'
+                : `${connected.filter(Boolean).length}/${pairs.length} fios reconectados. Continue!`
+            }
+            accentColor="#c88f20"
+          />
         </div>
       )}
 
