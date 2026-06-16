@@ -43,6 +43,9 @@ export default function GameShell({ config, onExit }: GameShellProps) {
   const isPlaying = mode === 'phase';
   const { seconds, formatted } = useTimer(isPlaying);
 
+  // Modo demo/teste: todas as fases ficam liberadas para o professor explorar.
+  const freePlay = config.id === 'DEMO';
+
   // Combined fallback pool from all banks (used when a battle bank is empty)
   const allQ = useMemo(() => {
     const pool = [
@@ -153,6 +156,7 @@ export default function GameShell({ config, onExit }: GameShellProps) {
           currentIndex={currentIndex}
           fragments={fragments}
           coins={coins}
+          freePlay={freePlay}
           onEnterPhase={enterPhase}
         />
       </div>

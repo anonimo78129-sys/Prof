@@ -32,22 +32,27 @@ export default function QuestionCard({ question, onAnswer, sceneColor = '#4338ca
   const letters = ['A', 'B', 'C', 'D'];
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}>
-      <div className={`w-full max-w-md slide-up ${shaking ? 'shake' : ''}`}>
-        {/* Question box */}
+    /* Sem overlay escuro — o cenário de batalha fica visível */
+    <div className="fixed bottom-0 left-0 right-0 z-40">
+      <div className={`w-full max-w-md mx-auto slide-up ${shaking ? 'shake' : ''}`}>
+        {/* Question panel */}
         <div
-          className="dialog-rpg mx-3 mb-3 p-4"
-          style={{ borderColor: sceneColor }}
+          className="mx-3 mb-3 p-4"
+          style={{
+            background: 'linear-gradient(160deg, #f5ead0 0%, #e8d8b0 100%)',
+            border: `3px solid ${sceneColor}`,
+            boxShadow: `4px 4px 0 rgba(0,0,0,0.5)`,
+          }}
         >
-          {/* Question mark icon */}
-          <div className="flex items-start gap-3 mb-4">
+          {/* Question text */}
+          <div className="flex items-start gap-3 mb-3">
             <div
-              className="w-8 h-8 flex-shrink-0 flex items-center justify-center btn-pixel"
-              style={{ background: sceneColor, fontSize: 14 }}
+              className="flex-shrink-0 flex items-center justify-center"
+              style={{ width: 28, height: 28, background: sceneColor, border: '2px solid rgba(0,0,0,0.4)', boxShadow: '2px 2px 0 rgba(0,0,0,0.3)' }}
             >
               <span className="font-pixel text-white" style={{ fontSize: 10 }}>?</span>
             </div>
-            <p className="font-vt text-white leading-tight" style={{ fontSize: 20 }}>
+            <p className="font-vt leading-tight" style={{ color: '#1a0c00', fontSize: 20 }}>
               {question.text}
             </p>
           </div>
@@ -55,41 +60,35 @@ export default function QuestionCard({ question, onAnswer, sceneColor = '#4338ca
           {/* Options */}
           <div className="flex flex-col gap-2">
             {question.options.map((opt, idx) => {
-              let bg = '#1a1a2e';
-              let border = '#555';
-              let textColor = '#ffffff';
-
-              if (selected === idx) {
-                if (idx === question.correct) {
-                  bg = '#004400';
-                  border = '#00ff88';
-                  textColor = '#00ff88';
-                } else {
-                  bg = '#440000';
-                  border = '#ff4444';
-                  textColor = '#ff4444';
-                }
-              }
+              const isCorrectPick = selected === idx && idx === question.correct;
+              const isWrongPick   = selected === idx && idx !== question.correct;
 
               return (
                 <button
                   key={idx}
                   onClick={() => handleAnswer(idx)}
                   disabled={answered}
-                  className="flex items-center gap-3 px-3 py-2 text-left transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-left"
                   style={{
-                    background: bg,
-                    border: `2px solid ${border}`,
+                    background: isCorrectPick ? '#c8f0c8' : isWrongPick ? '#f0c8c8' : '#f0e4c8',
+                    border: `2px solid ${isCorrectPick ? '#2a8c2a' : isWrongPick ? '#cc2222' : sceneColor}`,
+                    boxShadow: `2px 2px 0 rgba(0,0,0,0.25)`,
                     cursor: answered ? 'default' : 'pointer',
+                    transition: 'background 0.15s',
                   }}
                 >
                   <span
-                    className="font-pixel flex-shrink-0 w-6 h-6 flex items-center justify-center text-center"
-                    style={{ background: sceneColor, color: '#000', fontSize: 8, minWidth: 24 }}
+                    className="font-pixel flex-shrink-0 flex items-center justify-center"
+                    style={{
+                      width: 24, height: 24, minWidth: 24,
+                      background: isCorrectPick ? '#2a8c2a' : isWrongPick ? '#cc2222' : sceneColor,
+                      color: '#fff',
+                      fontSize: 8,
+                    }}
                   >
                     {letters[idx]}
                   </span>
-                  <span className="font-vt" style={{ color: textColor, fontSize: 18, lineHeight: 1.2 }}>
+                  <span className="font-vt" style={{ color: isCorrectPick ? '#1a5c1a' : isWrongPick ? '#8c1a1a' : '#1a0c00', fontSize: 18, lineHeight: 1.2 }}>
                     {opt}
                   </span>
                 </button>

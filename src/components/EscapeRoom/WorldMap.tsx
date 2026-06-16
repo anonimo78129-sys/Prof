@@ -7,6 +7,7 @@ interface Props {
   currentIndex: number;
   fragments: FragmentName[];
   coins: number;
+  freePlay?: boolean;
   onEnterPhase: (index: number) => void;
 }
 
@@ -30,7 +31,7 @@ const KIND_LABEL: Record<string, string> = {
   battle: 'BATALHA',
 };
 
-export default function WorldMap({ phases, progress, currentIndex, fragments, coins, onEnterPhase }: Props) {
+export default function WorldMap({ phases, progress, currentIndex, fragments, coins, freePlay = false, onEnterPhase }: Props) {
   return (
     <div
       className="fixed inset-0 overflow-y-auto no-scrollbar"
@@ -62,13 +63,23 @@ export default function WorldMap({ phases, progress, currentIndex, fragments, co
         </div>
       </div>
 
+      {/* ── TEST MODE BANNER ── */}
+      {freePlay && (
+        <div className="max-w-md mx-auto px-5 pt-4">
+          <div className="panel-parchment px-4 py-2 text-center" style={{ background: 'linear-gradient(160deg,#fff4d0,#f0d890)' }}>
+            <p className="font-pixel" style={{ color: '#8b5e00', fontSize: 7 }}>🔓 MODO TESTE — TUDO LIBERADO</p>
+            <p className="font-vt" style={{ color: '#7a4f2d', fontSize: 14 }}>Toque em qualquer fase para experimentar</p>
+          </div>
+        </div>
+      )}
+
       {/* ── MAP PATH ── */}
       <div className="relative max-w-md mx-auto px-5 py-6 flex flex-col gap-0">
         {phases.map((phase, i) => {
           const prog     = progress[phase.id];
           const done     = prog?.completed ?? false;
           const isCurrent = i === currentIndex;
-          const locked   = i > currentIndex;
+          const locked   = freePlay ? false : i > currentIndex;
           const alignRight = i % 2 === 1;
           const kindColor  = KIND_COLOR[phase.kind] ?? '#888';
 
@@ -81,11 +92,11 @@ export default function WorldMap({ phases, progress, currentIndex, fragments, co
                   style={{
                     width: 8,
                     height: 28,
-                    background: done || isCurrent
+                    background: done || isCurrent || freePlay
                       ? 'linear-gradient(to bottom, #c88f20, #9a6a10)'
                       : 'linear-gradient(to bottom, #b09060, #907040)',
                     border: '2px solid rgba(0,0,0,0.25)',
-                    boxShadow: done || isCurrent ? '0 0 8px rgba(200,143,32,0.5)' : 'none',
+                    boxShadow: done || isCurrent || freePlay ? '0 0 8px rgba(200,143,32,0.5)' : 'none',
                   }}
                 />
               )}

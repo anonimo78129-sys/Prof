@@ -67,7 +67,10 @@ export default function CityScene({ bgImg, cogImg, pairs, narrative, onCorrect, 
       style={{
         background: bgImg
           ? `url(${bgImg}) center/cover no-repeat`
-          : 'linear-gradient(180deg, #0a1628 0%, #1a2a50 40%, #0d1830 100%)',
+          : [
+              "linear-gradient(to bottom, rgba(50,25,0,0.55) 0%, rgba(20,10,0,0.65) 100%)",
+              "url('/assets/bg/bg-forest-layer.png') top/cover no-repeat",
+            ].join(', '),
       }}
     >
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.4)' }} />

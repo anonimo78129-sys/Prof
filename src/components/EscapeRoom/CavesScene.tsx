@@ -66,7 +66,7 @@ export default function CavesScene({ bgImg, celeneImg, questions, narrative, onC
       style={{
         background: bgImg
           ? `url(${bgImg}) center/cover no-repeat`
-          : 'radial-gradient(ellipse at 50% 30%, #1a0a2d 0%, #0d0618 60%, #060210 100%)',
+          : 'radial-gradient(ellipse at 50% 15%, #3a0060 0%, #1e0040 30%, #0d0025 60%, #04000f 100%)',
       }}
     >
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)' }} />

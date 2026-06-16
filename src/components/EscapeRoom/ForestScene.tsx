@@ -72,10 +72,14 @@ export default function ForestScene({ bgImg, treeImg, questions, narrative, onCo
       style={{
         background: bgImg
           ? `url(${bgImg}) center/cover no-repeat`
-          : 'radial-gradient(ellipse at 50% 60%, #0a2d14 0%, #051a0a 60%, #020d05 100%)',
+          : [
+              "url('/assets/bg/bg-forest-mid.png') bottom/auto 72% repeat-x",
+              "url('/assets/bg/bg-forest-layer.png') top/cover no-repeat",
+            ].join(', '),
       }}
     >
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.3)' }} />
+      {/* light tint only — keeps background visible */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,20,10,0.18)' }} />
 
       {/* Fireflies */}
       {questions.map((_, idx) => {
