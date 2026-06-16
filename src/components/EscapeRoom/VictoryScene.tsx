@@ -5,10 +5,11 @@ import { VICTORY_TEXTS } from '../../data/narrative';
 interface Props {
   score: GameScore;
   karma: KarmaState;
+  coins?: number;
   onPlayAgain: () => void;
 }
 
-export default function VictoryScene({ score, karma, onPlayAgain }: Props) {
+export default function VictoryScene({ score, karma, coins = 0, onPlayAgain }: Props) {
   const [showConfetti, setShowConfetti] = useState(false);
   const ending = karma.ending ?? 'explorador';
   const { title, text, color } = VICTORY_TEXTS[ending] ?? VICTORY_TEXTS.explorador;
@@ -101,10 +102,16 @@ export default function VictoryScene({ score, karma, onPlayAgain }: Props) {
             <span className="font-vt text-white" style={{ fontSize: 18 }}>Perguntas respondidas</span>
             <span className="font-pixel" style={{ color: '#fff', fontSize: 9 }}>{score.firstTry}/{score.total}</span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-2">
             <span className="font-vt text-white" style={{ fontSize: 18 }}>Tempo total</span>
             <span className="font-pixel" style={{ color: '#aaa', fontSize: 9 }}>
               {String(min).padStart(2, '0')}:{String(sec).padStart(2, '0')}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-vt text-white" style={{ fontSize: 18 }}>Moedas do Éter</span>
+            <span className="font-pixel flex items-center gap-1" style={{ color: '#ffd700', fontSize: 9 }}>
+              <img src="/assets/objects/coin1.png" alt="" style={{ width: 14, imageRendering: 'pixelated' }} /> {coins}
             </span>
           </div>
         </div>

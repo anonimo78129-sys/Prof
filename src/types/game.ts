@@ -46,6 +46,39 @@ export interface GameConfig {
   };
 }
 
+export interface EnemyDef {
+  id: string;
+  name: string;
+  title: string;
+  sprite: string;
+  maxHp: number;
+  size: number;
+  color: string;
+  taunt: string;
+  attackMsg: string;
+  isBoss?: boolean;
+}
+
+export type PhaseKind = 'forest' | 'city' | 'caves' | 'battle';
+
+export interface PhaseDef {
+  id: string;
+  kind: PhaseKind;
+  title: string;
+  subtitle: string;
+  icon: string;
+  bg?: string;
+  enemyId?: string;
+  reward?: FragmentName;
+  questionBank?: 'forest' | 'caves' | 'tower';
+}
+
+export interface PhaseProgress {
+  completed: boolean;
+  stars: number;
+  coins: number;
+}
+
 export type SceneName = 'intro' | 'transition' | 'forest' | 'city' | 'caves' | 'tower' | 'victory';
 export type KarmaChoice = 'luz' | 'sombra';
 export type FragmentName = 'esmeralda' | 'ambar' | 'safira';

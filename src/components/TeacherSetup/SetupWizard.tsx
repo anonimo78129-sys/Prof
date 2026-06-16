@@ -143,7 +143,10 @@ export default function SetupWizard({ onGameCreated }: Props) {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="font-pixel text-white" style={{ fontSize: 10, lineHeight: 2 }}>ÉTER</h1>
-          <p className="font-vt text-gray-400" style={{ fontSize: 18 }}>Configurar Escape Room</p>
+          <p className="font-vt text-gray-400" style={{ fontSize: 18 }}>Configurar a Jornada</p>
+          <p className="font-vt" style={{ color: '#7c6aad', fontSize: 14 }}>
+            Suas perguntas viram puzzles E batalhas por turnos.
+          </p>
         </div>
 
         {/* Step indicator */}

@@ -130,8 +130,11 @@ export default function App() {
       <h1 className="font-pixel text-center mb-2" style={{ color: '#ffffff', fontSize: 16, lineHeight: 2, textShadow: '0 0 20px #7c3aed' }}>
         ÉTER
       </h1>
-      <p className="font-vt text-center mb-8" style={{ color: '#9f7aea', fontSize: 22 }}>
-        O Escape Room do Conhecimento
+      <p className="font-vt text-center mb-2" style={{ color: '#9f7aea', fontSize: 22 }}>
+        A Jornada do Conhecimento
+      </p>
+      <p className="font-vt text-center mb-8" style={{ color: '#6d5a9c', fontSize: 16 }}>
+        6 fases · puzzles · batalhas por turnos
       </p>
 
       {/* Buttons */}
