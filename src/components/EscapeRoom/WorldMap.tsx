@@ -271,8 +271,6 @@ export default function WorldMap({
   }, [nearNodeIdx, freePlay, currentIndex, onEnterPhase]);
 
   const heroScreenX = heroWorldX - cameraX;
-  const isForest = zone.id === 'forest';
-  const isRuins  = zone.id === 'ruins';
 
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none' }}>
@@ -313,7 +311,7 @@ export default function WorldMap({
         zIndex: 0,
       }} />
 
-      {/* ── Parallax forest layers ───────────────────────────────────────── */}
+      {/* ── Parallax forest layers (always visible across the whole world) ── */}
       {BG_LAYERS.map(({ src, factor }) => (
         <div key={src} style={{
           position: 'absolute', left: 0, right: 0,
@@ -324,48 +322,24 @@ export default function WorldMap({
           backgroundSize: 'auto 100%',
           backgroundPosition: `${-(cameraX * factor).toFixed(1)}px bottom`,
           imageRendering: 'pixelated',
-          opacity: isForest ? 1 : isRuins ? 0.2 : 0,
-          transition: 'opacity 1.4s ease',
+          opacity: 1,
           zIndex: 1,
         }} />
       ))}
 
-      {/* ── Pack01 forest background (for forest zone) ───────────────────── */}
-      {isForest && (
-        <div style={{
-          position: 'absolute', left: 0, right: 0,
-          bottom: GROUND_H,
-          height: `calc(100% - ${HUD_H}px - ${GROUND_H}px)`,
-          backgroundImage: "url('/assets/pack01/BACKGROUNDS_01.png')",
-          backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 100%',
-          backgroundPosition: `${-(cameraX * 0.25).toFixed(1)}px bottom`,
-          imageRendering: 'pixelated',
-          opacity: 0.6,
-          zIndex: 1,
-        }} />
-      )}
-
-      {/* ── Zone background images (each zone's JPG strip in world space) ── */}
-      {ZONES.filter(z => z.bgImage && z.id !== 'forest').map(z => {
-        const stripLeft = z.startX - cameraX;
-        const stripWidth = z.endX - z.startX;
-        const isActive = zone.id === z.id;
-        const isAdj = Math.abs(ZONES.indexOf(z) - ZONES.indexOf(zone)) === 1;
-        return (
-          <div key={z.id} style={{
-            position: 'absolute',
-            left: stripLeft, width: stripWidth,
-            top: HUD_H, bottom: GROUND_H,
-            backgroundImage: `url(${z.bgImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            opacity: isActive ? 0.78 : isAdj ? 0.18 : 0,
-            transition: 'opacity 1.4s ease',
-            zIndex: 1,
-          }} />
-        );
-      })}
+      {/* ── Pack01 forest background ──────────────────────────────────────── */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0,
+        bottom: GROUND_H,
+        height: `calc(100% - ${HUD_H}px - ${GROUND_H}px)`,
+        backgroundImage: "url('/assets/pack01/BACKGROUNDS_01.png')",
+        backgroundRepeat: 'repeat-x',
+        backgroundSize: 'auto 100%',
+        backgroundPosition: `${-(cameraX * 0.25).toFixed(1)}px bottom`,
+        imageRendering: 'pixelated',
+        opacity: 0.6,
+        zIndex: 1,
+      }} />
 
       {/* ── Ground ───────────────────────────────────────────────────────── */}
       <div style={{
@@ -382,7 +356,7 @@ export default function WorldMap({
         backgroundSize: 'auto 100%',
         backgroundPositionX: -(cameraX),
         imageRendering: 'pixelated',
-        opacity: isForest || isRuins ? 0.9 : 0.25,
+        opacity: 0.9,
         transition: 'opacity 1.4s',
         zIndex: 3,
       }} />
