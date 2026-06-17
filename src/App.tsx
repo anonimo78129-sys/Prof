@@ -74,7 +74,7 @@ export default function App() {
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: 14, padding: '0 32px 32px',
+        gap: 14, padding: '0 32px 72px',
       }}>
         <button
           onClick={() => setView('jogar')}
