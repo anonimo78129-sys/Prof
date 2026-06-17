@@ -67,12 +67,11 @@ export default function CityScene({ bgImg, cogImg, pairs, narrative, onCorrect, 
       style={{
         background: bgImg
           ? `url(${bgImg}) center/cover no-repeat`
-          : [
-              "linear-gradient(to bottom, rgba(50,25,0,0.55) 0%, rgba(20,10,0,0.65) 100%)",
-              "url('/assets/bg/bg-forest-layer.png') top/cover no-repeat",
-            ].join(', '),
+          : "url('/assets/bg/city-scene.jpg') center/cover no-repeat",
       }}
     >
+      {/* tinta leve para legibilidade — mantém o cenário visível */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(20,10,0,0.25)' }} />
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.4)' }} />
 
       {/* Scene label */}

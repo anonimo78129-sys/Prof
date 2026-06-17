@@ -66,10 +66,10 @@ export default function CavesScene({ bgImg, celeneImg, questions, narrative, onC
       style={{
         background: bgImg
           ? `url(${bgImg}) center/cover no-repeat`
-          : 'radial-gradient(ellipse at 50% 15%, #3a0060 0%, #1e0040 30%, #0d0025 60%, #04000f 100%)',
+          : "url('/assets/bg/caves-scene.jpg') center/cover no-repeat",
       }}
     >
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(10,0,25,0.25)' }} />
 
       {/* Crystal path */}
       <div className="absolute left-0 right-0 flex items-end justify-center gap-3 px-4" style={{ top: 120 }}>
