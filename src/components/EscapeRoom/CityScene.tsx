@@ -2,7 +2,6 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import type { MatchPair, NarrativeChoice, KarmaChoice } from '../../types/game';
 import AnimatedHero from './mechanics/AnimatedHero';
 import NarrativeChoiceModal from './mechanics/NarrativeChoice';
-import DialogBox from './ui/DialogBox';
 import DPad from './ui/DPad';
 import { useHeroMovement } from '../../hooks/useHeroMovement';
 
@@ -213,10 +212,23 @@ export default function CityScene({ cogImg, pairs, narrative, onCorrect, onWrong
         <AnimatedHero scale={2} walking={isWalking} facingLeft={facingLeft} />
       </div>
 
-      {/* NPC dialog */}
+      {/* NPC dialog — dark JRPG bottom panel */}
       {!showNarrative && (
-        <div className="fixed left-0 right-0 z-20" style={{ bottom: 80 }}>
-          <DialogBox portrait={cogImg} name="PROF. COG" text={npcMsg} accentColor="#c88f20" />
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, pointerEvents: 'none' }}>
+          <div style={{ height: 28, background: 'linear-gradient(to bottom, transparent, rgba(4,2,18,0.92))' }} />
+          <div style={{ background: 'linear-gradient(180deg, #0d0b22 0%, #080618 100%)', borderTop: '2px solid #c88f2044', padding: '8px 12px 78px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <div style={{ width: 50, height: 50, flexShrink: 0, border: '2px solid #c88f20', background: '#06040e', boxShadow: '0 0 10px #c88f2066', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {cogImg
+                ? <img src={cogImg} alt="Prof. Cog" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+                : <span style={{ fontSize: 24 }}>⚙️</span>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'inline-block', background: '#c88f20', padding: '2px 8px', marginBottom: 4 }}>
+                <span className="font-pixel" style={{ color: '#000', fontSize: 6 }}>PROF. COG</span>
+              </div>
+              <p className="font-vt" style={{ color: '#f0e8d8', fontSize: 18, lineHeight: 1.3, margin: 0 }}>{npcMsg}</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -225,8 +237,10 @@ export default function CityScene({ cogImg, pairs, narrative, onCorrect, onWrong
         <NarrativeChoiceModal choice={narrative} guardianImg={cogImg} guardianName="PROF. COG" onChoose={handleNarrative} sceneColor="#ffc800" />
       )}
 
-      {/* D-Pad */}
-      <DPad onStart={startWalking} onStop={stopWalking} onAction={handleInteract} />
+      {/* D-Pad (hidden during narrative) */}
+      {!showNarrative && (
+        <DPad onStart={startWalking} onStop={stopWalking} onAction={handleInteract} />
+      )}
     </div>
   );
 }

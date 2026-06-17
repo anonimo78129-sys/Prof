@@ -148,20 +148,23 @@ export default function TowerScene({ bgImg, guardianImg, questions, fragments, k
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%)', animation: 'scene-fade-in 0.3s ease-out' }} />
       )}
 
-      {/* Guardian */}
+      {/* Guardian bottom dialog */}
       {!allFilled && !showQuestion && (
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <div className="dialog-rpg p-3 max-w-md mx-auto flex items-start gap-3" style={{ borderColor: '#ffd700' }}>
-            {guardianImg ? (
-              <img src={guardianImg} alt="O Guardião" className="w-12 h-12 object-contain flex-shrink-0" style={{ imageRendering: 'pixelated' }} />
-            ) : (
-              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl" style={{ border: '2px solid #ffd700' }}>⚔️</div>
-            )}
-            <div>
-              <p className="font-pixel mb-1" style={{ color: '#ffd700', fontSize: 7 }}>O GUARDIÃO</p>
-              <p className="font-vt text-white" style={{ fontSize: 17 }}>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20 }}>
+          <div style={{ height: 28, background: 'linear-gradient(to bottom, transparent, rgba(4,2,18,0.92))', pointerEvents: 'none' }} />
+          <div style={{ background: 'linear-gradient(180deg, #0d0b22 0%, #080618 100%)', borderTop: '2px solid #ffd70044', padding: '10px 12px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <div style={{ width: 56, height: 56, flexShrink: 0, border: '2px solid #ffd700', background: '#06040e', boxShadow: '0 0 10px #ffd70066', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {guardianImg
+                ? <img src={guardianImg} alt="O Guardião" style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+                : <span style={{ fontSize: 28 }}>⚔️</span>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'inline-block', background: '#ffd700', padding: '2px 8px', marginBottom: 5 }}>
+                <span className="font-pixel" style={{ color: '#000', fontSize: 6 }}>O GUARDIÃO</span>
+              </div>
+              <p className="font-vt" style={{ color: '#f0e8d8', fontSize: 20, lineHeight: 1.3, margin: 0 }}>
                 {filled.some(Boolean)
-                  ? `${filled.filter(Boolean).length} inserido(s). Continue — o portal aguarda.`
+                  ? `${filled.filter(Boolean).length} fragmento(s) inserido(s). Continue — o portal aguarda.`
                   : GUARDIAN_INTRO[karmaLabel] ?? GUARDIAN_INTRO.explorador}
               </p>
             </div>
@@ -175,6 +178,8 @@ export default function TowerScene({ bgImg, guardianImg, questions, fragments, k
           question={questions[currentSlot]}
           onAnswer={handleAnswer}
           sceneColor="#ffd700"
+          portrait={guardianImg}
+          npcName="O GUARDIÃO"
         />
       )}
     </div>

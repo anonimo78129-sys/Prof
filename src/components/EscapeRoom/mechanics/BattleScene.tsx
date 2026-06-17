@@ -190,7 +190,7 @@ export default function BattleScene({ enemy, bg, questions, heroPortrait, onVict
 
       {/* Hero area — shown during battle (fighting + resolving) */}
       {(stage === 'fighting' || stage === 'resolving') && (
-        <div className="absolute left-0 right-0 flex flex-col items-center" style={{ bottom: stage === 'fighting' ? 200 : 24 }}>
+        <div className="absolute left-0 right-0 flex flex-col items-center" style={{ bottom: stage === 'fighting' ? 220 : 24 }}>
           <div className="relative flex flex-col items-center">
             <div className={`relative ${heroHurt ? 'hero-hurt' : ''}`}>
               <AnimatedHero scale={2.2} hurt={heroHurt} />
@@ -277,6 +277,8 @@ export default function BattleScene({ enemy, bg, questions, heroPortrait, onVict
           question={questions[qi]}
           onAnswer={handleAnswer}
           sceneColor={enemy.color}
+          portrait={enemy.sprite}
+          npcName={enemy.name}
         />
       )}
     </div>

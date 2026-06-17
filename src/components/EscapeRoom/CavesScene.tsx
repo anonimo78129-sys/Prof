@@ -174,7 +174,7 @@ export default function CavesScene({ celeneImg, questions, narrative, onCorrect,
 
       {/* Question */}
       {activeQ !== null && (
-        <QuestionCard question={questions[activeQ]} onAnswer={handleAnswer} sceneColor="#9333ea" />
+        <QuestionCard question={questions[activeQ]} onAnswer={handleAnswer} sceneColor="#9333ea" portrait={celeneImg} npcName="ORÁCULO CELENE" />
       )}
 
       {/* Narrative */}
@@ -182,8 +182,10 @@ export default function CavesScene({ celeneImg, questions, narrative, onCorrect,
         <NarrativeChoiceModal choice={narrative} guardianImg={celeneImg} guardianName="ORÁCULO CELENE" onChoose={handleNarrative} sceneColor="#9333ea" />
       )}
 
-      {/* D-Pad */}
-      <DPad onStart={startWalking} onStop={stopWalking} onAction={handleInteract} />
+      {/* D-Pad (hidden during question or narrative) */}
+      {!activeQ && !showNarrative && (
+        <DPad onStart={startWalking} onStop={stopWalking} onAction={handleInteract} />
+      )}
     </div>
   );
 }
