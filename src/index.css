@@ -191,6 +191,30 @@
   }
   .node-pulse { animation: map-node-pulse 1.4s ease-in-out infinite; }
 
+  /* ── Side-scrolling world ── */
+  @keyframes portal-spin {
+    from { background-position-x: 0px; }
+    to   { background-position-x: -640px; }
+  }
+  .portal-anim {
+    animation: portal-spin 0.8s steps(10) infinite;
+    background-image: url('/assets/world/portal-sheet.png');
+    background-repeat: no-repeat;
+    background-size: auto 100%;
+    image-rendering: pixelated;
+  }
+  @keyframes campfire-anim {
+    from { background-position-y: 0px; }
+    to   { background-position-y: -256px; }
+  }
+  .campfire-anim {
+    animation: campfire-anim 0.4s steps(4) infinite;
+    background-image: url('/assets/world/campfire-sheet.png');
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    image-rendering: pixelated;
+  }
+
   /* ── Battle system ── */
   @keyframes screen-shake {
     0%, 100% { transform: translate(0, 0); }

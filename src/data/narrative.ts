@@ -145,3 +145,13 @@ export const DEFAULT_NARRATIVE_CHOICES: Record<'forest' | 'city' | 'caves', Narr
 
 export const HEART_LOST_MSG = 'Não foi dessa vez...';
 export const SCENE_RESTART_MSG = 'Tentando novamente...';
+
+// Lines Iris speaks when the hero approaches each phase portal in the world
+export const PHASE_ARRIVAL: Record<string, string> = {
+  forest:          'A Floresta dos Ecos... As árvores aqui guardam memórias. Responda às perguntas e o Fragmento Esmeralda é seu!',
+  'battle-ruins':  'As Ruínas da Sentinela! Uma guardiã mecânica bloqueia a passagem. Derrote-a com conhecimento!',
+  city:            'A Cidade de Nimbra! A Máquina do Conhecimento do Prof. Cog está quebrada. Reconecte os fios!',
+  caves:           'As Cavernas de Cristal... Oráculo Celene aguarda. Acenda todos os cristais para conquistar o Fragmento Safira!',
+  'battle-desert': 'O Deserto das Sombras! Um caçador do vazio bloqueia seu caminho. Use tudo que aprendeu!',
+  'battle-tower':  'A Torre do Portal! Este é o momento final. O Príncipe do Éter vai testar tudo. Dê tudo de si!',
+};
