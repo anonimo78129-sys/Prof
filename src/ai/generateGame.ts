@@ -73,8 +73,8 @@ const responseSchema = {
   required: ['intro', 'hook', 'forestQuestions', 'cityPairs', 'cavesQuestions', 'towerQuestions', 'forestChoice', 'cityChoice', 'cavesChoice'],
 };
 
-function buildPrompt(subject: string, level: string): string {
-  return `Você é um designer de jogos educativos. Crie o CONTEÚDO de um RPG de aventura em português do Brasil.
+function buildPrompt(subject: string, level: string, instructions?: string): string {
+  let prompt = `Você é um designer de jogos educativos. Crie o CONTEÚDO de um RPG de aventura em português do Brasil.
 
 CONTEÚDO/DISCIPLINA: "${subject}"
 NÍVEL DOS ALUNOS: "${level || 'Ensino Fundamental'}"
@@ -93,6 +93,10 @@ Regras OBRIGATÓRIAS:
 - intro: 4 a 5 falas curtas que conectam a história de fantasia (um portal mágico, o mundo "Éter")
   ao tema "${subject}", deixando claro que dominar o conteúdo é a chave para vencer.
 - Seja factualmente correto. Não invente fatos sobre o tema.`;
+  if (instructions?.trim()) {
+    prompt += `\n\nINSTRUÇÕES ADICIONAIS DO PROFESSOR:\n${instructions.trim()}`;
+  }
+  return prompt;
 }
 
 function normQuestions(raw: unknown, count: number): MCQuestion[] {
@@ -147,14 +151,14 @@ export interface GenerationResult {
   warnings: string[];
 }
 
-export async function generateGame(subject: string, level: string): Promise<GenerationResult> {
+export async function generateGame(subject: string, level: string, instructions?: string): Promise<GenerationResult> {
   const apiKey = resolveApiKey();
   if (!apiKey) throw new Error('NO_API_KEY');
   const client = new GoogleGenAI({ apiKey });
 
   const response = await client.models.generateContent({
     model: GEMINI_MODEL,
-    contents: buildPrompt(subject, level),
+    contents: buildPrompt(subject, level, instructions),
     config: {
       responseMimeType: 'application/json',
       responseSchema,
@@ -200,4 +204,66 @@ export async function generateGame(subject: string, level: string): Promise<Gene
   };
 
   return { config, warnings };
+}
+
+export async function regenerateQuestion(
+  subject: string,
+  level: string,
+  bank: 'forest' | 'caves' | 'tower',
+): Promise<MCQuestion> {
+  const apiKey = resolveApiKey();
+  if (!apiKey) throw new Error('NO_API_KEY');
+  const client = new GoogleGenAI({ apiKey });
+
+  const bankNames = { forest: 'floresta (fácil)', caves: 'cavernas (médio)', tower: 'torre (síntese/difícil)' };
+  const prompt = `Crie UMA pergunta de múltipla escolha sobre "${subject}", nível "${level || 'Ensino Fundamental'}".
+Banco: ${bankNames[bank]}.
+Regras: 4 alternativas plausíveis, apenas 1 correta (índice 0–3), factualmente correta, português do Brasil.`;
+
+  const response = await client.models.generateContent({
+    model: GEMINI_MODEL,
+    contents: prompt,
+    config: { responseMimeType: 'application/json', responseSchema: questionSchema, temperature: 0.9 },
+  });
+
+  const text = response.text ?? '';
+  let data: unknown;
+  try { data = JSON.parse(text); } catch { throw new Error('PARSE_ERROR'); }
+  const results = normQuestions([data], 1);
+  if (!results.length) throw new Error('PARSE_ERROR');
+  return results[0];
+}
+
+export async function regeneratePair(
+  subject: string,
+  level: string,
+): Promise<MatchPair> {
+  const apiKey = resolveApiKey();
+  if (!apiKey) throw new Error('NO_API_KEY');
+  const client = new GoogleGenAI({ apiKey });
+
+  const pairSchema = {
+    type: Type.OBJECT,
+    properties: {
+      concept: { type: Type.STRING, description: 'Termo ou conceito do tema.' },
+      definition: { type: Type.STRING, description: 'Definição ou exemplo correto.' },
+    },
+    required: ['concept', 'definition'],
+  };
+
+  const prompt = `Crie UM par conceito/definição diferente sobre "${subject}", nível "${level || 'Ensino Fundamental'}".
+Conceito: termo técnico/importante. Definição: explicação clara e didática. Português do Brasil.`;
+
+  const response = await client.models.generateContent({
+    model: GEMINI_MODEL,
+    contents: prompt,
+    config: { responseMimeType: 'application/json', responseSchema: pairSchema, temperature: 0.9 },
+  });
+
+  const text = response.text ?? '';
+  let data: unknown;
+  try { data = JSON.parse(text); } catch { throw new Error('PARSE_ERROR'); }
+  const results = normPairs([data], 1);
+  if (!results.length) throw new Error('PARSE_ERROR');
+  return results[0];
 }

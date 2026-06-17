@@ -158,6 +158,16 @@
   }
   .heartbeat { animation: heartbeat 0.8s ease-in-out; }
 
+  /* ── Landing screen animations ── */
+  @keyframes water-shimmer {
+    0%, 100% { background-position-x: 0px; opacity: 0.80; }
+    50%       { background-position-x: 40px; opacity: 0.95; }
+  }
+  @keyframes bg-drift {
+    from { background-position-x: 0px; }
+    to   { background-position-x: -480px; }
+  }
+
   /* ── Hero patrol (home screen) ── */
   @keyframes hero-patrol {
     0%    { transform: translateX(-48px) scaleX(1); }

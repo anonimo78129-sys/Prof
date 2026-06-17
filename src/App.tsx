@@ -10,36 +10,6 @@ import { DEMO_GAME } from './data/demoGame';
 
 type View = 'home' | 'setup' | 'share' | 'play' | 'loading' | 'error';
 
-// ── Pixel-art cloud (CSS only) ─────────────────────────
-function PixelCloud({ x, y, w, animClass }: { x: string; y: string; w: number; animClass: string }) {
-  return (
-    <div className={`absolute pointer-events-none ${animClass}`} style={{ left: x, top: y }}>
-      {/* body */}
-      <div style={{ display: 'grid', gridTemplateRows: '8px 8px 8px', width: w }}>
-        <div style={{ background: '#fff', width: '60%', margin: '0 auto', borderRadius: '0' }} />
-        <div style={{ background: '#fff', width: '100%', opacity: 0.95 }} />
-        <div style={{ background: '#e8e8e8', width: '85%' }} />
-      </div>
-    </div>
-  );
-}
-
-// ── Pixel-art tree (CSS only) ──────────────────────────
-function PixelTree({ x, flip }: { x: string; flip?: boolean }) {
-  return (
-    <div
-      className="absolute bottom-0 pointer-events-none tree-sway"
-      style={{ left: x, transform: flip ? 'scaleX(-1)' : undefined }}
-    >
-      {/* canopy */}
-      <div style={{ width: 32, height: 32, background: '#2a7c1a', border: '2px solid #1a5c0a', marginLeft: 4 }} />
-      <div style={{ width: 40, height: 28, background: '#1e6a12', border: '2px solid #145008', marginTop: -8 }} />
-      <div style={{ width: 48, height: 20, background: '#166010', border: '2px solid #0e4408', marginTop: -8, marginLeft: -4 }} />
-      {/* trunk */}
-      <div style={{ width: 12, height: 24, background: '#7a4f2d', border: '2px solid #4a2d10', margin: '0 auto' }} />
-    </div>
-  );
-}
 
 export default function App() {
   const [view, setView] = useState<View>('home');
@@ -138,115 +108,149 @@ export default function App() {
 
   // ── HOME SCREEN ──────────────────────────────────────
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden"
-      style={{ background: 'linear-gradient(to bottom, #5ba3d8 0%, #8ec8f5 42%, #c5e8fd 62%, #a8d46b 78%, #4a8a1a 100%)' }}>
+    <div className="fixed inset-0 overflow-hidden scene-fade-in" style={{ touchAction: 'none' }}>
 
-      {/* ── CLOUDS ── */}
-      <PixelCloud x="8%"  y="6%"  w={64} animClass="cloud-1" />
-      <PixelCloud x="52%" y="3%"  w={80} animClass="cloud-2" />
-      <PixelCloud x="30%" y="12%" w={48} animClass="cloud-3" />
-      <PixelCloud x="72%" y="9%"  w={56} animClass="cloud-1" />
+      {/* Sky */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #5ab8d0 0%, #7ed4e8 28%, #a8e8d0 52%, #5aaa2a 70%, #3a8010 100%)' }} />
 
-      {/* ── TITLE BANNER (in sky) ── */}
-      <div className="relative z-10 flex flex-col items-center pt-10 px-4">
-        <div className="panel-parchment px-6 py-3 text-center mb-2" style={{ background: 'linear-gradient(160deg,#fffbe8,#f0d890)' }}>
-          <h1 className="font-pixel" style={{ color: '#3a1a00', fontSize: 18, letterSpacing: 4, textShadow: '2px 2px 0 rgba(0,0,0,0.2)' }}>
-            ÉTER
-          </h1>
-        </div>
-        <p className="font-vt" style={{ color: '#1a4a0a', fontSize: 22, textShadow: '0 1px 0 rgba(255,255,255,0.5)' }}>
-          A Jornada do Conhecimento
-        </p>
-        <p className="font-vt" style={{ color: '#2c6414', fontSize: 17 }}>
-          6 fases · puzzles · batalhas
-        </p>
+      {/* Background.png — drifting sky */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, top: 0, bottom: '28%',
+        backgroundImage: "url('/assets/legacy/Background.png')",
+        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 65%', backgroundPositionY: '15%',
+        imageRendering: 'pixelated', opacity: 0.6,
+        animation: 'bg-drift 20s linear infinite',
+      }} />
+
+      {/* bg-castle silhouette */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: '25%', height: '48%',
+        backgroundImage: "url('/assets/world/bg-castle.png')",
+        backgroundRepeat: 'no-repeat', backgroundPosition: 'center bottom',
+        backgroundSize: 'auto 100%', imageRendering: 'pixelated', opacity: 0.58,
+      }} />
+
+      {/* bg-layer3 — distant pines */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: '25%', height: '32%',
+        backgroundImage: "url('/assets/world/bg-layer3.png')",
+        backgroundRepeat: 'repeat-x', backgroundPosition: 'bottom',
+        backgroundSize: 'auto auto', imageRendering: 'pixelated', opacity: 0.48,
+      }} />
+
+      {/* bg-layer2 — midground pines */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: '25%', height: '22%',
+        backgroundImage: "url('/assets/world/bg-layer2.png')",
+        backgroundRepeat: 'repeat-x', backgroundPosition: 'bottom',
+        backgroundSize: 'auto auto', imageRendering: 'pixelated', opacity: 0.38,
+      }} />
+
+      {/* Ground */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '28%', background: 'linear-gradient(to bottom, #5aaa2a 0%, #5aaa2a 12%, #4a3a18 12%, #3a2a0e 100%)' }} />
+
+      {/* Grass strip */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: '26%', height: 18,
+        backgroundImage: "url('/assets/world/grass.png')",
+        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+        imageRendering: 'pixelated', opacity: 0.9, zIndex: 2,
+      }} />
+
+      {/* Left large tree */}
+      <img src="/assets/legacy/trees/Green-Tree.png" alt="" style={{
+        position: 'absolute', left: -24, bottom: '24%',
+        height: 280, width: 'auto', imageRendering: 'pixelated', zIndex: 3, pointerEvents: 'none',
+      }} />
+
+      {/* Right large tree (flipped) */}
+      <img src="/assets/legacy/trees/Green-Tree.png" alt="" style={{
+        position: 'absolute', right: -24, bottom: '24%',
+        height: 260, width: 'auto', imageRendering: 'pixelated',
+        transform: 'scaleX(-1)', zIndex: 3, pointerEvents: 'none',
+      }} />
+
+      {/* Mid-left tree */}
+      <img src="/assets/pack01/GREEN_09.png" alt="" style={{
+        position: 'absolute', left: '18%', bottom: '26%',
+        height: 195, width: 'auto', imageRendering: 'pixelated', zIndex: 2, pointerEvents: 'none',
+      }} />
+
+      {/* Mid-right tree */}
+      <img src="/assets/pack01/GREEN_05.png" alt="" style={{
+        position: 'absolute', right: '15%', bottom: '26%',
+        height: 185, width: 'auto', imageRendering: 'pixelated', zIndex: 2, pointerEvents: 'none',
+      }} />
+
+      {/* Lake */}
+      <div style={{
+        position: 'absolute', left: '22%', right: '22%', bottom: '27%', height: 42, zIndex: 2,
+        background: 'repeating-linear-gradient(90deg, rgba(34,102,164,0.85) 0px, rgba(68,153,204,0.92) 40px, rgba(34,102,164,0.85) 80px)',
+        backgroundSize: '80px 100%', borderRadius: 3,
+        animation: 'water-shimmer 2.8s ease-in-out infinite',
+      }} />
+
+      {/* Hero patrol */}
+      <div className="hero-patrol" style={{ position: 'absolute', bottom: '27%', left: '50%', marginLeft: -80, zIndex: 5, pointerEvents: 'none' }}>
+        <AnimatedHero scale={2.5} />
       </div>
 
-      {/* ── GAME SCENE: trees + hero ── */}
-      <div className="relative flex-1 flex items-end justify-center overflow-hidden">
-        {/* Trees */}
-        <PixelTree x="4%" />
-        <PixelTree x="74%" flip />
-        <PixelTree x="14%" />
-        <PixelTree x="62%" flip />
-
-        {/* Hero patrol */}
-        <div className="absolute hero-patrol" style={{ bottom: 48 }}>
-          <AnimatedHero scale={2.5} />
+      {/* Title (top, overlaid on scene) */}
+      <div style={{ position: 'absolute', top: 18, left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10, pointerEvents: 'none', gap: 4 }}>
+        <div style={{ background: 'rgba(0,12,6,0.72)', border: '2px solid #4aaa2a', padding: '5px 22px' }}>
+          <h1 className="font-pixel" style={{ color: '#88ff44', fontSize: 20, textShadow: '0 0 10px #4aaa2a, 2px 2px 0 #000', letterSpacing: 4, margin: 0 }}>ÉTER</h1>
         </div>
+        <p className="font-vt" style={{ color: '#ccffaa', fontSize: 18, textShadow: '1px 1px 0 #000', margin: 0 }}>A Jornada do Conhecimento</p>
+      </div>
 
-        {/* Iris orb floating above hero */}
-        <div
-          className="absolute iris-glow"
+      {/* Menu panel (dark, fixed bottom) */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20,
+        background: 'rgba(0,15,8,0.90)', borderTop: '2px solid #4aaa2a',
+        padding: '14px 18px 22px',
+      }}>
+        <button
+          onClick={() => { setGameConfig(DEMO_GAME); setView('play'); }}
+          className="font-pixel w-full"
           style={{
-            bottom: 118,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 18, height: 18,
-            background: 'radial-gradient(circle, #80ffdd, #00d4aa)',
-            borderRadius: '50%',
+            display: 'block', marginBottom: 10,
+            background: 'linear-gradient(to bottom, #2a8a10, #1a6a08)',
+            border: '3px solid #1a5a08', boxShadow: '0 4px 0 #0a3a02, 4px 4px 0 #000',
+            color: '#88ff44', fontSize: 8, padding: '13px 8px', cursor: 'pointer', letterSpacing: 1,
           }}
-        />
+        >
+          ▶ JOGAR DEMO — SISTEMA SOLAR
+        </button>
 
-        {/* Ground strip (darker grass) */}
-        <div className="absolute bottom-0 left-0 right-0" style={{ height: 48, background: 'linear-gradient(to bottom, #3a7a12 0%, #2a5a0a 100%)', borderTop: '4px solid #1a4006' }}>
-          {/* grass tufts pattern */}
-          {Array.from({ length: 14 }, (_, i) => (
-            <div key={i} className="absolute bottom-0" style={{ left: `${i * 7.5}%`, width: 8, height: 14, background: '#4a9a1a', borderTop: '2px solid #2a6008' }} />
-          ))}
-        </div>
-      </div>
+        <button
+          onClick={() => { window.location.hash = '#setup'; }}
+          className="font-pixel w-full"
+          style={{
+            display: 'block', marginBottom: 10,
+            background: 'linear-gradient(to bottom, #f0c455, #c88f20)',
+            border: '3px solid #7a4f1a', boxShadow: '0 4px 0 #4a2d08, 4px 4px 0 #000',
+            color: '#2a1400', fontSize: 8, padding: '11px 8px', cursor: 'pointer',
+          }}
+        >
+          🎓 SOU PROFESSOR
+        </button>
 
-      {/* ── MENU PANEL (parchment) ── */}
-      <div className="relative z-20 flex-shrink-0">
-        <div className="panel-parchment mx-4 mb-4 px-5 py-5 flex flex-col gap-3" style={{ boxShadow: '5px 5px 0 #3a2010, 0 -3px 0 #7a4f2d inset' }}>
-
-          {/* Demo button */}
-          <button
-            onClick={() => { setGameConfig(DEMO_GAME); setView('play'); }}
-            className="btn-rpg py-3 w-full font-pixel"
-            style={{ fontSize: 7, background: 'linear-gradient(to bottom, #4aaa2a, #2a8a10)', boxShadow: '0 4px 0 #1a5a08', borderColor: '#1a5a08' }}
-          >
-            ▶ JOGAR DEMO — SISTEMA SOLAR
-          </button>
-
-          {/* Professor button */}
-          <button
-            onClick={() => { window.location.hash = '#setup'; }}
-            className="btn-rpg py-4 w-full font-pixel"
-            style={{ fontSize: 8 }}
-          >
-            🎓 SOU PROFESSOR
-          </button>
-
-          <div style={{ height: 2, background: '#c4a068', margin: '2px 0' }} />
-
-          {/* Student code input */}
-          <p className="font-pixel text-center" style={{ color: '#7a4f2d', fontSize: 6 }}>SOU ALUNO — DIGITAR CÓDIGO</p>
+        <div style={{ borderTop: '1px solid #2a6a1a', paddingTop: 10 }}>
+          <p className="font-pixel" style={{ color: '#4aaa2a', fontSize: 6, marginBottom: 7 }}>SOU ALUNO — DIGITAR CÓDIGO</p>
           <div className="flex gap-2">
             <input
               ref={inputRef}
-              className="input-rpg flex-1 px-3 py-3"
+              className="input-rpg flex-1 px-3 py-2"
               placeholder="Código do jogo..."
               value={codeVal}
               onChange={e => setCodeVal(e.target.value.toUpperCase())}
               onKeyDown={e => { if (e.key === 'Enter') handleJoin(); }}
             />
-            <button
-              className="btn-rpg px-4 font-pixel"
-              style={{ fontSize: 7 }}
-              onClick={handleJoin}
-            >
-              ▶ IR
-            </button>
+            <button className="btn-rpg px-4 font-pixel" style={{ fontSize: 7 }} onClick={handleJoin}>▶ IR</button>
           </div>
         </div>
-
-        {/* Credits */}
-        <p className="font-vt text-center pb-2" style={{ color: '#1a5a04', fontSize: 13 }}>
-          Sprites: CC0 · Ansimuz · Kenney
-        </p>
       </div>
+
     </div>
   );
 }

@@ -35,6 +35,7 @@ export default function SetupWizard({ onGameCreated }: Props) {
   const [mode, setMode] = useState<Mode>('input');
   const [subject, setSubject] = useState('');
   const [level, setLevel] = useState(LEVELS[1]);
+  const [instructions, setInstructions] = useState('');
   const [apiKey, setApiKeyState] = useState(resolveApiKey());
   const [genMsg, setGenMsg] = useState(GEN_MESSAGES[0]);
 
@@ -52,6 +53,8 @@ export default function SetupWizard({ onGameCreated }: Props) {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [regenTarget, setRegenTarget] = useState<{ bank: 'forest' | 'caves' | 'tower'; idx: number } | null>(null);
+  const [regenPairIdx, setRegenPairIdx] = useState<number | null>(null);
 
   const keyAvailable = hasApiKey() || apiKey.trim().length > 10;
 
@@ -67,7 +70,7 @@ export default function SetupWizard({ onGameCreated }: Props) {
 
     try {
       const { generateGame } = await import('../../ai/generateGame');
-      const { config, warnings } = await generateGame(subject, level);
+      const { config, warnings } = await generateGame(subject, level, instructions);
       clearInterval(ticker);
       setStory(config.story);
       setNarratives({
@@ -145,51 +148,97 @@ export default function SetupWizard({ onGameCreated }: Props) {
     setCityPairs(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
   };
 
-  const QEditor = ({ questions, setter, label }: {
+  const handleRegenQ = async (bank: 'forest' | 'caves' | 'tower', idx: number, setter: React.Dispatch<React.SetStateAction<MCQuestion[]>>) => {
+    if (regenTarget !== null || !keyAvailable) return;
+    setRegenTarget({ bank, idx });
+    try {
+      const { regenerateQuestion } = await import('../../ai/generateGame');
+      const newQ = await regenerateQuestion(subject, level, bank);
+      setter(prev => prev.map((q, i) => i === idx ? newQ : q));
+    } catch { /* silently keep old question */ } finally {
+      setRegenTarget(null);
+    }
+  };
+
+  const handleRegenPair = async (idx: number) => {
+    if (regenPairIdx !== null || !keyAvailable) return;
+    setRegenPairIdx(idx);
+    try {
+      const { regeneratePair } = await import('../../ai/generateGame');
+      const newPair = await regeneratePair(subject, level);
+      setCityPairs(prev => prev.map((p, i) => i === idx ? newPair : p));
+    } catch { /* silently keep old pair */ } finally {
+      setRegenPairIdx(null);
+    }
+  };
+
+  const QEditor = ({ questions, setter, label, bank }: {
     questions: MCQuestion[];
     setter: React.Dispatch<React.SetStateAction<MCQuestion[]>>;
     label: string;
+    bank: 'forest' | 'caves' | 'tower';
   }) => (
     <div className="flex flex-col gap-3">
       <p className="font-pixel" style={{ color: '#7a4f2d', fontSize: 7 }}>{label}</p>
-      {questions.map((q, idx) => (
-        <div key={idx} className="panel-parchment p-3" style={{ background: '#f0e4c8' }}>
-          <p className="font-vt mb-2" style={{ color: '#7a4f1a', fontSize: 16 }}>Pergunta {idx + 1}</p>
-          <textarea
-            value={q.text}
-            onChange={e => updateQ(setter, idx, 'text', e.target.value)}
-            placeholder="Digite a pergunta..."
-            rows={2}
-            className="input-rpg w-full px-3 py-2"
-            style={{ resize: 'none', fontSize: 16, fontFamily: 'VT323, monospace' }}
-          />
-          <div className="flex flex-col gap-1 mt-2">
-            {q.options.map((opt, oi) => (
-              <div key={oi} className="flex items-center gap-2">
+      {questions.map((q, idx) => {
+        const isRegening = regenTarget?.bank === bank && regenTarget.idx === idx;
+        return (
+          <div key={idx} className="panel-parchment p-3" style={{ background: '#f0e4c8' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <p className="font-vt" style={{ color: '#7a4f1a', fontSize: 16 }}>Pergunta {idx + 1}</p>
+              {keyAvailable && (
                 <button
-                  onClick={() => updateQ(setter, idx, 'correct', oi)}
+                  onClick={() => handleRegenQ(bank, idx, setter)}
+                  disabled={regenTarget !== null}
                   style={{
-                    width: 22, height: 22, flexShrink: 0, cursor: 'pointer',
-                    background: q.correct === oi ? '#2a8c2a' : '#e8d4a8',
-                    border: `2px solid ${q.correct === oi ? '#1a5c1a' : '#7a5828'}`,
-                    boxShadow: q.correct === oi ? 'inset 0 2px 0 rgba(0,0,0,0.2)' : 'none',
+                    background: isRegening ? '#555' : '#1a4a8a',
+                    color: '#fff', border: '2px solid #0a2a5a',
+                    boxShadow: '2px 2px 0 #000',
+                    fontFamily: 'VT323, monospace', fontSize: 14,
+                    padding: '2px 10px', cursor: regenTarget !== null ? 'wait' : 'pointer',
+                    opacity: regenTarget !== null && !isRegening ? 0.45 : 1,
                   }}
-                  title="Marcar como correta"
-                />
-                <span className="font-pixel flex-shrink-0" style={{ color: '#7a4f2d', fontSize: 8, width: 12 }}>{String.fromCharCode(65 + oi)}</span>
-                <input
-                  value={opt}
-                  onChange={e => updateQ(setter, idx, `opt${oi}` as 'opt0', e.target.value)}
-                  placeholder={`Opção ${String.fromCharCode(65 + oi)}`}
-                  className="input-rpg flex-1 px-2 py-1"
-                  style={{ fontSize: 15 }}
-                />
-              </div>
-            ))}
+                >
+                  {isRegening ? '⏳ Gerando...' : '🤖 Refazer'}
+                </button>
+              )}
+            </div>
+            <textarea
+              value={q.text}
+              onChange={e => updateQ(setter, idx, 'text', e.target.value)}
+              placeholder="Digite a pergunta..."
+              rows={2}
+              className="input-rpg w-full px-3 py-2"
+              style={{ resize: 'none', fontSize: 16, fontFamily: 'VT323, monospace' }}
+            />
+            <div className="flex flex-col gap-1 mt-2">
+              {q.options.map((opt, oi) => (
+                <div key={oi} className="flex items-center gap-2">
+                  <button
+                    onClick={() => updateQ(setter, idx, 'correct', oi)}
+                    style={{
+                      width: 22, height: 22, flexShrink: 0, cursor: 'pointer',
+                      background: q.correct === oi ? '#2a8c2a' : '#e8d4a8',
+                      border: `2px solid ${q.correct === oi ? '#1a5c1a' : '#7a5828'}`,
+                      boxShadow: q.correct === oi ? 'inset 0 2px 0 rgba(0,0,0,0.2)' : 'none',
+                    }}
+                    title="Marcar como correta"
+                  />
+                  <span className="font-pixel flex-shrink-0" style={{ color: '#7a4f2d', fontSize: 8, width: 12 }}>{String.fromCharCode(65 + oi)}</span>
+                  <input
+                    value={opt}
+                    onChange={e => updateQ(setter, idx, `opt${oi}` as 'opt0', e.target.value)}
+                    placeholder={`Opção ${String.fromCharCode(65 + oi)}`}
+                    className="input-rpg flex-1 px-2 py-1"
+                    style={{ fontSize: 15 }}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="font-vt mt-1" style={{ color: '#2a7c1a', fontSize: 15 }}>✓ Correta: {String.fromCharCode(65 + q.correct)}</p>
           </div>
-          <p className="font-vt mt-1" style={{ color: '#2a7c1a', fontSize: 15 }}>✓ Correta: {String.fromCharCode(65 + q.correct)}</p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
@@ -263,6 +312,20 @@ export default function SetupWizard({ onGameCreated }: Props) {
               </div>
             )}
 
+            <div>
+              <label className="font-pixel block mb-2" style={{ color: '#7a4f2d', fontSize: 6 }}>
+                💬 INSTRUÇÕES PARA A IA (OPCIONAL)
+              </label>
+              <textarea
+                className="input-rpg w-full px-3 py-2"
+                value={instructions}
+                onChange={e => setInstructions(e.target.value)}
+                placeholder="Ex: Foco em ecossistemas brasileiros, linguagem para crianças de 8 anos..."
+                rows={2}
+                style={{ resize: 'none', fontSize: 15, fontFamily: 'VT323, monospace' }}
+              />
+            </div>
+
             {error && (
               <div style={{ background: '#ffe8e8', border: '2px solid #cc2222', padding: '8px 12px' }}>
                 <p className="font-vt" style={{ color: '#cc2222', fontSize: 16 }}>{error}</p>
@@ -333,21 +396,42 @@ export default function SetupWizard({ onGameCreated }: Props) {
         )}
 
         <div className="flex flex-col gap-7">
-          <QEditor questions={forestQs} setter={setForestQs} label="🌲 FLORESTA — 3 PERGUNTAS" />
+          <QEditor questions={forestQs} setter={setForestQs} label="🌲 FLORESTA — 3 PERGUNTAS" bank="forest" />
 
           <div className="flex flex-col gap-3">
             <p className="font-pixel" style={{ color: '#7a4f2d', fontSize: 7 }}>🏙️ CIDADE — 4 PARES (CONCEITO ↔ DEFINIÇÃO)</p>
-            {cityPairs.map((pair, idx) => (
-              <div key={idx} className="panel-parchment p-3" style={{ background: '#f0e4c8' }}>
-                <p className="font-vt mb-2" style={{ color: '#7a4f1a', fontSize: 16 }}>Par {idx + 1}</p>
-                <input value={pair.concept} onChange={e => updatePair(idx, 'concept', e.target.value)} placeholder="Conceito" className="input-rpg w-full px-3 py-2 mb-2" />
-                <input value={pair.definition} onChange={e => updatePair(idx, 'definition', e.target.value)} placeholder="Definição" className="input-rpg w-full px-3 py-2" />
-              </div>
-            ))}
+            {cityPairs.map((pair, idx) => {
+              const isPairRegen = regenPairIdx === idx;
+              return (
+                <div key={idx} className="panel-parchment p-3" style={{ background: '#f0e4c8' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <p className="font-vt" style={{ color: '#7a4f1a', fontSize: 16 }}>Par {idx + 1}</p>
+                    {keyAvailable && (
+                      <button
+                        onClick={() => handleRegenPair(idx)}
+                        disabled={regenPairIdx !== null}
+                        style={{
+                          background: isPairRegen ? '#555' : '#1a4a8a',
+                          color: '#fff', border: '2px solid #0a2a5a',
+                          boxShadow: '2px 2px 0 #000',
+                          fontFamily: 'VT323, monospace', fontSize: 14,
+                          padding: '2px 10px', cursor: regenPairIdx !== null ? 'wait' : 'pointer',
+                          opacity: regenPairIdx !== null && !isPairRegen ? 0.45 : 1,
+                        }}
+                      >
+                        {isPairRegen ? '⏳ Gerando...' : '🤖 Refazer par'}
+                      </button>
+                    )}
+                  </div>
+                  <input value={pair.concept} onChange={e => updatePair(idx, 'concept', e.target.value)} placeholder="Conceito" className="input-rpg w-full px-3 py-2 mb-2" />
+                  <input value={pair.definition} onChange={e => updatePair(idx, 'definition', e.target.value)} placeholder="Definição" className="input-rpg w-full px-3 py-2" />
+                </div>
+              );
+            })}
           </div>
 
-          <QEditor questions={cavesQs} setter={setCavesQs} label="💎 CAVERNAS — 5 PERGUNTAS" />
-          <QEditor questions={towerQs} setter={setTowerQs} label="👑 BATALHAS — 3 PERGUNTAS DE SÍNTESE" />
+          <QEditor questions={cavesQs} setter={setCavesQs} label="💎 CAVERNAS — 5 PERGUNTAS" bank="caves" />
+          <QEditor questions={towerQs} setter={setTowerQs} label="👑 BATALHAS — 3 PERGUNTAS DE SÍNTESE" bank="tower" />
         </div>
 
         {error && (
