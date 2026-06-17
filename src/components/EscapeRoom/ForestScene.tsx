@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { MCQuestion, NarrativeChoice, KarmaChoice } from '../../types/game';
+import AnimatedHero from './mechanics/AnimatedHero';
 import QuestionCard from './mechanics/QuestionCard';
 import NarrativeChoiceModal from './mechanics/NarrativeChoice';
 import DialogBox from './ui/DialogBox';
+import DPad from './ui/DPad';
+import { useHeroMovement } from '../../hooks/useHeroMovement';
 
 interface Props {
   bgImg?: string;
@@ -14,163 +17,195 @@ interface Props {
   onComplete: (karma: KarmaChoice) => void;
 }
 
-const FIREFLY_POS = [
-  { left: '22%', top: '30%' },
-  { left: '68%', top: '24%' },
-  { left: '48%', top: '45%' },
+const WORLD_W  = 1400;
+const HERO_W   = 128;
+const GROUND_H = 120;
+
+// Firefly world X positions (hero center triggers interaction within 60px)
+const FIREFLY_WX = [200, 380, 560, 740, 920, 1100];
+
+const TREES = [
+  { wx: 60,   img: '/assets/world/tree-oak1.png',   h: 88 },
+  { wx: 170,  img: '/assets/world/tree-pine.png',   h: 96 },
+  { wx: 295,  img: '/assets/world/tree-birch1.png', h: 74 },
+  { wx: 455,  img: '/assets/world/tree-oak2.png',   h: 82 },
+  { wx: 625,  img: '/assets/world/tree-pine.png',   h: 96, flip: true },
+  { wx: 810,  img: '/assets/world/tree-birch2.png', h: 74 },
+  { wx: 985,  img: '/assets/world/tree-oak1.png',   h: 88 },
+  { wx: 1150, img: '/assets/world/tree-pine.png',   h: 96 },
 ];
 
-export default function ForestScene({ bgImg, treeImg, questions, narrative, onCorrect, onWrong, onComplete }: Props) {
-  const [passed, setPassed] = useState<boolean[]>(Array(questions.length).fill(false));
+const CAMPFIRES_WX = [310, 680, 1020];
+
+export default function ForestScene({ treeImg, questions, narrative, onCorrect, onWrong, onComplete }: Props) {
+  const count = Math.min(questions.length, FIREFLY_WX.length);
+  const threshold = Math.max(1, Math.ceil(count * 0.67));
+
+  const [passed, setPassed] = useState<boolean[]>(Array(count).fill(false));
+  const [triedOnce, setTriedOnce] = useState<boolean[]>(Array(count).fill(false));
   const [activeQ, setActiveQ] = useState<number | null>(null);
-  const [triedOnce, setTriedOnce] = useState<boolean[]>(Array(questions.length).fill(false));
   const [showNarrative, setShowNarrative] = useState(false);
-  const [done, setDone] = useState(false);
+  const [puzzleDone, setPuzzleDone] = useState(false);
+  const [npcDismissed, setNpcDismissed] = useState(false);
 
   const passedCount = passed.filter(Boolean).length;
-  const threshold = Math.ceil(questions.length * 0.67); // 2/3
-  const puzzleComplete = passedCount >= threshold;
+  const isDone = passedCount >= threshold;
 
-  const handleTap = (idx: number) => {
-    if (passed[idx] || activeQ !== null || puzzleComplete) return;
-    setActiveQ(idx);
-  };
+  const { heroWorldX, cameraX, isWalking, facingLeft, nearNodeIdx, startWalking, stopWalking } =
+    useHeroMovement({
+      worldWidth: WORLD_W,
+      heroWidth: HERO_W,
+      nodeWorldX: FIREFLY_WX.slice(0, count),
+      nodeTriggerDist: 60,
+      initialX: 20,
+    });
 
-  const handleAnswer = (idx: number, answerIdx: number) => {
-    const correct = answerIdx === questions[idx].correct;
+  const heroScreen = heroWorldX - cameraX;
+
+  const handleInteract = useCallback(() => {
+    if (activeQ !== null || showNarrative || puzzleDone) return;
+    if (nearNodeIdx !== null && !passed[nearNodeIdx]) {
+      setActiveQ(nearNodeIdx);
+    }
+  }, [activeQ, showNarrative, puzzleDone, nearNodeIdx, passed]);
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleInteract(); } };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [handleInteract]);
+
+  const handleAnswer = (answerIdx: number) => {
+    if (activeQ === null) return;
+    const correct = answerIdx === questions[activeQ].correct;
     setActiveQ(null);
-    if (correct) {
-      const isFirstTry = !triedOnce[idx];
-      const newPassed = [...passed];
-      newPassed[idx] = true;
-      setPassed(newPassed);
-      if (isFirstTry) onCorrect();
-      else onCorrect(); // still award correct but score tracks firstTry separately
 
-      // Check if puzzle done
-      const newCount = newPassed.filter(Boolean).length;
-      if (newCount >= threshold && !showNarrative && !done) {
-        setTimeout(() => setShowNarrative(true), 500);
+    if (correct) {
+      const firstTry = !triedOnce[activeQ];
+      const next = [...passed]; next[activeQ] = true; setPassed(next);
+      if (firstTry) onCorrect(); else onCorrect();
+      if (next.filter(Boolean).length >= threshold && !puzzleDone) {
+        setPuzzleDone(true);
+        setTimeout(() => setShowNarrative(true), 600);
       }
     } else {
-      const newTried = [...triedOnce];
-      newTried[idx] = true;
-      setTriedOnce(newTried);
+      const t = [...triedOnce]; t[activeQ] = true; setTriedOnce(t);
       onWrong();
     }
   };
 
   const handleNarrative = (karma: KarmaChoice) => {
     setShowNarrative(false);
-    setDone(true);
-    setTimeout(() => onComplete(karma), 600);
+    setTimeout(() => onComplete(karma), 500);
   };
 
   return (
-    <div
-      className="fixed inset-0 scene-fade-in"
-      style={{
-        background: bgImg
-          ? `url(${bgImg}) center/cover no-repeat`
-          : [
-              "url('/assets/bg/bg-forest-mid.png') bottom/auto 72% repeat-x",
-              "url('/assets/bg/bg-forest-layer.png') top/cover no-repeat",
-            ].join(', '),
-      }}
-    >
-      {/* light tint only — keeps background visible */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,20,10,0.18)' }} />
+    <div className="fixed inset-0 overflow-hidden scene-fade-in" style={{ touchAction: 'none' }}>
+      {/* Sky */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #1a3d1a 0%, #2d6b2d 50%, #4a9940 75%, #5aaa2a 100%)' }} />
 
-      {/* Fireflies */}
-      {questions.map((_, idx) => {
-        const isPassed = passed[idx];
-        const isAvail = !isPassed && activeQ === null && !puzzleComplete;
+      {/* Forest BG (Legacy asset as parallax) */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: GROUND_H,
+        height: 'calc(100% - 48px - 120px)',
+        backgroundImage: "url('/assets/legacy/Background.png')",
+        backgroundRepeat: 'repeat-x',
+        backgroundSize: 'auto 100%',
+        backgroundPositionX: -(cameraX * 0.3),
+        imageRendering: 'pixelated',
+        opacity: 0.9,
+      }} />
+
+      {/* Ground */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND_H, background: 'linear-gradient(to bottom, #5aaa2a 0%, #5aaa2a 14%, #4a3a18 14%, #3a2a0e 100%)' }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: GROUND_H - 12, height: 24, backgroundImage: "url('/assets/world/grass.png')", backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%', backgroundPositionX: -(cameraX), imageRendering: 'pixelated', opacity: 0.85 }} />
+
+      {/* Trees */}
+      {TREES.map((t, i) => {
+        const sx = t.wx - cameraX;
+        if (sx < -160 || sx > 540) return null;
         return (
-          <button
-            key={idx}
-            onClick={() => handleTap(idx)}
-            className={`absolute ${isAvail ? 'firefly-pulse' : ''}`}
-            style={{
-              left: FIREFLY_POS[idx]?.left ?? `${25 + idx * 25}%`,
-              top: FIREFLY_POS[idx]?.top ?? '35%',
-              transform: 'translate(-50%,-50%)',
-              background: 'transparent',
-              border: 'none',
-              padding: 12,
-              cursor: isAvail ? 'pointer' : 'default',
-            }}
-          >
-            <div
-              style={{
-                width: isPassed ? 22 : 14,
-                height: isPassed ? 22 : 14,
-                background: isPassed ? '#ffd700' : '#00d4aa',
-                boxShadow: isPassed ? '0 0 14px #ffd700, 0 0 28px #ffd700' : '0 0 8px #00d4aa, 0 0 16px rgba(0,212,170,0.4)',
-                transition: 'all 0.4s',
-              }}
-            />
-          </button>
+          <img key={i} src={t.img} style={{ position: 'absolute', left: sx, bottom: GROUND_H, height: t.h, imageRendering: 'pixelated', transform: t.flip ? 'scaleX(-1)' : undefined, zIndex: 2 }} />
         );
       })}
 
-      {/* Fragment glow (when puzzle complete but narrative not yet shown) */}
-      {puzzleComplete && !showNarrative && !done && (
-        <div
-          className="absolute inset-0 pointer-events-none flex items-center justify-center"
-          style={{ top: '30%' }}
-        >
-          <div className="fragment-float" style={{ filter: 'drop-shadow(0 0 16px #00ff88)' }}>
-            <svg viewBox="0 0 10 10" style={{ imageRendering: 'pixelated', width: 48, height: 48 }}>
-              <rect x="3" y="0" width="4" height="1" fill="#00ff88"/>
-              <rect x="2" y="1" width="6" height="1" fill="#00ff88"/>
-              <rect x="1" y="2" width="8" height="1" fill="#00ff88"/>
-              <rect x="0" y="3" width="10" height="2" fill="#00ff88"/>
-              <rect x="1" y="5" width="8" height="1" fill="#00cc66"/>
-              <rect x="2" y="6" width="6" height="1" fill="#00cc66"/>
-              <rect x="3" y="7" width="4" height="1" fill="#00aa44"/>
-              <rect x="4" y="8" width="2" height="1" fill="#008833"/>
-            </svg>
+      {/* Campfires */}
+      {CAMPFIRES_WX.map((wx, i) => {
+        const sx = wx - cameraX;
+        if (sx < -80 || sx > 540) return null;
+        return <div key={i} className="campfire-anim" style={{ position: 'absolute', left: sx, bottom: GROUND_H, zIndex: 3 }} />;
+      })}
+
+      {/* Fireflies */}
+      {Array.from({ length: count }, (_, idx) => {
+        const sx = FIREFLY_WX[idx] - cameraX;
+        if (sx < -60 || sx > 520) return null;
+        const isPassed = passed[idx];
+        const isNear = nearNodeIdx === idx && !isPassed && !puzzleDone;
+        return (
+          <div key={idx} style={{ position: 'absolute', left: sx - 16, bottom: GROUND_H + 40 + Math.sin(idx * 1.3) * 20, zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <div style={{
+              width: isPassed ? 22 : isNear ? 18 : 12,
+              height: isPassed ? 22 : isNear ? 18 : 12,
+              background: isPassed ? '#ffd700' : isNear ? '#00ffcc' : '#00d4aa',
+              boxShadow: isPassed
+                ? '0 0 14px #ffd700, 0 0 28px rgba(255,215,0,0.5)'
+                : isNear
+                ? '0 0 10px #00ffcc, 0 0 22px rgba(0,255,204,0.5)'
+                : '0 0 6px #00d4aa',
+              borderRadius: 2,
+              transition: 'all 0.25s',
+              animation: isNear ? 'firefly-pulse 1s ease-in-out infinite' : undefined,
+            }} />
+            {isNear && (
+              <span className="font-pixel" style={{ color: '#00ffcc', fontSize: 5, textShadow: '1px 1px 0 #000', whiteSpace: 'nowrap', animation: 'firefly-pulse 0.8s ease-in-out infinite' }}>▼ INTERAGIR</span>
+            )}
           </div>
+        );
+      })}
+
+      {/* NPC dialog (entry) */}
+      {!npcDismissed && !activeQ && !showNarrative && passedCount === 0 && (
+        <div className="fixed left-0 right-0 z-20" style={{ bottom: 80 }}>
+          <button onClick={() => setNpcDismissed(true)} style={{ position: 'absolute', right: 16, top: 8, background: 'none', border: 'none', color: '#f7ead5', fontSize: 12, cursor: 'pointer' }}>✕</button>
+          <DialogBox portrait={treeImg} name="ÁRVORE ANCIÃ" text="Bem-vindo à Floresta dos Ecos. Procure os vaga-lumes que guardam os segredos! Chegue perto e pressione ▶ para responder." accentColor="#00a888" />
         </div>
       )}
 
-      {/* Guardian dialog */}
-      {!puzzleComplete && activeQ === null && (
-        <div className="absolute bottom-0 left-0 right-0">
-          <DialogBox
-            portrait={treeImg}
-            name="ÁRVORE ANCIÃ"
-            text={
-              passedCount === 0
-                ? 'Encontre os segredos desta floresta. Toque nos vaga-lumes!'
-                : passedCount === 1
-                ? 'Bem feito. Falta mais um segredo para a floresta confiar em você.'
-                : 'Você encontrou os segredos... O Fragmento desperta!'
-            }
-            accentColor="#00a888"
-          />
+      {/* Progress hint */}
+      {npcDismissed && !activeQ && !showNarrative && !puzzleDone && (
+        <div className="fixed left-0 right-0 z-20" style={{ bottom: 80 }}>
+          {nearNodeIdx !== null && !passed[nearNodeIdx] ? (
+            <DialogBox portrait={treeImg} name="ÁRVORE ANCIÃ" text="O vaga-lume pulsa! Pressione ▶ para despertar o segredo." accentColor="#00a888" />
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="panel-parchment px-3 py-1">
+                <p className="font-pixel text-center" style={{ color: '#f7ead5', fontSize: 6 }}>
+                  {passedCount}/{threshold} segredos encontrados
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Question */}
+      {/* Hero */}
+      <div style={{ position: 'absolute', left: heroScreen, bottom: GROUND_H, zIndex: 6, pointerEvents: 'none' }}>
+        <AnimatedHero scale={2} walking={isWalking} facingLeft={facingLeft} />
+      </div>
+
+      {/* Question overlay */}
       {activeQ !== null && (
-        <QuestionCard
-          question={questions[activeQ]}
-          onAnswer={(answerIdx) => handleAnswer(activeQ, answerIdx)}
-          sceneColor="#00d4aa"
-        />
+        <QuestionCard question={questions[activeQ]} onAnswer={handleAnswer} sceneColor="#00d4aa" />
       )}
 
-      {/* Narrative choice */}
+      {/* Narrative */}
       {showNarrative && (
-        <NarrativeChoiceModal
-          choice={narrative}
-          guardianImg={treeImg}
-          guardianName="ÁRVORE ANCIÃ"
-          onChoose={handleNarrative}
-          sceneColor="#00d4aa"
-        />
+        <NarrativeChoiceModal choice={narrative} guardianImg={treeImg} guardianName="ÁRVORE ANCIÃ" onChoose={handleNarrative} sceneColor="#00d4aa" />
       )}
+
+      {/* D-Pad */}
+      <DPad onStart={startWalking} onStop={stopWalking} onAction={handleInteract} />
     </div>
   );
 }

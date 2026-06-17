@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { PhaseDef, PhaseProgress, FragmentName } from '../../types/game';
 import AnimatedHero from './mechanics/AnimatedHero';
 import DPad from './ui/DPad';
@@ -29,11 +29,49 @@ const KIND_COLOR: Record<string, string> = {
   battle: '#cc3322',
 };
 
+// hue-rotate degrees to tint portal per phase kind
+const KIND_HUE: Record<string, number> = {
+  forest: 120,
+  city:   40,
+  caves:  270,
+  battle: 0,
+};
+
 const WORLD_WIDTH   = 2100;
 const HERO_W        = 128;
 const GROUND_H      = 180;
 const HUD_H         = 56;
 const PHASE_WORLD_X = [240, 500, 760, 1020, 1340, 1750];
+
+interface ZoneDef {
+  id: string;
+  startX: number;
+  endX: number;
+  skyTop: string;
+  skyBot: string;
+  groundGrass: string;
+  groundDirt: string;
+  bgImage: string | null;
+}
+
+const ZONES: ZoneDef[] = [
+  { id: 'forest', startX: 0,    endX: 550,  skyTop: '#7ec8d8', skyBot: '#c8f0a0', groundGrass: '#5aaa2a', groundDirt: '#4a3a18', bgImage: null },
+  { id: 'ruins',  startX: 450,  endX: 850,  skyTop: '#c08040', skyBot: '#e8b870', groundGrass: '#8a7040', groundDirt: '#4a3010', bgImage: '/assets/bg/ruins-day.jpg' },
+  { id: 'city',   startX: 750,  endX: 1150, skyTop: '#4080c0', skyBot: '#a0d0f8', groundGrass: '#6090c0', groundDirt: '#304870', bgImage: '/assets/bg/city-scene.jpg' },
+  { id: 'caves',  startX: 1050, endX: 1500, skyTop: '#0e0818', skyBot: '#2d1460', groundGrass: '#1a0a3a', groundDirt: '#100828', bgImage: '/assets/bg/caves-scene.jpg' },
+  { id: 'desert', startX: 1400, endX: 1820, skyTop: '#e09030', skyBot: '#f8c860', groundGrass: '#c0903a', groundDirt: '#8a5820', bgImage: '/assets/bg/waste-day.jpg' },
+  { id: 'tower',  startX: 1700, endX: 2100, skyTop: '#060410', skyBot: '#1c0830', groundGrass: '#1a0828', groundDirt: '#0c0418', bgImage: '/assets/bg/ruins-night.jpg' },
+];
+
+function getZone(heroX: number): ZoneDef {
+  const cx = heroX + HERO_W / 2;
+  // find the zone that contains heroX; prefer later zones on overlap
+  let best = ZONES[0];
+  for (const z of ZONES) {
+    if (cx >= z.startX && cx <= z.endX) best = z;
+  }
+  return best;
+}
 
 const TREES: Array<{ wx: number; img: string; h: number; flip?: boolean }> = [
   { wx: 80,   img: 'tree-pine.png',   h: 88 },
@@ -42,18 +80,11 @@ const TREES: Array<{ wx: number; img: string; h: number; flip?: boolean }> = [
   { wx: 420,  img: 'tree-pine.png',   h: 96, flip: true },
   { wx: 620,  img: 'tree-birch2.png', h: 68 },
   { wx: 690,  img: 'tree-oak2.png',   h: 80 },
-  { wx: 870,  img: 'tree-pine.png',   h: 100 },
-  { wx: 940,  img: 'tree-birch1.png', h: 72, flip: true },
-  { wx: 1130, img: 'tree-oak1.png',   h: 80 },
-  { wx: 1200, img: 'tree-pine.png',   h: 88 },
-  { wx: 1460, img: 'tree-birch2.png', h: 68 },
-  { wx: 1535, img: 'tree-pine.png',   h: 96, flip: true },
-  { wx: 1600, img: 'tree-oak2.png',   h: 80 },
-  { wx: 1900, img: 'tree-pine.png',   h: 100 },
-  { wx: 1980, img: 'tree-birch1.png', h: 72 },
+  { wx: 780,  img: 'tree-pine.png',   h: 100 },
+  { wx: 840,  img: 'tree-birch1.png', h: 72, flip: true },
 ];
 
-const CAMPFIRES: number[] = [395, 655, 955, 1260];
+const CAMPFIRES: number[] = [395, 565];
 
 const BG_LAYERS = [
   { src: '/assets/world/bg-castle.png', factor: 0.04 },
@@ -76,6 +107,8 @@ export default function WorldMap({
       nodeTriggerDist: 80,
       initialX: initX,
     });
+
+  const zone = useMemo(() => getZone(heroWorldX), [heroWorldX]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -121,13 +154,14 @@ export default function WorldMap({
         </div>
       )}
 
-      {/* Sky */}
+      {/* Sky — transitions per zone */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, #7ec8d8 0%, #b4e8f4 45%, #c8f0a0 72%, #5a9a2a 100%)',
+        background: `linear-gradient(to bottom, ${zone.skyTop} 0%, ${zone.skyBot} 100%)`,
+        transition: 'background 1.2s ease',
       }} />
 
-      {/* Parallax BG layers */}
+      {/* Parallax forest layers — always present, fade near edges of forest zone */}
       {BG_LAYERS.map(({ src, factor }) => (
         <div key={src} style={{
           position: 'absolute',
@@ -139,13 +173,41 @@ export default function WorldMap({
           backgroundSize: 'auto 100%',
           backgroundPosition: `${-(cameraX * factor).toFixed(1)}px bottom`,
           imageRendering: 'pixelated',
+          opacity: zone.id === 'forest' ? 1 : zone.id === 'ruins' ? 0.25 : 0,
+          transition: 'opacity 1.2s ease',
+          zIndex: 1,
         }} />
       ))}
 
-      {/* Ground */}
+      {/* Zone background images — each zone's JPG strip in world coords */}
+      {ZONES.filter(z => z.bgImage).map(z => {
+        const stripLeft = z.startX - cameraX;
+        const stripWidth = z.endX - z.startX;
+        const isActive = zone.id === z.id;
+        const isAdjacent = Math.abs(ZONES.indexOf(z) - ZONES.indexOf(zone)) === 1;
+        return (
+          <div key={z.id} style={{
+            position: 'absolute',
+            left: stripLeft,
+            width: stripWidth,
+            top: HUD_H,
+            bottom: GROUND_H,
+            backgroundImage: `url(${z.bgImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: isActive ? 0.82 : isAdjacent ? 0.2 : 0,
+            transition: 'opacity 1.2s ease',
+            zIndex: 1,
+          }} />
+        );
+      })}
+
+      {/* Ground — color transitions per zone */}
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND_H,
-        background: 'linear-gradient(to bottom, #5aaa2a 0%, #5aaa2a 14%, #4a3a18 14%, #3a2a0e 100%)',
+        background: `linear-gradient(to bottom, ${zone.groundGrass} 0%, ${zone.groundGrass} 14%, ${zone.groundDirt} 14%, ${zone.groundDirt} 100%)`,
+        transition: 'background 1.2s ease',
+        zIndex: 2,
       }} />
       <div style={{
         position: 'absolute', left: 0, right: 0,
@@ -155,10 +217,12 @@ export default function WorldMap({
         backgroundSize: 'auto 100%',
         backgroundPositionX: -(cameraX * 1.0),
         imageRendering: 'pixelated',
-        opacity: 0.85,
+        opacity: zone.id === 'forest' || zone.id === 'ruins' ? 0.85 : 0.2,
+        transition: 'opacity 1.2s',
+        zIndex: 2,
       }} />
 
-      {/* Trees */}
+      {/* Trees — only forest and early ruins zone */}
       {TREES.map((t, i) => {
         const sx = t.wx - cameraX;
         if (sx < -160 || sx > 590) return null;
@@ -177,7 +241,7 @@ export default function WorldMap({
         );
       })}
 
-      {/* Campfires */}
+      {/* Campfires — forest zone only */}
       {CAMPFIRES.map((wx, i) => {
         const sx = wx - cameraX;
         if (sx < -80 || sx > 470) return null;
@@ -186,8 +250,6 @@ export default function WorldMap({
             position: 'absolute',
             left: sx,
             bottom: GROUND_H,
-            width: 40,
-            height: 64,
             zIndex: 3,
           }} />
         );
@@ -202,16 +264,18 @@ export default function WorldMap({
         const isNear  = nearNodeIdx === i;
         const stars   = progress[phase.id]?.stars ?? 0;
         const kindClr = KIND_COLOR[phase.kind] ?? '#888';
+        const hue     = KIND_HUE[phase.kind] ?? 0;
 
         return (
           <div key={phase.id} style={{
             position: 'absolute',
-            left: sx - 64,
+            left: sx,
             bottom: GROUND_H,
             zIndex: 4,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            transform: 'translateX(-50%)',
           }}>
             <div style={{ textAlign: 'center', marginBottom: 2, pointerEvents: 'none' }}>
               <span style={{ fontSize: 24, filter: locked ? 'grayscale(1)' : `drop-shadow(0 0 6px ${kindClr})` }}>
@@ -230,10 +294,10 @@ export default function WorldMap({
             </div>
 
             <div className={locked ? undefined : 'portal-anim'} style={{
-              width: 128, height: 128,
-              opacity: locked ? 0.2 : 1,
-              filter: locked ? 'grayscale(1)' : (isNear ? `drop-shadow(0 0 16px ${kindClr})` : undefined),
-              imageRendering: 'pixelated',
+              opacity: locked ? 0.15 : 1,
+              filter: locked
+                ? 'grayscale(1)'
+                : `drop-shadow(0 0 12px ${kindClr}) hue-rotate(${hue}deg)`,
             }} />
 
             {isNear && !locked && (

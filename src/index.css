@@ -192,27 +192,33 @@
   .node-pulse { animation: map-node-pulse 1.4s ease-in-out infinite; }
 
   /* ── Side-scrolling world ── */
-  @keyframes portal-sheet-anim {
-    from { background-position-x: 0px; }
-    to   { background-position-x: -640px; }
-  }
+  /* Portal: 10 frames horizontais de 64×64 — sheet nativo 640×64 */
+  @keyframes portal-sheet-anim { to { background-position-x: -640px; } }
   .portal-anim {
-    animation: portal-sheet-anim 0.8s steps(10) infinite;
+    width: 64px; height: 64px;
     background-image: url('/assets/world/portal-sheet.png');
     background-repeat: no-repeat;
-    background-size: auto 100%;
+    background-size: 640px 64px;
+    background-position: 0 0;
+    animation: portal-sheet-anim 0.9s steps(10) infinite;
     image-rendering: pixelated;
+    transform: scale(1.8);
+    transform-origin: bottom center;
   }
-  @keyframes campfire-sheet-anim {
-    from { background-position-y: 0px; }
-    to   { background-position-y: -256px; }
-  }
+  /* Campfire: grade 5 colunas × 8 linhas de 32×32 — sheet nativo 160×256 */
+  @keyframes campfire-x { to { background-position-x: -160px; } }
+  @keyframes campfire-y { to { background-position-y: -256px; } }
   .campfire-anim {
-    animation: campfire-sheet-anim 0.5s steps(4) infinite;
+    width: 32px; height: 32px;
     background-image: url('/assets/world/campfire-sheet.png');
     background-repeat: no-repeat;
-    background-size: 100% auto;
+    background-size: 160px 256px;
+    background-position: 0 0;
+    animation: campfire-x 0.2s steps(5) infinite,
+               campfire-y 1.6s steps(8) infinite;
     image-rendering: pixelated;
+    transform: scale(1.8);
+    transform-origin: bottom center;
   }
 
   /* ── Battle system ── */
