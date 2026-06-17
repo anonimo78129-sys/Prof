@@ -53,55 +53,46 @@ export default function App() {
   return (
     <div className="fixed inset-0 overflow-hidden scene-fade-in" style={{ touchAction: 'none' }}>
 
-      {/* ── CAMADA DE FUNDO ──────────────────────────────
-          TODO: trocar pela arte pronta do fundo, ex:
-          backgroundImage: "url('/assets/landing-bg.png')"
-      */}
+      {/* ── ARTE DE FUNDO (768×1376) ── */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, #6fc3e0 0%, #9fe0d0 55%, #5aaa2a 78%, #2f6e14 100%)',
+        backgroundImage: "url('/assets/landing-bg.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
         imageRendering: 'pixelated',
       }} />
 
-      {/* ── CONTEÚDO CLICÁVEL ────────────────────────────── */}
+      {/* Gradiente escuro só na faixa dos botões (não cobre o personagem) */}
       <div style={{
-        position: 'relative', zIndex: 10,
-        height: '100%', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 28, padding: 24,
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: 180,
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(4,18,6,0.82) 55%, rgba(2,10,3,0.95) 100%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* ── BOTÕES — fixos no rodapé ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        gap: 14, padding: '0 32px 32px',
       }}>
+        <button
+          onClick={() => setView('jogar')}
+          className="btn-game font-pixel w-full"
+          style={{ background: 'linear-gradient(to bottom, #5ad22a, #2f9410)', fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
+        >
+          JOGAR
+        </button>
 
-        {/* Título */}
-        <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <h1 className="font-pixel" style={{
-            color: '#ffffff', fontSize: 40, letterSpacing: 6,
-            textShadow: '4px 4px 0 #0d2a0d, 0 0 18px rgba(0,0,0,0.35)', margin: 0,
-          }}>
-            ÉTER
-          </h1>
-          <p className="font-vt" style={{ color: '#0d2a0d', fontSize: 22, marginTop: 6 }}>
-            A Jornada do Conhecimento
-          </p>
-        </div>
-
-        {/* Botões empilhados */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18, width: '100%', maxWidth: 300 }}>
-          <button
-            onClick={() => setView('jogar')}
-            className="btn-game font-pixel w-full"
-            style={{ background: 'linear-gradient(to bottom, #5ad22a, #2f9410)', fontSize: 13, padding: '18px 8px' }}
-          >
-            JOGAR
-          </button>
-
-          <button
-            onClick={() => { window.location.hash = '#setup'; }}
-            className="btn-game font-pixel w-full"
-            style={{ background: 'linear-gradient(to bottom, #f0a84a, #c87a18)', fontSize: 13, padding: '18px 8px' }}
-          >
-            CRIAR
-          </button>
-        </div>
+        <button
+          onClick={() => { window.location.hash = '#setup'; }}
+          className="btn-game font-pixel w-full"
+          style={{ background: 'linear-gradient(to bottom, #f0a84a, #c87a18)', fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
+        >
+          CRIAR
+        </button>
       </div>
+
     </div>
   );
 }
