@@ -1,22 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-const IDLE_FRAMES = [
-  '/assets/hero/idle1.png',
-  '/assets/hero/idle2.png',
-  '/assets/hero/idle3.png',
-  '/assets/hero/idle4.png',
-  '/assets/hero/idle5.png',
-];
-
-const WALK_FRAMES = [
-  '/assets/hero/walk1.png',
-  '/assets/hero/walk2.png',
-  '/assets/hero/walk3.png',
-  '/assets/hero/walk4.png',
-  '/assets/hero/walk5.png',
-  '/assets/hero/walk6.png',
-];
-
 interface Props {
   scale?: number;
   className?: string;
@@ -25,6 +8,9 @@ interface Props {
   facingLeft?: boolean;
 }
 
+const IDLE = { src: '/assets/legacy/Idle-Sheet.png', frames: 4, fw: 64, fh: 80, sheetW: 256, ms: 160 };
+const RUN  = { src: '/assets/legacy/Run-Sheet.png',  frames: 8, fw: 80, fh: 80, sheetW: 640, ms: 90  };
+
 export default function AnimatedHero({
   scale = 2,
   className = '',
@@ -32,39 +18,36 @@ export default function AnimatedHero({
   walking = false,
   facingLeft = false,
 }: Props) {
-  const frames = walking ? WALK_FRAMES : IDLE_FRAMES;
+  const anim = walking ? RUN : IDLE;
   const [frame, setFrame] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     setFrame(0);
-    const interval = walking ? 90 : 150;
     timerRef.current = setInterval(() => {
-      setFrame(f => (f + 1) % frames.length);
-    }, interval);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [walking, frames.length]);
+      setFrame(f => (f + 1) % anim.frames);
+    }, anim.ms);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [walking, anim.frames, anim.ms]);
 
   return (
-    <div style={{ display: 'inline-block' }}>
-      <img
-        src={frames[frame]}
-        alt="Herói"
-        className={className}
-        style={{
-          width: 64 * scale,
-          height: 40 * scale,
-          imageRendering: 'pixelated',
-          filter: hurt
-            ? 'brightness(3) saturate(0)'
-            : 'drop-shadow(0 4px 8px rgba(0,0,0,0.7))',
-          transition: 'filter 0.1s',
-          transform: facingLeft ? 'scaleX(-1)' : undefined,
-          display: 'block',
-        }}
-      />
-    </div>
+    <div
+      className={className}
+      style={{
+        width: anim.fw * scale,
+        height: anim.fh * scale,
+        backgroundImage: `url(${anim.src})`,
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: `${anim.sheetW * scale}px ${anim.fh * scale}px`,
+        backgroundPosition: `${-frame * anim.fw * scale}px 0`,
+        imageRendering: 'pixelated',
+        filter: hurt
+          ? 'brightness(3) saturate(0)'
+          : 'drop-shadow(0 4px 8px rgba(0,0,0,0.7))',
+        transition: 'filter 0.1s',
+        transform: facingLeft ? 'scaleX(-1)' : undefined,
+        display: 'block',
+      }}
+    />
   );
 }

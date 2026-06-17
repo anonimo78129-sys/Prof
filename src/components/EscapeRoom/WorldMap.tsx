@@ -319,7 +319,7 @@ export default function WorldMap({
           height: `calc(100% - ${HUD_H}px - ${GROUND_H}px)`,
           backgroundImage: `url(${src})`,
           backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 100%',
+          backgroundSize: 'auto auto',
           backgroundPosition: `${-(cameraX * factor).toFixed(1)}px bottom`,
           imageRendering: 'pixelated',
           opacity: 1,
