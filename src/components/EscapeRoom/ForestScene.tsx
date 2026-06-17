@@ -23,17 +23,16 @@ const GROUND_H = 130;
 // 6 firefly secrets hidden across the forest
 const FIREFLY_WX = [190, 380, 570, 760, 970, 1160];
 
+// Spacing: next_wx ≥ prev_wx + render_width + 50
+// Green-Tree 1.12×h | GREEN_09 0.63×h | GREEN_05 0.71×h | GREEN_03 0.80×h
 const TREES = [
-  { wx: 20,   src: '/assets/legacy/trees/Green-Tree.png', h: 280 },
-  { wx: 120,  src: '/assets/pack01/GREEN_09.png',          h: 320, scale: 2 },
-  { wx: 280,  src: '/assets/pack01/GREEN_05.png',          h: 260, scale: 2 },
-  { wx: 440,  src: '/assets/legacy/trees/Green-Tree.png', h: 300, flip: true },
-  { wx: 620,  src: '/assets/pack01/GREEN_03.png',          h: 280, scale: 2 },
-  { wx: 770,  src: '/assets/pack01/GREEN_09.png',          h: 340, flip: true, scale: 2 },
-  { wx: 930,  src: '/assets/legacy/trees/Green-Tree.png', h: 270 },
-  { wx: 1100, src: '/assets/pack01/GREEN_05.png',          h: 260, scale: 2 },
-  { wx: 1260, src: '/assets/legacy/trees/Green-Tree.png', h: 290, flip: true },
-  { wx: 1420, src: '/assets/pack01/GREEN_03.png',          h: 280, scale: 2 },
+  { wx: 20,   src: '/assets/legacy/trees/Green-Tree.png', h: 220 },            // right≈266
+  { wx: 350,  src: '/assets/pack01/GREEN_09.png',          h: 220 },            // right≈489
+  { wx: 560,  src: '/assets/pack01/GREEN_05.png',          h: 210 },            // right≈709
+  { wx: 760,  src: '/assets/legacy/trees/Green-Tree.png', h: 210, flip: true }, // right≈995
+  { wx: 1060, src: '/assets/pack01/GREEN_03.png',          h: 220 },            // right≈1236
+  { wx: 1290, src: '/assets/legacy/trees/Green-Tree.png', h: 210 },            // right≈1525
+  { wx: 1560, src: '/assets/pack01/GREEN_09.png',          h: 200, flip: true },// right≈1686
 ];
 
 const ROCKS = [

@@ -66,56 +66,45 @@ function getZone(x: number): ZoneDef {
 }
 
 // ─── Large trees (LegacyFantasy 1344×1200, Pack01 small pixel) ───────────────
+// Spacing rule: next_wx ≥ prev_wx + (prev_h × native_w/native_h) + 50
+// Legacy trees: render_width ≈ 1.12 × h  |  GREEN_09: 0.63×h  |  GREEN_05: 0.71×h
+// GREEN_03: 0.80×h  |  Pine_01: 0.69×h  |  ORANGE_01/03/05: 1.03×h
 interface TreeDef {
   wx: number; src: string; h: number; flip?: boolean; zOff?: number; opacity?: number;
 }
 const TREES: TreeDef[] = [
-  // ── Forest zone (green, lush) ─────────────────────────────────────────────
-  { wx: 20,   src: '/assets/legacy/trees/Green-Tree.png',  h: 310, opacity: 0.85 },
-  { wx: 80,   src: '/assets/pack01/GREEN_09.png',           h: 360, zOff: 10 },
-  { wx: 200,  src: '/assets/pack01/GREEN_05.png',           h: 280 },
-  { wx: 340,  src: '/assets/legacy/trees/Green-Tree.png',  h: 340 },
-  { wx: 510,  src: '/assets/pack01/GREEN_03.png',           h: 300 },
-  { wx: 660,  src: '/assets/pack01/GREEN_09.png',           h: 380, flip: true },
-  { wx: 770,  src: '/assets/legacy/trees/Green-Tree.png',  h: 290, opacity: 0.9 },
-  { wx: 880,  src: '/assets/pack01/GREEN_00.png',           h: 140, zOff: -10 },
+  // ── Forest zone: wx 30→1216, min gap 50px ────────────────────────────────
+  { wx: 30,   src: '/assets/legacy/trees/Green-Tree.png',  h: 220 },           // right≈276
+  { wx: 360,  src: '/assets/pack01/GREEN_09.png',           h: 220 },           // right≈499
+  { wx: 560,  src: '/assets/pack01/GREEN_05.png',           h: 210 },           // right≈709
+  { wx: 760,  src: '/assets/pack01/GREEN_09.png',           h: 240, flip: true },// right≈911
+  { wx: 970,  src: '/assets/legacy/trees/Green-Tree.png',  h: 220 },           // right≈1216
 
-  // ── Ruins zone (golden/orange, autumnal) ──────────────────────────────────
-  { wx: 990,  src: '/assets/legacy/trees/Golden-Tree.png', h: 320 },
-  { wx: 1120, src: '/assets/pack01/ORANGE_01.png',          h: 220, zOff: 6 },
-  { wx: 1260, src: '/assets/legacy/trees/Red-Tree.png',    h: 300, flip: true },
-  { wx: 1390, src: '/assets/pack01/ORANGE_03.png',          h: 260 },
-  { wx: 1530, src: '/assets/legacy/trees/Golden-Tree.png', h: 280, opacity: 0.85 },
-  { wx: 1680, src: '/assets/pack01/ORANGE_05.png',          h: 230, flip: true },
+  // ── Ruins zone: wx 1280→1984 ──────────────────────────────────────────────
+  { wx: 1280, src: '/assets/legacy/trees/Golden-Tree.png', h: 210 },           // right≈1515
+  { wx: 1580, src: '/assets/pack01/ORANGE_01.png',          h: 130, zOff: 4 }, // right≈1714
+  { wx: 1760, src: '/assets/legacy/trees/Red-Tree.png',    h: 200, flip: true },// right≈1984
 
-  // ── City zone (pine / blue-grey) ──────────────────────────────────────────
-  { wx: 1750, src: '/assets/pack01/Pine_01.png',            h: 280, zOff: 8 },
-  { wx: 1900, src: '/assets/legacy/trees/Green-Tree.png',  h: 250, opacity: 0.7 },
-  { wx: 2060, src: '/assets/pack01/Pine_01.png',            h: 310, flip: true },
-  { wx: 2220, src: '/assets/legacy/trees/Green-Tree.png',  h: 240, opacity: 0.65 },
-  { wx: 2340, src: '/assets/pack01/Pine_01.png',            h: 260 },
+  // ── City zone: wx 2050→2482 ───────────────────────────────────────────────
+  { wx: 2050, src: '/assets/pack01/Pine_01.png',            h: 230 },           // right≈2209
+  { wx: 2310, src: '/assets/pack01/Pine_01.png',            h: 250, flip: true },// right≈2482
 
-  // ── Caves zone (dark, ominous pines) ──────────────────────────────────────
-  { wx: 2450, src: '/assets/legacy/trees/Dark-Tree.png',   h: 360 },
-  { wx: 2610, src: '/assets/pack01/Pine_01.png',            h: 260, opacity: 0.8 },
-  { wx: 2780, src: '/assets/legacy/trees/Dark-Tree.png',   h: 320, flip: true },
-  { wx: 2960, src: '/assets/pack01/Pine_01.png',            h: 240, opacity: 0.7 },
-  { wx: 3090, src: '/assets/legacy/trees/Dark-Tree.png',   h: 300, opacity: 0.9 },
+  // ── Caves zone: wx 2540→3315 ─────────────────────────────────────────────
+  { wx: 2540, src: '/assets/legacy/trees/Dark-Tree.png',   h: 220 },           // right≈2786
+  { wx: 2870, src: '/assets/pack01/Pine_01.png',            h: 230, opacity: 0.8 },// right≈3029
+  { wx: 3080, src: '/assets/legacy/trees/Dark-Tree.png',   h: 210, flip: true },// right≈3315
 
-  // ── Desert zone (sparse, warm orange trees) ───────────────────────────────
-  { wx: 3220, src: '/assets/pack01/ORANGE_05.png',          h: 240 },
-  { wx: 3420, src: '/assets/legacy/trees/Yellow-Tree.png', h: 280 },
-  { wx: 3600, src: '/assets/pack01/ORANGE_03.png',          h: 200, flip: true },
-  { wx: 3780, src: '/assets/legacy/trees/Yellow-Tree.png', h: 250, opacity: 0.85 },
+  // ── Desert zone: wx 3380→4124 ────────────────────────────────────────────
+  { wx: 3380, src: '/assets/legacy/trees/Yellow-Tree.png', h: 210 },           // right≈3615
+  { wx: 3700, src: '/assets/pack01/ORANGE_03.png',          h: 130, zOff: 4 }, // right≈3834
+  { wx: 3900, src: '/assets/legacy/trees/Yellow-Tree.png', h: 200, flip: true },// right≈4124
 
-  // ── Tower zone (dark, imposing) ───────────────────────────────────────────
-  { wx: 3950, src: '/assets/legacy/trees/Dark-Tree.png',   h: 380 },
-  { wx: 4150, src: '/assets/pack01/Pine_01.png',            h: 240, opacity: 0.7 },
-  { wx: 4350, src: '/assets/legacy/trees/Dark-Tree.png',   h: 340, flip: true },
-  { wx: 4650, src: '/assets/legacy/trees/Dark-Tree.png',   h: 360 },
-  { wx: 4900, src: '/assets/legacy/trees/Yellow-Tree.png', h: 280, opacity: 0.6 },
-  { wx: 5100, src: '/assets/legacy/trees/Dark-Tree.png',   h: 350, flip: true },
-  { wx: 5300, src: '/assets/pack01/Pine_01.png',            h: 200, opacity: 0.6 },
+  // ── Tower zone: wx 4180→5468 ─────────────────────────────────────────────
+  { wx: 4180, src: '/assets/legacy/trees/Dark-Tree.png',   h: 250 },           // right≈4460
+  { wx: 4510, src: '/assets/pack01/Pine_01.png',            h: 230, opacity: 0.8 },// right≈4669
+  { wx: 4760, src: '/assets/legacy/trees/Dark-Tree.png',   h: 240, flip: true },// right≈5029
+  { wx: 5080, src: '/assets/legacy/trees/Dark-Tree.png',   h: 220 },           // right≈5326
+  { wx: 5380, src: '/assets/pack01/Pine_01.png',            h: 200, opacity: 0.7 },// right≈5518
 ];
 
 // ─── Rocks / props ────────────────────────────────────────────────────────────
@@ -152,11 +141,11 @@ const WORLD_NPCS: NpcDef[] = [
 
 // ─── Parallax mid-ground layers (forest zone) ─────────────────────────────────
 const BG_LAYERS = [
-  { src: '/assets/world/bg-castle.png',  factor: 0.03 },
-  { src: '/assets/world/bg-layer4.png',  factor: 0.08 },
-  { src: '/assets/world/bg-layer3.png',  factor: 0.18 },
-  { src: '/assets/world/bg-layer2.png',  factor: 0.36 },
-  { src: '/assets/world/bg-layer1.png',  factor: 0.55 },
+  { src: '/assets/world/bg-castle.png',  factor: 0.03, opacity: 0.65 },
+  { src: '/assets/world/bg-layer4.png',  factor: 0.08, opacity: 0.50 },
+  { src: '/assets/world/bg-layer3.png',  factor: 0.18, opacity: 0.60 },
+  { src: '/assets/world/bg-layer2.png',  factor: 0.36, opacity: 0.50 },
+  { src: '/assets/world/bg-layer1.png',  factor: 0.55, opacity: 0.40 },
 ];
 
 // ─── Phase entrance landmark renderer ─────────────────────────────────────────
@@ -312,7 +301,7 @@ export default function WorldMap({
       }} />
 
       {/* ── Parallax forest layers (always visible across the whole world) ── */}
-      {BG_LAYERS.map(({ src, factor }) => (
+      {BG_LAYERS.map(({ src, factor, opacity }) => (
         <div key={src} style={{
           position: 'absolute', left: 0, right: 0,
           bottom: GROUND_H,
@@ -322,7 +311,7 @@ export default function WorldMap({
           backgroundSize: 'auto auto',
           backgroundPosition: `${-(cameraX * factor).toFixed(1)}px bottom`,
           imageRendering: 'pixelated',
-          opacity: 1,
+          opacity,
           zIndex: 1,
         }} />
       ))}
