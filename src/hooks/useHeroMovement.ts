@@ -8,6 +8,7 @@ interface Options {
   nodeWorldX: number[];
   nodeTriggerDist?: number;
   initialX?: number;
+  viewportWidth?: number;
 }
 
 interface HeroMovement {
@@ -29,6 +30,7 @@ export function useHeroMovement({
   nodeWorldX,
   nodeTriggerDist = 70,
   initialX = 100,
+  viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 420,
 }: Options): HeroMovement {
   const [heroWorldX, setHeroWorldX] = useState(initialX);
   const [cameraX, setCameraX] = useState(Math.max(0, initialX - HERO_SCREEN_X));
@@ -54,7 +56,7 @@ export function useHeroMovement({
         const dx = dirRef.current === 'right' ? SPEED : -SPEED;
         const next = Math.max(0, Math.min(worldWidth - heroWidth, posRef.current + dx));
         posRef.current = next;
-        const cam = Math.max(0, Math.min(worldWidth - 390, next - HERO_SCREEN_X));
+        const cam = Math.max(0, Math.min(worldWidth - viewportWidth, next - HERO_SCREEN_X));
         setHeroWorldX(next);
         setCameraX(cam);
         setNearNodeIdx(checkNear(next));
