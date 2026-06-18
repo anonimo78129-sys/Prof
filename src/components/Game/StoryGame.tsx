@@ -13,10 +13,10 @@ function ImagePreloader() {
   const srcs = [
     '/assets/world/ground-dark.png',
     '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
+    '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
     ...SCENERY.map(p => `/assets/${p.src}`),
     ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
     `/assets/forest/${FOREST_FOREGROUND.src}`,
-    '/assets/sunnyland/door.png',
     '/assets/chars/player-walk-1.png', '/assets/chars/player-walk-2.png', '/assets/chars/player-walk-3.png',
     '/assets/chars/player-idle-1.png', '/assets/chars/player-idle-2.png',
     '/assets/chars/wakeup-1.png', '/assets/chars/wakeup-2.png', '/assets/chars/wakeup-3.png', '/assets/chars/wakeup-4.png',
@@ -209,7 +209,7 @@ function LightMotes() {
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: SceneBg; worldX: number; gateOpen: boolean; landmarkAnchor: number | null; nearby: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -270,24 +270,22 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
         imageRendering: 'pixelated',
       }} />
 
-      {/* portão (placeholder) — plantado no mundo; chega à frente do herói */}
+      {/* portão — plantado no mundo, anima ao abrir */}
       {landmarkAnchor != null && (
         <div style={{
           position: 'absolute',
           left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
-          bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)',
+          bottom: GROUND - 4, zIndex: 15, transform: 'translateX(-50%)',
         }}>
-          <div style={{ transformOrigin: 'bottom center', animation: gateOpen ? 'gate-open 1.2s ease-in forwards' : undefined }}>
-            <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.3), transparent 65%)', filter: 'blur(4px)' }} />
-            <img src="/assets/sunnyland/door.png" alt="portão"
-              style={{ position: 'relative', display: 'block', height: 168, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 8px rgba(0,0,0,0.55))' }} />
-            {[-30, -10, 12, 30].map(x => (
-              <div key={x} style={{ position: 'absolute', top: 2, left: `calc(50% + ${x}px)`, width: 4, height: 26 + ((x + 40) % 22), background: '#3f7a2e', borderRadius: 3 }} />
-            ))}
-          </div>
-          {/* indicador de "entrar" quando o herói está perto */}
+          <img
+            src={gateFrame === 2 ? '/assets/world/gate-open.png'
+               : gateFrame === 1 ? '/assets/world/gate-half.png'
+               : '/assets/world/gate-closed.png'}
+            alt="portão"
+            style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.7))' }}
+          />
           {nearby && !gateOpen && (
-            <div className="font-pixel" style={{ position: 'absolute', bottom: 188, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+            <div className="font-pixel" style={{ position: 'absolute', bottom: 210, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
           )}
         </div>
       )}
@@ -343,6 +341,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const [moving, setMoving] = useState(false);
   const [frame, setFrame] = useState(0);
   const [gateOpen, setGateOpen] = useState(false);
+  const [gateFrame, setGateFrame] = useState(0); // 0=fechado 1=entreaberto 2=aberto
   const [facing, setFacing] = useState(1);
   const [landmarkAnchor, setLandmarkAnchor] = useState<number | null>(null);
   // 1-4 = frame de despertar ativo; null = já acordou, usa hero normal
@@ -355,7 +354,15 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const nearby = landmarkAnchor != null && (landmarkAnchor - worldX) < 200;
 
   // reseta o portão a cada novo beat
-  useEffect(() => { setGateOpen(false); }, [beatIndex]);
+  useEffect(() => { setGateOpen(false); setGateFrame(0); }, [beatIndex]);
+
+  // animação de abertura: fechado → entreaberto → aberto
+  useEffect(() => {
+    if (!gateOpen) return;
+    const t1 = setTimeout(() => setGateFrame(1), 400);
+    const t2 = setTimeout(() => setGateFrame(2), 900);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [gateOpen]);
 
   // animação dos quadros do herói
   useEffect(() => {
@@ -484,7 +491,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
       }} />
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} landmarkAnchor={landmarkAnchor} nearby={nearby} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} />
 
       {bg === 'floresta' && !finished && (
         wakeUpFrame !== null
