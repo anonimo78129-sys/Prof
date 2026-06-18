@@ -192,7 +192,7 @@ function LightMotes() {
   );
 }
 
-function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX: number; showGate: boolean; gateOpen: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; gateOpen: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -237,18 +237,17 @@ function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX
       {/* árvores de meio-termo (atrás do herói) */}
       {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
 
-      {/* portão de madeira aparece quando há desafio */}
-      {showGate && (
+      {/* portão — fixo no mundo, aparece conforme o herói se aproxima */}
+      {!gateOpen && (
         <div style={{
-          position: 'absolute', left: '50%', bottom: GROUND - 4, transform: 'translateX(-50%)', zIndex: 8,
+          position: 'absolute',
+          left: 880 - worldX * 0.98,
+          bottom: GROUND - 4, zIndex: 8,
           transformOrigin: 'bottom center',
-          animation: gateOpen ? 'gate-open 1.2s ease-in forwards' : undefined,
         }}>
-          {/* brilho mágico atrás do portão */}
-          <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.35), transparent 65%)', filter: 'blur(4px)' }} />
+          <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.28), transparent 65%)', filter: 'blur(4px)' }} />
           <img src="/assets/sunnyland/door.png" alt="portão"
             style={{ position: 'relative', height: 168, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 8px rgba(0,0,0,0.55))' }} />
-          {/* cipós pendurados sobre o portão */}
           {[-30, -10, 12, 30].map(x => (
             <div key={x} style={{ position: 'absolute', top: 2, left: `calc(50% + ${x}px)`, width: 4, height: 26 + ((x + 40) % 22), background: '#3f7a2e', borderRadius: 3, zIndex: 9 }} />
           ))}
@@ -387,7 +386,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
-      <ParallaxWorld bg={bg} worldX={worldX} showGate={beat?.t === 'question'} gateOpen={gateOpen} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} />
 
       {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} />}
 
