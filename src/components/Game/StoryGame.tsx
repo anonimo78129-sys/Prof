@@ -4,6 +4,7 @@ import { ACT1 } from '../../game/script';
 
 const FLOOR = 300;           // faixa reservada no rodapé p/ a caixa de texto e botões
 const GROUND = 34;           // altura do chão dentro do mundo (acima da faixa FLOOR)
+const HERO_LIFT = -5;        // ajuste fino vertical só do herói (acima do chão)
 const GATE_AHEAD = 24;       // o portão para um pouco à frente de onde o herói chega
 const WALK_SPEED = 230;      // px/seg que o herói anda
 
@@ -321,7 +322,7 @@ function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facin
   return (
     <img src={src} alt="herói"
       style={{
-        position: 'absolute', left: '34%', bottom: FLOOR + GROUND, zIndex: 14,
+        position: 'absolute', left: '34%', bottom: FLOOR + GROUND + HERO_LIFT, zIndex: 14,
         height: 126, width: 'auto', imageRendering: 'pixelated',
         transform: `translateX(-50%) scaleX(${facing})`,
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
