@@ -161,23 +161,24 @@ interface Prop { src: string; wx: number; f: number; h: number; b: number; z: nu
 // Toda a flora assenta na mesma linha de chão do personagem (b ≈ GROUND - 4).
 // A profundidade vem do tamanho + parallax + z (atrás/à frente do herói).
 const FLORA_B = GROUND - 4;
+const FLORA_B_BACK = FLORA_B + 10;  // plantas das camadas de trás ficam 10px mais altas
 const SCENERY: Prop[] = [
   // ── fundo profundo (entre as camadas da floresta) ──
-  { src: 'flora/glow-grass.png',    wx: 260,  f: 0.5,  h: 12, b: FLORA_B, z: 4, glow: true },
-  { src: 'flora/flower-blue.png',   wx: 560,  f: 0.55, h: 14, b: FLORA_B, z: 4, glow: true },
-  { src: 'flora/shroom-big.png',    wx: 900,  f: 0.6,  h: 13, b: FLORA_B, z: 5, glow: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 1240, f: 0.52, h: 14, b: FLORA_B, z: 4, glow: true },
-  { src: 'flora/shroom-small.png',  wx: 1560, f: 0.58, h: 10, b: FLORA_B, z: 5, glow: true },
-  { src: 'flora/glow-grass.png',    wx: 1900, f: 0.5,  h: 12, b: FLORA_B, z: 4, glow: true, flip: true },
+  { src: 'flora/glow-grass.png',    wx: 260,  f: 0.5,  h: 12, b: FLORA_B_BACK, z: 4, glow: true },
+  { src: 'flora/flower-blue.png',   wx: 560,  f: 0.55, h: 14, b: FLORA_B_BACK, z: 4, glow: true },
+  { src: 'flora/shroom-big.png',    wx: 900,  f: 0.6,  h: 13, b: FLORA_B_BACK, z: 5, glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 1240, f: 0.52, h: 14, b: FLORA_B_BACK, z: 4, glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1560, f: 0.58, h: 10, b: FLORA_B_BACK, z: 5, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 1900, f: 0.5,  h: 12, b: FLORA_B_BACK, z: 4, glow: true, flip: true },
 
   // ── atrás do herói (mais ao fundo) ──
-  { src: 'flora/glow-grass.png',    wx: 180,  f: 0.92, h: 20, b: FLORA_B, z: 8,  glow: true },
-  { src: 'flora/flower-blue.png',   wx: 430,  f: 0.95, h: 28, b: FLORA_B, z: 8,  glow: true },
-  { src: 'flora/shroom-big.png',    wx: 700,  f: 0.96, h: 22, b: FLORA_B, z: 9,  glow: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 1020, f: 0.94, h: 26, b: FLORA_B, z: 8,  glow: true },
-  { src: 'flora/glow-grass.png',    wx: 1320, f: 0.93, h: 18, b: FLORA_B, z: 9,  glow: true },
-  { src: 'flora/shroom-small.png',  wx: 1600, f: 0.95, h: 14, b: FLORA_B, z: 9,  glow: true },
-  { src: 'flora/flower-tulip.png',  wx: 1880, f: 0.95, h: 23, b: FLORA_B, z: 8,  glow: true },
+  { src: 'flora/glow-grass.png',    wx: 180,  f: 0.92, h: 20, b: FLORA_B_BACK, z: 8,  glow: true },
+  { src: 'flora/flower-blue.png',   wx: 430,  f: 0.95, h: 28, b: FLORA_B_BACK, z: 8,  glow: true },
+  { src: 'flora/shroom-big.png',    wx: 700,  f: 0.96, h: 22, b: FLORA_B_BACK, z: 9,  glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 1020, f: 0.94, h: 26, b: FLORA_B_BACK, z: 8,  glow: true },
+  { src: 'flora/glow-grass.png',    wx: 1320, f: 0.93, h: 18, b: FLORA_B_BACK, z: 9,  glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1600, f: 0.95, h: 14, b: FLORA_B_BACK, z: 9,  glow: true },
+  { src: 'flora/flower-tulip.png',  wx: 1880, f: 0.95, h: 23, b: FLORA_B_BACK, z: 8,  glow: true },
 
   // ── na frente do herói (primeiro plano) ──
   { src: 'flora/shroom-big.png',    wx: 320,  f: 1.04, h: 38, b: FLORA_B, z: 16, glow: true },
