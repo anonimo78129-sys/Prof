@@ -158,32 +158,35 @@ interface Prop { src: string; wx: number; f: number; h: number; b: number; z: nu
 // Flora mágica espalhada pelo mundo. `glow` adiciona um halo turquesa.
 // Plantas/cogumelos da floresta encantada — algumas atrás do herói (z<14),
 // outras em primeiro plano (14<z<20, na frente do herói mas atrás da grama z=20).
+// Toda a flora assenta na mesma linha de chão do personagem (b ≈ GROUND - 4).
+// A profundidade vem do tamanho + parallax + z (atrás/à frente do herói).
+const FLORA_B = GROUND - 4;
 const SCENERY: Prop[] = [
-  // ── fundo profundo (entre as camadas da floresta, bem distante) ──
-  { src: 'flora/glow-grass.png',    wx: 260,  f: 0.5,  h: 16, b: GROUND + 46, z: 4, glow: true, sway: true },
-  { src: 'flora/flower-blue.png',   wx: 560,  f: 0.55, h: 20, b: GROUND + 40, z: 4, glow: true },
-  { src: 'flora/shroom-big.png',    wx: 900,  f: 0.6,  h: 18, b: GROUND + 36, z: 5, glow: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 1240, f: 0.52, h: 19, b: GROUND + 42, z: 4, glow: true },
-  { src: 'flora/shroom-small.png',  wx: 1560, f: 0.58, h: 14, b: GROUND + 38, z: 5, glow: true },
-  { src: 'flora/glow-grass.png',    wx: 1900, f: 0.5,  h: 16, b: GROUND + 46, z: 4, glow: true, sway: true, flip: true },
+  // ── fundo profundo (entre as camadas da floresta) ──
+  { src: 'flora/glow-grass.png',    wx: 260,  f: 0.5,  h: 13, b: FLORA_B, z: 4, glow: true, sway: true },
+  { src: 'flora/flower-blue.png',   wx: 560,  f: 0.55, h: 16, b: FLORA_B, z: 4, glow: true },
+  { src: 'flora/shroom-big.png',    wx: 900,  f: 0.6,  h: 14, b: FLORA_B, z: 5, glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 1240, f: 0.52, h: 15, b: FLORA_B, z: 4, glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1560, f: 0.58, h: 11, b: FLORA_B, z: 5, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 1900, f: 0.5,  h: 13, b: FLORA_B, z: 4, glow: true, sway: true, flip: true },
 
   // ── atrás do herói (mais ao fundo) ──
-  { src: 'flora/glow-grass.png',    wx: 180,  f: 0.92, h: 28, b: GROUND + 2, z: 8,  glow: true, sway: true },
-  { src: 'flora/flower-blue.png',   wx: 430,  f: 0.95, h: 39, b: GROUND,     z: 8,  glow: true },
-  { src: 'flora/shroom-big.png',    wx: 700,  f: 0.96, h: 30, b: GROUND + 2, z: 9,  glow: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 1020, f: 0.94, h: 36, b: GROUND,     z: 8,  glow: true },
-  { src: 'flora/glow-grass.png',    wx: 1320, f: 0.93, h: 25, b: GROUND + 4, z: 9,  glow: true, sway: true },
-  { src: 'flora/shroom-small.png',  wx: 1600, f: 0.95, h: 19, b: GROUND + 2, z: 9,  glow: true },
-  { src: 'flora/flower-tulip.png',  wx: 1880, f: 0.95, h: 33, b: GROUND,     z: 8,  glow: true },
+  { src: 'flora/glow-grass.png',    wx: 180,  f: 0.92, h: 22, b: FLORA_B, z: 8,  glow: true, sway: true },
+  { src: 'flora/flower-blue.png',   wx: 430,  f: 0.95, h: 31, b: FLORA_B, z: 8,  glow: true },
+  { src: 'flora/shroom-big.png',    wx: 700,  f: 0.96, h: 24, b: FLORA_B, z: 9,  glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 1020, f: 0.94, h: 29, b: FLORA_B, z: 8,  glow: true },
+  { src: 'flora/glow-grass.png',    wx: 1320, f: 0.93, h: 20, b: FLORA_B, z: 9,  glow: true, sway: true },
+  { src: 'flora/shroom-small.png',  wx: 1600, f: 0.95, h: 15, b: FLORA_B, z: 9,  glow: true },
+  { src: 'flora/flower-tulip.png',  wx: 1880, f: 0.95, h: 26, b: FLORA_B, z: 8,  glow: true },
 
   // ── na frente do herói (primeiro plano) ──
-  { src: 'flora/shroom-big.png',    wx: 320,  f: 1.04, h: 52, b: GROUND - 8, z: 16, glow: true },
-  { src: 'flora/glow-grass.png',    wx: 600,  f: 1.06, h: 45, b: GROUND - 6, z: 17, glow: true, sway: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 880,  f: 1.05, h: 59, b: GROUND - 6, z: 16, glow: true },
-  { src: 'flora/shroom-small.png',  wx: 1180, f: 1.05, h: 29, b: GROUND - 4, z: 17, glow: true, flip: true },
-  { src: 'flora/flower-blue.png',   wx: 1480, f: 1.06, h: 56, b: GROUND - 6, z: 16, glow: true },
-  { src: 'flora/flower-tulip.png',  wx: 1760, f: 1.05, h: 48, b: GROUND - 4, z: 17, glow: true },
-  { src: 'flora/glow-grass.png',    wx: 2060, f: 1.06, h: 42, b: GROUND - 6, z: 16, glow: true, sway: true },
+  { src: 'flora/shroom-big.png',    wx: 320,  f: 1.04, h: 42, b: FLORA_B, z: 16, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 600,  f: 1.06, h: 36, b: FLORA_B, z: 17, glow: true, sway: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 880,  f: 1.05, h: 47, b: FLORA_B, z: 16, glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1180, f: 1.05, h: 23, b: FLORA_B, z: 17, glow: true, flip: true },
+  { src: 'flora/flower-blue.png',   wx: 1480, f: 1.06, h: 45, b: FLORA_B, z: 16, glow: true },
+  { src: 'flora/flower-tulip.png',  wx: 1760, f: 1.05, h: 38, b: FLORA_B, z: 17, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 2060, f: 1.06, h: 34, b: FLORA_B, z: 16, glow: true, sway: true },
 ];
 
 // Camadas do pack "Free Pixel Art Forest" (Eder Muniz), de trás → frente.
