@@ -163,8 +163,12 @@ const CLOUDS = [
 ];
 
 function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
+  const screenX = Math.round(p.wx - worldX * p.f);
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
+  // não renderiza se estiver completamente fora do viewport
+  if (screenX > vw + p.h || screenX < -(p.h * 2)) return null;
   return (
-    <div style={{ position: 'absolute', left: p.wx - worldX * p.f, bottom: p.b, zIndex: p.z, transform: p.flip ? 'scaleX(-1)' : undefined, transformOrigin: 'bottom center' }}>
+    <div style={{ position: 'absolute', left: screenX, bottom: p.b, zIndex: p.z, transform: p.flip ? 'scaleX(-1)' : undefined, transformOrigin: 'bottom center' }}>
       <img src={`/assets/${p.src}`} alt="" className={p.sway ? 'tree-sway' : undefined}
         style={{ height: p.h, width: 'auto', display: 'block', imageRendering: 'pixelated', filter: 'drop-shadow(0 6px 6px rgba(0,0,0,0.32))' }} />
     </div>
@@ -212,7 +216,7 @@ function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; 
     position: 'absolute', left: 0, right: 0, bottom,
     height, backgroundImage: `url('${src}')`,
     backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
-    backgroundPositionX: `${-worldX * factor}px`, backgroundPositionY: 'bottom',
+    backgroundPositionX: `${Math.round(-worldX * factor)}px`, backgroundPositionY: 'bottom',
     imageRendering: 'pixelated', ...extra,
   });
 
@@ -241,7 +245,7 @@ function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; 
       {!gateOpen && (
         <div style={{
           position: 'absolute',
-          left: 880 - worldX * 0.98,
+          left: Math.round(880 - worldX * 0.98),
           bottom: GROUND - 4, zIndex: 8,
           transformOrigin: 'bottom center',
         }}>
