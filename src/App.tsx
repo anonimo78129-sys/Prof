@@ -97,6 +97,8 @@ export default function App() {
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
         imageRendering: 'pixelated',
+        animation: 'bg-breathe 6s ease-in-out infinite',
+        transformOrigin: 'center center',
       }} />
 
       {/* ── SHIMMER TELA TODA ── */}

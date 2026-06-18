@@ -176,6 +176,12 @@
   }
   .heartbeat { animation: heartbeat 0.8s ease-in-out; }
 
+  /* ── Fundo respiração ── */
+  @keyframes bg-breathe {
+    0%, 100% { transform: scale(1.00); }
+    50%       { transform: scale(1.03); }
+  }
+
   /* ── Logo shimmer ── */
 /* ── Screen shimmer ── */
   /* sweep dura 40% do ciclo, pausa o resto */
