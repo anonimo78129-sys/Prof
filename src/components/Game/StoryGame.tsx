@@ -130,14 +130,15 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
         <p className="font-vt" style={{ color: '#eaf6e0', fontSize: 21, lineHeight: 1.3, marginBottom: 14 }}>
           {beat.q.text}
         </p>
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ display: 'grid', gap: 10 }}>
           {beat.q.options.map((opt, i) => (
             <button key={i} onClick={() => answer(i)}
               className="font-vt"
               style={{
-                textAlign: 'left', padding: '10px 14px', fontSize: 18,
-                color: '#eaf6e0', background: 'rgba(30,70,38,0.9)',
-                border: '2px solid #2f6b34', borderRadius: 6, cursor: 'pointer',
+                textAlign: 'left', padding: '12px 16px', fontSize: 18,
+                color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)',
+                border: '4px solid #0d2a0d', borderRadius: 12,
+                boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer',
               }}>
               {String.fromCharCode(65 + i)}. {opt}
             </button>
