@@ -5,6 +5,27 @@ import { ACT1 } from '../../game/script';
 const GROUND = 132;          // altura da faixa de chão (px)
 const WALK_SPEED = 230;      // px/seg que o herói anda
 
+// Pré-carrega todas as imagens dos props/layers no início para
+// evitar que apareçam "achatadas" ao entrar no viewport.
+function ImagePreloader() {
+  const srcs = [
+    ...SCENERY.map(p => `/assets/${p.src}`),
+    '/assets/world/grass.png', '/assets/world/dirt.png',
+    '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
+    '/assets/sunnyland/door.png',
+    '/assets/sunnyland/player-idle-1.png', '/assets/sunnyland/player-idle-2.png',
+    '/assets/sunnyland/player-idle-3.png', '/assets/sunnyland/player-idle-4.png',
+    '/assets/sunnyland/player-run-1.png', '/assets/sunnyland/player-run-2.png',
+    '/assets/sunnyland/player-run-3.png', '/assets/sunnyland/player-run-4.png',
+    '/assets/sunnyland/player-run-5.png', '/assets/sunnyland/player-run-6.png',
+  ];
+  return (
+    <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      {[...new Set(srcs)].map(src => <img key={src} src={src} alt="" />)}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────
 // Caixa de diálogo com efeito máquina de escrever
 // ─────────────────────────────────────────────────────────
@@ -390,6 +411,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
+      <ImagePreloader />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} />
 
       {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} />}
