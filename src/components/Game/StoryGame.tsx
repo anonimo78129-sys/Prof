@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 
-const GROUND = 132;          // altura da faixa de chão (px)
+const GROUND = 44;           // linha de chão (px do rodapé) — onde o herói pisa
 const WALK_SPEED = 230;      // px/seg que o herói anda
 
 // Pré-carrega todas as imagens dos props/layers no início para
@@ -10,8 +10,8 @@ const WALK_SPEED = 230;      // px/seg que o herói anda
 function ImagePreloader() {
   const srcs = [
     ...SCENERY.map(p => `/assets/${p.src}`),
-    '/assets/world/grass.png', '/assets/world/dirt.png',
-    '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
+    ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
+    `/assets/forest/${FOREST_FOREGROUND.src}`,
     '/assets/sunnyland/door.png',
     '/assets/sunnyland/player-idle-1.png', '/assets/sunnyland/player-idle-2.png',
     '/assets/sunnyland/player-idle-3.png', '/assets/sunnyland/player-idle-4.png',
@@ -152,36 +152,26 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
 // arbustos/pedras em primeiro plano (na frente). `f` = fator de parallax.
 interface Prop { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean; sway?: boolean }
 
-const SCENERY: Prop[] = [
-  // árvores de meio-termo (atrás do herói, z < 14)
-  { src: 'world/tree-oak1.png',  wx: 280,  f: 0.8,  h: 210, b: GROUND - 6, z: 5, sway: true },
-  { src: 'world/tree-pine.png',  wx: 540,  f: 0.85, h: 180, b: GROUND - 2, z: 6, sway: true, flip: true },
-  { src: 'pack01/Pine_01.png',   wx: 820,  f: 0.82, h: 195, b: GROUND - 2, z: 5, sway: true },
-  { src: 'world/tree-birch1.png',wx: 1080, f: 0.88, h: 170, b: GROUND - 2, z: 7, sway: true },
-  { src: 'world/tree-oak2.png',  wx: 1360, f: 0.8,  h: 205, b: GROUND - 6, z: 5, sway: true, flip: true },
-  { src: 'world/tree-birch2.png',wx: 1640, f: 0.86, h: 168, b: GROUND - 2, z: 6, sway: true },
-  { src: 'world/tree-pine.png',  wx: 1950, f: 0.84, h: 185, b: GROUND - 2, z: 5, sway: true },
-  { src: 'pack01/Pine_01.png',   wx: 2240, f: 0.83, h: 190, b: GROUND - 2, z: 6, sway: true, flip: true },
-  // primeiro plano (na frente do herói, z > 14)
-  { src: 'pack01/BUSH_01.png',   wx: 180,  f: 1.08, h: 60,  b: GROUND - 18, z: 16 },
-  { src: 'pack01/Rock_01.png',   wx: 620,  f: 1.1,  h: 64,  b: GROUND - 16, z: 16 },
-  { src: 'pack01/BUSH_02.png',   wx: 1000, f: 1.12, h: 56,  b: GROUND - 18, z: 17, flip: true },
-  { src: 'pack01/Rock_02.png',   wx: 1480, f: 1.1,  h: 60,  b: GROUND - 16, z: 16 },
-  { src: 'pack01/BUSH_01.png',   wx: 1880, f: 1.13, h: 58,  b: GROUND - 18, z: 17 },
-  // detalhes charmosos do SunnyLand (pixel art, combinam com o herói)
-  { src: 'sunnyland/sign.png',    wx: 420,  f: 1.05, h: 66, b: GROUND - 12, z: 16 },
-  { src: 'sunnyland/shrooms.png', wx: 880,  f: 1.1,  h: 46, b: GROUND - 12, z: 17 },
-  { src: 'sunnyland/shrooms.png', wx: 1300, f: 1.12, h: 40, b: GROUND - 12, z: 16, flip: true },
-  { src: 'sunnyland/bush.png',    wx: 1720, f: 1.08, h: 58, b: GROUND - 14, z: 16 },
-];
+// Props avulsos (vazio por ora — as camadas do pack já trazem toda a folhagem).
+// O mecanismo fica pronto para props futuros (cogumelos, criaturas, etc.).
+const SCENERY: Prop[] = [];
 
-const CLOUDS = [
-  { src: 'world/cloud1.png', wx: 120,  top: '7%',  w: 150, cls: 'cloud-1' },
-  { src: 'world/cloud2.png', wx: 560,  top: '14%', w: 120, cls: 'cloud-2' },
-  { src: 'world/cloud3.png', wx: 980,  top: '9%',  w: 170, cls: 'cloud-3' },
-  { src: 'world/cloud1.png', wx: 1500, top: '16%', w: 130, cls: 'cloud-2' },
-  { src: 'world/cloud2.png', wx: 2000, top: '6%',  w: 140, cls: 'cloud-1' },
+// Camadas do pack "Free Pixel Art Forest" (Eder Muniz), de trás → frente.
+// A última camada (Layer_0000_9 = grama/mato) vai NA FRENTE do herói.
+const FOREST_LAYERS: { src: string; f: number }[] = [
+  { src: 'Layer_0011_0.png',      f: 0.04 },  // céu (fundo)
+  { src: 'Layer_0010_1.png',      f: 0.09 },
+  { src: 'Layer_0009_2.png',      f: 0.15 },
+  { src: 'Layer_0008_3.png',      f: 0.22 },
+  { src: 'Layer_0007_Lights.png', f: 0.28 },  // raios de luz
+  { src: 'Layer_0006_4.png',      f: 0.36 },
+  { src: 'Layer_0005_5.png',      f: 0.46 },
+  { src: 'Layer_0004_Lights.png', f: 0.54 },  // raios de luz
+  { src: 'Layer_0003_6.png',      f: 0.64 },
+  { src: 'Layer_0002_7.png',      f: 0.76 },
+  { src: 'Layer_0001_8.png',      f: 0.90 },
 ];
+const FOREST_FOREGROUND = { src: 'Layer_0000_9.png', f: 1.06 }; // grama na frente do herói
 
 function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
   const screenX = Math.round(p.wx - worldX * p.f);
@@ -233,69 +223,46 @@ function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; 
     );
   }
 
-  const layer = (src: string, factor: number, height: string, bottom: number, extra?: React.CSSProperties): React.CSSProperties => ({
-    position: 'absolute', left: 0, right: 0, bottom,
-    height, backgroundImage: `url('${src}')`,
+  const fxLayer = (src: string, factor: number, z: number, extra?: React.CSSProperties): React.CSSProperties => ({
+    position: 'absolute', inset: 0, zIndex: z,
+    backgroundImage: `url('/assets/forest/${src}')`,
     backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
     backgroundPositionX: `${Math.round(-worldX * factor)}px`, backgroundPositionY: 'bottom',
     imageRendering: 'pixelated', ...extra,
   });
 
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* céu */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: "url('/assets/world/bg-layer5.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      {/* nuvens */}
-      {CLOUDS.map((c, i) => (
-        <img key={i} src={`/assets/${c.src}`} alt="" className={c.cls}
-          style={{ position: 'absolute', left: c.wx - worldX * 0.06, top: c.top, width: c.w, imageRendering: 'pixelated', opacity: 0.85, zIndex: 1 }} />
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#5a6f8c' }}>
+      {/* camadas da floresta (trás → frente, atrás do herói) */}
+      {FOREST_LAYERS.map((l, i) => (
+        <div key={l.src} style={fxLayer(l.src, l.f, i + 1)} />
       ))}
-      {/* montanhas distantes */}
-      <div style={layer('/assets/world/bg-layer4.png', 0.12, '40vh', GROUND + 30, { opacity: 0.92 })} />
-      {/* silhueta de selva ao fundo */}
-      <div style={layer('/assets/pack01/BACKGROUNDS_01.png', 0.2, '30vh', GROUND + 6, { opacity: 0.55 })} />
-      {/* pinheiros — longe → perto */}
-      <div style={layer('/assets/world/bg-layer3.png', 0.28, '32vh', GROUND)} />
-      <div style={layer('/assets/world/bg-layer2.png', 0.5, '38vh', GROUND)} />
-      <div style={layer('/assets/world/bg-layer1.png', 0.78, '44vh', GROUND - 6)} />
 
-      {/* árvores de meio-termo (atrás do herói) */}
+      {/* árvores/props avulsos atrás do herói (vazio por ora) */}
       {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
 
-      {/* portão — fixo no mundo, aparece conforme o herói se aproxima */}
+      {/* portão — fixo no mundo, aparece conforme o herói se aproxima (placeholder) */}
       {!gateOpen && (
         <div style={{
           position: 'absolute',
-          left: Math.round(880 - worldX * 0.98),
-          bottom: GROUND - 4, zIndex: 8,
+          left: Math.round(880 - worldX * 0.96),
+          bottom: GROUND - 4, zIndex: 12,
           transformOrigin: 'bottom center',
         }}>
           <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.28), transparent 65%)', filter: 'blur(4px)' }} />
           <img src="/assets/sunnyland/door.png" alt="portão"
             style={{ position: 'relative', height: 168, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 8px rgba(0,0,0,0.55))' }} />
           {[-30, -10, 12, 30].map(x => (
-            <div key={x} style={{ position: 'absolute', top: 2, left: `calc(50% + ${x}px)`, width: 4, height: 26 + ((x + 40) % 22), background: '#3f7a2e', borderRadius: 3, zIndex: 9 }} />
+            <div key={x} style={{ position: 'absolute', top: 2, left: `calc(50% + ${x}px)`, width: 4, height: 26 + ((x + 40) % 22), background: '#3f7a2e', borderRadius: 3, zIndex: 13 }} />
           ))}
         </div>
       )}
 
-      {/* chão — textura de terra com movimento */}
-      <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND,
-        backgroundImage: "url('/assets/world/dirt.png')",
-        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
-        backgroundPositionX: `${-worldX * 1.0}px`,
-        imageRendering: 'pixelated',
-        boxShadow: 'inset 0 6px 14px rgba(0,0,0,0.45)',
-      }} />
-      {/* grama em primeiro plano */}
-      <div style={layer('/assets/world/grass.png', 1.1, '54px', GROUND - 11, { zIndex: 12 })} />
-
-      {/* arbustos e pedras em primeiro plano (na frente do herói) */}
-      {SCENERY.filter(p => p.z >= 14).map((p, i) => <PropImg key={`f${i}`} p={p} worldX={worldX} />)}
-
       {/* poeira de luz mágica */}
       <LightMotes />
+
+      {/* grama/mato em primeiro plano — NA FRENTE do herói */}
+      <div style={fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20)} />
     </div>
   );
 }
