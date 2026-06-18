@@ -68,7 +68,7 @@ function DialogueBox({
 // ─────────────────────────────────────────────────────────
 // Beat de pergunta: intro → opções → (acerto: falas) / (erro: Corujão)
 // ─────────────────────────────────────────────────────────
-function QuestionBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'question' }>; onSolved: () => void }) {
+function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'question' }>; onSolved: () => void; onCorrect: () => void }) {
   type Phase = 'intro' | 'asking' | 'wrong' | 'success';
   const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'asking');
   const [successIdx, setSuccessIdx] = useState(0);
@@ -96,7 +96,7 @@ function QuestionBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'question' 
 
   // phase === 'asking'
   const answer = (i: number) => {
-    if (i === beat.q.correct) { setSuccessIdx(0); setPhase('success'); }
+    if (i === beat.q.correct) { setSuccessIdx(0); onCorrect(); setPhase('success'); }
     else setPhase('wrong');
   };
   return (
@@ -127,7 +127,67 @@ function QuestionBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'question' 
 // ─────────────────────────────────────────────────────────
 // Mundo com parallax
 // ─────────────────────────────────────────────────────────
-function ParallaxWorld({ bg, worldX, showGate }: { bg: SceneBg; worldX: number; showGate: boolean }) {
+// Cenário espalhado pelo mundo: árvores ao fundo (atrás do herói) e
+// arbustos/pedras em primeiro plano (na frente). `f` = fator de parallax.
+interface Prop { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean; sway?: boolean }
+
+const SCENERY: Prop[] = [
+  // árvores de meio-termo (atrás do herói, z < 14)
+  { src: 'world/tree-oak1.png',  wx: 280,  f: 0.8,  h: 210, b: GROUND - 6, z: 5, sway: true },
+  { src: 'world/tree-pine.png',  wx: 540,  f: 0.85, h: 180, b: GROUND - 2, z: 6, sway: true, flip: true },
+  { src: 'pack01/Pine_01.png',   wx: 820,  f: 0.82, h: 195, b: GROUND - 2, z: 5, sway: true },
+  { src: 'world/tree-birch1.png',wx: 1080, f: 0.88, h: 170, b: GROUND - 2, z: 7, sway: true },
+  { src: 'world/tree-oak2.png',  wx: 1360, f: 0.8,  h: 205, b: GROUND - 6, z: 5, sway: true, flip: true },
+  { src: 'world/tree-birch2.png',wx: 1640, f: 0.86, h: 168, b: GROUND - 2, z: 6, sway: true },
+  { src: 'world/tree-pine.png',  wx: 1950, f: 0.84, h: 185, b: GROUND - 2, z: 5, sway: true },
+  { src: 'pack01/Pine_01.png',   wx: 2240, f: 0.83, h: 190, b: GROUND - 2, z: 6, sway: true, flip: true },
+  // primeiro plano (na frente do herói, z > 14)
+  { src: 'pack01/BUSH_01.png',   wx: 180,  f: 1.08, h: 60,  b: GROUND - 18, z: 16 },
+  { src: 'pack01/Rock_01.png',   wx: 620,  f: 1.1,  h: 64,  b: GROUND - 16, z: 16 },
+  { src: 'pack01/BUSH_02.png',   wx: 1000, f: 1.12, h: 56,  b: GROUND - 18, z: 17, flip: true },
+  { src: 'pack01/Rock_02.png',   wx: 1480, f: 1.1,  h: 60,  b: GROUND - 16, z: 16 },
+  { src: 'pack01/BUSH_01.png',   wx: 1880, f: 1.13, h: 58,  b: GROUND - 18, z: 17 },
+];
+
+const CLOUDS = [
+  { src: 'world/cloud1.png', wx: 120,  top: '7%',  w: 150, cls: 'cloud-1' },
+  { src: 'world/cloud2.png', wx: 560,  top: '14%', w: 120, cls: 'cloud-2' },
+  { src: 'world/cloud3.png', wx: 980,  top: '9%',  w: 170, cls: 'cloud-3' },
+  { src: 'world/cloud1.png', wx: 1500, top: '16%', w: 130, cls: 'cloud-2' },
+  { src: 'world/cloud2.png', wx: 2000, top: '6%',  w: 140, cls: 'cloud-1' },
+];
+
+function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
+  return (
+    <div style={{ position: 'absolute', left: p.wx - worldX * p.f, bottom: p.b, zIndex: p.z, transform: p.flip ? 'scaleX(-1)' : undefined, transformOrigin: 'bottom center' }}>
+      <img src={`/assets/${p.src}`} alt="" className={p.sway ? 'tree-sway' : undefined}
+        style={{ height: p.h, width: 'auto', display: 'block', imageRendering: 'pixelated', filter: 'drop-shadow(0 6px 6px rgba(0,0,0,0.32))' }} />
+    </div>
+  );
+}
+
+function LightMotes() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none', overflow: 'hidden' }}>
+      {Array.from({ length: 16 }, (_, i) => {
+        const s = (n: number) => { const x = Math.sin((i + 1) * n) * 10000; return x - Math.floor(x); };
+        const size = 2 + s(3) * 3;
+        return (
+          <div key={i} style={{
+            position: 'absolute', left: `${s(7) * 100}%`, bottom: `${s(13) * 60}%`,
+            width: size, height: size, borderRadius: 9,
+            background: 'radial-gradient(circle, #fff6c0, rgba(255,230,140,0.2))',
+            boxShadow: '0 0 6px 2px rgba(255,235,150,0.5)',
+            ['--mx' as string]: `${(s(19) > 0.5 ? 1 : -1) * (10 + s(23) * 40)}px`,
+            animation: `mote-float ${6 + s(5) * 7}s ease-in-out ${-s(11) * 8}s infinite`,
+          }} />
+        );
+      })}
+    </div>
+  );
+}
+
+function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX: number; showGate: boolean; gateOpen: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -155,22 +215,40 @@ function ParallaxWorld({ bg, worldX, showGate }: { bg: SceneBg; worldX: number; 
     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
       {/* céu */}
       <div style={{ position: 'absolute', inset: 0, backgroundImage: "url('/assets/world/bg-layer5.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      {/* nuvens */}
+      {CLOUDS.map((c, i) => (
+        <img key={i} src={`/assets/${c.src}`} alt="" className={c.cls}
+          style={{ position: 'absolute', left: c.wx - worldX * 0.06, top: c.top, width: c.w, imageRendering: 'pixelated', opacity: 0.85, zIndex: 1 }} />
+      ))}
       {/* montanhas distantes */}
       <div style={layer('/assets/world/bg-layer4.png', 0.12, '40vh', GROUND + 30, { opacity: 0.92 })} />
+      {/* silhueta de selva ao fundo */}
+      <div style={layer('/assets/pack01/BACKGROUNDS_01.png', 0.2, '30vh', GROUND + 6, { opacity: 0.55 })} />
       {/* pinheiros — longe → perto */}
       <div style={layer('/assets/world/bg-layer3.png', 0.28, '32vh', GROUND)} />
       <div style={layer('/assets/world/bg-layer2.png', 0.5, '38vh', GROUND)} />
       <div style={layer('/assets/world/bg-layer1.png', 0.78, '44vh', GROUND - 6)} />
 
-      {/* portão (placeholder em CSS) aparece centralizado quando há desafio */}
+      {/* árvores de meio-termo (atrás do herói) */}
+      {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
+
+      {/* portão coberto de cipós aparece quando há desafio */}
       {showGate && (
-        <div style={{ position: 'absolute', left: '50%', bottom: GROUND - 8, transform: 'translateX(-50%)', zIndex: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, filter: 'drop-shadow(0 6px 6px rgba(0,0,0,0.5))' }}>
-            <div style={{ width: 16, height: 150, background: 'linear-gradient(#5b3b1e,#3a2412)', borderRadius: 3 }} />
-            <div style={{ width: 96, height: 130, background: 'repeating-linear-gradient(90deg,#6a4524 0 8px,#4a2f17 8px 16px)', border: '3px solid #3a2412', borderRadius: '6px 6px 0 0', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 30% 20%, rgba(80,160,60,0.5), transparent 60%)' }} />
+        <div style={{
+          position: 'absolute', left: '50%', bottom: GROUND - 8, transform: 'translateX(-50%)', zIndex: 8,
+          transformOrigin: 'bottom center',
+          animation: gateOpen ? 'gate-open 1.2s ease-in forwards' : undefined,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, filter: 'drop-shadow(0 6px 8px rgba(0,0,0,0.55))' }}>
+            <div style={{ width: 18, height: 156, background: 'linear-gradient(#5b3b1e,#3a2412)', borderRadius: 3 }} />
+            <div style={{ width: 100, height: 134, background: 'repeating-linear-gradient(90deg,#6a4524 0 8px,#4a2f17 8px 16px)', border: '3px solid #3a2412', borderRadius: '8px 8px 0 0', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 30% 18%, rgba(90,180,70,0.55), transparent 62%)' }} />
+              {/* cipós pendurados */}
+              {[14, 40, 66, 88].map(x => (
+                <div key={x} style={{ position: 'absolute', top: -2, left: x, width: 4, height: 30 + (x % 20), background: '#3f7a2e', borderRadius: 3 }} />
+              ))}
             </div>
-            <div style={{ width: 16, height: 150, background: 'linear-gradient(#5b3b1e,#3a2412)', borderRadius: 3 }} />
+            <div style={{ width: 18, height: 156, background: 'linear-gradient(#5b3b1e,#3a2412)', borderRadius: 3 }} />
           </div>
         </div>
       )}
@@ -179,6 +257,12 @@ function ParallaxWorld({ bg, worldX, showGate }: { bg: SceneBg; worldX: number; 
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND, background: 'linear-gradient(#3a5a24 0 10px, #2c3f1a 10px)', boxShadow: 'inset 0 6px 12px rgba(0,0,0,0.35)' }} />
       {/* grama em primeiro plano */}
       <div style={layer('/assets/world/grass.png', 1.1, '54px', GROUND - 26, { zIndex: 12 })} />
+
+      {/* arbustos e pedras em primeiro plano (na frente do herói) */}
+      {SCENERY.filter(p => p.z >= 14).map((p, i) => <PropImg key={`f${i}`} p={p} worldX={worldX} />)}
+
+      {/* poeira de luz mágica */}
+      <LightMotes />
     </div>
   );
 }
@@ -212,9 +296,13 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const [fade, setFade] = useState<{ text?: string } | null>(null);
   const [moving, setMoving] = useState(false);
   const [frame, setFrame] = useState(0);
+  const [gateOpen, setGateOpen] = useState(false);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
+
+  // reseta o portão a cada novo beat
+  useEffect(() => { setGateOpen(false); }, [beatIndex]);
 
   // animação dos quadros do herói
   useEffect(() => {
@@ -290,7 +378,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
-      <ParallaxWorld bg={bg} worldX={worldX} showGate={beat?.t === 'question'} />
+      <ParallaxWorld bg={bg} worldX={worldX} showGate={beat?.t === 'question'} gateOpen={gateOpen} />
 
       {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} />}
 
@@ -308,7 +396,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
 
       {/* pergunta */}
       {beat?.t === 'question' && (
-        <QuestionBeat key={beatIndex} beat={beat} onSolved={advance} />
+        <QuestionBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
       )}
 
       {/* controle de caminhada */}

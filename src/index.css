@@ -132,6 +132,17 @@
     0%, 100% { transform: translate(-50%, 0); }
     50%      { transform: translate(-50%, -6px); }
   }
+  @keyframes mote-float {
+    0%   { transform: translate(0, 0); opacity: 0; }
+    20%  { opacity: 0.9; }
+    80%  { opacity: 0.7; }
+    100% { transform: translate(var(--mx, 20px), -70px); opacity: 0; }
+  }
+  @keyframes gate-open {
+    0%   { transform: scaleY(1);    opacity: 1; }
+    60%  { transform: scaleY(1.04); opacity: 0.8; }
+    100% { transform: scaleY(0.1) translateY(40px); opacity: 0; }
+  }
 
   @keyframes slide-up {
     from { transform: translateY(100%); opacity: 0; }
