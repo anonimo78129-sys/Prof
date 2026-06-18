@@ -177,6 +177,21 @@
   .heartbeat { animation: heartbeat 0.8s ease-in-out; }
 
   /* ── Logo shimmer ── */
+  /* ── Névoa pixel ── */
+  @keyframes fog-rise {
+    from { transform: translateY(0px); }
+    to   { transform: translateY(-120px); }
+  }
+  .fog-layer {
+    position: absolute;
+    left: 0; right: 0;
+    image-rendering: pixelated;
+    background-image: radial-gradient(circle, rgba(190,220,255,0.75) 1px, transparent 1px);
+    background-size: 4px 4px;
+    animation: fog-rise var(--dur) steps(60) var(--delay) infinite;
+    pointer-events: none;
+  }
+
   /* ── Screen shimmer ── */
   /* sweep dura 40% do ciclo, pausa o resto */
   @keyframes screen-shimmer {

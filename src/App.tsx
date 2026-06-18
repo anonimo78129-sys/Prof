@@ -9,6 +9,27 @@ function seeded(seed: number) {
   return x - Math.floor(x);
 }
 
+function PixelFog() {
+  const layers = useMemo(() => [
+    { bottom: '2%',  height: 72, opacity: 0.22, dur: '14s', delay: '0s'   },
+    { bottom: '6%',  height: 60, opacity: 0.16, dur: '19s', delay: '-6s'  },
+    { bottom: '11%', height: 50, opacity: 0.11, dur: '24s', delay: '-11s' },
+    { bottom: '16%', height: 40, opacity: 0.07, dur: '30s', delay: '-17s' },
+    { bottom: '21%', height: 32, opacity: 0.04, dur: '38s', delay: '-24s' },
+  ], []);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none', overflow: 'hidden' }}>
+      {layers.map((l, i) => (
+        <div key={i} className="fog-layer" style={{
+          bottom: l.bottom, height: l.height, opacity: l.opacity,
+          '--dur': l.dur, '--delay': l.delay,
+        } as React.CSSProperties} />
+      ))}
+    </div>
+  );
+}
+
 function Particles() {
   const particles = useMemo(() => Array.from({ length: 32 }, (_, i) => ({
     id: i,
@@ -97,6 +118,9 @@ export default function App() {
         backgroundRepeat: 'no-repeat',
         imageRendering: 'pixelated',
       }} />
+
+      {/* ── NÉVOA PIXEL ── */}
+      <PixelFog />
 
       {/* ── SHIMMER TELA TODA ── */}
       <div className="screen-shimmer" />
