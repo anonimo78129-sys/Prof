@@ -176,6 +176,22 @@
   }
   .heartbeat { animation: heartbeat 0.8s ease-in-out; }
 
+  /* ── Partículas flutuantes ── */
+  @keyframes particle-float {
+    0%   { transform: translateY(0px) translateX(0px); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.7; }
+    100% { transform: translateY(-100vh) translateX(var(--drift)); opacity: 0; }
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--color);
+    box-shadow: 0 0 4px var(--color), 0 0 8px var(--color);
+    animation: particle-float var(--duration) ease-in var(--delay) infinite;
+    pointer-events: none;
+  }
+
   /* ── Landing screen animations ── */
   @keyframes water-shimmer {
     0%, 100% { background-position-x: 0px; opacity: 0.80; }

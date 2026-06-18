@@ -1,6 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { GameConfig } from './types/game';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
+
+const BLUES = ['#4fc3f7', '#29b6f6', '#81d4fa', '#0288d1', '#80deea', '#40c4ff'];
+
+function seeded(seed: number) {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
+function Particles() {
+  const particles = useMemo(() => Array.from({ length: 28 }, (_, i) => ({
+    id: i,
+    left:     `${seeded(i * 7)  * 100}%`,
+    bottom:   `${seeded(i * 13) * 40}%`,
+    size:     1 + seeded(i * 3) * 2,
+    color:    BLUES[Math.floor(seeded(i * 17) * BLUES.length)],
+    duration: `${4 + seeded(i * 5) * 8}s`,
+    delay:    `${seeded(i * 11) * 6}s`,
+    drift:    `${(seeded(i * 19) - 0.5) * 80}px`,
+  })), []);
+
+  return (
+    <>
+      {particles.map(p => (
+        <div key={p.id} className="particle" style={{
+          left: p.left, bottom: p.bottom,
+          width: p.size, height: p.size,
+          '--color': p.color,
+          '--duration': p.duration,
+          '--delay': `-${p.delay}`,
+          '--drift': p.drift,
+        } as React.CSSProperties} />
+      ))}
+    </>
+  );
+}
 
 type View = 'home' | 'setup' | 'jogar';
 
@@ -62,6 +97,9 @@ export default function App() {
         backgroundRepeat: 'no-repeat',
         imageRendering: 'pixelated',
       }} />
+
+      {/* ── PARTÍCULAS ── */}
+      <Particles />
 
       {/* ── LOGO — topo ── */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none' }}>
