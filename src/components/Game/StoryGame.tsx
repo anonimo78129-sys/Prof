@@ -60,7 +60,7 @@ function DialogueBox({
 
   return (
     <div onClick={tap}
-      style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 40, cursor: 'pointer' }}>
+      style={{ position: 'absolute', left: 0, right: 0, bottom: 50, zIndex: 40, cursor: 'pointer' }}>
       <div className="panel-pixel"
         style={{ margin: '0 14px 18px', background: 'rgba(8,24,12,0.94)', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
         {who === 'corujao' && (
@@ -124,7 +124,7 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
     else setPhase('wrong');
   };
   return (
-    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 40 }}>
+    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 50, zIndex: 40 }}>
       <div className="panel-pixel"
         style={{ margin: '0 14px 18px', background: 'rgba(8,24,12,0.95)', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
         <p className="font-vt" style={{ color: '#eaf6e0', fontSize: 21, lineHeight: 1.3, marginBottom: 14 }}>
@@ -232,8 +232,8 @@ function LightMotes() {
           <div key={i} style={{
             position: 'absolute', left: `${s(7) * 100}%`, bottom: `${s(13) * 60}%`,
             width: size, height: size, borderRadius: 9,
-            background: 'radial-gradient(circle, #fff6c0, rgba(255,230,140,0.2))',
-            boxShadow: '0 0 6px 2px rgba(255,235,150,0.5)',
+            background: 'radial-gradient(circle, #b6fff4, rgba(64,224,208,0.25))',
+            boxShadow: '0 0 6px 2px rgba(64,224,208,0.6)',
             ['--mx' as string]: `${(s(19) > 0.5 ? 1 : -1) * (10 + s(23) * 40)}px`,
             animation: `mote-float ${6 + s(5) * 7}s ease-in-out ${-s(11) * 8}s infinite`,
           }} />
