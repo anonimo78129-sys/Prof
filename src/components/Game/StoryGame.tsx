@@ -264,7 +264,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
 
       {/* chão texturizado — acima da grama de primeiro plano (z=20) */}
       <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND + 10,
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10,
         zIndex: 21,
         backgroundImage: `url('/assets/world/ground-dark.png')`,
         backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
