@@ -63,6 +63,11 @@ export default function App() {
         imageRendering: 'pixelated',
       }} />
 
+      {/* ── LOGO — topo ── */}
+      <div style={{ position: 'absolute', top: 72, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none' }}>
+        <img src="/assets/logo.png" alt="Jardim Botânico" style={{ width: 220, height: 'auto' }} />
+      </div>
+
       {/* Gradiente escuro só na faixa dos botões (não cobre o personagem) */}
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: 180,
