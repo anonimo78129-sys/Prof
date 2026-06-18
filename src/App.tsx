@@ -64,7 +64,7 @@ export default function App() {
       }} />
 
       {/* ── LOGO — topo ── */}
-      <div style={{ position: 'absolute', top: 30, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', top: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none' }}>
         <img src="/assets/logo.png" alt="Jardim Botânico" style={{ width: '100%', height: 'auto' }} />
       </div>
 
