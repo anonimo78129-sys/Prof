@@ -153,11 +153,30 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
 // ─────────────────────────────────────────────────────────
 // Cenário espalhado pelo mundo: árvores ao fundo (atrás do herói) e
 // arbustos/pedras em primeiro plano (na frente). `f` = fator de parallax.
-interface Prop { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean; sway?: boolean }
+interface Prop { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean; sway?: boolean; glow?: boolean }
 
-// Props avulsos (vazio por ora — as camadas do pack já trazem toda a folhagem).
-// O mecanismo fica pronto para props futuros (cogumelos, criaturas, etc.).
-const SCENERY: Prop[] = [];
+// Flora mágica espalhada pelo mundo. `glow` adiciona um halo turquesa.
+// Plantas/cogumelos da floresta encantada — algumas atrás do herói (z<14),
+// outras em primeiro plano (14<z<20, na frente do herói mas atrás da grama z=20).
+const SCENERY: Prop[] = [
+  // ── atrás do herói (mais ao fundo) ──
+  { src: 'flora/glow-grass.png',    wx: 180,  f: 0.92, h: 56,  b: GROUND + 2, z: 8,  glow: true, sway: true },
+  { src: 'flora/flower-blue.png',   wx: 430,  f: 0.95, h: 78,  b: GROUND,     z: 8,  glow: true },
+  { src: 'flora/shroom-big.png',    wx: 700,  f: 0.96, h: 60,  b: GROUND + 2, z: 9,  glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 1020, f: 0.94, h: 72,  b: GROUND,     z: 8,  glow: true },
+  { src: 'flora/glow-grass.png',    wx: 1320, f: 0.93, h: 50,  b: GROUND + 4, z: 9,  glow: true, sway: true },
+  { src: 'flora/shroom-small.png',  wx: 1600, f: 0.95, h: 38,  b: GROUND + 2, z: 9,  glow: true },
+  { src: 'flora/flower-tulip.png',  wx: 1880, f: 0.95, h: 66,  b: GROUND,     z: 8,  glow: true },
+
+  // ── na frente do herói (primeiro plano) ──
+  { src: 'flora/shroom-big.png',    wx: 320,  f: 1.04, h: 104, b: GROUND - 8, z: 16, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 600,  f: 1.06, h: 90,  b: GROUND - 6, z: 17, glow: true, sway: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 880,  f: 1.05, h: 118, b: GROUND - 6, z: 16, glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1180, f: 1.05, h: 58,  b: GROUND - 4, z: 17, glow: true, flip: true },
+  { src: 'flora/flower-blue.png',   wx: 1480, f: 1.06, h: 112, b: GROUND - 6, z: 16, glow: true },
+  { src: 'flora/flower-tulip.png',  wx: 1760, f: 1.05, h: 96,  b: GROUND - 4, z: 17, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 2060, f: 1.06, h: 84,  b: GROUND - 6, z: 16, glow: true, sway: true },
+];
 
 // Camadas do pack "Free Pixel Art Forest" (Eder Muniz), de trás → frente.
 // A última camada (Layer_0000_9 = grama/mato) vai NA FRENTE do herói.
@@ -181,10 +200,13 @@ function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
   const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
   // não renderiza se estiver completamente fora do viewport
   if (screenX > vw + p.h || screenX < -(p.h * 2)) return null;
+  const glow = p.glow
+    ? 'drop-shadow(0 0 4px rgba(64,224,208,0.85)) drop-shadow(0 0 10px rgba(64,224,208,0.55)) drop-shadow(0 0 18px rgba(48,200,210,0.35)) '
+    : '';
   return (
     <div style={{ position: 'absolute', left: screenX, bottom: p.b, zIndex: p.z, transform: p.flip ? 'scaleX(-1)' : undefined, transformOrigin: 'bottom center' }}>
       <img src={`/assets/${p.src}`} alt="" className={p.sway ? 'tree-sway' : undefined}
-        style={{ height: p.h, width: 'auto', display: 'block', imageRendering: 'pixelated', filter: 'drop-shadow(0 6px 6px rgba(0,0,0,0.32))' }} />
+        style={{ height: p.h, width: 'auto', display: 'block', imageRendering: 'pixelated', filter: `${glow}drop-shadow(0 6px 6px rgba(0,0,0,0.32))` }} />
     </div>
   );
 }
@@ -258,8 +280,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         }} />
       ))}
 
-      {/* árvores/props avulsos atrás do herói (vazio por ora) */}
-      {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
+      {/* flora mágica — z-index decide quem fica atrás (z<14) ou na frente (14<z<20) do herói */}
+      {SCENERY.map((p, i) => <PropImg key={`flora${i}`} p={p} worldX={worldX} />)}
 
       {/* chão texturizado — acima da grama de primeiro plano (z=20) */}
       <div style={{
