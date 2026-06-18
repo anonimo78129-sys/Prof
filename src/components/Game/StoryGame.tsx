@@ -234,7 +234,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
   });
 
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#5a6f8c' }}>
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#5a6f8c' }}>
       {/* camadas da floresta (trás → frente, atrás do herói) */}
       {FOREST_LAYERS.map((l, i) => (
         <div key={l.src} style={fxLayer(l.src, l.f, i + 1)} />
@@ -248,7 +248,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
         <div style={{
           position: 'absolute',
           left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
-          bottom: FLOOR + GROUND - 4, zIndex: 12, transform: 'translateX(-50%)',
+          bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)',
         }}>
           <div style={{ transformOrigin: 'bottom center', animation: gateOpen ? 'gate-open 1.2s ease-in forwards' : undefined }}>
             <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.3), transparent 65%)', filter: 'blur(4px)' }} />
