@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { GameConfig } from './types/game';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import StoryGame from './components/Game/StoryGame';
+import IntroSequence from './components/Game/IntroSequence';
 
 function seeded(seed: number) {
   const x = Math.sin(seed + 1) * 10000;
@@ -50,7 +51,7 @@ function Fireflies() {
   );
 }
 
-type View = 'home' | 'setup' | 'jogar';
+type View = 'home' | 'intro' | 'setup' | 'jogar';
 
 export default function App() {
   const [view, setView] = useState<View>('home');
@@ -75,6 +76,11 @@ export default function App() {
         onGameCreated={(_config: GameConfig) => { goHome(); }}
       />
     );
+  }
+
+  // ── INTRO — sequência ilustrada antes do jogo ──
+  if (view === 'intro') {
+    return <IntroSequence onDone={() => setView('jogar')} />;
   }
 
   // ── JOGAR — aventura narrativa (visual novel + caminhada) ──
@@ -138,7 +144,7 @@ export default function App() {
         gap: 14, padding: '0 32px 127px',
       }}>
         <button
-          onClick={() => setView('jogar')}
+          onClick={() => setView('intro')}
           className="btn-game font-pixel w-full"
           style={{ background: 'linear-gradient(to bottom, #5ad22a, #2f9410)', fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
         >

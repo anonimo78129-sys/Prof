@@ -2,15 +2,7 @@ import type { Beat, StoryScript } from './types';
 
 const beats: Beat[] = [
 
-  // ── ATO 0 — Despertar ──
-  { t: 'scene', bg: 'noite' },
-  { t: 'say', who: 'estudante', lines: [
-    'Faltam 3 dias para a prova final... e eu mal dormi essa semana.',
-    'Só um cochilo rápido...',
-  ] },
-  { t: 'fade', text: '...' },
-
-  // ── ATO 1 — O Portão ──
+  // ── ATO 1 — O Portão (a intro ilustrada cobre o Ato 0) ──
   { t: 'scene', bg: 'floresta' },
   { t: 'say', who: 'estudante', lines: [
     'O que é este lugar...?',
