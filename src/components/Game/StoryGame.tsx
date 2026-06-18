@@ -240,7 +240,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
         <div key={l.src} style={fxLayer(l.src, l.f, i + 1)} />
       ))}
 
-      {/* nuvens — acima da copa, abaixo do céu */}
+      {/* nuvens — acima de todas as camadas de floresta (z=11), ficam no céu */}
       {[
         { src: 'cloud1.png', f: 0.04, topPx: 14, h: 52, offset: 0,   op: 0.55 },
         { src: 'cloud2.png', f: 0.06, topPx: 44, h: 42, offset: 340, op: 0.45 },
@@ -248,7 +248,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
       ].map(c => (
         <div key={c.src} style={{
           position: 'absolute', left: 0, right: 0, top: 0, height: '45%',
-          zIndex: 1,
+          zIndex: 12,
           backgroundImage: `url('/assets/world/${c.src}')`,
           backgroundRepeat: 'repeat-x', backgroundSize: `auto ${c.h}px`,
           backgroundPositionX: `${Math.round(-worldX * c.f - c.offset)}px`,
