@@ -3,7 +3,7 @@ import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 
 const FLOOR = 150;           // faixa reservada no rodapé p/ a caixa de texto e botões
-const GROUND = 24;           // altura do chão dentro do mundo (acima da faixa FLOOR)
+const GROUND = 34;           // altura do chão dentro do mundo (acima da faixa FLOOR)
 const GATE_AHEAD = 24;       // o portão para um pouco à frente de onde o herói chega
 const WALK_SPEED = 230;      // px/seg que o herói anda
 
