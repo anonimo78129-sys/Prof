@@ -65,7 +65,7 @@ export default function App() {
 
       {/* ── LOGO — topo ── */}
       <div style={{ position: 'absolute', top: 72, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none' }}>
-        <img src="/assets/logo.png" alt="Jardim Botânico" style={{ width: 220, height: 'auto' }} />
+        <img src="/assets/logo.png" alt="Jardim Botânico" style={{ width: '100%', height: 'auto' }} />
       </div>
 
       {/* Gradiente escuro só na faixa dos botões (não cobre o personagem) */}
