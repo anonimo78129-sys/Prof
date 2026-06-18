@@ -482,7 +482,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
 
       {/* D-pad de caminhada — lado esquerdo */}
       {beat?.t === 'walk' && (
-        <div style={{ position: 'absolute', left: 22, bottom: FLOOR - 12, zIndex: 45, display: 'flex', gap: 10 }}>
+        <div style={{ position: 'absolute', left: 22, bottom: FLOOR - 62, zIndex: 45, display: 'flex', gap: 10 }}>
           <button
             onPointerDown={startWalkBackward} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             className="font-pixel"
@@ -501,7 +501,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       {beat?.t === 'walk' && nearby && !gateOpen && (
         <button onClick={advance}
           className="font-pixel"
-          style={{ position: 'absolute', right: 22, bottom: FLOOR - 12, zIndex: 45, width: 110, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite' }}>
+          style={{ position: 'absolute', right: 22, bottom: FLOOR - 62, zIndex: 45, width: 110, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite' }}>
           OK ✔
         </button>
       )}
