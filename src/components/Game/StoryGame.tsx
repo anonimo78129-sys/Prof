@@ -262,10 +262,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
       {/* árvores/props avulsos atrás do herói (vazio por ora) */}
       {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
 
-      {/* chão texturizado — rola junto com o primeiro plano */}
+      {/* chão texturizado — acima da grama de primeiro plano (z=20) */}
       <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND + 30,
-        zIndex: 13,
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND + 40,
+        zIndex: 21,
         backgroundImage: `url('/assets/world/ground-dark.png')`,
         backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
         backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
@@ -451,6 +451,14 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
       <ImagePreloader />
+      {/* cobre o verde do body na faixa do FLOOR (abaixo do mundo) */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
+        backgroundImage: "url('/assets/world/ground-dark.png')",
+        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+        backgroundPositionX: `${Math.round(-worldX)}px`,
+        imageRendering: 'pixelated',
+      }} />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} landmarkAnchor={landmarkAnchor} nearby={nearby} />
 
       {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} facing={facing} />}
