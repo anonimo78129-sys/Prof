@@ -10,27 +10,27 @@ function seeded(seed: number) {
 }
 
 function Particles() {
-  const particles = useMemo(() => Array.from({ length: 28 }, (_, i) => ({
+  const particles = useMemo(() => Array.from({ length: 32 }, (_, i) => ({
     id: i,
     left:     `${seeded(i * 7)  * 100}%`,
-    bottom:   `${seeded(i * 13) * 40}%`,
+    top:      `${seeded(i * 13) * 100}%`,
     size:     1 + seeded(i * 3) * 2,
     color:    BLUES[Math.floor(seeded(i * 17) * BLUES.length)],
-    duration: `${4 + seeded(i * 5) * 8}s`,
-    delay:    `${seeded(i * 11) * 6}s`,
-    drift:    `${(seeded(i * 19) - 0.5) * 80}px`,
+    duration: `${10 + seeded(i * 5) * 14}s`,
+    delay:    `-${seeded(i * 11) * 12}s`,
+    wind:     `${(seeded(i * 19) > 0.5 ? 1 : -1) * (40 + seeded(i * 23) * 80)}px`,
   })), []);
 
   return (
     <>
       {particles.map(p => (
         <div key={p.id} className="particle" style={{
-          left: p.left, bottom: p.bottom,
+          left: p.left, top: p.top,
           width: p.size, height: p.size,
           '--color': p.color,
           '--duration': p.duration,
-          '--delay': `-${p.delay}`,
-          '--drift': p.drift,
+          '--delay': p.delay,
+          '--wind': p.wind,
         } as React.CSSProperties} />
       ))}
     </>

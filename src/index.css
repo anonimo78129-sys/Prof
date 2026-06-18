@@ -176,19 +176,21 @@
   }
   .heartbeat { animation: heartbeat 0.8s ease-in-out; }
 
-  /* ── Partículas flutuantes ── */
-  @keyframes particle-float {
-    0%   { transform: translateY(0px) translateX(0px); opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 0.7; }
-    100% { transform: translateY(-100vh) translateX(var(--drift)); opacity: 0; }
+  /* ── Partículas flutuantes — brisa ── */
+  @keyframes particle-breeze {
+    0%   { transform: translate(0, 0);                             opacity: 0; }
+    12%  { opacity: 1; }
+    30%  { transform: translate(calc(var(--wind) * 0.28), -12px); }
+    55%  { transform: translate(calc(var(--wind) * 0.60),   8px); }
+    78%  { transform: translate(calc(var(--wind) * 0.85), -6px);  opacity: 0.8; }
+    100% { transform: translate(var(--wind), 4px);                 opacity: 0; }
   }
   .particle {
     position: absolute;
     border-radius: 50%;
     background: var(--color);
-    box-shadow: 0 0 4px var(--color), 0 0 8px var(--color);
-    animation: particle-float var(--duration) ease-in var(--delay) infinite;
+    box-shadow: 0 0 5px var(--color), 0 0 10px var(--color);
+    animation: particle-breeze var(--duration) ease-in-out var(--delay) infinite;
     pointer-events: none;
   }
 
