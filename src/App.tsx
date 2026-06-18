@@ -3,36 +3,47 @@ import type { GameConfig } from './types/game';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import StoryGame from './components/Game/StoryGame';
 
-const BLUES = ['#4fc3f7', '#29b6f6', '#81d4fa', '#0288d1', '#80deea', '#40c4ff'];
-
 function seeded(seed: number) {
   const x = Math.sin(seed + 1) * 10000;
   return x - Math.floor(x);
 }
 
-
-function Particles() {
-  const particles = useMemo(() => Array.from({ length: 32 }, (_, i) => ({
-    id: i,
-    left:     `${seeded(i * 7)  * 100}%`,
-    top:      `${seeded(i * 13) * 100}%`,
-    size:     1 + seeded(i * 3) * 2,
-    color:    BLUES[Math.floor(seeded(i * 17) * BLUES.length)],
-    duration: `${10 + seeded(i * 5) * 14}s`,
-    delay:    `-${seeded(i * 11) * 12}s`,
-    wind:     `${(seeded(i * 19) > 0.5 ? 1 : -1) * (40 + seeded(i * 23) * 80)}px`,
-  })), []);
+// Vaga-lumes turquesa fluorescentes: tamanhos 1–5 px, movimento errante orgânico
+function Fireflies() {
+  const flies = useMemo(() => Array.from({ length: 38 }, (_, i) => {
+    const size = 1 + seeded(i * 3) * 4;          // 1–5 px
+    const bright = 0.7 + seeded(i * 29) * 0.3;   // brilho variado
+    return {
+      id: i,
+      left:     `${seeded(i * 7) * 100}%`,
+      top:      `${seeded(i * 13) * 85}%`,        // não vai no rodapé dos botões
+      size,
+      // pulsar suave: alterna opacidade
+      pulseDur: `${1.4 + seeded(i * 41) * 2.6}s`,
+      pulseDelay: `-${seeded(i * 17) * 3}s`,
+      // deriva pelo espaço
+      driftDur:  `${9 + seeded(i * 5) * 14}s`,
+      driftDelay: `-${seeded(i * 11) * 12}s`,
+      driftX:    `${(seeded(i * 19) > 0.5 ? 1 : -1) * (18 + seeded(i * 23) * 55)}px`,
+      driftY:    `${(seeded(i * 31) > 0.5 ? 1 : -1) * (10 + seeded(i * 37) * 35)}px`,
+      glow: `0 0 ${Math.round(size * 2)}px rgba(64,224,208,${(bright * 0.9).toFixed(2)}), 0 0 ${Math.round(size * 5)}px rgba(64,224,208,${(bright * 0.55).toFixed(2)}), 0 0 ${Math.round(size * 10)}px rgba(32,200,200,${(bright * 0.3).toFixed(2)})`,
+    };
+  }), []);
 
   return (
     <>
-      {particles.map(p => (
-        <div key={p.id} className="particle" style={{
-          left: p.left, top: p.top,
-          width: p.size, height: p.size,
-          '--color': p.color,
-          '--duration': p.duration,
-          '--delay': p.delay,
-          '--wind': p.wind,
+      {flies.map(f => (
+        <div key={f.id} style={{
+          position: 'absolute',
+          left: f.left, top: f.top,
+          width: f.size, height: f.size,
+          borderRadius: '50%',
+          background: `radial-gradient(circle, #e0fffa, #40e0d0)`,
+          boxShadow: f.glow,
+          pointerEvents: 'none',
+          animation: `firefly-drift ${f.driftDur} ease-in-out ${f.driftDelay} infinite, firefly-pulse ${f.pulseDur} ease-in-out ${f.pulseDelay} infinite`,
+          '--dx': f.driftX,
+          '--dy': f.driftY,
         } as React.CSSProperties} />
       ))}
     </>
@@ -78,7 +89,7 @@ export default function App() {
       {/* ── ARTE DE FUNDO (768×1376) ── */}
       <div style={{
         position: 'absolute', inset: 0,
-        backgroundImage: "url('/assets/landing-bg.jpg')",
+        backgroundImage: "url('/assets/landing-bg.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
@@ -90,8 +101,8 @@ export default function App() {
       {/* ── SHIMMER TELA TODA ── */}
       <div className="screen-shimmer" />
 
-      {/* ── PARTÍCULAS ── */}
-      <Particles />
+      {/* ── VAGA-LUMES ── */}
+      <Fireflies />
 
       {/* ── LOGO — topo ── */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none' }}>

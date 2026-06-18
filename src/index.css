@@ -178,12 +178,22 @@
   }
   .fragment-float { animation: fragment-float 2.5s ease-in-out infinite; }
 
-  /* Firefly glow */
+  /* Firefly glow pulse */
   @keyframes firefly-pulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50%       { opacity: 1; transform: scale(1.25); }
+    0%, 100% { opacity: 0.25; transform: scale(0.85); }
+    40%       { opacity: 1;    transform: scale(1.3); }
+    60%       { opacity: 0.9;  transform: scale(1.1); }
   }
   .firefly-pulse { animation: firefly-pulse 1.4s ease-in-out infinite; }
+
+  /* Firefly erratic drift — usa --dx / --dy definidos inline */
+  @keyframes firefly-drift {
+    0%   { translate: 0 0; }
+    25%  { translate: calc(var(--dx) * 0.5) calc(var(--dy) * -0.7); }
+    50%  { translate: var(--dx) 0; }
+    75%  { translate: calc(var(--dx) * 0.3) var(--dy); }
+    100% { translate: 0 0; }
+  }
 
   /* Crystal glow */
   @keyframes crystal-glow {
