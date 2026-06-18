@@ -307,7 +307,7 @@ function WakeUpHero({ frame }: { frame: number }) {
   return (
     <img src={`/assets/chars/wakeup-${frame}.png`} alt="herói acordando"
       style={{
-        position: 'absolute', left: '34%', bottom: FLOOR + GROUND, zIndex: 14,
+        position: 'absolute', left: '34%', bottom: FLOOR + GROUND + HERO_LIFT, zIndex: 14,
         height: 88, width: 'auto', imageRendering: 'pixelated',
         transform: 'translateX(-50%)',
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
