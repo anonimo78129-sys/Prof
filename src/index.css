@@ -176,6 +176,31 @@
   }
   .heartbeat { animation: heartbeat 0.8s ease-in-out; }
 
+  /* ── Logo shimmer ── */
+  /* sweep dura 22% do ciclo total (≈1s), depois pausa 3s invisível */
+  @keyframes logo-shimmer {
+    0%   { transform: translateX(-200%) skewX(-18deg); }
+    22%  { transform: translateX(300%)  skewX(-18deg); }
+    100% { transform: translateX(300%)  skewX(-18deg); }
+  }
+  .logo-shimmer-wrap {
+    position: relative;
+    overflow: hidden;
+  }
+  .logo-shimmer-sweep {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      rgba(255,255,255,0.5) 50%,
+      transparent 70%
+    );
+    animation: logo-shimmer 4.5s ease-in-out infinite;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
   /* ── Partículas flutuantes — brisa ── */
   @keyframes particle-breeze {
     0%   { transform: translate(0, 0);                             opacity: 0; }
