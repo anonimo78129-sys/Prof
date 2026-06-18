@@ -255,8 +255,14 @@ function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX
         </div>
       )}
 
-      {/* chão */}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND, background: 'linear-gradient(#3a5a24 0 10px, #2c3f1a 10px)', boxShadow: 'inset 0 6px 12px rgba(0,0,0,0.35)' }} />
+      {/* chão — textura de terra do SunnyLand */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND,
+        backgroundImage: "url('/assets/sunnyland/dirt-tile.png')",
+        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+        backgroundPositionY: 'bottom', imageRendering: 'pixelated',
+        boxShadow: 'inset 0 6px 14px rgba(0,0,0,0.4)',
+      }} />
       {/* grama em primeiro plano */}
       <div style={layer('/assets/world/grass.png', 1.1, '54px', GROUND - 11, { zIndex: 12 })} />
 
