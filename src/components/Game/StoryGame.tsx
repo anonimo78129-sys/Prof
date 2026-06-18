@@ -309,7 +309,7 @@ function WakeUpHero({ frame }: { frame: number }) {
     <img src={`/assets/chars/wakeup-${frame}.png`} alt="herói acordando"
       style={{
         position: 'absolute', left: '34%', bottom: FLOOR + GROUND, zIndex: 14,
-        height: 140, width: 'auto', imageRendering: 'pixelated',
+        height: 88, width: 'auto', imageRendering: 'pixelated',
         transform: 'translateX(-50%)',
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
       }} />
@@ -324,7 +324,7 @@ function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facin
     <img src={src} alt="herói"
       style={{
         position: 'absolute', left: '34%', bottom: FLOOR + GROUND, zIndex: 14,
-        height: 140, width: 'auto', imageRendering: 'pixelated',
+        height: 126, width: 'auto', imageRendering: 'pixelated',
         transform: `translateX(-50%) scaleX(${facing})`,
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
       }} />
