@@ -17,11 +17,7 @@ function ImagePreloader() {
     ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
     `/assets/forest/${FOREST_FOREGROUND.src}`,
     '/assets/sunnyland/door.png',
-    '/assets/sunnyland/player-idle-1.png', '/assets/sunnyland/player-idle-2.png',
-    '/assets/sunnyland/player-idle-3.png', '/assets/sunnyland/player-idle-4.png',
-    '/assets/sunnyland/player-run-1.png', '/assets/sunnyland/player-run-2.png',
-    '/assets/sunnyland/player-run-3.png', '/assets/sunnyland/player-run-4.png',
-    '/assets/sunnyland/player-run-5.png', '/assets/sunnyland/player-run-6.png',
+    '/assets/chars/player-walk-1.png', '/assets/chars/player-walk-2.png', '/assets/chars/player-walk-3.png',
   ];
   return (
     <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
@@ -307,16 +303,17 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
 // Herói
 // ─────────────────────────────────────────────────────────
 function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facing: number }) {
+  // walk: 3 frames do personagem; idle: frame 1 como placeholder até chegar a animação de respirar
   const src = moving
-    ? `/assets/sunnyland/player-run-${(frame % 6) + 1}.png`
-    : `/assets/sunnyland/player-idle-${(frame % 4) + 1}.png`;
+    ? `/assets/chars/player-walk-${(frame % 3) + 1}.png`
+    : `/assets/chars/player-walk-1.png`;
   return (
     <img src={src} alt="herói"
       style={{
         position: 'absolute', left: '34%', bottom: FLOOR + GROUND, zIndex: 14,
-        height: 92, width: 'auto', imageRendering: 'pixelated',
+        height: 140, width: 'auto', imageRendering: 'pixelated',
         transform: `translateX(-50%) scaleX(${facing})`,
-        filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.4))',
+        filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
       }} />
   );
 }
