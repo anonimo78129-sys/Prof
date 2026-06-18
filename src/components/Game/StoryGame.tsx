@@ -344,7 +344,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
 
   // animação dos quadros do herói
   useEffect(() => {
-    const id = setInterval(() => setFrame(f => f + 1), moving ? 95 : 240);
+    const id = setInterval(() => setFrame(f => f + 1), moving ? 180 : 240);
     return () => clearInterval(id);
   }, [moving]);
 
