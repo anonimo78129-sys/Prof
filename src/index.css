@@ -283,6 +283,12 @@
   }
   .tree-sway { animation: tree-sway 4s ease-in-out infinite; transform-origin: bottom center; }
 
+  /* ── Flora sway (vento suave, balança a planta inteira) ── */
+  @keyframes flora-sway {
+    0%, 100% { transform: rotate(-1.4deg); }
+    50%       { transform: rotate(1.4deg); }
+  }
+
   /* ── Map node ── */
   @keyframes map-node-pulse {
     0%, 100% { box-shadow: 5px 5px 0 #3a2010; }

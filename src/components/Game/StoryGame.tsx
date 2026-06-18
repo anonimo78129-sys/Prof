@@ -130,15 +130,14 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
         <p className="font-vt" style={{ color: '#eaf6e0', fontSize: 21, lineHeight: 1.3, marginBottom: 14 }}>
           {beat.q.text}
         </p>
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div style={{ display: 'grid', gap: 8 }}>
           {beat.q.options.map((opt, i) => (
             <button key={i} onClick={() => answer(i)}
               className="font-vt"
               style={{
-                textAlign: 'left', padding: '12px 16px', fontSize: 18,
-                color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)',
-                border: '4px solid #0d2a0d', borderRadius: 12,
-                boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer',
+                textAlign: 'left', padding: '10px 14px', fontSize: 18,
+                color: '#eaf6e0', background: 'rgba(30,70,38,0.9)',
+                border: '2px solid #2f6b34', borderRadius: 6, cursor: 'pointer',
               }}>
               {String.fromCharCode(65 + i)}. {opt}
             </button>
@@ -164,30 +163,30 @@ interface Prop { src: string; wx: number; f: number; h: number; b: number; z: nu
 const FLORA_B = GROUND - 4;
 const SCENERY: Prop[] = [
   // ── fundo profundo (entre as camadas da floresta) ──
-  { src: 'flora/glow-grass.png',    wx: 260,  f: 0.5,  h: 13, b: FLORA_B, z: 4, glow: true, sway: true },
-  { src: 'flora/flower-blue.png',   wx: 560,  f: 0.55, h: 16, b: FLORA_B, z: 4, glow: true },
-  { src: 'flora/shroom-big.png',    wx: 900,  f: 0.6,  h: 14, b: FLORA_B, z: 5, glow: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 1240, f: 0.52, h: 15, b: FLORA_B, z: 4, glow: true },
-  { src: 'flora/shroom-small.png',  wx: 1560, f: 0.58, h: 11, b: FLORA_B, z: 5, glow: true },
-  { src: 'flora/glow-grass.png',    wx: 1900, f: 0.5,  h: 13, b: FLORA_B, z: 4, glow: true, sway: true, flip: true },
+  { src: 'flora/glow-grass.png',    wx: 260,  f: 0.5,  h: 12, b: FLORA_B, z: 4, glow: true },
+  { src: 'flora/flower-blue.png',   wx: 560,  f: 0.55, h: 14, b: FLORA_B, z: 4, glow: true },
+  { src: 'flora/shroom-big.png',    wx: 900,  f: 0.6,  h: 13, b: FLORA_B, z: 5, glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 1240, f: 0.52, h: 14, b: FLORA_B, z: 4, glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1560, f: 0.58, h: 10, b: FLORA_B, z: 5, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 1900, f: 0.5,  h: 12, b: FLORA_B, z: 4, glow: true, flip: true },
 
   // ── atrás do herói (mais ao fundo) ──
-  { src: 'flora/glow-grass.png',    wx: 180,  f: 0.92, h: 22, b: FLORA_B, z: 8,  glow: true, sway: true },
-  { src: 'flora/flower-blue.png',   wx: 430,  f: 0.95, h: 31, b: FLORA_B, z: 8,  glow: true },
-  { src: 'flora/shroom-big.png',    wx: 700,  f: 0.96, h: 24, b: FLORA_B, z: 9,  glow: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 1020, f: 0.94, h: 29, b: FLORA_B, z: 8,  glow: true },
-  { src: 'flora/glow-grass.png',    wx: 1320, f: 0.93, h: 20, b: FLORA_B, z: 9,  glow: true, sway: true },
-  { src: 'flora/shroom-small.png',  wx: 1600, f: 0.95, h: 15, b: FLORA_B, z: 9,  glow: true },
-  { src: 'flora/flower-tulip.png',  wx: 1880, f: 0.95, h: 26, b: FLORA_B, z: 8,  glow: true },
+  { src: 'flora/glow-grass.png',    wx: 180,  f: 0.92, h: 20, b: FLORA_B, z: 8,  glow: true },
+  { src: 'flora/flower-blue.png',   wx: 430,  f: 0.95, h: 28, b: FLORA_B, z: 8,  glow: true },
+  { src: 'flora/shroom-big.png',    wx: 700,  f: 0.96, h: 22, b: FLORA_B, z: 9,  glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 1020, f: 0.94, h: 26, b: FLORA_B, z: 8,  glow: true },
+  { src: 'flora/glow-grass.png',    wx: 1320, f: 0.93, h: 18, b: FLORA_B, z: 9,  glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1600, f: 0.95, h: 14, b: FLORA_B, z: 9,  glow: true },
+  { src: 'flora/flower-tulip.png',  wx: 1880, f: 0.95, h: 23, b: FLORA_B, z: 8,  glow: true },
 
   // ── na frente do herói (primeiro plano) ──
-  { src: 'flora/shroom-big.png',    wx: 320,  f: 1.04, h: 42, b: FLORA_B, z: 16, glow: true },
-  { src: 'flora/glow-grass.png',    wx: 600,  f: 1.06, h: 36, b: FLORA_B, z: 17, glow: true, sway: true, flip: true },
-  { src: 'flora/flower-purple.png', wx: 880,  f: 1.05, h: 47, b: FLORA_B, z: 16, glow: true },
-  { src: 'flora/shroom-small.png',  wx: 1180, f: 1.05, h: 23, b: FLORA_B, z: 17, glow: true, flip: true },
-  { src: 'flora/flower-blue.png',   wx: 1480, f: 1.06, h: 45, b: FLORA_B, z: 16, glow: true },
-  { src: 'flora/flower-tulip.png',  wx: 1760, f: 1.05, h: 38, b: FLORA_B, z: 17, glow: true },
-  { src: 'flora/glow-grass.png',    wx: 2060, f: 1.06, h: 34, b: FLORA_B, z: 16, glow: true, sway: true },
+  { src: 'flora/shroom-big.png',    wx: 320,  f: 1.04, h: 38, b: FLORA_B, z: 16, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 600,  f: 1.06, h: 32, b: FLORA_B, z: 17, glow: true, flip: true },
+  { src: 'flora/flower-purple.png', wx: 880,  f: 1.05, h: 42, b: FLORA_B, z: 16, glow: true },
+  { src: 'flora/shroom-small.png',  wx: 1180, f: 1.05, h: 21, b: FLORA_B, z: 17, glow: true, flip: true },
+  { src: 'flora/flower-blue.png',   wx: 1480, f: 1.06, h: 40, b: FLORA_B, z: 16, glow: true },
+  { src: 'flora/flower-tulip.png',  wx: 1760, f: 1.05, h: 34, b: FLORA_B, z: 17, glow: true },
+  { src: 'flora/glow-grass.png',    wx: 2060, f: 1.06, h: 31, b: FLORA_B, z: 16, glow: true },
 ];
 
 // Camadas do pack "Free Pixel Art Forest" (Eder Muniz), de trás → frente.
@@ -215,10 +214,18 @@ function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
   const glow = p.glow
     ? 'drop-shadow(0 0 4px rgba(64,224,208,0.85)) drop-shadow(0 0 10px rgba(64,224,208,0.55)) drop-shadow(0 0 18px rgba(48,200,210,0.35)) '
     : '';
+  // balanço suave com duração/atraso variados por posição (sem sincronizar)
+  const dur = 3.4 + (p.wx % 5) * 0.45;
+  const delay = (p.wx % 7) * 0.4;
   return (
     <div style={{ position: 'absolute', left: screenX, bottom: p.b, zIndex: p.z, transform: p.flip ? 'scaleX(-1)' : undefined, transformOrigin: 'bottom center' }}>
-      <img src={`/assets/${p.src}`} alt="" className={p.sway ? 'tree-sway' : undefined}
-        style={{ height: p.h, width: 'auto', display: 'block', imageRendering: 'pixelated', filter: `${glow}drop-shadow(0 6px 6px rgba(0,0,0,0.32))` }} />
+      <img src={`/assets/${p.src}`} alt=""
+        style={{
+          height: p.h, width: 'auto', display: 'block', imageRendering: 'pixelated',
+          filter: `${glow}drop-shadow(0 6px 6px rgba(0,0,0,0.32))`,
+          transformOrigin: 'bottom center',
+          animation: `flora-sway ${dur.toFixed(2)}s ease-in-out ${delay.toFixed(2)}s infinite`,
+        }} />
     </div>
   );
 }
