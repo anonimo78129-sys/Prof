@@ -41,19 +41,12 @@ const beats: Beat[] = [
   ] },
 
   // ── ATO 2 — A Clareira ──
-  { t: 'say', who: 'corujao', lines: [
-    'Bem-vindo, jovem.',
-    'Pode me chamar de Prof. Corujão.',
-    'Reparou que o jardim reagiu quando você respondeu certo?',
-  ] },
   { t: 'say', who: 'estudante', lines: [
-    'Reagiu? As plantas... elas me ouviram?',
-    'Como isso é possível?',
+    'Espera... o jardim mudou quando eu acertei.',
+    'As plantas... elas reagiram.',
   ] },
-  { t: 'say', who: 'corujao', lines: [
-    'Este lugar é diferente de tudo que você conhece.',
-    'Cada resposta certa revela um fragmento do que aconteceu aqui.',
-    'Continue. Ainda há muito pela frente.',
+  { t: 'say', who: 'narrador', lines: [
+    'A clareira pulsa suavemente, como se respirasse.',
   ] },
   { t: 'walk', dist: 850, hint: 'Atravesse a clareira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
@@ -80,17 +73,8 @@ const beats: Beat[] = [
     'Caramba, que alto...',
     'Nunca vi uma macieira assim.',
   ] },
-  { t: 'say', who: 'corujao', lines: [
-    'Ela tem quase duzentos anos.',
-    'E ainda produz frutos. Sabe por que isso importa?',
-  ] },
-  { t: 'say', who: 'estudante', lines: [
-    'Os frutos... servem para alimentação?',
-  ] },
-  { t: 'say', who: 'corujao', lines: [
-    'Muito mais do que isso.',
-    'O fruto é o veículo. A semente é a mensagem.',
-    'Cada planta encontrou um modo de enviar sua herança para longe.',
+  { t: 'say', who: 'narrador', lines: [
+    'O tronco parece pulsar — como se algo dentro dele estivesse acordando.',
   ] },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
@@ -119,11 +103,6 @@ const beats: Beat[] = [
   { t: 'say', who: 'estudante', lines: [
     'Esse tronco... está vivo, como um coração pulsante!',
     'Esse lugar parece ter vida própria!',
-  ] },
-  { t: 'say', who: 'corujao', lines: [
-    'Você está começando a entender.',
-    'As árvores daqui não estão apenas vivas.',
-    'Elas estão... conectadas.',
   ] },
   { t: 'fade', text: 'Continua...' },
 
