@@ -353,8 +353,8 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   // herói está perto o suficiente do portão para apertar OK
   const nearby = landmarkAnchor != null && (landmarkAnchor - worldX) < 200;
 
-  // reseta o portão a cada novo beat
-  useEffect(() => { setGateOpen(false); setGateFrame(0); }, [beatIndex]);
+  // reseta o portão só na mudança de cena (tratado no effect de beats automáticos)
+  useEffect(() => { setGateOpen(false); }, [beatIndex]);
 
   // animação de abertura: fechado → entreaberto → aberto
   useEffect(() => {
@@ -411,9 +411,10 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       }
       // sem landmark: mantém o portão visível (sai de cena naturalmente ao rolar)
     } else if (beat?.t === 'scene') {
-      // nova cena: limpa tudo
+      // nova cena: limpa portão e âncora
       targetRef.current = null;
       setLandmarkAnchor(null);
+      setGateFrame(0);
     } else {
       targetRef.current = null;
       // say / question / fade: portão permanece no mundo
