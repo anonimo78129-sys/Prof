@@ -408,12 +408,15 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       targetRef.current = worldX + beat.dist;
       if (beat.landmark) {
         setLandmarkAnchor(worldX + beat.dist - GATE_AHEAD);
-      } else {
-        setLandmarkAnchor(null);
       }
-    } else {
+      // sem landmark: mantém o portão visível (sai de cena naturalmente ao rolar)
+    } else if (beat?.t === 'scene') {
+      // nova cena: limpa tudo
       targetRef.current = null;
       setLandmarkAnchor(null);
+    } else {
+      targetRef.current = null;
+      // say / question / fade: portão permanece no mundo
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beatIndex]);
