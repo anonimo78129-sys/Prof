@@ -14,8 +14,10 @@ export type Beat =
   | { t: 'scene'; bg: SceneBg }
   // Transição em fade (com texto opcional centralizado)
   | { t: 'fade'; text?: string }
-  // O jogador caminha pelo mundo até avançar `dist` px; depois segue o roteiro
-  | { t: 'walk'; dist: number; hint?: string }
+  // O jogador caminha livremente (← →) dentro do segmento de `dist` px.
+  // Se houver `landmark`, ao chegar ao fim aparece o indicador + botão OK
+  // para entrar na fase; sem landmark, o OK apenas segue o roteiro.
+  | { t: 'walk'; dist: number; hint?: string; landmark?: 'gate' }
   // Um objeto surge no caminho e propõe uma pergunta
   | {
       t: 'question';

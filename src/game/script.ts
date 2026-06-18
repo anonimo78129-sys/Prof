@@ -26,7 +26,7 @@ const beats: Beat[] = [
     'O que é este lugar...?',
     'Não lembro de como cheguei aqui.',
   ] },
-  { t: 'walk', dist: 900, hint: 'Explorar →' },
+  { t: 'walk', dist: 900, hint: 'Explore a floresta', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'O que é aquilo?',
     'Ué, um portão??',
@@ -39,7 +39,7 @@ const beats: Beat[] = [
     ],
     hint: 'As plantas bebem pela base, escondida na terra. Pense no que as sustenta firme no solo.',
   },
-  { t: 'walk', dist: 700, hint: 'Seguir →' },
+  { t: 'walk', dist: 700, hint: 'Siga em frente' },
   { t: 'say', who: 'estudante', lines: [
     'Não vejo ninguém aqui.',
     'Uma clareira sem saída!?',

@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 
-const GROUND = 44;           // linha de chão (px do rodapé) — onde o herói pisa
+const FLOOR = 150;           // faixa reservada no rodapé p/ a caixa de texto e botões
+const GROUND = 14;           // altura do chão dentro do mundo (acima da faixa FLOOR)
+const GATE_AHEAD = 24;       // o portão para um pouco à frente de onde o herói chega
 const WALK_SPEED = 230;      // px/seg que o herói anda
 
 // Pré-carrega todas as imagens dos props/layers no início para
@@ -207,7 +209,7 @@ function LightMotes() {
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; gateOpen: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: SceneBg; worldX: number; gateOpen: boolean; landmarkAnchor: number | null; nearby: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -223,7 +225,7 @@ function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; 
     );
   }
 
-  const fxLayer = (src: string, factor: number, z: number, extra?: React.CSSProperties): React.CSSProperties => ({
+  const fxLayer = (src: string, factor: number, z: number, extra?: CSSProperties): CSSProperties => ({
     position: 'absolute', inset: 0, zIndex: z,
     backgroundImage: `url('/assets/forest/${src}')`,
     backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
@@ -241,20 +243,25 @@ function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; 
       {/* árvores/props avulsos atrás do herói (vazio por ora) */}
       {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
 
-      {/* portão — fixo no mundo, aparece conforme o herói se aproxima (placeholder) */}
-      {!gateOpen && (
+      {/* portão (placeholder) — plantado no mundo; chega à frente do herói */}
+      {landmarkAnchor != null && (
         <div style={{
           position: 'absolute',
-          left: Math.round(880 - worldX * 0.96),
-          bottom: GROUND - 4, zIndex: 12,
-          transformOrigin: 'bottom center',
+          left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
+          bottom: FLOOR + GROUND - 4, zIndex: 12, transform: 'translateX(-50%)',
         }}>
-          <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.28), transparent 65%)', filter: 'blur(4px)' }} />
-          <img src="/assets/sunnyland/door.png" alt="portão"
-            style={{ position: 'relative', height: 168, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 8px rgba(0,0,0,0.55))' }} />
-          {[-30, -10, 12, 30].map(x => (
-            <div key={x} style={{ position: 'absolute', top: 2, left: `calc(50% + ${x}px)`, width: 4, height: 26 + ((x + 40) % 22), background: '#3f7a2e', borderRadius: 3, zIndex: 13 }} />
-          ))}
+          <div style={{ transformOrigin: 'bottom center', animation: gateOpen ? 'gate-open 1.2s ease-in forwards' : undefined }}>
+            <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.3), transparent 65%)', filter: 'blur(4px)' }} />
+            <img src="/assets/sunnyland/door.png" alt="portão"
+              style={{ position: 'relative', display: 'block', height: 168, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 8px rgba(0,0,0,0.55))' }} />
+            {[-30, -10, 12, 30].map(x => (
+              <div key={x} style={{ position: 'absolute', top: 2, left: `calc(50% + ${x}px)`, width: 4, height: 26 + ((x + 40) % 22), background: '#3f7a2e', borderRadius: 3 }} />
+            ))}
+          </div>
+          {/* indicador de "entrar" quando o herói está perto */}
+          {nearby && !gateOpen && (
+            <div className="font-pixel" style={{ position: 'absolute', bottom: 188, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+          )}
         </div>
       )}
 
@@ -270,16 +277,16 @@ function ParallaxWorld({ bg, worldX, gateOpen }: { bg: SceneBg; worldX: number; 
 // ─────────────────────────────────────────────────────────
 // Herói
 // ─────────────────────────────────────────────────────────
-function Hero({ moving, frame }: { moving: boolean; frame: number }) {
+function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facing: number }) {
   const src = moving
     ? `/assets/sunnyland/player-run-${(frame % 6) + 1}.png`
     : `/assets/sunnyland/player-idle-${(frame % 4) + 1}.png`;
   return (
     <img src={src} alt="herói"
       style={{
-        position: 'absolute', left: '34%', bottom: GROUND - 6, zIndex: 14,
+        position: 'absolute', left: '34%', bottom: FLOOR + GROUND, zIndex: 14,
         height: 92, width: 'auto', imageRendering: 'pixelated',
-        transform: 'translateX(-50%)',
+        transform: `translateX(-50%) scaleX(${facing})`,
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.4))',
       }} />
   );
@@ -297,9 +304,14 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const [moving, setMoving] = useState(false);
   const [frame, setFrame] = useState(0);
   const [gateOpen, setGateOpen] = useState(false);
+  const [facing, setFacing] = useState(1);
+  const [landmarkAnchor, setLandmarkAnchor] = useState<number | null>(null);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
+
+  // herói está perto o suficiente do portão para apertar OK
+  const nearby = landmarkAnchor != null && (landmarkAnchor - worldX) < 200;
 
   // reseta o portão a cada novo beat
   useEffect(() => { setGateOpen(false); }, [beatIndex]);
@@ -326,16 +338,28 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const holdRef = useRef(false);
   const rafRef = useRef<number | undefined>(undefined);
   const lastRef = useRef(0);
+  const dirRef = useRef<1 | -1>(1);
+  const walkStartXRef = useRef(0);
 
   useEffect(() => {
-    if (beat?.t === 'walk') targetRef.current = worldX + beat.dist;
-    else targetRef.current = null;
+    if (beat?.t === 'walk') {
+      walkStartXRef.current = worldX;
+      targetRef.current = worldX + beat.dist;
+      if (beat.landmark) {
+        setLandmarkAnchor(worldX + beat.dist - GATE_AHEAD);
+      } else {
+        setLandmarkAnchor(null);
+      }
+    } else {
+      targetRef.current = null;
+      setLandmarkAnchor(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beatIndex]);
 
-  // chegou ao alvo → avança
+  // chegou ao alvo sem landmark → avança automaticamente; com landmark → espera OK
   useEffect(() => {
-    if (beat?.t === 'walk' && targetRef.current != null && worldX >= targetRef.current) {
+    if (beat?.t === 'walk' && !beat.landmark && targetRef.current != null && worldX >= targetRef.current) {
       holdRef.current = false; setMoving(false);
       targetRef.current = null;
       advance();
@@ -345,16 +369,30 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const loop = useCallback((ts: number) => {
     const dt = lastRef.current ? (ts - lastRef.current) / 1000 : 0;
     lastRef.current = ts;
-    if (holdRef.current && targetRef.current != null) {
-      setWorldX(x => Math.min(x + WALK_SPEED * dt, targetRef.current!));
+    if (holdRef.current) {
+      setWorldX(x => {
+        const dir = dirRef.current;
+        const next = x + dir * WALK_SPEED * dt;
+        if (dir === -1) return Math.max(next, walkStartXRef.current);
+        if (targetRef.current != null) return Math.min(next, targetRef.current);
+        return next;
+      });
       rafRef.current = requestAnimationFrame(loop);
     } else {
       rafRef.current = undefined; lastRef.current = 0;
     }
   }, []);
 
-  const startWalk = useCallback(() => {
+  const startWalkForward = useCallback(() => {
     if (beat?.t !== 'walk' || holdRef.current) return;
+    dirRef.current = 1; setFacing(1);
+    holdRef.current = true; setMoving(true); lastRef.current = 0;
+    rafRef.current = requestAnimationFrame(loop);
+  }, [beat, loop]);
+
+  const startWalkBackward = useCallback(() => {
+    if (beat?.t !== 'walk' || holdRef.current) return;
+    dirRef.current = -1; setFacing(-1);
     holdRef.current = true; setMoving(true); lastRef.current = 0;
     rafRef.current = requestAnimationFrame(loop);
   }, [beat, loop]);
@@ -363,14 +401,19 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
     holdRef.current = false; setMoving(false);
   }, []);
 
-  // teclado: segurar → / D para andar
+  // teclado: segurar ← A / → D para andar
   useEffect(() => {
-    const down = (e: KeyboardEvent) => { if (e.key === 'ArrowRight' || e.key === 'd') startWalk(); };
-    const up = (e: KeyboardEvent) => { if (e.key === 'ArrowRight' || e.key === 'd') stopWalk(); };
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'd') startWalkForward();
+      if (e.key === 'ArrowLeft' || e.key === 'a') startWalkBackward();
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'ArrowLeft' || e.key === 'a') stopWalk();
+    };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
-  }, [startWalk, stopWalk]);
+  }, [startWalkForward, startWalkBackward, stopWalk]);
 
   useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
@@ -379,9 +422,9 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
       <ImagePreloader />
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} landmarkAnchor={landmarkAnchor} nearby={nearby} />
 
-      {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} />}
+      {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} facing={facing} />}
 
       {/* botão sair */}
       <button onClick={onExit}
@@ -400,19 +443,28 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         <QuestionBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
       )}
 
-      {/* controle de caminhada */}
+      {/* D-pad de caminhada */}
       {beat?.t === 'walk' && (
-        <button
-          onPointerDown={startWalk} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
+        <div style={{ position: 'absolute', right: 22, bottom: FLOOR + 18, zIndex: 45, display: 'flex', gap: 10 }}>
+          <button
+            onPointerDown={startWalkBackward} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
+            className="font-pixel"
+            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none' }}>
+            ←
+          </button>
+          <button
+            onPointerDown={startWalkForward} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
+            className="font-pixel"
+            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none' }}>
+            →
+          </button>
+        </div>
+      )}
+      {beat?.t === 'walk' && nearby && !gateOpen && (
+        <button onClick={advance}
           className="font-pixel"
-          style={{
-            position: 'absolute', right: 22, bottom: 28, zIndex: 45,
-            width: 92, height: 92, borderRadius: 18, fontSize: 24,
-            color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)',
-            border: '4px solid #0d2a0d', boxShadow: '0 6px 0 #0d2a0d', cursor: 'pointer',
-            touchAction: 'none',
-          }}>
-          →
+          style={{ position: 'absolute', left: '50%', bottom: FLOOR + 20, transform: 'translateX(-50%)', zIndex: 45, minWidth: 110, height: 50, borderRadius: 12, fontSize: 12, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite' }}>
+          OK ✔
         </button>
       )}
       {beat?.t === 'walk' && beat.hint && (
