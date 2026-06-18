@@ -211,6 +211,16 @@
 
   .logo-zoom {}
 
+  /* Arbustos balançando ao vento — assimétrico para parecer natural */
+  @keyframes bushes-wind {
+    0%   { transform: skewX(0deg)    translateX(0px); }
+    18%  { transform: skewX(-0.9deg) translateX(-3px); }
+    45%  { transform: skewX(1.1deg)  translateX(4px); }
+    65%  { transform: skewX(0.5deg)  translateX(2px); }
+    82%  { transform: skewX(-0.6deg) translateX(-2px); }
+    100% { transform: skewX(0deg)    translateX(0px); }
+  }
+
   /* ── Fundo respiração ── */
   @keyframes bg-breathe {
     0%, 100% { transform: scale(1.00); }
