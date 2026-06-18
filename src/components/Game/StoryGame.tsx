@@ -147,6 +147,11 @@ const SCENERY: Prop[] = [
   { src: 'pack01/BUSH_02.png',   wx: 1000, f: 1.12, h: 56,  b: GROUND - 18, z: 17, flip: true },
   { src: 'pack01/Rock_02.png',   wx: 1480, f: 1.1,  h: 60,  b: GROUND - 16, z: 16 },
   { src: 'pack01/BUSH_01.png',   wx: 1880, f: 1.13, h: 58,  b: GROUND - 18, z: 17 },
+  // detalhes charmosos do SunnyLand (pixel art, combinam com o herói)
+  { src: 'sunnyland/sign.png',    wx: 420,  f: 1.05, h: 66, b: GROUND - 12, z: 16 },
+  { src: 'sunnyland/shrooms.png', wx: 880,  f: 1.1,  h: 46, b: GROUND - 12, z: 17 },
+  { src: 'sunnyland/shrooms.png', wx: 1300, f: 1.12, h: 40, b: GROUND - 12, z: 16, flip: true },
+  { src: 'sunnyland/bush.png',    wx: 1720, f: 1.08, h: 58, b: GROUND - 14, z: 16 },
 ];
 
 const CLOUDS = [
@@ -232,24 +237,21 @@ function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX
       {/* árvores de meio-termo (atrás do herói) */}
       {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
 
-      {/* portão coberto de cipós aparece quando há desafio */}
+      {/* portão de madeira aparece quando há desafio */}
       {showGate && (
         <div style={{
-          position: 'absolute', left: '50%', bottom: GROUND - 8, transform: 'translateX(-50%)', zIndex: 8,
+          position: 'absolute', left: '50%', bottom: GROUND - 4, transform: 'translateX(-50%)', zIndex: 8,
           transformOrigin: 'bottom center',
           animation: gateOpen ? 'gate-open 1.2s ease-in forwards' : undefined,
         }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, filter: 'drop-shadow(0 6px 8px rgba(0,0,0,0.55))' }}>
-            <div style={{ width: 18, height: 156, background: 'linear-gradient(#5b3b1e,#3a2412)', borderRadius: 3 }} />
-            <div style={{ width: 100, height: 134, background: 'repeating-linear-gradient(90deg,#6a4524 0 8px,#4a2f17 8px 16px)', border: '3px solid #3a2412', borderRadius: '8px 8px 0 0', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 30% 18%, rgba(90,180,70,0.55), transparent 62%)' }} />
-              {/* cipós pendurados */}
-              {[14, 40, 66, 88].map(x => (
-                <div key={x} style={{ position: 'absolute', top: -2, left: x, width: 4, height: 30 + (x % 20), background: '#3f7a2e', borderRadius: 3 }} />
-              ))}
-            </div>
-            <div style={{ width: 18, height: 156, background: 'linear-gradient(#5b3b1e,#3a2412)', borderRadius: 3 }} />
-          </div>
+          {/* brilho mágico atrás do portão */}
+          <div style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', width: 120, height: 160, background: 'radial-gradient(circle, rgba(120,220,120,0.35), transparent 65%)', filter: 'blur(4px)' }} />
+          <img src="/assets/sunnyland/door.png" alt="portão"
+            style={{ position: 'relative', height: 168, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 8px rgba(0,0,0,0.55))' }} />
+          {/* cipós pendurados sobre o portão */}
+          {[-30, -10, 12, 30].map(x => (
+            <div key={x} style={{ position: 'absolute', top: 2, left: `calc(50% + ${x}px)`, width: 4, height: 26 + ((x + 40) % 22), background: '#3f7a2e', borderRadius: 3, zIndex: 9 }} />
+          ))}
         </div>
       )}
 
@@ -272,15 +274,15 @@ function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX
 // ─────────────────────────────────────────────────────────
 function Hero({ moving, frame }: { moving: boolean; frame: number }) {
   const src = moving
-    ? `/assets/hero/walk${(frame % 6) + 1}.png`
-    : `/assets/hero/idle${(frame % 5) + 1}.png`;
+    ? `/assets/sunnyland/player-run-${(frame % 6) + 1}.png`
+    : `/assets/sunnyland/player-idle-${(frame % 4) + 1}.png`;
   return (
     <img src={src} alt="herói"
       style={{
-        position: 'absolute', left: '34%', bottom: GROUND - 10, zIndex: 14,
-        height: 104, width: 'auto', imageRendering: 'pixelated',
+        position: 'absolute', left: '34%', bottom: GROUND - 6, zIndex: 14,
+        height: 92, width: 'auto', imageRendering: 'pixelated',
         transform: 'translateX(-50%)',
-        filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.45))',
+        filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.4))',
       }} />
   );
 }
