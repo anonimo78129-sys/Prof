@@ -275,7 +275,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={{
           position: 'absolute',
           left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
-          bottom: GROUND - 4, zIndex: 15, transform: 'translateX(-50%)',
+          bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)',
         }}>
           <img
             src={gateFrame === 2 ? '/assets/world/gate-open.png'
