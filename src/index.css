@@ -178,12 +178,11 @@
 
   /* ── Logo zoom entrada ── */
   @keyframes logo-zoom-in {
-    0%   { transform: scale(0.6); opacity: 0; }
-    70%  { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(1.0); opacity: 1; }
+    0%   { transform: scale(0.6); }
+    100% { transform: scale(1.2); }
   }
   .logo-zoom {
-    animation: logo-zoom-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: logo-zoom-in 15s ease-in-out infinite alternate;
   }
 
   /* ── Fundo respiração ── */
