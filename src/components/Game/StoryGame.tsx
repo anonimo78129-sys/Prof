@@ -11,6 +11,7 @@ const WALK_SPEED = 230;      // px/seg que o herói anda
 // evitar que apareçam "achatadas" ao entrar no viewport.
 function ImagePreloader() {
   const srcs = [
+    '/assets/world/ground-dark.png',
     ...SCENERY.map(p => `/assets/${p.src}`),
     ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
     `/assets/forest/${FOREST_FOREGROUND.src}`,
@@ -422,6 +423,13 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
       <ImagePreloader />
+      {/* faixa de chão texturizada — cobre o verde do body abaixo do mundo */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
+        backgroundImage: "url('/assets/world/ground-dark.png')",
+        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+        backgroundPosition: 'center', imageRendering: 'pixelated',
+      }} />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} landmarkAnchor={landmarkAnchor} nearby={nearby} />
 
       {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} facing={facing} />}
