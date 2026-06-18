@@ -12,6 +12,7 @@ const WALK_SPEED = 230;      // px/seg que o herói anda
 function ImagePreloader() {
   const srcs = [
     '/assets/world/ground-dark.png',
+    '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
     ...SCENERY.map(p => `/assets/${p.src}`),
     ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
     `/assets/forest/${FOREST_FOREGROUND.src}`,
@@ -241,8 +242,35 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
         <div key={l.src} style={fxLayer(l.src, l.f, i + 1)} />
       ))}
 
+      {/* nuvens — acima da copa, abaixo do céu */}
+      {[
+        { src: 'cloud1.png', f: 0.04, topPx: 14, h: 52, offset: 0,   op: 0.55 },
+        { src: 'cloud2.png', f: 0.06, topPx: 44, h: 42, offset: 340, op: 0.45 },
+        { src: 'cloud3.png', f: 0.03, topPx: 72, h: 36, offset: 680, op: 0.40 },
+      ].map(c => (
+        <div key={c.src} style={{
+          position: 'absolute', left: 0, right: 0, top: 0, height: '45%',
+          zIndex: 1,
+          backgroundImage: `url('/assets/world/${c.src}')`,
+          backgroundRepeat: 'repeat-x', backgroundSize: `auto ${c.h}px`,
+          backgroundPositionX: `${Math.round(-worldX * c.f - c.offset)}px`,
+          backgroundPositionY: `${c.topPx}px`,
+          imageRendering: 'pixelated', opacity: c.op,
+        }} />
+      ))}
+
       {/* árvores/props avulsos atrás do herói (vazio por ora) */}
       {SCENERY.filter(p => p.z < 14).map((p, i) => <PropImg key={`b${i}`} p={p} worldX={worldX} />)}
+
+      {/* chão texturizado — rola junto com o primeiro plano */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND + 30,
+        zIndex: 13,
+        backgroundImage: `url('/assets/world/ground-dark.png')`,
+        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+        backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+        imageRendering: 'pixelated',
+      }} />
 
       {/* portão (placeholder) — plantado no mundo; chega à frente do herói */}
       {landmarkAnchor != null && (
@@ -423,13 +451,6 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
       <ImagePreloader />
-      {/* faixa de chão texturizada — cobre o verde do body abaixo do mundo */}
-      <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
-        backgroundImage: "url('/assets/world/ground-dark.png')",
-        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
-        backgroundPosition: 'center', imageRendering: 'pixelated',
-      }} />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} landmarkAnchor={landmarkAnchor} nearby={nearby} />
 
       {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} facing={facing} />}
@@ -451,9 +472,9 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         <QuestionBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
       )}
 
-      {/* D-pad de caminhada */}
+      {/* D-pad de caminhada — lado esquerdo */}
       {beat?.t === 'walk' && (
-        <div style={{ position: 'absolute', right: 22, bottom: FLOOR + 18, zIndex: 45, display: 'flex', gap: 10 }}>
+        <div style={{ position: 'absolute', left: 22, bottom: FLOOR + 18, zIndex: 45, display: 'flex', gap: 10 }}>
           <button
             onPointerDown={startWalkBackward} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             className="font-pixel"
@@ -468,10 +489,11 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
           </button>
         </div>
       )}
+      {/* botão OK — lado direito, aparece ao chegar no portão */}
       {beat?.t === 'walk' && nearby && !gateOpen && (
         <button onClick={advance}
           className="font-pixel"
-          style={{ position: 'absolute', left: '50%', bottom: FLOOR + 20, transform: 'translateX(-50%)', zIndex: 45, minWidth: 110, height: 50, borderRadius: 12, fontSize: 12, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite' }}>
+          style={{ position: 'absolute', right: 22, bottom: FLOOR + 18, zIndex: 45, width: 110, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite' }}>
           OK ✔
         </button>
       )}
