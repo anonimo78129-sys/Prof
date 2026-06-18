@@ -59,7 +59,7 @@ function DialogueBox({
   const name = SPEAKER_NAME[who];
 
   return (
-    <div onClick={tap}
+    <div onPointerDown={(e) => { e.preventDefault(); tap(); }} onContextMenu={(e) => e.preventDefault()}
       style={{ position: 'absolute', left: 0, right: 0, bottom: 100, zIndex: 40, cursor: 'pointer' }}>
       <div className="panel-pixel"
         style={{ margin: '0 14px 18px', background: 'rgba(8,24,12,0.94)', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
@@ -132,13 +132,14 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
         </p>
         <div style={{ display: 'grid', gap: 8 }}>
           {beat.q.options.map((opt, i) => (
-            <button key={i} onClick={() => answer(i)}
+            <button key={i} onPointerDown={(e) => { e.preventDefault(); answer(i); }} onContextMenu={(e) => e.preventDefault()}
               className="font-vt"
               style={{
                 textAlign: 'left', padding: '10px 14px', fontSize: 18,
                 color: '#eaf6e0', background: 'rgba(30,70,38,0.9)',
                 border: '2px solid #2f6b34', borderRadius: 6, cursor: 'pointer',
-              }}>
+                touchAction: 'none',
+              } as CSSProperties}>
               {String.fromCharCode(65 + i)}. {opt}
             </button>
           ))}
@@ -528,7 +529,8 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const finished = beatIndex >= beats.length;
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}>
+    <div className="fixed inset-0 overflow-hidden" style={{ touchAction: 'none', userSelect: 'none' }}
+      onContextMenu={(e) => e.preventDefault()}>
       <ImagePreloader />
       {/* cobre o verde do body na faixa do FLOOR (abaixo do mundo) */}
       <div style={{
@@ -567,24 +569,26 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       {beat?.t === 'walk' && (
         <div style={{ position: 'absolute', left: 30, bottom: FLOOR - 112, zIndex: 45, display: 'flex', gap: 10 }}>
           <button
-            onPointerDown={startWalkBackward} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
+            onPointerDown={(e) => { e.preventDefault(); startWalkBackward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
+            onContextMenu={(e) => e.preventDefault()}
             className="font-pixel"
-            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none' }}>
+            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
             ←
           </button>
           <button
-            onPointerDown={startWalkForward} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
+            onPointerDown={(e) => { e.preventDefault(); startWalkForward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
+            onContextMenu={(e) => e.preventDefault()}
             className="font-pixel"
-            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none' }}>
+            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
             →
           </button>
         </div>
       )}
       {/* botão OK — lado direito, aparece ao chegar no portão */}
       {beat?.t === 'walk' && nearby && !gateOpen && (
-        <button onClick={advance}
+        <button onPointerDown={(e) => { e.preventDefault(); advance(); }} onContextMenu={(e) => e.preventDefault()}
           className="font-pixel"
-          style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
           OK
         </button>
       )}
