@@ -121,6 +121,18 @@
   }
   .scene-fade-in { animation: scene-fade-in 400ms ease-out forwards; }
 
+  /* ── Story game ── */
+  @keyframes fade-hold {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes hint-bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50%      { transform: translate(-50%, -6px); }
+  }
+
   @keyframes slide-up {
     from { transform: translateY(100%); opacity: 0; }
     to   { transform: translateY(0); opacity: 1; }

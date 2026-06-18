@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { GameConfig } from './types/game';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
+import StoryGame from './components/Game/StoryGame';
 
 const BLUES = ['#4fc3f7', '#29b6f6', '#81d4fa', '#0288d1', '#80deea', '#40c4ff'];
 
@@ -65,24 +66,9 @@ export default function App() {
     );
   }
 
-  // ── PLACEHOLDER "JOGAR" (o jogo do aluno vem depois) ──
+  // ── JOGAR — aventura narrativa (visual novel + caminhada) ──
   if (view === 'jogar') {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 px-6"
-        style={{ background: 'linear-gradient(to bottom, #0d1f12 0%, #07120a 100%)' }}>
-        <div className="panel-pixel px-7 py-7 flex flex-col items-center gap-4 text-center"
-          style={{ background: '#12331a', maxWidth: 360 }}>
-          <p className="font-pixel" style={{ color: '#88ff44', fontSize: 12 }}>EM BREVE</p>
-          <p className="font-vt" style={{ color: '#cfe8c0', fontSize: 20 }}>
-            A aventura do aluno está sendo construída.
-          </p>
-        </div>
-        <button onClick={goHome} className="btn-game font-pixel"
-          style={{ background: 'linear-gradient(to bottom, #3a8a1a, #246010)', fontSize: 9, padding: '14px 22px' }}>
-          ← VOLTAR
-        </button>
-      </div>
-    );
+    return <StoryGame onExit={goHome} />;
   }
 
   // ── TELA INICIAL ──────────────────────────────────────
