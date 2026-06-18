@@ -19,6 +19,7 @@ function ImagePreloader() {
     '/assets/sunnyland/door.png',
     '/assets/chars/player-walk-1.png', '/assets/chars/player-walk-2.png', '/assets/chars/player-walk-3.png',
     '/assets/chars/player-idle-1.png', '/assets/chars/player-idle-2.png',
+    '/assets/chars/wakeup-1.png', '/assets/chars/wakeup-2.png', '/assets/chars/wakeup-3.png', '/assets/chars/wakeup-4.png',
   ];
   return (
     <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
@@ -301,8 +302,20 @@ function ParallaxWorld({ bg, worldX, gateOpen, landmarkAnchor, nearby }: { bg: S
 }
 
 // ─────────────────────────────────────────────────────────
-// Herói
+// Herói — normal e despertar
 // ─────────────────────────────────────────────────────────
+function WakeUpHero({ frame }: { frame: number }) {
+  return (
+    <img src={`/assets/chars/wakeup-${frame}.png`} alt="herói acordando"
+      style={{
+        position: 'absolute', left: '34%', bottom: FLOOR + GROUND, zIndex: 14,
+        height: 140, width: 'auto', imageRendering: 'pixelated',
+        transform: 'translateX(-50%)',
+        filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
+      }} />
+  );
+}
+
 function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facing: number }) {
   const src = moving
     ? `/assets/chars/player-walk-${(frame % 3) + 1}.png`
@@ -332,6 +345,8 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const [gateOpen, setGateOpen] = useState(false);
   const [facing, setFacing] = useState(1);
   const [landmarkAnchor, setLandmarkAnchor] = useState<number | null>(null);
+  // 1-4 = frame de despertar ativo; null = já acordou, usa hero normal
+  const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -348,11 +363,24 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
     return () => clearInterval(id);
   }, [moving]);
 
+  // sequência de despertar: f1→5s, f2→0.6s, f3→0.6s, f4→0.6s, depois null
+  useEffect(() => {
+    if (wakeUpFrame === null) return;
+    const delay = wakeUpFrame === 1 ? 5000 : 600;
+    const id = setTimeout(() => {
+      setWakeUpFrame(f => (f !== null && f < 4) ? f + 1 : null);
+    }, delay);
+    return () => clearTimeout(id);
+  }, [wakeUpFrame]);
+
   // beats automáticos (cenário / fade)
   useEffect(() => {
     if (!beat) return;
-    if (beat.t === 'scene') { setBg(beat.bg); advance(); }
-    else if (beat.t === 'fade') {
+    if (beat.t === 'scene') {
+      setBg(beat.bg);
+      if (beat.bg === 'floresta') setWakeUpFrame(1);
+      advance();
+    } else if (beat.t === 'fade') {
       setFade({ text: beat.text });
       const id = setTimeout(() => { setFade(null); advance(); }, 1700);
       return () => clearTimeout(id);
@@ -458,7 +486,11 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       }} />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} landmarkAnchor={landmarkAnchor} nearby={nearby} />
 
-      {bg === 'floresta' && !finished && <Hero moving={moving} frame={frame} facing={facing} />}
+      {bg === 'floresta' && !finished && (
+        wakeUpFrame !== null
+          ? <WakeUpHero frame={wakeUpFrame} />
+          : <Hero moving={moving} frame={frame} facing={facing} />
+      )}
 
       {/* botão sair */}
       <button onClick={onExit}
