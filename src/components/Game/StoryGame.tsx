@@ -337,8 +337,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       {/* poeira de luz mágica */}
       <LightMotes />
 
-      {/* grama/mato em primeiro plano — NA FRENTE do herói */}
-      <div style={fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20)} />
+      {/* grama/mato em primeiro plano — NA FRENTE do herói, balança ao vento */}
+      <div style={{ ...fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20), transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' }} />
     </div>
   );
 }

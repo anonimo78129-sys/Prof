@@ -303,10 +303,24 @@
   }
   .tree-sway { animation: tree-sway 4s ease-in-out infinite; transform-origin: bottom center; }
 
-  /* ── Flora sway (vento suave, balança a planta inteira) ── */
+  /* ── Mato de primeiro plano: skewX a partir do chão ── */
+  @keyframes foliage-wind {
+    0%   { transform: skewX(0deg); }
+    18%  { transform: skewX(-1.4deg); }
+    42%  { transform: skewX(1.0deg); }
+    68%  { transform: skewX(1.6deg); }
+    84%  { transform: skewX(-0.5deg); }
+    100% { transform: skewX(0deg); }
+  }
+
+  /* ── Flora props: rotação orgânica assimétrica (cogumelos/flores) ── */
   @keyframes flora-sway {
-    0%, 100% { transform: rotate(-1.4deg); }
-    50%       { transform: rotate(1.4deg); }
+    0%   { transform: rotate(0deg); }
+    18%  { transform: rotate(-2.4deg); }
+    45%  { transform: rotate(1.8deg); }
+    68%  { transform: rotate(-1.0deg); }
+    85%  { transform: rotate(2.6deg); }
+    100% { transform: rotate(0deg); }
   }
 
   /* ── Map node ── */
