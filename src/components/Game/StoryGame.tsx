@@ -258,7 +258,7 @@ function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX
       {/* chão */}
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND, background: 'linear-gradient(#3a5a24 0 10px, #2c3f1a 10px)', boxShadow: 'inset 0 6px 12px rgba(0,0,0,0.35)' }} />
       {/* grama em primeiro plano */}
-      <div style={layer('/assets/world/grass.png', 1.1, '54px', GROUND - 26, { zIndex: 12 })} />
+      <div style={layer('/assets/world/grass.png', 1.1, '54px', GROUND - 21, { zIndex: 12 })} />
 
       {/* arbustos e pedras em primeiro plano (na frente do herói) */}
       {SCENERY.filter(p => p.z >= 14).map((p, i) => <PropImg key={`f${i}`} p={p} worldX={worldX} />)}
