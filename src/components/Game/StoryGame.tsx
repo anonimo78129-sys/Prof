@@ -255,11 +255,12 @@ function ParallaxWorld({ bg, worldX, showGate, gateOpen }: { bg: SceneBg; worldX
         </div>
       )}
 
-      {/* chão — textura de terra enviada */}
+      {/* chão — textura de terra com movimento */}
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND,
         backgroundImage: "url('/assets/world/dirt.png')",
         backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+        backgroundPositionX: `${-worldX * 1.0}px`,
         imageRendering: 'pixelated',
         boxShadow: 'inset 0 6px 14px rgba(0,0,0,0.45)',
       }} />
