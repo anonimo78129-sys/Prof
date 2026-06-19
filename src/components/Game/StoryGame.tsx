@@ -306,11 +306,19 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
     if (item.correct) {
       setPopped(p => new Set(p).add(item.id));
       setTimeout(() => {
+        // `solve` captura o resultado do updater de forma síncrona,
+        // permitindo chamar onCorrect() FORA do updater (evita side-effect dentro de state updater)
+        let solve = false;
         setCollected(prev => {
           const next = new Set(prev).add(item.id) as Set<number>;
-          if (next.size === correctCount) { onCorrect(); setSuccessIdx(0); setPhase('success'); }
+          if (next.size === correctCount) solve = true;
           return next;
         });
+        if (solve) {
+          onCorrect();
+          setSuccessIdx(0);
+          setPhase('success');
+        }
       }, 400);
     } else {
       setPhase('wrong');
@@ -815,8 +823,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   // animação da pedra: tremor → descida → desaparecimento
   const triggerBoulder = useCallback(() => {
     setBoulderState('shaking');
-    setTimeout(() => setBoulderState('sinking'), 1400);
-    setTimeout(() => setBoulderState('gone'), 2900);
+    setTimeout(() => setBoulderState('sinking'), 800);
+    setTimeout(() => setBoulderState('gone'), 1800);
   }, []);
 
   // beats automáticos (cenário / fade)
