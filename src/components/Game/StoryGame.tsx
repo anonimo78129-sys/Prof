@@ -17,7 +17,7 @@ function ImagePreloader() {
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
     '/assets/world/boulder.png',
     '/assets/ato3/apple.png',
-    '/assets/ato3/estufa-ext.png',
+    '/assets/ato3/estufa-ext.png', '/assets/ato3/estufa-light.png',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -557,14 +557,28 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             {landmarkKind === 'estufa-ext' ? (
               <>
-                <img
-                  src="/assets/ato3/estufa-ext.png"
-                  alt="estufa"
-                  style={{
-                    display: 'block', height: 400, width: 'auto', imageRendering: 'pixelated',
-                    filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
-                  }}
-                />
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img
+                    src="/assets/ato3/estufa-ext.png"
+                    alt="estufa"
+                    style={{
+                      display: 'block', height: 400, width: 'auto', imageRendering: 'pixelated',
+                      filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
+                    }}
+                  />
+                  {/* layer de luz sobreposta — blend screen para efeito aditivo */}
+                  <img
+                    src="/assets/ato3/estufa-light.png"
+                    alt=""
+                    style={{
+                      position: 'absolute', inset: 0,
+                      height: '100%', width: '100%',
+                      imageRendering: 'pixelated',
+                      mixBlendMode: 'screen',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </div>
                 {nearby && (
                   <div className="font-pixel" style={{ position: 'absolute', bottom: 408, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
