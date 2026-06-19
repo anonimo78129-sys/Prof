@@ -32,6 +32,24 @@
 <p class="sub">Todas as criaturas estão mostrando <b>apenas a animação de caminhada lateral (leste)</b>.<br>
 Clique nas criaturas que gostar para selecionar. Depois copie os códigos e me mande a lista.</p>
 
+<!-- ── COELHO: 3 DIREÇÕES ── -->
+<h2>🐇 Coelho — escolha a direção certa</h2>
+<p class="sub" style="margin-bottom:10px">Clique na que anda de lado corretamente.</p>
+<div class="grid">
+  <div class="card" onclick="pickRabbit('col-0')" id="rb-col-0">
+    <div class="stage"><img src="../rabbit/col-0.gif" style="width:48px;height:64px"></div>
+    <div class="name">Coluna 0</div>
+  </div>
+  <div class="card" onclick="pickRabbit('col-1')" id="rb-col-1">
+    <div class="stage"><img src="../rabbit/col-1.gif" style="width:48px;height:64px"></div>
+    <div class="name">Coluna 1</div>
+  </div>
+  <div class="card" onclick="pickRabbit('col-2')" id="rb-col-2">
+    <div class="stage"><img src="../rabbit/col-2.gif" style="width:48px;height:64px"></div>
+    <div class="name">Coluna 2</div>
+  </div>
+</div>
+
 <div id="root"></div>
 
 <div id="selected-box">
@@ -125,6 +143,12 @@ function makeCard(code) {
   });
 
   return card;
+}
+
+function pickRabbit(col) {
+  ['col-0','col-1','col-2'].forEach(c => document.getElementById('rb-'+c).classList.remove('selected'));
+  document.getElementById('rb-'+col).classList.add('selected');
+  alert('Selecionado: ' + col + ' — me mande esse número no chat!');
 }
 
 const root = document.getElementById('root');
