@@ -726,10 +726,11 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       {/* coelho aparece 7s após a clareira começar, passa uma vez */}
       {showRabbit && !finished && <WalkingRabbit onDone={() => setShowRabbit(false)} />}
 
-      {/* botão sair */}
-      <button onClick={onExit}
+      {/* botão sair — top:48 para não sobrepor o PULAR da intro (top:14) */}
+      <button onPointerDown={(e) => { e.preventDefault(); onExit(); }}
+        onContextMenu={(e) => e.preventDefault()}
         className="font-pixel"
-        style={{ position: 'absolute', top: 12, right: 12, zIndex: 50, fontSize: 8, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34', borderRadius: 6, padding: '8px 10px', cursor: 'pointer' }}>
+        style={{ position: 'absolute', top: 48, right: 12, zIndex: 50, fontSize: 8, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34', borderRadius: 6, padding: '8px 10px', cursor: 'pointer', touchAction: 'none' }}>
         ✕ SAIR
       </button>
 

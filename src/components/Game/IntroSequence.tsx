@@ -236,9 +236,11 @@ export default function IntroSequence({ onDone }: { onDone: () => void }) {
         </div>
       )}
 
-      {/* botão pular */}
+      {/* botão pular — delay de 100ms para a sequência de eventos do toque
+          completar antes do StoryGame montar (evita acionar o botão SAIR na
+          mesma posição quando os eventos de click ainda estão propagando) */}
       <button
-        onPointerDown={(e) => { e.preventDefault(); onDone(); }}
+        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); setTimeout(onDone, 100); }}
         onContextMenu={(e) => e.preventDefault()}
         className="font-pixel"
         style={{
