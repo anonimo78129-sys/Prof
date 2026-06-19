@@ -592,6 +592,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                       imageRendering: 'pixelated',
                       mixBlendMode: 'screen',
                       pointerEvents: 'none',
+                      animation: 'light-pulse 2.4s ease-in-out infinite',
                     }}
                   />
                 </div>
