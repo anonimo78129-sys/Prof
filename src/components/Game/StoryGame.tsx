@@ -666,7 +666,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundImage: "url('/assets/estufa/reflect-1.png')",
           backgroundSize: '100% 50%',
           backgroundPositionX: `${Math.round(-worldX * 0.18)}px`,
-          backgroundPositionY: 'calc(100% - 100px)',
+          backgroundPositionY: 'calc(100% - 160px)',
           backgroundRepeat: 'repeat-x',
           mixBlendMode: 'screen',
         }} />
@@ -677,7 +677,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundImage: "url('/assets/estufa/reflect-2.png')",
           backgroundSize: '100% 50%',
           backgroundPositionX: `${Math.round(-worldX * 0.28)}px`,
-          backgroundPositionY: 'calc(100% - 100px)',
+          backgroundPositionY: 'calc(100% - 160px)',
           backgroundRepeat: 'repeat-x',
           mixBlendMode: 'screen',
         }} />
