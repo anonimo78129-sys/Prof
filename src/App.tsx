@@ -62,6 +62,8 @@ function Fireflies() {
 
 type View = 'home' | 'intro' | 'setup' | 'jogar';
 
+const isTestMode = typeof window !== 'undefined' && window.location.search.includes('test');
+
 export default function App() {
   const [view, setView] = useState<View>('home');
   const [devStart, setDevStart] = useState<{ beat: number; bg?: SceneBg } | null>(null);
@@ -156,21 +158,21 @@ export default function App() {
         </button>
       </div>
 
-      {/* ── PAINEL DEV (só em desenvolvimento) ── */}
-      {import.meta.env.DEV && (
+      {/* ── PAINEL DEV — visível em dev local OU com ?test na URL ── */}
+      {(import.meta.env.DEV || isTestMode) && (
         <>
           <button
             onClick={() => setShowDevMenu(m => !m)}
-            style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 90, background: 'rgba(0,0,0,0.7)', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 9, padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>
+            style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 90, background: 'rgba(0,0,0,0.7)', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 11, padding: '8px 14px', borderRadius: 4, cursor: 'pointer' }}>
             DEV
           </button>
           {showDevMenu && (
-            <div style={{ position: 'absolute', bottom: 40, right: 12, zIndex: 90, background: 'rgba(6,14,7,0.97)', border: '1px solid #40e0d0', borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6, minWidth: 240 }}>
-              <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 9, letterSpacing: 2, marginBottom: 4 }}>PULAR PARA</div>
+            <div style={{ position: 'absolute', bottom: 48, right: 12, zIndex: 90, background: 'rgba(6,14,7,0.97)', border: '1px solid #40e0d0', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 260 }}>
+              <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 10, letterSpacing: 2, marginBottom: 4 }}>PULAR PARA</div>
               {DEV_ACTS.map(act => (
                 <button key={act.beat}
                   onClick={() => { setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
-                  style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#cfe8c8', fontFamily: 'monospace', fontSize: 9, padding: '6px 10px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
+                  style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#cfe8c8', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
                   {act.label}
                 </button>
               ))}
