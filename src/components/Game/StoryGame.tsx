@@ -436,7 +436,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* portão do ato 3 */}
         {landmarkAnchor != null && (
-          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)' }}>
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             <img
               src={gateFrame === 2 ? '/assets/world/gate-open.png'
                  : gateFrame === 1 ? '/assets/world/gate-half.png'
@@ -502,6 +502,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           position: 'absolute',
           left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
           bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)',
+          width: 'max-content',
         }}>
           {bg === 'clareira' ? (
             boulderState !== 'gone' && (
