@@ -665,7 +665,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             {landmarkKind === 'trunk' ? (
               <>
-                <TrunkSprite height={280} />
+                <div style={{ transform: 'translateY(50px)' }}><TrunkSprite height={280} /></div>
                 {nearby && (
                   <div className="font-pixel" style={{ position: 'absolute', bottom: 288, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
