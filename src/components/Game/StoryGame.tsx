@@ -610,14 +610,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
   if (bg === 'estufa') {
     return (
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#0d0905' }}>
-        {/* camadas da floresta com filtro âmbar — plantas dentro da estufa */}
-        {FOREST_LAYERS.slice(0, 9).map((l, i) => (
-          <div key={l.src} style={{ ...fxLayer(l.src, l.f * 0.55, i + 1), filter: 'sepia(0.6) saturate(0.65) brightness(0.5) hue-rotate(8deg)' }} />
-        ))}
-
-        {/* luz quente filtrada pelo vidro */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none', background: 'linear-gradient(to bottom, rgba(90,50,10,0.35) 0%, rgba(50,25,5,0.15) 55%, transparent 100%)' }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#060d07' }}>
 
         {/* chão */}
         <div style={{
@@ -666,8 +659,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         <LightMotes />
 
-        {/* grama de primeiro plano com filtro âmbar */}
-        <div style={{ ...fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20), filter: 'sepia(0.5) saturate(0.5) brightness(0.45)', transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' }} />
+        {/* grama de primeiro plano */}
+        <div style={{ ...fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20), transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' }} />
       </div>
     );
   }
