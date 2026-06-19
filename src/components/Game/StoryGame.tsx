@@ -631,10 +631,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
           backgroundImage: "url('/assets/estufa/bg.jpg')",
-          backgroundSize: 'cover',
+          backgroundSize: 'auto 100%',
           backgroundPositionX: `${Math.round(-worldX * 0.12)}px`,
           backgroundPositionY: 'top',
-          backgroundRepeat: 'no-repeat',
+          backgroundRepeat: 'repeat-x',
         }} />
 
         {/* chão */}
