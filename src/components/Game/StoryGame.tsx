@@ -669,6 +669,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
   const [showRabbit, setShowRabbit] = useState(false);
   const [boulderState, setBoulderState] = useState<BoulderState>('idle');
+  const [sceneFade, setSceneFade] = useState(false);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -720,9 +721,13 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   useEffect(() => {
     if (!beat) return;
     if (beat.t === 'scene') {
-      setBg(beat.bg);
-      if (beat.bg === 'floresta') setWakeUpFrame(1);
-      advance();
+      setSceneFade(true);
+      const t1 = setTimeout(() => {
+        setBg(beat.bg);
+        if (beat.bg === 'floresta') setWakeUpFrame(1);
+      }, 550);
+      const t2 = setTimeout(() => { setSceneFade(false); advance(); }, 1200);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     } else if (beat.t === 'fade') {
       setFade({ text: beat.text });
       const id = setTimeout(() => { setFade(null); advance(); }, 1700);
@@ -902,6 +907,11 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       )}
 
       {/* fade */}
+      {/* transição entre atos — escurece e clareia a tela */}
+      {sceneFade && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 58, background: '#000', pointerEvents: 'none', animation: 'scene-transition 1.2s ease-in-out forwards' }} />
+      )}
+
       {fade && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fade-hold 1.7s ease-in-out' }}>
           {fade.text && <p className="font-vt" style={{ color: '#cfe8c0', fontSize: 26, fontStyle: 'italic' }}>{fade.text}</p>}

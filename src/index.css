@@ -128,6 +128,12 @@
     80%  { opacity: 1; }
     100% { opacity: 0; }
   }
+  @keyframes scene-transition {
+    0%   { opacity: 0; }
+    30%  { opacity: 1; }
+    70%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
   @keyframes hint-bob {
     0%, 100% { transform: translate(-50%, 0); }
     50%      { transform: translate(-50%, -6px); }
