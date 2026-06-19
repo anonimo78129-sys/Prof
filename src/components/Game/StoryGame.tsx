@@ -19,6 +19,7 @@ function ImagePreloader() {
     '/assets/ato3/apple.png',
     '/assets/ato3/estufa-ext.png', '/assets/ato3/estufa-light.png',
     '/assets/estufa/bg.jpg',
+    '/assets/estufa/reflect-1.png', '/assets/estufa/reflect-2.png',
     '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png', '/assets/estufa/trunk-3.png',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
@@ -650,6 +651,35 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 0.12)}px`,
           backgroundPositionY: 'bottom',
           backgroundRepeat: 'repeat-x',
+        }} />
+
+        {/* overlay escuro pulsando suavemente sobre o fundo */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+          background: 'rgba(0,0,0,0.38)',
+          animation: 'light-pulse-dark 3s ease-in-out infinite',
+        }} />
+
+        {/* layer de reflexo 1 — parallax lento */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
+          backgroundImage: "url('/assets/estufa/reflect-1.png')",
+          backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 0.18)}px`,
+          backgroundPositionY: 'bottom',
+          backgroundRepeat: 'repeat-x',
+          mixBlendMode: 'screen',
+        }} />
+
+        {/* layer de reflexo 2 — parallax levemente diferente */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none',
+          backgroundImage: "url('/assets/estufa/reflect-2.png')",
+          backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 0.28)}px`,
+          backgroundPositionY: 'bottom',
+          backgroundRepeat: 'repeat-x',
+          mixBlendMode: 'screen',
         }} />
 
         {/* chão */}

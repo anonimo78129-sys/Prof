@@ -375,6 +375,11 @@
     50%       { opacity: 1; }
   }
 
+  @keyframes light-pulse-dark {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.6; }
+  }
+
   @keyframes boulder-shake {
     0%,100% { transform: translateX(0) rotate(0deg); }
     10%  { transform: translateX(-7px) rotate(-1.8deg); }
