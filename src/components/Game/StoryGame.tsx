@@ -647,7 +647,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundImage: "url('/assets/estufa/bg.jpg')",
           backgroundSize: 'auto 100%',
           backgroundPositionX: `${Math.round(-worldX * 0.12)}px`,
-          backgroundPositionY: 'top',
+          backgroundPositionY: 'bottom',
           backgroundRepeat: 'repeat-x',
         }} />
 
