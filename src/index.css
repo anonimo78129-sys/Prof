@@ -314,6 +314,18 @@
   }
 
   /* ── Flora props: rotação orgânica assimétrica (cogumelos/flores) ── */
+  @keyframes boulder-shake {
+    0%,100% { transform: translateX(0) rotate(0deg); }
+    10%  { transform: translateX(-7px) rotate(-1.8deg); }
+    22%  { transform: translateX(6px) rotate(1.4deg); }
+    34%  { transform: translateX(-8px) rotate(-2.2deg); }
+    46%  { transform: translateX(7px) rotate(1.8deg); }
+    58%  { transform: translateX(-5px) rotate(-1.4deg); }
+    70%  { transform: translateX(8px) rotate(2deg); }
+    82%  { transform: translateX(-6px) rotate(-1.6deg); }
+    92%  { transform: translateX(5px) rotate(1.2deg); }
+  }
+
   @keyframes flora-sway {
     0%   { transform: rotate(0deg); }
     18%  { transform: rotate(-2.4deg); }

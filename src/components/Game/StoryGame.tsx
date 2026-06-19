@@ -15,6 +15,7 @@ function ImagePreloader() {
     '/assets/world/ground-dark.png',
     '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
+    '/assets/world/boulder.png',
     ...SCENERY.map(p => `/assets/${p.src}`),
     ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
     '/assets/forest/Layer_0002_7_c.png',
@@ -370,7 +371,9 @@ function LightMotes() {
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean }) {
+type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
+
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -431,22 +434,49 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         imageRendering: 'pixelated',
       }} />
 
-      {/* portão — plantado no mundo, anima ao abrir */}
+      {/* marco do mundo: pedra (clareira) ou portão (floresta) */}
       {landmarkAnchor != null && (
         <div style={{
           position: 'absolute',
           left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
           bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)',
         }}>
-          <img
-            src={gateFrame === 2 ? '/assets/world/gate-open.png'
-               : gateFrame === 1 ? '/assets/world/gate-half.png'
-               : '/assets/world/gate-closed.png'}
-            alt="portão"
-            style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.7))' }}
-          />
-          {nearby && !gateOpen && (
-            <div className="font-pixel" style={{ position: 'absolute', bottom: 210, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+          {bg === 'clareira' ? (
+            boulderState !== 'gone' && (
+              <>
+                {/* wrapper de sinking — translateY separado do shake */}
+                <div style={{
+                  transform: boulderState === 'sinking' ? 'translateY(360px)' : 'translateY(0)',
+                  transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
+                }}>
+                  <img
+                    src="/assets/world/boulder.png"
+                    alt="pedra gigante"
+                    style={{
+                      display: 'block', height: 240, width: 'auto', imageRendering: 'pixelated',
+                      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.9)) drop-shadow(0 0 8px rgba(0,0,0,0.6))',
+                      animation: boulderState === 'shaking' ? 'boulder-shake 0.13s ease-in-out infinite' : 'none',
+                    }}
+                  />
+                </div>
+                {nearby && boulderState === 'idle' && (
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 248, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                )}
+              </>
+            )
+          ) : (
+            <>
+              <img
+                src={gateFrame === 2 ? '/assets/world/gate-open.png'
+                   : gateFrame === 1 ? '/assets/world/gate-half.png'
+                   : '/assets/world/gate-closed.png'}
+                alt="portão"
+                style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.7))' }}
+              />
+              {nearby && !gateOpen && (
+                <div className="font-pixel" style={{ position: 'absolute', bottom: 210, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -568,6 +598,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   // 1-4 = frame de despertar ativo; null = já acordou, usa hero normal
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
   const [showRabbit, setShowRabbit] = useState(false);
+  const [boulderState, setBoulderState] = useState<BoulderState>('idle');
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -602,10 +633,17 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
     return () => clearTimeout(id);
   }, [wakeUpFrame]);
 
-  // ativa o coelho quando a clareira começa
+  // ativa o coelho quando a clareira começa; reseta a pedra
   useEffect(() => {
-    if (bg === 'clareira') setShowRabbit(true);
+    if (bg === 'clareira') { setShowRabbit(true); setBoulderState('idle'); }
   }, [bg]);
+
+  // animação da pedra: tremor → descida → desaparecimento
+  const triggerBoulder = useCallback(() => {
+    setBoulderState('shaking');
+    setTimeout(() => setBoulderState('sinking'), 1400);
+    setTimeout(() => setBoulderState('gone'), 2900);
+  }, []);
 
   // beats automáticos (cenário / fade)
   useEffect(() => {
@@ -723,7 +761,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
       }} />
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} />
 
       {(bg === 'floresta' || bg === 'clareira') && !finished && (
         wakeUpFrame !== null
@@ -752,9 +790,10 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         <QuestionBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
       )}
 
-      {/* pareamento */}
+      {/* pareamento — na clareira a pedra range e afunda; na floresta abre o portão */}
       {beat?.t === 'match' && (
-        <MatchBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
+        <MatchBeat key={beatIndex} beat={beat} onSolved={advance}
+          onCorrect={bg === 'clareira' ? triggerBoulder : () => setGateOpen(true)} />
       )}
 
       {/* D-pad de caminhada — lado esquerdo */}
@@ -776,8 +815,8 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
           </button>
         </div>
       )}
-      {/* botão OK — lado direito, aparece ao chegar no portão */}
-      {beat?.t === 'walk' && nearby && !gateOpen && (
+      {/* botão OK — lado direito, aparece ao chegar no marco (portão ou pedra) */}
+      {beat?.t === 'walk' && nearby && (bg === 'clareira' ? boulderState === 'idle' : !gateOpen) && (
         <button onPointerDown={(e) => { e.preventDefault(); advance(); }} onContextMenu={(e) => e.preventDefault()}
           className="font-pixel"
           style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
