@@ -224,7 +224,7 @@
   /* ── Fundo respiração ── */
   @keyframes bg-breathe {
     0%, 100% { transform: scale(1.00); }
-    50%       { transform: scale(1.03); }
+    50%       { transform: scale(1.06); }
   }
 
   /* ── Logo shimmer ── */

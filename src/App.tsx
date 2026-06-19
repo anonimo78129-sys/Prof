@@ -99,8 +99,7 @@ export default function App() {
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
-        imageRendering: 'pixelated',
-        animation: 'bg-breathe 6s ease-in-out infinite',
+        animation: 'bg-breathe 7s ease-in-out infinite',
         transformOrigin: 'center center',
       }} />
 
