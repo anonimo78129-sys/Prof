@@ -16,6 +16,7 @@ function ImagePreloader() {
     '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
     '/assets/world/boulder.png',
+    '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
     ...SCENERY.map(p => `/assets/${p.src}`),
@@ -411,15 +412,16 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   // ── Ato 3: montanhas + árvores teal/verde + Layer_0001_8 na frente ──
   if (bg === 'ato3') {
     const ATO3 = [
-      { path: '/assets/ato3/mountain-back.png',  f: 0.08, z: 1 },
-      { path: '/assets/ato3/mountain-front.png', f: 0.18, z: 2 },
-      { path: '/assets/ato3/tree-teal.png',      f: 0.50, z: 3 },
-      { path: '/assets/ato3/trees-green.png',    f: 0.68, z: 4 },
-      { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 5 },
+      { path: '/assets/ato3/sky.png',            f: 0.03, z: 1 },
+      { path: '/assets/ato3/mountain-back.png',  f: 0.08, z: 2 },
+      { path: '/assets/ato3/mountain-front.png', f: 0.18, z: 3 },
+      { path: '/assets/ato3/tree-teal.png',      f: 0.50, z: 4 },
+      { path: '/assets/ato3/trees-green.png',    f: 0.68, z: 5 },
+      { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 6 },
     ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
-        background: 'linear-gradient(to bottom, #bce5f0 0%, #d8f0f8 45%, #eaf8fc 100%)' }}>
+        background: '#7dd8de' }}>
 
         {ATO3.map(l => <div key={l.path} style={layer(l.path, l.f, l.z)} />)}
 
