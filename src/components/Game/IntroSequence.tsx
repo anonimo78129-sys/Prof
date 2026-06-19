@@ -53,9 +53,10 @@ const SLIDES: Slide[] = [
       { type: 'protagonista', text: 'Só um cochilo rápido...' },
     ],
   },
-  // 04 — Ônibus desaparecendo na neblina
+  // 04 — Dormindo no ônibus → neblina (2 frames)
   {
-    frames: ['/assets/intro/04-neblina.png'],
+    frames: ['/assets/intro/04-dormindo-f1.png', '/assets/intro/04-neblina.png'],
+    frameForCue: [0, 0, 1],
     cues: [
       { type: 'evento', text: 'O som do motor fica distante.' },
       { type: 'evento', text: 'As luzes da cidade desaparecem.' },
