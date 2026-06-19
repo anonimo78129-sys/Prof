@@ -434,18 +434,25 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* portão do ato 3 */}
-        {landmarkAnchor != null && (
+        {/* pedra gigante do ato 3 */}
+        {landmarkAnchor != null && boulderState !== 'gone' && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
-            <img
-              src={gateFrame === 2 ? '/assets/world/gate-open.png'
-                 : gateFrame === 1 ? '/assets/world/gate-half.png'
-                 : '/assets/world/gate-closed.png'}
-              alt="portão"
-              style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.7))' }}
-            />
-            {nearby && !gateOpen && (
-              <div className="font-pixel" style={{ position: 'absolute', bottom: 210, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+            <div style={{
+              transform: boulderState === 'sinking' ? 'translateY(360px)' : 'translateY(0)',
+              transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
+            }}>
+              <img
+                src="/assets/world/boulder.png"
+                alt="pedra gigante"
+                style={{
+                  display: 'block', height: 240, width: 'auto', imageRendering: 'pixelated',
+                  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.9)) drop-shadow(0 0 8px rgba(0,0,0,0.6))',
+                  animation: boulderState === 'shaking' ? 'boulder-shake 0.13s ease-in-out infinite' : 'none',
+                }}
+              />
+            </div>
+            {nearby && boulderState === 'idle' && (
+              <div className="font-pixel" style={{ position: 'absolute', bottom: 248, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
             )}
           </div>
         )}
@@ -696,9 +703,10 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
     return () => clearTimeout(id);
   }, [wakeUpFrame]);
 
-  // ativa o coelho quando a clareira começa; reseta a pedra
+  // ativa o coelho quando a clareira começa; reseta a pedra (clareira e ato3)
   useEffect(() => {
     if (bg === 'clareira') { setShowRabbit(true); setBoulderState('idle'); }
+    if (bg === 'ato3') setBoulderState('idle');
   }, [bg]);
 
   // animação da pedra: tremor → descida → desaparecimento
@@ -848,9 +856,10 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         <SayRunner key={beatIndex} beat={beat} onDone={advance} />
       )}
 
-      {/* pergunta */}
+      {/* pergunta — no ato3 a pedra range e afunda; na floresta abre o portão */}
       {beat?.t === 'question' && (
-        <QuestionBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
+        <QuestionBeat key={beatIndex} beat={beat} onSolved={advance}
+          onCorrect={bg === 'ato3' ? triggerBoulder : () => setGateOpen(true)} />
       )}
 
       {/* pareamento — na clareira a pedra range e afunda; na floresta abre o portão */}
@@ -879,7 +888,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         </div>
       )}
       {/* botão OK — lado direito, aparece ao chegar no marco (portão ou pedra) */}
-      {beat?.t === 'walk' && nearby && (bg === 'clareira' ? boulderState === 'idle' : !gateOpen) && (
+      {beat?.t === 'walk' && nearby && ((bg === 'clareira' || bg === 'ato3') ? boulderState === 'idle' : !gateOpen) && (
         <button onPointerDown={(e) => { e.preventDefault(); advance(); }} onContextMenu={(e) => e.preventDefault()}
           className="font-pixel"
           style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
