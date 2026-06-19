@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Criaturas — Animação Lateral</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1b0f; font-family: monospace; color: #7fae7a; padding: 20px; }
+  h1 { font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; color: #40e0d0; text-transform: uppercase; }
+  p.sub { font-size: 11px; color: #5a7a5e; margin-bottom: 12px; line-height: 1.5; }
+  h2 { font-size: 11px; letter-spacing: 2px; margin: 30px 0 4px; color: #9ad08f; text-transform: uppercase; border-bottom: 1px solid #2a4a2e; padding-bottom: 8px; }
+  .count { color: #3a5a3e; }
+  .grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+  .card { background: #111f13; border: 1px solid #2a4a2e; border-radius: 6px; padding: 12px 8px 8px; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 96px; cursor: pointer; }
+  .card:hover { border-color: #40e0d0; background: #15281a; }
+  .card.selected { border-color: #f5a623; background: #1f2a10; }
+  .stage { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
+  .stage img { image-rendering: pixelated; }
+  .name { font-size: 9px; color: #cfe8c8; text-align: center; word-break: break-word; }
+  #selected-box { position: sticky; bottom: 16px; background: #0d1b0f; border: 1px solid #40e0d0; border-radius: 8px; padding: 12px 16px; margin-top: 30px; font-size: 11px; }
+  #selected-box h3 { color: #40e0d0; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
+  #codes { color: #f5a623; word-break: break-all; line-height: 1.8; min-height: 20px; }
+  #copy-btn { margin-top: 8px; background: #1a3a1e; border: 1px solid #40e0d0; color: #40e0d0; font-family: monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+  #copy-btn:hover { background: #40e0d0; color: #0d1b0f; }
+  #clear-btn { margin-top: 8px; margin-left: 6px; background: #1a3a1e; border: 1px solid #5a7a5e; color: #5a7a5e; font-family: monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+  #clear-btn:hover { background: #5a7a5e; color: #0d1b0f; }
+</style>
+</head>
+<body>
+<h1>🌿 Criaturas — Animação Lateral</h1>
+<p class="sub">Todas as criaturas estão mostrando <b>apenas a animação de caminhada lateral (leste)</b>.<br>
+Clique nas criaturas que gostar para selecionar. Depois copie os códigos e me mande a lista.</p>
+
+<div id="root"></div>
+
+<div id="selected-box">
+  <h3>✓ SELECIONADOS</h3>
+  <div id="codes">— nenhum selecionado —</div>
+  <button id="copy-btn" onclick="copySelected()">Copiar códigos</button>
+  <button id="clear-btn" onclick="clearSelected()">Limpar</button>
+</div>
+
+<script>
+const SECTIONS = [
+  { key: 'A', title: '🦊 Animais', files: [
+    'A-baby_horse','A-bat','A-beaver','A-bee','A-butterfly','A-cat','A-chick','A-chicken',
+    'A-crab','A-deer','A-dodo','A-elephant','A-fox','A-horse','A-king_cobra','A-penguin',
+    'A-pigeon','A-pug','A-rabbit','A-rodent','A-wolf'
+  ]},
+  { key: 'C', title: '👹 Monstros & Seres', files: [
+    'C-alien','C-arachne','C-centaur','C-cyclops','C-devil_queen','C-elder_skeleton',
+    'C-gingerbread_man','C-gnome','C-kobold','C-minotaur','C-mummy','C-orc','C-ratfolk',
+    'C-sheepman','C-skeleton','C-spacebot','C-tiny_skelly','C-troll','C-vampire',
+    'C-werewolf','C-werewolf_LPC','C-zombie'
+  ]},
+  { key: 'F', title: '🐉 Fantásticas', files: [
+    'F-blob','F-brain_monster','F-djinn','F-earth_elemental','F-flying_dragon','F-googon',
+    'F-gork','F-ice_elemental','F-killer_snowflake','F-minimare','F-observer','F-slime','F-xenocium'
+  ]},
+  { key: 'N', title: '🍄 Ninja Adventure (CC0)', files: [
+    'N-01','N-02','N-03','N-04','N-05','N-06','N-07','N-08','N-09','N-10','N-11',
+    'N-12','N-13','N-14','N-15','N-16','N-17','N-18','N-19','N-20','N-21','N-22'
+  ]},
+];
+
+const selected = new Set();
+
+function updateSelected() {
+  const el = document.getElementById('codes');
+  if (selected.size === 0) {
+    el.textContent = '— nenhum selecionado —';
+  } else {
+    el.textContent = [...selected].join(', ');
+  }
+}
+
+function copySelected() {
+  if (selected.size === 0) return;
+  navigator.clipboard.writeText([...selected].join(', '));
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = 'Copiado!';
+  setTimeout(() => btn.textContent = 'Copiar códigos', 1500);
+}
+
+function clearSelected() {
+  selected.clear();
+  document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+  updateSelected();
+}
+
+function makeCard(code) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.title = code;
+
+  const stage = document.createElement('div');
+  stage.className = 'stage';
+
+  const img = document.createElement('img');
+  img.src = `/preview/side/${code}.gif`;
+  img.onload = () => {
+    const s = Math.min(72 / img.naturalWidth, 72 / img.naturalHeight, 4);
+    img.style.width = (img.naturalWidth * s) + 'px';
+    img.style.height = (img.naturalHeight * s) + 'px';
+  };
+  img.onerror = () => { stage.textContent = '?'; };
+  stage.appendChild(img);
+
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = code;
+
+  card.append(stage, name);
+
+  card.addEventListener('click', () => {
+    if (selected.has(code)) {
+      selected.delete(code);
+      card.classList.remove('selected');
+    } else {
+      selected.add(code);
+      card.classList.add('selected');
+    }
+    updateSelected();
+  });
+
+  return card;
+}
+
+const root = document.getElementById('root');
+SECTIONS.forEach(sec => {
+  const h = document.createElement('h2');
+  h.innerHTML = `${sec.title} <span class="count">(${sec.files.length})</span>`;
+  root.appendChild(h);
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  sec.files.forEach(code => grid.appendChild(makeCard(code)));
+  root.appendChild(grid);
+});
+</script>
+</body>
+</html>
