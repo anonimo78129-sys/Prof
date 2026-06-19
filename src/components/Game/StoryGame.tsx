@@ -495,7 +495,7 @@ function LightMotes() {
 
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -553,30 +553,51 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* macieira gigante do ato 3 */}
-        {landmarkAnchor != null && boulderState !== 'gone' && (
+        {/* macieira gigante do ato 3 ou estufa exterior */}
+        {landmarkAnchor != null && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
-            <div style={{
-              transformOrigin: 'bottom center',
-              transform: boulderState === 'sinking' ? 'translateY(400px)' : 'translateY(0)',
-              transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
-            }}>
-              <img
-                src="/assets/ato3/apple-tree.png"
-                alt="macieira gigante"
-                style={{
-                  display: 'block', height: 320, width: 'auto', imageRendering: 'pixelated',
-                  filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
+            {landmarkKind === 'estufa-ext' ? (
+              // Estufa exterior placeholder (glass building)
+              <>
+                <div style={{
+                  width: 200, height: 240,
+                  background: 'rgba(100,180,80,0.18)',
+                  border: '3px solid rgba(140,220,110,0.55)',
+                  borderRadius: '4px 4px 0 0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span className="font-pixel" style={{ color: 'rgba(180,255,140,0.65)', fontSize: 8, letterSpacing: 1 }}>ESTUFA</span>
+                </div>
+                {nearby && (
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 248, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                )}
+              </>
+            ) : boulderState !== 'gone' ? (
+              // Apple tree (original)
+              <>
+                <div style={{
                   transformOrigin: 'bottom center',
-                  animation: boulderState === 'shaking'
-                    ? 'boulder-shake 0.13s ease-in-out infinite'
-                    : 'tree-sway 4s ease-in-out infinite',
-                }}
-              />
-            </div>
-            {nearby && boulderState === 'idle' && (
-              <div className="font-pixel" style={{ position: 'absolute', bottom: 328, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
-            )}
+                  transform: boulderState === 'sinking' ? 'translateY(400px)' : 'translateY(0)',
+                  transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
+                }}>
+                  <img
+                    src="/assets/ato3/apple-tree.png"
+                    alt="macieira gigante"
+                    style={{
+                      display: 'block', height: 320, width: 'auto', imageRendering: 'pixelated',
+                      filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
+                      transformOrigin: 'bottom center',
+                      animation: boulderState === 'shaking'
+                        ? 'boulder-shake 0.13s ease-in-out infinite'
+                        : 'tree-sway 4s ease-in-out infinite',
+                    }}
+                  />
+                </div>
+                {nearby && boulderState === 'idle' && (
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 328, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                )}
+              </>
+            ) : null}
           </div>
         )}
 
@@ -585,6 +606,70 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* grama de primeiro plano */}
         <div style={layer('/assets/forest/Layer_0000_9.png', FOREST_FOREGROUND.f, 20,
           { transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' })} />
+      </div>
+    );
+  }
+
+  if (bg === 'estufa') {
+    return (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#0d0905' }}>
+        {/* camadas da floresta com filtro âmbar — plantas dentro da estufa */}
+        {FOREST_LAYERS.slice(0, 9).map((l, i) => (
+          <div key={l.src} style={{ ...fxLayer(l.src, l.f * 0.55, i + 1), filter: 'sepia(0.6) saturate(0.65) brightness(0.5) hue-rotate(8deg)' }} />
+        ))}
+
+        {/* luz quente filtrada pelo vidro */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none', background: 'linear-gradient(to bottom, rgba(90,50,10,0.35) 0%, rgba(50,25,5,0.15) 55%, transparent 100%)' }} />
+
+        {/* chão */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
+          backgroundImage: `url('/assets/world/ground-dark.png')`,
+          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+          imageRendering: 'pixelated',
+        }} />
+
+        {/* landmarks: tronco pulsante ou computador */}
+        {landmarkAnchor != null && (
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
+            {landmarkKind === 'trunk' ? (
+              <>
+                <div style={{
+                  width: 68, height: 210, margin: '0 auto',
+                  background: 'linear-gradient(to right, #2a1508, #4a2a10, #2a1508)',
+                  borderRadius: '34px 34px 6px 6px',
+                  boxShadow: '0 0 22px rgba(0,220,120,0.55), 0 0 50px rgba(0,200,100,0.3)',
+                  animation: 'trunk-pulse 2s ease-in-out infinite',
+                }} />
+                {nearby && (
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 218, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                )}
+              </>
+            ) : landmarkKind === 'computer' ? (
+              <>
+                <div style={{
+                  width: 130, height: 100,
+                  background: '#060808', border: '4px solid #1a2a1a',
+                  borderRadius: 4, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: 4,
+                  boxShadow: '0 0 14px rgba(0,255,80,0.28)',
+                }}>
+                  <span className="font-pixel" style={{ color: '#00e050', fontSize: 7, letterSpacing: 1 }}>AMAZÔNIA II</span>
+                  <span className="font-pixel" style={{ color: '#00a030', fontSize: 6 }}>SENHA: ▮</span>
+                </div>
+                {nearby && (
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 108, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                )}
+              </>
+            ) : null}
+          </div>
+        )}
+
+        <LightMotes />
+
+        {/* grama de primeiro plano com filtro âmbar */}
+        <div style={{ ...fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20), filter: 'sepia(0.5) saturate(0.5) brightness(0.45)', transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' }} />
       </div>
     );
   }
@@ -779,6 +864,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
   const [showRabbit, setShowRabbit] = useState(false);
   const [boulderState, setBoulderState] = useState<BoulderState>('idle');
+  const [landmarkKind, setLandmarkKind] = useState<'gate' | 'estufa-ext' | 'trunk' | 'computer'>('gate');
   const [sceneFade, setSceneFade] = useState(false);
 
   const beat: Beat | undefined = beats[beatIndex];
@@ -817,7 +903,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   // ativa o coelho quando a clareira começa; reseta a pedra (clareira e ato3)
   useEffect(() => {
     if (bg === 'clareira') { setShowRabbit(true); setBoulderState('idle'); }
-    if (bg === 'ato3') setBoulderState('idle');
+    if (bg === 'ato3' || bg === 'estufa') setBoulderState('idle');
   }, [bg]);
 
   // animação da pedra: tremor → descida → desaparecimento
@@ -859,12 +945,14 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       targetRef.current = worldX + beat.dist;
       if (beat.landmark) {
         setLandmarkAnchor(worldX + beat.dist - GATE_AHEAD);
+        setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer');
       }
       // sem landmark: mantém o portão visível (sai de cena naturalmente ao rolar)
     } else if (beat?.t === 'scene') {
       // nova cena: limpa portão e âncora
       targetRef.current = null;
       setLandmarkAnchor(null);
+      setLandmarkKind('gate');
       setGateFrame(0);
     } else {
       targetRef.current = null;
@@ -947,9 +1035,9 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
       }} />
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} />
 
-      {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3') && !finished && (
+      {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa') && !finished && (
         wakeUpFrame !== null
           ? <WakeUpHero frame={wakeUpFrame} />
           : <Hero moving={moving} frame={frame} facing={facing} />
@@ -1009,7 +1097,9 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         </div>
       )}
       {/* botão OK — lado direito, aparece ao chegar no marco (portão ou pedra) */}
-      {beat?.t === 'walk' && nearby && ((bg === 'clareira' || bg === 'ato3') ? boulderState === 'idle' : !gateOpen) && (
+      {beat?.t === 'walk' && nearby && (bg === 'clareira' ? boulderState === 'idle'
+        : bg === 'ato3' ? boulderState === 'idle'
+        : !gateOpen) && (
         <button onPointerDown={(e) => { e.preventDefault(); advance(); }} onContextMenu={(e) => e.preventDefault()}
           className="font-pixel"
           style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>

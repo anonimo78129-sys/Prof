@@ -4,7 +4,7 @@ import type { MCQuestion } from '../types/game';
 export type Speaker = 'narrador' | 'estudante' | 'corujao';
 
 // Cenário/tema visual de fundo
-export type SceneBg = 'noite' | 'floresta' | 'clareira' | 'ato3';
+export type SceneBg = 'noite' | 'floresta' | 'clareira' | 'ato3' | 'estufa';
 
 // Cada "beat" é um passo do roteiro, executado em sequência
 export type Beat =
@@ -17,7 +17,7 @@ export type Beat =
   // O jogador caminha livremente (← →) dentro do segmento de `dist` px.
   // Se houver `landmark`, ao chegar ao fim aparece o indicador + botão OK
   // para entrar na fase; sem landmark, o OK apenas segue o roteiro.
-  | { t: 'walk'; dist: number; hint?: string; landmark?: 'gate' }
+  | { t: 'walk'; dist: number; hint?: string; landmark?: 'gate' | 'estufa-ext' | 'trunk' | 'computer' }
   // Um objeto surge no caminho e propõe uma pergunta
   | {
       t: 'question';

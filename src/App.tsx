@@ -6,11 +6,14 @@ import StoryGame from './components/Game/StoryGame';
 import IntroSequence from './components/Game/IntroSequence';
 
 const DEV_ACTS = [
-  { label: 'Ato 1 — Floresta (portão)',    beat: 0,  bg: undefined         },
-  { label: 'Ato 2 — Clareira (pedra)',      beat: 7,  bg: undefined         },
-  { label: 'Ato 3 — Macieira (scene)',      beat: 13, bg: undefined         },
-  { label: 'Ato 3 — Macieira (walk direto)',beat: 17, bg: 'ato3' as SceneBg },
-  { label: 'Ato 3 — Coleta de maçãs',      beat: 19, bg: 'ato3' as SceneBg },
+  { label: 'Ato 1 — Floresta (portão)',       beat: 0,  bg: undefined            },
+  { label: 'Ato 2 — Clareira (pedra)',         beat: 7,  bg: undefined            },
+  { label: 'Ato 3 — Macieira (scene)',         beat: 13, bg: undefined            },
+  { label: 'Ato 3 — Coleta de maçãs',         beat: 19, bg: 'ato3' as SceneBg   },
+  { label: 'Ato 4 — Estufa (avistando)',       beat: 20, bg: 'ato3' as SceneBg   },
+  { label: 'Ato 4 — Estufa (dentro)',          beat: 23, bg: 'estufa' as SceneBg },
+  { label: 'Ato 4 — Computador',               beat: 25, bg: 'estufa' as SceneBg },
+  { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 27, bg: 'estufa' as SceneBg },
 ] as const;
 
 function seeded(seed: number) {

@@ -93,10 +93,46 @@ const beats: Beat[] = [
     ],
     hint: 'Dispersão é como a semente viaja para longe da planta mãe. Pense em ventos, rios e animais.',
   },
-  { t: 'walk', dist: 600, hint: 'Continue adiante' },
+  // ── ATO 4 — A Estufa ──
+  // Still in ato3 — player walks, estufa building enters from the right
+  { t: 'walk', dist: 700, hint: 'Siga em frente', landmark: 'estufa-ext' },
+  // Say before entering
+  { t: 'say', who: 'estudante', lines: ['Parece ser uma estufa.', 'O que é aquilo?'] },
+  // Enter estufa
+  { t: 'scene', bg: 'estufa' },
+  // Inside estufa — find tronco pulsante
+  { t: 'walk', dist: 500, hint: 'Explore a estufa', landmark: 'trunk' },
   { t: 'say', who: 'estudante', lines: [
     'Esse tronco... está vivo, como um coração pulsante!',
     'Esse lugar parece ter vida própria!',
+  ] },
+  // Find the computer
+  { t: 'walk', dist: 600, hint: 'Encontre o computador', landmark: 'computer' },
+  { t: 'say', who: 'estudante', lines: [
+    'Um dos computadores... ligou sozinho.',
+    'O sistema pede uma senha.',
+  ] },
+  { t: 'question',
+    intro: 'A tela exibe uma pergunta...',
+    q: {
+      text: 'Qual processo nas folhas das plantas contribui para o ciclo da água na atmosfera?',
+      options: ['Transpiração', 'Fotossíntese', 'Germinação', 'Polinização'],
+      correct: 0,
+    },
+    success: [
+      'Acesso autorizado.',
+      'Projeto Amazônia II — desbloqueado.',
+    ],
+    hint: 'As plantas também "suam". Pense no que sai pelas folhas para o ar.',
+  },
+  { t: 'say', who: 'narrador', lines: [
+    'Os arquivos revelam: cientistas criaram uma Amazônia artificial.',
+    'As plantas se comunicavam por fungos e sinais elétricos.',
+    'O sistema conseguia se autorregular sozinho.',
+  ] },
+  { t: 'say', who: 'estudante', lines: [
+    'As raízes... invadem os equipamentos.',
+    'A estufa e a floresta se tornaram uma só coisa.',
   ] },
   { t: 'fade', text: 'Continua...' },
 
