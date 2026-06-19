@@ -562,7 +562,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                     src="/assets/ato3/estufa-ext.png"
                     alt="estufa"
                     style={{
-                      display: 'block', height: 400, width: 'auto', imageRendering: 'pixelated',
+                      display: 'block',
+                      height: `calc(100vh - ${FLOOR + GROUND - 4}px)`,
+                      width: 'auto', imageRendering: 'pixelated',
                       filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
                     }}
                   />
@@ -580,7 +582,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                   />
                 </div>
                 {nearby && (
-                  <div className="font-pixel" style={{ position: 'absolute', bottom: 408, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: `calc(100vh - ${FLOOR + GROUND - 4}px + 8px)`, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
               </>
             ) : boulderState !== 'gone' ? (
