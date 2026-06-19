@@ -16,6 +16,8 @@ function ImagePreloader() {
     '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
     '/assets/world/boulder.png',
+    '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
+    '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
     ...SCENERY.map(p => `/assets/${p.src}`),
     ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
     '/assets/forest/Layer_0002_7_c.png',
@@ -396,6 +398,64 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     backgroundPositionX: `${Math.round(-worldX * factor)}px`, backgroundPositionY: 'bottom',
     imageRendering: 'pixelated', ...extra,
   });
+
+  // helper genérico (caminho completo)
+  const layer = (path: string, factor: number, z: number, extra?: CSSProperties): CSSProperties => ({
+    position: 'absolute', inset: 0, zIndex: z,
+    backgroundImage: `url('${path}')`,
+    backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+    backgroundPositionX: `${Math.round(-worldX * factor)}px`, backgroundPositionY: 'bottom',
+    imageRendering: 'pixelated', ...extra,
+  });
+
+  // ── Ato 3: montanhas + árvores teal/verde + Layer_0001_8 na frente ──
+  if (bg === 'ato3') {
+    const ATO3 = [
+      { path: '/assets/ato3/mountain-back.png',  f: 0.08, z: 1 },
+      { path: '/assets/ato3/mountain-front.png', f: 0.18, z: 2 },
+      { path: '/assets/ato3/tree-teal.png',      f: 0.50, z: 3 },
+      { path: '/assets/ato3/trees-green.png',    f: 0.68, z: 4 },
+      { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 5 },
+    ];
+    return (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
+        background: 'linear-gradient(to bottom, #bce5f0 0%, #d8f0f8 45%, #eaf8fc 100%)' }}>
+
+        {ATO3.map(l => <div key={l.path} style={layer(l.path, l.f, l.z)} />)}
+
+        {/* chão texturizado */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
+          backgroundImage: `url('/assets/world/ground-dark.png')`,
+          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+          imageRendering: 'pixelated',
+        }} />
+
+        {/* portão do ato 3 */}
+        {landmarkAnchor != null && (
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)' }}>
+            <img
+              src={gateFrame === 2 ? '/assets/world/gate-open.png'
+                 : gateFrame === 1 ? '/assets/world/gate-half.png'
+                 : '/assets/world/gate-closed.png'}
+              alt="portão"
+              style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.7))' }}
+            />
+            {nearby && !gateOpen && (
+              <div className="font-pixel" style={{ position: 'absolute', bottom: 210, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+            )}
+          </div>
+        )}
+
+        <LightMotes />
+
+        {/* grama de primeiro plano */}
+        <div style={layer('/assets/forest/Layer_0000_9.png', FOREST_FOREGROUND.f, 20,
+          { transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' })} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#5a6f8c' }}>
