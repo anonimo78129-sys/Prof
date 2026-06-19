@@ -580,8 +580,7 @@ function WalkingRabbit({ onDone }: { onDone: () => void }) {
 
   // aguarda 7s antes de aparecer
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 7000);
-    return () => clearTimeout(t);
+    setVisible(true);
   }, []);
 
   // ciclo de passos dos 3 frames da raposa
