@@ -19,6 +19,7 @@ function ImagePreloader() {
     '/assets/ato3/apple.png',
     '/assets/ato3/estufa-ext.png', '/assets/ato3/estufa-light.png',
     '/assets/estufa/bg.jpg',
+    '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png', '/assets/estufa/trunk-3.png',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -495,6 +496,19 @@ function LightMotes() {
 
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
+function TrunkSprite({ height }: { height: number }) {
+  const [frame, setFrame] = useState(1);
+  useEffect(() => {
+    const id = setInterval(() => setFrame(f => f === 3 ? 1 : f + 1), 350);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <img src={`/assets/estufa/trunk-${frame}.png`} alt="tronco pulsante"
+      style={{ display: 'block', height, width: 'auto', imageRendering: 'pixelated',
+        filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.7))' }} />
+  );
+}
+
 function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' }) {
   if (bg === 'noite') {
     return (
@@ -651,15 +665,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             {landmarkKind === 'trunk' ? (
               <>
-                <div style={{
-                  width: 68, height: 210, margin: '0 auto',
-                  background: 'linear-gradient(to right, #2a1508, #4a2a10, #2a1508)',
-                  borderRadius: '34px 34px 6px 6px',
-                  boxShadow: '0 0 22px rgba(0,220,120,0.55), 0 0 50px rgba(0,200,100,0.3)',
-                  animation: 'trunk-pulse 2s ease-in-out infinite',
-                }} />
+                <TrunkSprite height={280} />
                 {nearby && (
-                  <div className="font-pixel" style={{ position: 'absolute', bottom: 218, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 288, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
               </>
             ) : landmarkKind === 'computer' ? (
