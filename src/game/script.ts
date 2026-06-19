@@ -43,8 +43,8 @@ const beats: Beat[] = [
   ] },
   { t: 'walk', dist: 850, hint: 'Atravesse a clareira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
-    'Outro portão!',
-    'O que essa floresta quer de mim?',
+    'Uma pedra gigante bloqueia o caminho!',
+    'Coberta de musgo... parece antiga demais.',
   ] },
   { t: 'match',
     intro: 'Raízes de luz se entrelaçam na névoa, formando pares de palavras...',
@@ -55,7 +55,7 @@ const beats: Beat[] = [
       { left: 'Caule', right: 'Transporta seiva pela planta' },
     ],
     success: [
-      'A clareira inteira ficou mais brilhante!',
+      'A pedra tremeu e afundou na terra!',
       'O jardim me ouviu de novo.',
     ],
     hint: 'Cada parte da planta tem um papel único. Pense no que cada uma faz para a planta sobreviver.',
@@ -73,7 +73,7 @@ const beats: Beat[] = [
   ] },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
-    'Mais um portão coberto de raízes.',
+    'Outra pedra gigante, ainda maior!',
     'Esse lugar é um labirinto vivo.',
   ] },
   { t: 'question',
@@ -89,6 +89,7 @@ const beats: Beat[] = [
       correct: 0,
     },
     success: [
+      'A pedra rangeu e desceu até sumir na terra!',
       'A semente precisa ir longe para a espécie sobreviver.',
       'O fruto é a embalagem que garante essa viagem.',
     ],
