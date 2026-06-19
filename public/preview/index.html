@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview de Seres Vivos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1b0f; font-family: monospace; color: #7fae7a; padding: 24px; }
+  h1 { font-size: 13px; letter-spacing: 3px; margin-bottom: 32px; color: #40e0d0; text-transform: uppercase; }
+  .grid { display: flex; flex-wrap: wrap; gap: 32px; }
+  .card {
+    background: #111f13; border: 1px solid #2a4a2e;
+    border-radius: 4px; padding: 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    min-width: 160px;
+  }
+  .card canvas { image-rendering: pixelated; }
+  .label { font-size: 11px; letter-spacing: 1px; color: #7fae7a; text-align: center; }
+  .license { font-size: 9px; color: #3a5a3e; }
+</style>
+</head>
+<body>
+<h1>🌿 Seres do Jardim — Preview animado</h1>
+<div class="grid" id="grid"></div>
+
+<script>
+const SCALE = 4;
+
+const BEINGS = [
+  {
+    id: 'butterfly-orange',
+    label: 'Borboleta laranja',
+    license: 'CC0',
+    src: '/preview/butterfly.png',
+    fw: 16, fh: 32,       // frame width/height
+    cols: 3, row: 0,       // 3 frames in row 0
+    frames: 3, fps: 8,
+  },
+  {
+    id: 'butterfly-teal',
+    label: 'Borboleta turquesa',
+    license: 'CC0',
+    src: '/preview/butterfly.png',
+    fw: 16, fh: 32,
+    cols: 3, row: 1,
+    frames: 3, fps: 8,
+  },
+  {
+    id: 'butterfly-purple',
+    label: 'Borboleta roxa',
+    license: 'CC0',
+    src: '/preview/butterfly.png',
+    fw: 16, fh: 32,
+    cols: 3, row: 2,
+    frames: 3, fps: 8,
+  },
+  {
+    id: 'fox-walk',
+    label: 'Raposa',
+    license: 'CC BY-SA 3.0',
+    src: '/preview/fox.png',
+    fw: 48, fh: 64,
+    cols: 3, row: 1,       // row 1 = caminhada para leste
+    frames: 3, fps: 6,
+  },
+  {
+    id: 'deer-run',
+    label: 'Cervo correndo',
+    license: 'CC BY 3.0',
+    src: '/preview/deer.png',
+    fw: 32, fh: 32,
+    cols: 3, row: 2,       // row 2 = corrida lateral
+    frames: 3, fps: 8,
+  },
+  {
+    id: 'deer-idle',
+    label: 'Cervo parado',
+    license: 'CC BY 3.0',
+    src: '/preview/deer.png',
+    fw: 32, fh: 32,
+    cols: 3, row: 0,
+    frames: 3, fps: 4,
+  },
+  {
+    id: 'frog',
+    label: 'Sapo (já no jogo)',
+    license: 'Sunnyland pack',
+    srcs: [
+      '/assets/sunnyland/frog-1.png',
+      '/assets/sunnyland/frog-2.png',
+      '/assets/sunnyland/frog-3.png',
+      '/assets/sunnyland/frog-4.png',
+    ],
+    fw: 22, fh: 18,
+    frames: 4, fps: 5,
+  },
+];
+
+const grid = document.getElementById('grid');
+
+BEINGS.forEach(b => {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const canvas = document.createElement('canvas');
+  canvas.width  = b.fw * SCALE;
+  canvas.height = b.fh * SCALE;
+  canvas.style.width  = (b.fw * SCALE) + 'px';
+  canvas.style.height = (b.fh * SCALE) + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = b.label;
+
+  const lic = document.createElement('div');
+  lic.className = 'license';
+  lic.textContent = b.license;
+
+  card.appendChild(canvas);
+  card.appendChild(label);
+  card.appendChild(lic);
+  grid.appendChild(card);
+
+  let frame = 0;
+  const interval = 1000 / b.fps;
+
+  if (b.srcs) {
+    // Multiple separate image files (frog)
+    const imgs = b.srcs.map(src => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+    imgs[0].onload = () => {
+      const draw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const img = imgs[frame % imgs.length];
+        if (img.complete) {
+          ctx.drawImage(img, 0, 0, b.fw * SCALE, b.fh * SCALE);
+        }
+        frame++;
+      };
+      draw();
+      setInterval(draw, interval);
+    };
+  } else {
+    // Sprite sheet
+    const img = new Image();
+    img.src = b.src;
+    img.onload = () => {
+      const draw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const sx = (frame % b.frames) * b.fw;
+        const sy = b.row * b.fh;
+        ctx.drawImage(img, sx, sy, b.fw, b.fh, 0, 0, b.fw * SCALE, b.fh * SCALE);
+        frame++;
+      };
+      draw();
+      setInterval(draw, interval);
+    };
+  }
+});
+</script>
+</body>
+</html>
