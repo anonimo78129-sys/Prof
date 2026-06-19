@@ -20,7 +20,7 @@ function ImagePreloader() {
     '/assets/ato3/estufa-ext.png', '/assets/ato3/estufa-light.png',
     '/assets/estufa/bg.jpg',
     '/assets/estufa/reflect-1.png', '/assets/estufa/reflect-2.png',
-    '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png', '/assets/estufa/trunk-3.png',
+    '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -500,7 +500,7 @@ type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 function TrunkSprite({ height }: { height: number }) {
   const [frame, setFrame] = useState(1);
   useEffect(() => {
-    const id = setInterval(() => setFrame(f => f === 3 ? 1 : f + 1), 350);
+    const id = setInterval(() => setFrame(f => f === 2 ? 1 : f + 1), 400);
     return () => clearInterval(id);
   }, []);
   return (
