@@ -980,7 +980,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {/* coleta de maçãs — ato3 */}
       {beat?.t === 'collect' && (
         <CollectBeat key={beatIndex} beat={beat} onSolved={advance}
-          onCorrect={bg === 'ato3' ? triggerBoulder : () => {}} />
+          onCorrect={() => {}} />
       )}
 
       {/* pareamento — na clareira a pedra range e afunda; na floresta abre o portão */}
