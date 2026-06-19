@@ -664,9 +664,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={{
           position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
           backgroundImage: "url('/assets/estufa/reflect-1.png')",
-          backgroundSize: '100% 75%',
+          backgroundSize: '100% 50%',
           backgroundPositionX: `${Math.round(-worldX * 0.18)}px`,
-          backgroundPositionY: 'calc(100% - 160px)',
+          backgroundPositionY: 'calc(100% - 140px)',
           backgroundRepeat: 'repeat-x',
           mixBlendMode: 'screen',
         }} />
