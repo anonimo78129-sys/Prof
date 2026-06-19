@@ -557,7 +557,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             {landmarkKind === 'estufa-ext' ? (
               <>
-                <div style={{ position: 'relative', display: 'inline-block', transform: 'translateY(20px)' }}>
+                <div style={{ position: 'relative', display: 'inline-block', transform: 'translateY(15px)' }}>
                   <img
                     src="/assets/ato3/estufa-ext.png"
                     alt="estufa"
