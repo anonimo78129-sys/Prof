@@ -535,7 +535,7 @@ function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facin
     <img src={src} alt="herói"
       style={{
         position: 'absolute', left: '34%', bottom: FLOOR + GROUND + HERO_LIFT, zIndex: 14,
-        height: 126, width: 'auto', imageRendering: 'pixelated',
+        height: 80, width: 'auto', imageRendering: 'pixelated',
         transform: `translateX(-50%) scaleX(${facing})`,
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
       }} />
