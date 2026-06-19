@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coelho — Direções</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1b0f; font-family: monospace; color: #7fae7a; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  h1 { font-size: 13px; letter-spacing: 3px; color: #40e0d0; text-transform: uppercase; margin-bottom: 8px; }
+  p.sub { font-size: 11px; color: #5a7a5e; margin-bottom: 20px; text-align: center; }
+  .grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+  .card { background: #111f13; border: 2px solid #2a4a2e; border-radius: 8px; padding: 20px 16px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 140px; }
+  .card:hover { border-color: #40e0d0; }
+  .label { font-size: 11px; color: #40e0d0; letter-spacing: 2px; text-transform: uppercase; }
+  .code  { font-size: 9px; color: #5a7a5e; margin-top: -6px; }
+  img { image-rendering: pixelated; width: 96px; height: 128px; }
+</style>
+</head>
+<body>
+<h1>🐇 Coelho — 4 Direções</h1>
+<p class="sub">Cada card mostra uma direção animada.<br>Me diga qual é o movimento de lado correto.</p>
+<div class="grid">
+  <div class="card">
+    <div class="label">Direção 0</div>
+    <div class="code">frame índice 0</div>
+    <img src="dir-0.gif" alt="dir 0">
+  </div>
+  <div class="card">
+    <div class="label">Direção 1</div>
+    <div class="code">frame índice 1</div>
+    <img src="dir-1.gif" alt="dir 1">
+  </div>
+  <div class="card">
+    <div class="label">Direção 2</div>
+    <div class="code">frame índice 2 ← atual</div>
+    <img src="dir-2.gif" alt="dir 2">
+  </div>
+  <div class="card">
+    <div class="label">Direção 3</div>
+    <div class="code">frame índice 3</div>
+    <img src="dir-3.gif" alt="dir 3">
+  </div>
+</div>
+</body>
+</html>
