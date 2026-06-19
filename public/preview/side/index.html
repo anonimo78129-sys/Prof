@@ -6,36 +6,93 @@
 <title>Criaturas — Animação Lateral</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0d1b0f; font-family: monospace; color: #7fae7a; padding: 20px; }
-  h1 { font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; color: #40e0d0; text-transform: uppercase; }
-  p.sub { font-size: 11px; color: #5a7a5e; margin-bottom: 12px; line-height: 1.5; }
-  h2 { font-size: 11px; letter-spacing: 2px; margin: 30px 0 4px; color: #9ad08f; text-transform: uppercase; border-bottom: 1px solid #2a4a2e; padding-bottom: 8px; }
-  .count { color: #3a5a3e; }
-  .grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
-  .card { background: #111f13; border: 1px solid #2a4a2e; border-radius: 6px; padding: 12px 8px 8px; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 96px; cursor: pointer; }
-  .card:hover { border-color: #40e0d0; background: #15281a; }
-  .card.selected { border-color: #f5a623; background: #1f2a10; }
-  .stage { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
+  body { background: #060e07; font-family: monospace; color: #7fae7a; padding: 20px; }
+  h1 { font-size: 13px; letter-spacing: 3px; margin-bottom: 6px; color: #40e0d0; text-transform: uppercase; }
+  p.sub { font-size: 10px; color: #3a5a3e; margin-bottom: 6px; line-height: 1.5; }
+  .nav { display: flex; gap: 8px; margin: 12px 0 6px; }
+  .nav a { font-size: 10px; color: #6f9070; text-decoration: none; border: 1px solid #1a3a1e; border-radius: 5px; padding: 5px 12px; transition: .15s; }
+  .nav a:hover { border-color: #40e0d0; color: #40e0d0; }
+  .nav a.active { background: #0d1f10; border-color: #40e0d0; color: #40e0d0; }
+  h2 { font-size: 10px; letter-spacing: 2px; margin: 28px 0 10px; color: #9ad08f; text-transform: uppercase; border-bottom: 1px solid #1a3a1e; padding-bottom: 7px; }
+  .count { color: #2a4a2e; }
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  .card {
+    position: relative;
+    width: 88px; height: 88px;
+    background: #0a140c;
+    border: 1px solid #1a3a1e;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .card:hover { border-color: #40e0d0; }
+  .card.selected { border-color: #f5a623; background: #130f04; }
+
+  .stage { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
   .stage img { image-rendering: pixelated; }
-  .name { font-size: 9px; color: #cfe8c8; text-align: center; word-break: break-word; }
-  #selected-box { position: sticky; bottom: 16px; background: #0d1b0f; border: 1px solid #40e0d0; border-radius: 8px; padding: 12px 16px; margin-top: 30px; font-size: 11px; }
-  #selected-box h3 { color: #40e0d0; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
-  #codes { color: #f5a623; word-break: break-all; line-height: 1.8; min-height: 20px; }
-  #copy-btn { margin-top: 8px; background: #1a3a1e; border: 1px solid #40e0d0; color: #40e0d0; font-family: monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
-  #copy-btn:hover { background: #40e0d0; color: #0d1b0f; }
-  #clear-btn { margin-top: 8px; margin-left: 6px; background: #1a3a1e; border: 1px solid #5a7a5e; color: #5a7a5e; font-family: monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
-  #clear-btn:hover { background: #5a7a5e; color: #0d1b0f; }
+
+  /* name appears only on hover as bottom overlay */
+  .name {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(6,14,7,.88);
+    font-size: 8px;
+    color: #cfe8c8;
+    text-align: center;
+    padding: 3px 4px;
+    opacity: 0;
+    transition: opacity .15s;
+    pointer-events: none;
+    word-break: break-all;
+    line-height: 1.3;
+  }
+  .card:hover .name, .card.selected .name { opacity: 1; }
+
+  /* checkmark for selected */
+  .check {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 16px; height: 16px;
+    background: #f5a623;
+    border-radius: 50%;
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #060e07;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+  }
+  .card.selected .check { opacity: 1; }
+
+  #selected-box {
+    position: sticky; bottom: 16px;
+    background: rgba(6,14,7,.95);
+    border: 1px solid #40e0d0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 28px;
+    font-size: 11px;
+    backdrop-filter: blur(4px);
+  }
+  #selected-box h3 { color: #40e0d0; font-size: 10px; letter-spacing: 2px; margin-bottom: 6px; }
+  #codes { color: #f5a623; word-break: break-all; line-height: 1.8; min-height: 18px; font-size: 10px; }
+  #copy-btn { margin-top: 7px; background: #0d1f10; border: 1px solid #40e0d0; color: #40e0d0; font-family: monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+  #copy-btn:hover { background: #40e0d0; color: #060e07; }
+  #clear-btn { margin-top: 7px; margin-left: 6px; background: #0d1f10; border: 1px solid #2a4a2e; color: #5a7a5e; font-family: monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+  #clear-btn:hover { background: #2a4a2e; color: #cfe8c8; }
 </style>
 </head>
 <body>
-<h1>🌿 Criaturas — Animação Lateral</h1>
-<p class="sub">Todas as criaturas estão mostrando <b>apenas a animação de caminhada lateral (leste)</b>.<br>
-Clique nas criaturas que gostar para selecionar. Depois copie os códigos e me mande a lista.</p>
+<h1>🌿 Criaturas — Lateral</h1>
+<p class="sub">Animação de caminhada lateral · passe o mouse para ver o código · clique para selecionar</p>
 
-<div style="display:flex;gap:10px;margin:14px 0 6px">
-  <a href="../index.html" style="font-size:10px;color:#9ad08f;text-decoration:none;border:1px solid #2a4a2e;border-radius:5px;padding:6px 12px">Criaturas</a>
-  <a href="index.html" style="font-size:10px;color:#40e0d0;text-decoration:none;border:1px solid #40e0d0;background:#15281a;border-radius:5px;padding:6px 12px">Lateral</a>
-  <a href="../scenes/index.html" style="font-size:10px;color:#9ad08f;text-decoration:none;border:1px solid #2a4a2e;border-radius:5px;padding:6px 12px">Cenários</a>
+<div class="nav">
+  <a href="../index.html">Criaturas</a>
+  <a href="index.html" class="active">Lateral</a>
+  <a href="../scenes/index.html">Cenários</a>
 </div>
 
 <div id="root"></div>
@@ -73,22 +130,16 @@ const SECTIONS = [
 const selected = new Set();
 
 function updateSelected() {
-  const el = document.getElementById('codes');
-  if (selected.size === 0) {
-    el.textContent = '— nenhum selecionado —';
-  } else {
-    el.textContent = [...selected].join(', ');
-  }
+  document.getElementById('codes').textContent =
+    selected.size ? [...selected].join(', ') : '— nenhum selecionado —';
 }
-
 function copySelected() {
-  if (selected.size === 0) return;
+  if (!selected.size) return;
   navigator.clipboard.writeText([...selected].join(', '));
   const btn = document.getElementById('copy-btn');
   btn.textContent = 'Copiado!';
   setTimeout(() => btn.textContent = 'Copiar códigos', 1500);
 }
-
 function clearSelected() {
   selected.clear();
   document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
@@ -98,7 +149,6 @@ function clearSelected() {
 function makeCard(code) {
   const card = document.createElement('div');
   card.className = 'card';
-  card.title = code;
 
   const stage = document.createElement('div');
   stage.className = 'stage';
@@ -107,7 +157,7 @@ function makeCard(code) {
   img.src = `/preview/side/${code}.gif`;
   img.onload = () => {
     const s = Math.min(72 / img.naturalWidth, 72 / img.naturalHeight, 4);
-    img.style.width = (img.naturalWidth * s) + 'px';
+    img.style.width  = (img.naturalWidth  * s) + 'px';
     img.style.height = (img.naturalHeight * s) + 'px';
   };
   img.onerror = () => { stage.textContent = '?'; };
@@ -117,16 +167,15 @@ function makeCard(code) {
   name.className = 'name';
   name.textContent = code;
 
-  card.append(stage, name);
+  const check = document.createElement('div');
+  check.className = 'check';
+  check.textContent = '✓';
+
+  card.append(stage, name, check);
 
   card.addEventListener('click', () => {
-    if (selected.has(code)) {
-      selected.delete(code);
-      card.classList.remove('selected');
-    } else {
-      selected.add(code);
-      card.classList.add('selected');
-    }
+    if (selected.has(code)) { selected.delete(code); card.classList.remove('selected'); }
+    else                    { selected.add(code);    card.classList.add('selected');    }
     updateSelected();
   });
 

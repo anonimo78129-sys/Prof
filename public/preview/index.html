@@ -6,34 +6,68 @@
 <title>Galeria de Criaturas</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0d1b0f; font-family: monospace; color: #7fae7a; padding: 20px; }
-  h1 { font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; color: #40e0d0; text-transform: uppercase; }
-  p.sub { font-size: 11px; color: #5a7a5e; margin-bottom: 12px; line-height: 1.5; }
-  h2 { font-size: 11px; letter-spacing: 2px; margin: 30px 0 4px; color: #9ad08f; text-transform: uppercase; border-bottom: 1px solid #2a4a2e; padding-bottom: 8px; }
-  .count { color: #3a5a3e; }
-  .grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
-  .card { background: #111f13; border: 1px solid #2a4a2e; border-radius: 6px; padding: 12px 8px 8px; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 96px; }
-  .card:hover { border-color: #40e0d0; background: #15281a; }
-  .stage { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
+  body { background: #060e07; font-family: monospace; color: #7fae7a; padding: 20px; }
+  h1 { font-size: 13px; letter-spacing: 3px; margin-bottom: 6px; color: #40e0d0; text-transform: uppercase; }
+  p.sub { font-size: 10px; color: #3a5a3e; margin-bottom: 6px; }
+  .nav { display: flex; gap: 8px; margin: 12px 0 6px; }
+  .nav a { font-size: 10px; color: #6f9070; text-decoration: none; border: 1px solid #1a3a1e; border-radius: 5px; padding: 5px 12px; transition: .15s; }
+  .nav a:hover { border-color: #40e0d0; color: #40e0d0; }
+  .nav a.active { background: #0d1f10; border-color: #40e0d0; color: #40e0d0; }
+  h2 { font-size: 10px; letter-spacing: 2px; margin: 28px 0 10px; color: #9ad08f; text-transform: uppercase; border-bottom: 1px solid #1a3a1e; padding-bottom: 7px; }
+  .count { color: #2a4a2e; }
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  .card {
+    position: relative;
+    width: 88px; height: 88px;
+    background: #0a140c;
+    border: 1px solid #1a3a1e;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: default;
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .card:hover { border-color: #40e0d0; }
+
+  .stage { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
   .stage img, .stage canvas { image-rendering: pixelated; }
-  .name { font-size: 9px; color: #cfe8c8; text-align: center; word-break: break-word; }
+
+  /* name appears only on hover as bottom overlay */
+  .name {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(6,14,7,.85);
+    font-size: 8px;
+    color: #cfe8c8;
+    text-align: center;
+    padding: 3px 4px;
+    opacity: 0;
+    transition: opacity .15s;
+    pointer-events: none;
+    word-break: break-all;
+    line-height: 1.3;
+  }
+  .card:hover .name { opacity: 1; }
 </style>
 </head>
 <body>
 <h1>🌿 Galeria de Criaturas</h1>
-<p class="sub">78 seres animados, prontos para usar. Anote os <b>códigos</b> (ex.: A-fox, C-golem, F-slime, N-04) dos que gostar e me mande a lista.</p>
-<div style="display:flex;gap:10px;margin:14px 0 6px">
-  <a href="index.html" style="font-size:10px;color:#40e0d0;text-decoration:none;border:1px solid #40e0d0;background:#15281a;border-radius:5px;padding:6px 12px">Criaturas</a>
-  <a href="side/index.html" style="font-size:10px;color:#9ad08f;text-decoration:none;border:1px solid #2a4a2e;border-radius:5px;padding:6px 12px">Lateral</a>
-  <a href="scenes/index.html" style="font-size:10px;color:#9ad08f;text-decoration:none;border:1px solid #2a4a2e;border-radius:5px;padding:6px 12px">Cenários</a>
+<p class="sub">Passe o mouse para ver o código · anote os que gostar e me mande a lista</p>
+
+<div class="nav">
+  <a href="index.html" class="active">Criaturas</a>
+  <a href="side/index.html">Lateral</a>
+  <a href="scenes/index.html">Cenários</a>
 </div>
+
 <div id="root"></div>
 
 <script>
 const SECTIONS = [
-  { key:'animals',  title:'🦊 Animais',                 prefix:'A-' },
-  { key:'monsters', title:'👹 Monstros & Seres',        prefix:'C-' },
-  { key:'fantasy',  title:'🐉 Fantásticas (GIF)',        prefix:'F-' },
+  { key:'animals',  title:'🦊 Animais',                              prefix:'A-' },
+  { key:'monsters', title:'👹 Monstros & Seres',                     prefix:'C-' },
+  { key:'fantasy',  title:'🐉 Fantásticas',                           prefix:'F-' },
   { key:'ninja',    title:'🍄 Ninja Adventure (CC0) — plantas/cogumelos', prefix:'N-' },
 ];
 const FW=16, FH=16, FRAMES=4, SCALE=4, FPS=5;
@@ -43,13 +77,16 @@ function gifCard(file) {
   const stage=document.createElement('div'); stage.className='stage';
   const img=document.createElement('img');
   img.src=`/preview/creatures/${file}`;
-  img.onload=()=>{ const s=Math.min(72/img.naturalWidth,72/img.naturalHeight,3);
-    img.style.width=(img.naturalWidth*s)+'px'; img.style.height=(img.naturalHeight*s)+'px'; };
+  img.onload=()=>{
+    const s=Math.min(72/img.naturalWidth,72/img.naturalHeight,3);
+    img.style.width=(img.naturalWidth*s)+'px'; img.style.height=(img.naturalHeight*s)+'px';
+  };
   stage.appendChild(img);
   const name=document.createElement('div'); name.className='name';
   name.textContent=file.replace('.gif','');
   card.append(stage,name); return card;
 }
+
 function ninjaCard(i) {
   const card=document.createElement('div'); card.className='card';
   const stage=document.createElement('div'); stage.className='stage';
@@ -60,9 +97,12 @@ function ninjaCard(i) {
   name.textContent='N-'+String(i).padStart(2,'0');
   card.append(stage,name);
   const img=new Image(); img.src=`/preview/ninja/m${i}.png`;
-  img.onload=()=>{ let f=0; const draw=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img,(f%FRAMES)*FW,0,FW,FH,0,0,FW*SCALE,FH*SCALE); f++; };
-    draw(); setInterval(draw,1000/FPS); };
+  img.onload=()=>{
+    let f=0;
+    const draw=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,(f%FRAMES)*FW,0,FW,FH,0,0,FW*SCALE,FH*SCALE); f++; };
+    draw(); setInterval(draw,1000/FPS);
+  };
   return card;
 }
 
