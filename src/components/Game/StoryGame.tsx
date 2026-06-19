@@ -17,6 +17,7 @@ function ImagePreloader() {
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
     '/assets/world/boulder.png',
     '/assets/ato3/apple.png',
+    '/assets/ato3/estufa-ext.png',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -555,19 +556,18 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {landmarkAnchor != null && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             {landmarkKind === 'estufa-ext' ? (
-              // Estufa exterior placeholder (glass building)
               <>
-                <div style={{
-                  width: 200, height: 240,
-                  background: 'rgba(100,180,80,0.18)',
-                  border: '3px solid rgba(140,220,110,0.55)',
-                  borderRadius: '4px 4px 0 0',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span className="font-pixel" style={{ color: 'rgba(180,255,140,0.65)', fontSize: 8, letterSpacing: 1 }}>ESTUFA</span>
-                </div>
+                <img
+                  src="/assets/ato3/estufa-ext.png"
+                  alt="estufa"
+                  style={{
+                    display: 'block', height: 320, width: 'auto', imageRendering: 'pixelated',
+                    filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
+                    animation: 'tree-sway 6s ease-in-out infinite',
+                  }}
+                />
                 {nearby && (
-                  <div className="font-pixel" style={{ position: 'absolute', bottom: 248, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 328, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
               </>
             ) : boulderState !== 'gone' ? (
