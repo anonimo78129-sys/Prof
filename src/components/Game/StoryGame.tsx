@@ -271,6 +271,7 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
   type Phase = 'intro' | 'collecting' | 'wrong' | 'success';
   const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'collecting');
   const [collected, setCollected] = useState<Set<number>>(new Set());
+  const collectedRef = useRef<Set<number>>(new Set());
   const [popped, setPopped] = useState<Set<number>>(new Set());
   const [successIdx, setSuccessIdx] = useState(0);
 
@@ -302,19 +303,16 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
   }
 
   const tap = (item: typeof appleData[0]) => {
-    if (collected.has(item.id) || popped.has(item.id)) return;
+    if (collectedRef.current.has(item.id) || popped.has(item.id)) return;
     if (item.correct) {
       setPopped(p => new Set(p).add(item.id));
       setTimeout(() => {
-        // `solve` captura o resultado do updater de forma síncrona,
-        // permitindo chamar onCorrect() FORA do updater (evita side-effect dentro de state updater)
-        let solve = false;
-        setCollected(prev => {
-          const next = new Set(prev).add(item.id) as Set<number>;
-          if (next.size === correctCount) solve = true;
-          return next;
-        });
-        if (solve) {
+        // Usa ref para contagem síncrona — React 18 batelha setState mesmo em setTimeout,
+        // então o updater só roda no próximo render, nunca sincronamente.
+        const next = new Set(collectedRef.current).add(item.id);
+        collectedRef.current = next;
+        setCollected(new Set(next));
+        if (next.size === correctCount) {
           onCorrect();
           setSuccessIdx(0);
           setPhase('success');
