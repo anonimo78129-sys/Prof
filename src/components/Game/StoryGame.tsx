@@ -463,23 +463,33 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 // ─────────────────────────────────────────────────────────
 // Criatura ambiente — atravessa a tela uma vez
 // ─────────────────────────────────────────────────────────
-function WalkingRabbit({ onDone }: { onDone: () => void }) {
-  const startX = typeof window !== 'undefined' ? window.innerWidth + 80 : 900;
-  const posRef = useRef(startX);
-  const [left, setLeft] = useState(startX);
-  const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone;
+function WalkingRabbit() {
+  const [left, setLeft] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth - 120 : 780
+  );
+  const [facingRight, setFacingRight] = useState(false);
+  const posRef = useRef(left);
+  const dirRef = useRef<-1 | 1>(-1); // começa indo para a esquerda
 
   useEffect(() => {
-    const SPEED = 85; // px/s
+    const SPEED = 85;
     let prev = 0;
     let raf: number;
     const tick = (t: number) => {
       const dt = prev ? (t - prev) / 1000 : 0;
       prev = t;
-      posRef.current -= SPEED * dt;
+      posRef.current += dirRef.current * SPEED * dt;
+      const vw = window.innerWidth;
+      if (posRef.current <= 30) {
+        posRef.current = 30;
+        dirRef.current = 1;
+        setFacingRight(true);
+      } else if (posRef.current >= vw - 80) {
+        posRef.current = vw - 80;
+        dirRef.current = -1;
+        setFacingRight(false);
+      }
       setLeft(posRef.current);
-      if (posRef.current < -100) { onDoneRef.current(); return; }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -498,7 +508,7 @@ function WalkingRabbit({ onDone }: { onDone: () => void }) {
         width: 'auto',
         imageRendering: 'pixelated',
         zIndex: 13,
-        transform: 'scaleX(-1)',  // GIF é east-facing; flip para caminhar para a esquerda
+        transform: `scaleX(${facingRight ? 1 : -1})`,
         filter: 'drop-shadow(0 3px 4px rgba(0,0,0,0.45))',
       }}
     />
@@ -552,8 +562,6 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const [landmarkAnchor, setLandmarkAnchor] = useState<number | null>(null);
   // 1-4 = frame de despertar ativo; null = já acordou, usa hero normal
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
-  const [showRabbit, setShowRabbit] = useState(false);
-  const rabbitStartedRef = useRef(false);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -587,15 +595,6 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
     }, delay);
     return () => clearTimeout(id);
   }, [wakeUpFrame]);
-
-  // dispara o coelho no primeiro beat de caminhada da clareira
-  useEffect(() => {
-    if (bg === 'clareira' && beat?.t === 'walk' && !rabbitStartedRef.current) {
-      rabbitStartedRef.current = true;
-      setShowRabbit(true);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [beatIndex]);
 
   // beats automáticos (cenário / fade)
   useEffect(() => {
@@ -721,8 +720,8 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
           : <Hero moving={moving} frame={frame} facing={facing} />
       )}
 
-      {/* coelho atravessa a clareira uma vez */}
-      {showRabbit && <WalkingRabbit onDone={() => setShowRabbit(false)} />}
+      {/* coelho vai e volta pela clareira enquanto a cena durar */}
+      {bg === 'clareira' && !finished && <WalkingRabbit />}
 
       {/* botão sair */}
       <button onClick={onExit}
