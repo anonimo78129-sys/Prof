@@ -16,6 +16,7 @@ function ImagePreloader() {
     '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
     '/assets/world/boulder.png',
+    '/assets/ato3/apple.png',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -259,6 +260,100 @@ function MatchBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'ma
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Beat de coleta: maçãs caem, toque nas corretas
+// ─────────────────────────────────────────────────────────
+function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'collect' }>; onSolved: () => void; onCorrect: () => void }) {
+  type Phase = 'intro' | 'collecting' | 'wrong' | 'success';
+  const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'collecting');
+  const [collected, setCollected] = useState<Set<number>>(new Set());
+  const [popped, setPopped] = useState<Set<number>>(new Set());
+  const [successIdx, setSuccessIdx] = useState(0);
+
+  const correctCount = beat.items.filter(i => i.correct).length;
+
+  const appleData = useMemo(() => beat.items.map((item, i) => ({
+    ...item, id: i,
+    left: 8 + (i * Math.floor(84 / (beat.items.length - 1))),
+    duration: 3.2 + (i % 3) * 0.7,
+    delay: -(i * 1.1),
+  })), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (phase === 'intro' && beat.intro)
+    return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('collecting')} />;
+  if (phase === 'wrong')
+    return <DialogueBox who="corujao"
+      text={beat.hint ?? 'Dispersão é como a semente viaja longe da planta mãe.'}
+      onNext={() => setPhase('collecting')} />;
+  if (phase === 'success') {
+    const line = beat.success[successIdx] ?? '';
+    const last = successIdx >= beat.success.length - 1;
+    return <DialogueBox who="estudante" text={line} last={last}
+      onNext={() => { if (last) onSolved(); else setSuccessIdx(i => i + 1); }} />;
+  }
+
+  const tap = (item: typeof appleData[0]) => {
+    if (collected.has(item.id) || popped.has(item.id)) return;
+    if (item.correct) {
+      setPopped(p => new Set(p).add(item.id));
+      setTimeout(() => {
+        setCollected(prev => {
+          const next = new Set(prev).add(item.id) as Set<number>;
+          if (next.size === correctCount) { onCorrect(); setSuccessIdx(0); setPhase('success'); }
+          return next;
+        });
+      }, 400);
+    } else {
+      setPhase('wrong');
+    }
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none' }}>
+      {/* instrução */}
+      <div className="font-pixel" style={{
+        position: 'absolute', top: 18, left: '50%', transform: 'translateX(-50%)',
+        background: 'rgba(8,24,12,0.9)', border: '1px solid #2f6b34',
+        padding: '7px 14px', borderRadius: 6, color: '#eaf6e0',
+        fontSize: 10, letterSpacing: 1, whiteSpace: 'nowrap', zIndex: 35,
+      }}>
+        {beat.instruction} — {collected.size}/{correctCount}
+      </div>
+
+      {/* maçãs caindo */}
+      {appleData.map(apple => {
+        const done = collected.has(apple.id);
+        const popping = popped.has(apple.id) && !done;
+        if (done) return null;
+        return (
+          <div key={apple.id}
+            onPointerDown={(e) => { e.preventDefault(); tap(apple); }}
+            style={{
+              position: 'absolute', left: `${apple.left}%`, top: '-80px',
+              animation: popping
+                ? 'apple-pop 0.4s ease-out forwards'
+                : `apple-fall ${apple.duration}s linear ${apple.delay}s infinite`,
+              pointerEvents: 'auto', cursor: 'pointer', zIndex: 32,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+              touchAction: 'none',
+            }}>
+            <img src="/assets/ato3/apple.png" alt={apple.label}
+              style={{ height: 54, width: 'auto', imageRendering: 'pixelated',
+                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.55))' }} />
+            <div className="font-pixel" style={{
+              background: 'rgba(8,24,12,0.88)', color: '#eaf6e0',
+              fontSize: 8, padding: '2px 7px', borderRadius: 4,
+              border: '1px solid #2f6b34', whiteSpace: 'nowrap',
+            }}>
+              {apple.label}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -644,10 +739,10 @@ function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facin
 // ─────────────────────────────────────────────────────────
 // Motor principal
 // ─────────────────────────────────────────────────────────
-export default function StoryGame({ onExit }: { onExit: () => void }) {
+export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: () => void; startBeat?: number; startBg?: SceneBg }) {
   const beats = ACT1.beats;
-  const [beatIndex, setBeatIndex] = useState(0);
-  const [bg, setBg] = useState<SceneBg>('noite');
+  const [beatIndex, setBeatIndex] = useState(startBeat);
+  const [bg, setBg] = useState<SceneBg>(startBg ?? 'noite');
   const [worldX, setWorldX] = useState(0);
   const [fade, setFade] = useState<{ text?: string } | null>(null);
   const [moving, setMoving] = useState(false);
@@ -852,10 +947,16 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
         <SayRunner key={beatIndex} beat={beat} onDone={advance} />
       )}
 
-      {/* pergunta — no ato3 a pedra range e afunda; na floresta abre o portão */}
+      {/* pergunta — só no ato1 (portão) */}
       {beat?.t === 'question' && (
         <QuestionBeat key={beatIndex} beat={beat} onSolved={advance}
-          onCorrect={bg === 'ato3' ? triggerBoulder : () => setGateOpen(true)} />
+          onCorrect={() => setGateOpen(true)} />
+      )}
+
+      {/* coleta de maçãs — ato3 */}
+      {beat?.t === 'collect' && (
+        <CollectBeat key={beatIndex} beat={beat} onSolved={advance}
+          onCorrect={bg === 'ato3' ? triggerBoulder : () => {}} />
       )}
 
       {/* pareamento — na clareira a pedra range e afunda; na floresta abre o portão */}

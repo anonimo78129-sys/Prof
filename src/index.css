@@ -302,6 +302,18 @@
   .cloud-2 { animation: cloud-drift 13s ease-in-out infinite reverse; }
   .cloud-3 { animation: cloud-drift 7s  ease-in-out infinite 2s; }
 
+  @keyframes apple-fall {
+    0%   { transform: translateY(0) rotate(-8deg);     opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(110vh) rotate(18deg); opacity: 0; }
+  }
+
+  @keyframes apple-pop {
+    0%   { transform: scale(1);   opacity: 1; }
+    50%  { transform: scale(1.5); opacity: 1; }
+    100% { transform: scale(0);   opacity: 0; }
+  }
+
   /* ── Tree sway (subtle) ── */
   @keyframes tree-sway {
     0%, 100% { transform: skewX(0deg); }

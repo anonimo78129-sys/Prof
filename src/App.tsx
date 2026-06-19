@@ -1,8 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { GameConfig } from './types/game';
+import type { SceneBg } from './game/types';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import StoryGame from './components/Game/StoryGame';
 import IntroSequence from './components/Game/IntroSequence';
+
+const DEV_ACTS = [
+  { label: 'Ato 1 — Floresta (portão)',    beat: 0,  bg: undefined         },
+  { label: 'Ato 2 — Clareira (pedra)',      beat: 7,  bg: undefined         },
+  { label: 'Ato 3 — Macieira (scene)',      beat: 13, bg: undefined         },
+  { label: 'Ato 3 — Macieira (walk direto)',beat: 17, bg: 'ato3' as SceneBg },
+  { label: 'Ato 3 — Coleta de maçãs',      beat: 19, bg: 'ato3' as SceneBg },
+] as const;
 
 function seeded(seed: number) {
   const x = Math.sin(seed + 1) * 10000;
@@ -55,6 +64,8 @@ type View = 'home' | 'intro' | 'setup' | 'jogar';
 
 export default function App() {
   const [view, setView] = useState<View>('home');
+  const [devStart, setDevStart] = useState<{ beat: number; bg?: SceneBg } | null>(null);
+  const [showDevMenu, setShowDevMenu] = useState(false);
 
   useEffect(() => {
     const handleHash = () => {
@@ -85,7 +96,8 @@ export default function App() {
 
   // ── JOGAR — aventura narrativa (visual novel + caminhada) ──
   if (view === 'jogar') {
-    return <StoryGame onExit={goHome} />;
+    return <StoryGame onExit={() => { setDevStart(null); goHome(); }}
+      startBeat={devStart?.beat} startBg={devStart?.bg} />;
   }
 
   // ── TELA INICIAL ──────────────────────────────────────
@@ -143,6 +155,29 @@ export default function App() {
           CRIAR
         </button>
       </div>
+
+      {/* ── PAINEL DEV (só em desenvolvimento) ── */}
+      {import.meta.env.DEV && (
+        <>
+          <button
+            onClick={() => setShowDevMenu(m => !m)}
+            style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 90, background: 'rgba(0,0,0,0.7)', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 9, padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>
+            DEV
+          </button>
+          {showDevMenu && (
+            <div style={{ position: 'absolute', bottom: 40, right: 12, zIndex: 90, background: 'rgba(6,14,7,0.97)', border: '1px solid #40e0d0', borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6, minWidth: 240 }}>
+              <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 9, letterSpacing: 2, marginBottom: 4 }}>PULAR PARA</div>
+              {DEV_ACTS.map(act => (
+                <button key={act.beat}
+                  onClick={() => { setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
+                  style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#cfe8c8', fontFamily: 'monospace', fontSize: 9, padding: '6px 10px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
+                  {act.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
     </div>
   );

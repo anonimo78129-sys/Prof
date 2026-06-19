@@ -33,6 +33,15 @@ export type Beat =
       pairs: Array<{ left: string; right: string }>;
       success: string[];
       hint?: string;
+    }
+  // Coleta: itens caem na tela, toque apenas nos corretos
+  | {
+      t: 'collect';
+      intro?: string;
+      instruction: string;
+      items: Array<{ label: string; correct: boolean }>;
+      success: string[];
+      hint?: string;
     };
 
 export interface StoryScript {
