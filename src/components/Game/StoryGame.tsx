@@ -463,52 +463,49 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 // ─────────────────────────────────────────────────────────
 // Criatura ambiente — atravessa a tela uma vez
 // ─────────────────────────────────────────────────────────
-function WalkingRabbit() {
-  const [left, setLeft] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth - 120 : 780
-  );
-  const [facingRight, setFacingRight] = useState(false);
-  const posRef = useRef(left);
-  const dirRef = useRef<-1 | 1>(-1); // começa indo para a esquerda
+// ─────────────────────────────────────────────────────────
+// Criatura ambiente — aparece após delay, passa uma vez
+// ─────────────────────────────────────────────────────────
+function WalkingRabbit({ onDone }: { onDone: () => void }) {
+  const [visible, setVisible] = useState(false);
+  const [left, setLeft] = useState(-80);
+  const posRef = useRef(-80);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
+  // aguarda 7s antes de aparecer
   useEffect(() => {
-    const SPEED = 85;
+    const t = setTimeout(() => setVisible(true), 7000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // caminha da esquerda para direita uma única vez
+  useEffect(() => {
+    if (!visible) return;
+    posRef.current = -80;
+    setLeft(-80);
     let prev = 0;
     let raf: number;
     const tick = (t: number) => {
       const dt = prev ? (t - prev) / 1000 : 0;
       prev = t;
-      posRef.current += dirRef.current * SPEED * dt;
-      const vw = window.innerWidth;
-      if (posRef.current <= 30) {
-        posRef.current = 30;
-        dirRef.current = 1;
-        setFacingRight(true);
-      } else if (posRef.current >= vw - 80) {
-        posRef.current = vw - 80;
-        dirRef.current = -1;
-        setFacingRight(false);
-      }
+      posRef.current += 90 * dt;
       setLeft(posRef.current);
+      if (posRef.current > window.innerWidth + 80) { onDoneRef.current(); return; }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [visible]);
+
+  if (!visible) return null;
 
   return (
-    <img
-      src="/preview/side/A-rabbit.gif"
-      alt=""
+    <img src="/preview/side/A-rabbit.gif" alt=""
       style={{
-        position: 'absolute',
-        left,
-        bottom: FLOOR + GROUND,
-        height: 56,
-        width: 'auto',
-        imageRendering: 'pixelated',
+        position: 'absolute', left, bottom: FLOOR + GROUND,
+        height: 56, width: 'auto', imageRendering: 'pixelated',
         zIndex: 13,
-        transform: `scaleX(${facingRight ? 1 : -1})`,
         filter: 'drop-shadow(0 3px 4px rgba(0,0,0,0.45))',
       }}
     />
@@ -562,6 +559,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
   const [landmarkAnchor, setLandmarkAnchor] = useState<number | null>(null);
   // 1-4 = frame de despertar ativo; null = já acordou, usa hero normal
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
+  const [showRabbit, setShowRabbit] = useState(false);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -595,6 +593,11 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
     }, delay);
     return () => clearTimeout(id);
   }, [wakeUpFrame]);
+
+  // ativa o coelho quando a clareira começa
+  useEffect(() => {
+    if (bg === 'clareira') setShowRabbit(true);
+  }, [bg]);
 
   // beats automáticos (cenário / fade)
   useEffect(() => {
@@ -714,14 +717,14 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       }} />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} />
 
-      {bg === 'floresta' && !finished && (
+      {(bg === 'floresta' || bg === 'clareira') && !finished && (
         wakeUpFrame !== null
           ? <WakeUpHero frame={wakeUpFrame} />
           : <Hero moving={moving} frame={frame} facing={facing} />
       )}
 
-      {/* coelho vai e volta pela clareira enquanto a cena durar */}
-      {bg === 'clareira' && !finished && <WalkingRabbit />}
+      {/* coelho aparece 7s após a clareira começar, passa uma vez */}
+      {showRabbit && !finished && <WalkingRabbit onDone={() => setShowRabbit(false)} />}
 
       {/* botão sair */}
       <button onClick={onExit}
