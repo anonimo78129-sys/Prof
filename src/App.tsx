@@ -104,21 +104,6 @@ export default function App() {
         transformOrigin: 'center center',
       }} />
 
-      {/* ── ARBUSTOS ANIMADOS — mesma imagem, só o terço inferior visível via máscara,
-           balança com skewX a partir do chão simulando vento ── */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: "url('/assets/landing-bg.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
-        imageRendering: 'pixelated',
-        transformOrigin: 'bottom center',
-        animation: 'bushes-wind 3.8s ease-in-out infinite',
-        maskImage: 'linear-gradient(to top, black 0%, black 28%, transparent 52%)',
-        WebkitMaskImage: 'linear-gradient(to top, black 0%, black 28%, transparent 52%)',
-      }} />
-
       {/* ── SHIMMER TELA TODA ── */}
       <div className="screen-shimmer" />
 
