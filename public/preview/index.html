@@ -3,166 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Preview de Seres Vivos</title>
+<title>Galeria de Criaturas</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0d1b0f; font-family: monospace; color: #7fae7a; padding: 24px; }
-  h1 { font-size: 13px; letter-spacing: 3px; margin-bottom: 32px; color: #40e0d0; text-transform: uppercase; }
-  .grid { display: flex; flex-wrap: wrap; gap: 32px; }
+  body { background: #0d1b0f; font-family: monospace; color: #7fae7a; padding: 20px; }
+  h1 { font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; color: #40e0d0; text-transform: uppercase; }
+  h2 { font-size: 11px; letter-spacing: 2px; margin: 28px 0 4px; color: #9ad08f; text-transform: uppercase; border-bottom: 1px solid #2a4a2e; padding-bottom: 8px; }
+  p.sub { font-size: 11px; color: #5a7a5e; margin-bottom: 16px; line-height: 1.5; }
+  .grid { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; }
   .card {
-    background: #111f13; border: 1px solid #2a4a2e;
-    border-radius: 4px; padding: 24px;
-    display: flex; flex-direction: column; align-items: center; gap: 16px;
-    min-width: 160px;
+    background: #111f13; border: 1px solid #2a4a2e; border-radius: 6px;
+    padding: 14px 10px 10px; display: flex; flex-direction: column;
+    align-items: center; gap: 8px; width: 110px;
   }
-  .card canvas { image-rendering: pixelated; }
-  .label { font-size: 11px; letter-spacing: 1px; color: #7fae7a; text-align: center; }
-  .license { font-size: 9px; color: #3a5a3e; }
+  .card:hover { border-color: #40e0d0; }
+  .stage { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+  .stage img, .stage canvas { image-rendering: pixelated; }
+  .name { font-size: 10px; color: #cfe8c8; text-align: center; word-break: break-word; }
+  .tag { font-size: 8px; color: #3a5a3e; }
 </style>
 </head>
 <body>
-<h1>🌿 Seres do Jardim — Preview animado</h1>
-<div class="grid" id="grid"></div>
+<h1>🌿 Galeria de Criaturas — Preview animado</h1>
+<p class="sub">Todas animadas e prontas para usar. Anote os <b>códigos</b> (ex.: F-slime, N-04) das que você gostar e me mande a lista.</p>
+
+<h2>Fantásticas — GIFs animados (AntumDeluge / OpenGameArt)</h2>
+<div class="grid" id="grid-gif"></div>
+
+<h2>Pequenas — Ninja Adventure (CC0, Pixel-Boy) — muitas são plantas/cogumelos</h2>
+<div class="grid" id="grid-ninja"></div>
 
 <script>
-const SCALE = 4;
-
-const BEINGS = [
-  {
-    id: 'butterfly-orange',
-    label: 'Borboleta laranja',
-    license: 'CC0',
-    src: '/preview/butterfly.png',
-    fw: 16, fh: 32,       // frame width/height
-    cols: 3, row: 0,       // 3 frames in row 0
-    frames: 3, fps: 8,
-  },
-  {
-    id: 'butterfly-teal',
-    label: 'Borboleta turquesa',
-    license: 'CC0',
-    src: '/preview/butterfly.png',
-    fw: 16, fh: 32,
-    cols: 3, row: 1,
-    frames: 3, fps: 8,
-  },
-  {
-    id: 'butterfly-purple',
-    label: 'Borboleta roxa',
-    license: 'CC0',
-    src: '/preview/butterfly.png',
-    fw: 16, fh: 32,
-    cols: 3, row: 2,
-    frames: 3, fps: 8,
-  },
-  {
-    id: 'fox-walk',
-    label: 'Raposa',
-    license: 'CC BY-SA 3.0',
-    src: '/preview/fox.png',
-    fw: 48, fh: 64,
-    cols: 3, row: 1,       // row 1 = caminhada para leste
-    frames: 3, fps: 6,
-  },
-  {
-    id: 'deer-run',
-    label: 'Cervo correndo',
-    license: 'CC BY 3.0',
-    src: '/preview/deer.png',
-    fw: 32, fh: 32,
-    cols: 3, row: 2,       // row 2 = corrida lateral
-    frames: 3, fps: 8,
-  },
-  {
-    id: 'deer-idle',
-    label: 'Cervo parado',
-    license: 'CC BY 3.0',
-    src: '/preview/deer.png',
-    fw: 32, fh: 32,
-    cols: 3, row: 0,
-    frames: 3, fps: 4,
-  },
-  {
-    id: 'frog',
-    label: 'Sapo (já no jogo)',
-    license: 'Sunnyland pack',
-    srcs: [
-      '/assets/sunnyland/frog-1.png',
-      '/assets/sunnyland/frog-2.png',
-      '/assets/sunnyland/frog-3.png',
-      '/assets/sunnyland/frog-4.png',
-    ],
-    fw: 22, fh: 18,
-    frames: 4, fps: 5,
-  },
+// ── GIF creatures (auto-animate as <img>) ──
+const GIFS = [
+  ['slime','F-slime'], ['blob','F-blob'], ['flying_dragon','F-dragao'],
+  ['earth_elemental','F-elem-terra'], ['ice_elemental','F-elem-gelo'],
+  ['observer','F-olho'], ['googon','F-googon'], ['gork','F-gork'],
+  ['xenocium','F-xenocium'], ['minimare','F-minimare'],
+  ['killer_snowflake','F-floco'], ['djinn','F-djinn'], ['brain_monster','F-cerebro'],
 ];
-
-const grid = document.getElementById('grid');
-
-BEINGS.forEach(b => {
-  const card = document.createElement('div');
-  card.className = 'card';
-
-  const canvas = document.createElement('canvas');
-  canvas.width  = b.fw * SCALE;
-  canvas.height = b.fh * SCALE;
-  canvas.style.width  = (b.fw * SCALE) + 'px';
-  canvas.style.height = (b.fh * SCALE) + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-
-  const label = document.createElement('div');
-  label.className = 'label';
-  label.textContent = b.label;
-
-  const lic = document.createElement('div');
-  lic.className = 'license';
-  lic.textContent = b.license;
-
-  card.appendChild(canvas);
-  card.appendChild(label);
-  card.appendChild(lic);
-  grid.appendChild(card);
-
-  let frame = 0;
-  const interval = 1000 / b.fps;
-
-  if (b.srcs) {
-    // Multiple separate image files (frog)
-    const imgs = b.srcs.map(src => {
-      const img = new Image();
-      img.src = src;
-      return img;
-    });
-    imgs[0].onload = () => {
-      const draw = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const img = imgs[frame % imgs.length];
-        if (img.complete) {
-          ctx.drawImage(img, 0, 0, b.fw * SCALE, b.fh * SCALE);
-        }
-        frame++;
-      };
-      draw();
-      setInterval(draw, interval);
-    };
-  } else {
-    // Sprite sheet
-    const img = new Image();
-    img.src = b.src;
-    img.onload = () => {
-      const draw = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const sx = (frame % b.frames) * b.fw;
-        const sy = b.row * b.fh;
-        ctx.drawImage(img, sx, sy, b.fw, b.fh, 0, 0, b.fw * SCALE, b.fh * SCALE);
-        frame++;
-      };
-      draw();
-      setInterval(draw, interval);
-    };
-  }
+const gg = document.getElementById('grid-gif');
+GIFS.forEach(([file, code]) => {
+  const card = document.createElement('div'); card.className = 'card';
+  const stage = document.createElement('div'); stage.className = 'stage';
+  const img = document.createElement('img');
+  img.src = `/preview/creatures/${file}.gif`;
+  img.onload = () => {
+    const s = Math.min(80 / img.naturalWidth, 80 / img.naturalHeight, 3);
+    img.style.width = (img.naturalWidth * s) + 'px';
+    img.style.height = (img.naturalHeight * s) + 'px';
+  };
+  stage.appendChild(img);
+  const name = document.createElement('div'); name.className = 'name'; name.textContent = code;
+  const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = 'GIF';
+  card.append(stage, name, tag); gg.appendChild(card);
 });
+
+// ── Ninja monsters: 4x4 grid of 16x16, row 0 = walk frontal (4 frames) ──
+const ng = document.getElementById('grid-ninja');
+const FW = 16, FH = 16, FRAMES = 4, SCALE = 4, FPS = 5;
+for (let i = 1; i <= 22; i++) {
+  const card = document.createElement('div'); card.className = 'card';
+  const stage = document.createElement('div'); stage.className = 'stage';
+  const canvas = document.createElement('canvas');
+  canvas.width = FW * SCALE; canvas.height = FH * SCALE;
+  const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  stage.appendChild(canvas);
+  const code = 'N-' + String(i).padStart(2, '0');
+  const name = document.createElement('div'); name.className = 'name'; name.textContent = code;
+  const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = '16px';
+  card.append(stage, name, tag); ng.appendChild(card);
+
+  const img = new Image();
+  img.src = `/preview/ninja/m${i}.png`;
+  img.onload = () => {
+    let f = 0;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, (f % FRAMES) * FW, 0, FW, FH, 0, 0, FW * SCALE, FH * SCALE);
+      f++;
+    };
+    draw();
+    setInterval(draw, 1000 / FPS);
+  };
+}
 </script>
 </body>
 </html>
