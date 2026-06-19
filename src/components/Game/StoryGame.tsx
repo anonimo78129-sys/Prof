@@ -571,30 +571,20 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 // Criatura ambiente (raposa de musgo) — aparece após delay, passa uma vez
 // ─────────────────────────────────────────────────────────
 function WalkingRabbit({ onDone }: { onDone: () => void }) {
-  const [visible, setVisible] = useState(false);
   const [left, setLeft] = useState(-120);
   const [frame, setFrame] = useState(0);
   const posRef = useRef(-120);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
-  // aguarda 7s antes de aparecer
+  // frames animam imediatamente na montagem
   useEffect(() => {
-    setVisible(true);
-  }, []);
-
-  // ciclo de passos dos 3 frames da raposa
-  useEffect(() => {
-    if (!visible) return;
     const id = setInterval(() => setFrame(f => (f + 1) % 3), 160);
     return () => clearInterval(id);
-  }, [visible]);
+  }, []);
 
   // caminha da esquerda para direita uma única vez
   useEffect(() => {
-    if (!visible) return;
-    posRef.current = -120;
-    setLeft(-120);
     let prev = 0;
     let raf: number;
     const tick = (t: number) => {
@@ -607,9 +597,7 @@ function WalkingRabbit({ onDone }: { onDone: () => void }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [visible]);
-
-  if (!visible) return null;
+  }, []);
 
   return (
     <img src={`/assets/creatures/fox-walk-${frame + 1}.png`} alt=""
