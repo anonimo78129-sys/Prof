@@ -825,7 +825,7 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       }} />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} />
 
-      {(bg === 'floresta' || bg === 'clareira') && !finished && (
+      {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3') && !finished && (
         wakeUpFrame !== null
           ? <WakeUpHero frame={wakeUpFrame} />
           : <Hero moving={moving} frame={frame} facing={facing} />
