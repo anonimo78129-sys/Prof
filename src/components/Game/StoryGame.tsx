@@ -18,6 +18,7 @@ function ImagePreloader() {
     '/assets/world/boulder.png',
     '/assets/ato3/apple.png',
     '/assets/ato3/estufa-ext.png', '/assets/ato3/estufa-light.png',
+    '/assets/estufa/bg.jpg',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -625,6 +626,16 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   if (bg === 'estufa') {
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#060d07' }}>
+
+        {/* fundo interior da estufa — parallax lento com imagem única */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          backgroundImage: "url('/assets/estufa/bg.jpg')",
+          backgroundSize: 'cover',
+          backgroundPositionX: `${Math.round(-worldX * 0.12)}px`,
+          backgroundPositionY: 'top',
+          backgroundRepeat: 'no-repeat',
+        }} />
 
         {/* chão */}
         <div style={{
