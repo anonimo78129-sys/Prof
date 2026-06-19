@@ -17,6 +17,8 @@ function ImagePreloader() {
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
     ...SCENERY.map(p => `/assets/${p.src}`),
     ...FOREST_LAYERS.map(l => `/assets/forest/${l.src}`),
+    '/assets/forest/Layer_0002_7_c.png',
+    '/assets/forest/Layer_0003_6_c.png',
     `/assets/forest/${FOREST_FOREGROUND.src}`,
     '/assets/chars/player-walk-1.png', '/assets/chars/player-walk-2.png', '/assets/chars/player-walk-3.png',
     '/assets/chars/player-idle-1.png', '/assets/chars/player-idle-2.png',
@@ -206,6 +208,13 @@ const FOREST_LAYERS: { src: string; f: number }[] = [
   { src: 'Layer_0002_7.png',      f: 0.76 },
   { src: 'Layer_0001_8.png',      f: 0.90 },
 ];
+
+// Variante da clareira (Ato 2): mesmas camadas com Layer_0003_6 e Layer_0002_7 trocados
+const CLAREIRA_LAYERS = FOREST_LAYERS.map(l => {
+  if (l.src === 'Layer_0003_6.png') return { ...l, src: 'Layer_0003_6_c.png' };
+  if (l.src === 'Layer_0002_7.png') return { ...l, src: 'Layer_0002_7_c.png' };
+  return l;
+});
 const FOREST_FOREGROUND = { src: 'Layer_0000_9.png', f: 1.06 }; // grama na frente do herói
 
 function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
@@ -280,7 +289,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#5a6f8c' }}>
       {/* camadas da floresta (trás → frente, atrás do herói) */}
-      {FOREST_LAYERS.map((l, i) => (
+      {(bg === 'clareira' ? CLAREIRA_LAYERS : FOREST_LAYERS).map((l, i) => (
         <div key={l.src} style={fxLayer(l.src, l.f, i + 1)} />
       ))}
 

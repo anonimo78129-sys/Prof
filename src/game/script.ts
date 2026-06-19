@@ -33,6 +33,7 @@ const beats: Beat[] = [
   ] },
 
   // ── ATO 2 — A Clareira ──
+  { t: 'scene', bg: 'clareira' },
   { t: 'say', who: 'estudante', lines: [
     'Espera... o jardim mudou quando eu acertei.',
     'As plantas... elas reagiram.',
@@ -60,6 +61,7 @@ const beats: Beat[] = [
   },
 
   // ── ATO 3 — A Macieira ──
+  { t: 'scene', bg: 'floresta' },
   { t: 'walk', dist: 700, hint: 'Siga pela floresta' },
   { t: 'say', who: 'estudante', lines: [
     'Caramba, que alto...',
