@@ -464,12 +464,13 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 // Criatura ambiente — atravessa a tela uma vez
 // ─────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────
-// Criatura ambiente — aparece após delay, passa uma vez
+// Criatura ambiente (raposa de musgo) — aparece após delay, passa uma vez
 // ─────────────────────────────────────────────────────────
 function WalkingRabbit({ onDone }: { onDone: () => void }) {
   const [visible, setVisible] = useState(false);
-  const [left, setLeft] = useState(-80);
-  const posRef = useRef(-80);
+  const [left, setLeft] = useState(-120);
+  const [frame, setFrame] = useState(0);
+  const posRef = useRef(-120);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
@@ -479,19 +480,26 @@ function WalkingRabbit({ onDone }: { onDone: () => void }) {
     return () => clearTimeout(t);
   }, []);
 
+  // ciclo de passos dos 3 frames da raposa
+  useEffect(() => {
+    if (!visible) return;
+    const id = setInterval(() => setFrame(f => (f + 1) % 3), 160);
+    return () => clearInterval(id);
+  }, [visible]);
+
   // caminha da esquerda para direita uma única vez
   useEffect(() => {
     if (!visible) return;
-    posRef.current = -80;
-    setLeft(-80);
+    posRef.current = -120;
+    setLeft(-120);
     let prev = 0;
     let raf: number;
     const tick = (t: number) => {
       const dt = prev ? (t - prev) / 1000 : 0;
       prev = t;
-      posRef.current += 90 * dt;
+      posRef.current += 80 * dt;
       setLeft(posRef.current);
-      if (posRef.current > window.innerWidth + 80) { onDoneRef.current(); return; }
+      if (posRef.current > window.innerWidth + 120) { onDoneRef.current(); return; }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -501,10 +509,10 @@ function WalkingRabbit({ onDone }: { onDone: () => void }) {
   if (!visible) return null;
 
   return (
-    <img src="/preview/side/A-rabbit.gif" alt=""
+    <img src={`/assets/creatures/fox-walk-${frame + 1}.png`} alt=""
       style={{
         position: 'absolute', left, bottom: FLOOR + GROUND,
-        height: 56, width: 'auto', imageRendering: 'pixelated',
+        height: 70, width: 'auto', imageRendering: 'pixelated',
         zIndex: 13,
         filter: 'drop-shadow(0 3px 4px rgba(0,0,0,0.45))',
       }}
@@ -535,7 +543,7 @@ function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facin
     <img src={src} alt="herói"
       style={{
         position: 'absolute', left: '34%', bottom: FLOOR + GROUND + HERO_LIFT, zIndex: 14,
-        height: 80, width: 'auto', imageRendering: 'pixelated',
+        height: 126, width: 'auto', imageRendering: 'pixelated',
         transform: `translateX(-50%) scaleX(${facing})`,
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
       }} />
