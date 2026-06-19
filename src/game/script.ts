@@ -85,7 +85,6 @@ const beats: Beat[] = [
       { label: 'Pela água',     correct: true  },
       { label: 'Fotossíntese',  correct: false },
       { label: 'Absorção',      correct: false },
-      { label: 'Seiva',         correct: false },
     ],
     success: [
       'A macieira balançou e abriu caminho!',

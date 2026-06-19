@@ -314,6 +314,32 @@
     100% { transform: scale(0);   opacity: 0; }
   }
 
+  /* Maçã sai de trás da árvore (--ox/--oy = deslocamento relativo à pos. final) */
+  @keyframes apple-emerge {
+    from {
+      transform: translate(var(--ox, 15vw), var(--oy, 12vh)) scale(0.12);
+      opacity: 0;
+    }
+    65% {
+      transform: translate(0, 0) scale(1.18);
+      opacity: 1;
+    }
+    82% {
+      transform: translate(0, 0) scale(0.92);
+      opacity: 1;
+    }
+    to {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* Flutuação suave (aplicada no filho, para não conflitar com apple-emerge) */
+  @keyframes apple-float {
+    0%, 100% { transform: translateY(0px)   rotate(-3deg); }
+    50%       { transform: translateY(-11px) rotate(4deg); }
+  }
+
   /* ── Tree sway (subtle) ── */
   @keyframes tree-sway {
     0%, 100% { transform: skewX(0deg); }
