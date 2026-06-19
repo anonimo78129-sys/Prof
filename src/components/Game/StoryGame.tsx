@@ -434,25 +434,29 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* pedra gigante do ato 3 */}
+        {/* macieira gigante do ato 3 */}
         {landmarkAnchor != null && boulderState !== 'gone' && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             <div style={{
-              transform: boulderState === 'sinking' ? 'translateY(360px)' : 'translateY(0)',
+              transformOrigin: 'bottom center',
+              transform: boulderState === 'sinking' ? 'translateY(400px)' : 'translateY(0)',
               transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
             }}>
               <img
-                src="/assets/world/boulder.png"
-                alt="pedra gigante"
+                src="/assets/ato3/apple-tree.png"
+                alt="macieira gigante"
                 style={{
-                  display: 'block', height: 240, width: 'auto', imageRendering: 'pixelated',
-                  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.9)) drop-shadow(0 0 8px rgba(0,0,0,0.6))',
-                  animation: boulderState === 'shaking' ? 'boulder-shake 0.13s ease-in-out infinite' : 'none',
+                  display: 'block', height: 320, width: 'auto', imageRendering: 'pixelated',
+                  filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
+                  transformOrigin: 'bottom center',
+                  animation: boulderState === 'shaking'
+                    ? 'boulder-shake 0.13s ease-in-out infinite'
+                    : 'tree-sway 4s ease-in-out infinite',
                 }}
               />
             </div>
             {nearby && boulderState === 'idle' && (
-              <div className="font-pixel" style={{ position: 'absolute', bottom: 248, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+              <div className="font-pixel" style={{ position: 'absolute', bottom: 328, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
             )}
           </div>
         )}

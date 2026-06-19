@@ -73,8 +73,8 @@ const beats: Beat[] = [
   ] },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
-    'Outra pedra gigante, ainda maior!',
-    'Esse lugar é um labirinto vivo.',
+    'Essa macieira está bloqueando tudo!',
+    'Nunca vi uma árvore assim, ela parece viva...',
   ] },
   { t: 'question',
     intro: 'Folhas douradas formam palavras no tronco enorme da macieira...',
@@ -89,7 +89,7 @@ const beats: Beat[] = [
       correct: 0,
     },
     success: [
-      'A pedra rangeu e desceu até sumir na terra!',
+      'A macieira balançou e abriu caminho!',
       'A semente precisa ir longe para a espécie sobreviver.',
       'O fruto é a embalagem que garante essa viagem.',
     ],
