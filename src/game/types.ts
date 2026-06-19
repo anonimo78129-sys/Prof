@@ -25,6 +25,14 @@ export type Beat =
       q: MCQuestion;           // a pergunta (vem do GameConfig ou fallback)
       success: string[];       // falas do estudante ao acertar
       hint?: string;           // dica extra do Prof. Corujão ao errar
+    }
+  // Pareamento: conectar cada item da esquerda à sua definição/função na direita
+  | {
+      t: 'match';
+      intro?: string;
+      pairs: Array<{ left: string; right: string }>;
+      success: string[];
+      hint?: string;
     };
 
 export interface StoryScript {

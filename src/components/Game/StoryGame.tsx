@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 
@@ -146,6 +146,114 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
             </button>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Beat de pareamento: dois grupos de cards para conectar
+// ─────────────────────────────────────────────────────────
+function MatchBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'match' }>; onSolved: () => void; onCorrect: () => void }) {
+  type Phase = 'intro' | 'matching' | 'wrong' | 'success';
+  const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'matching');
+  const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
+  const [matched, setMatched] = useState<Set<number>>(new Set());
+  const [successIdx, setSuccessIdx] = useState(0);
+
+  // embaralha a coluna direita uma única vez
+  const rightOrder = useMemo(() => {
+    const idx = beat.pairs.map((_, i) => i);
+    for (let i = idx.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+    return idx;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (phase === 'intro' && beat.intro) {
+    return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('matching')} />;
+  }
+  if (phase === 'wrong') {
+    return (
+      <DialogueBox who="corujao"
+        text={beat.hint ?? 'Observe com atenção. Cada parte tem um papel único na planta.'}
+        onNext={() => { setSelectedLeft(null); setPhase('matching'); }} />
+    );
+  }
+  if (phase === 'success') {
+    const line = beat.success[successIdx] ?? '';
+    const last = successIdx >= beat.success.length - 1;
+    return (
+      <DialogueBox who="estudante" text={line} last={last}
+        onNext={() => { if (last) onSolved(); else setSuccessIdx(i => i + 1); }} />
+    );
+  }
+
+  const pickLeft = (i: number) => {
+    if (matched.has(i)) return;
+    setSelectedLeft(prev => prev === i ? null : i);
+  };
+
+  const pickRight = (rightIdx: number) => {
+    const pairIdx = rightOrder[rightIdx];
+    if (matched.has(pairIdx) || selectedLeft === null) return;
+    if (selectedLeft === pairIdx) {
+      const next = new Set(matched); next.add(pairIdx);
+      setMatched(next); setSelectedLeft(null);
+      if (next.size === beat.pairs.length) { onCorrect(); setSuccessIdx(0); setPhase('success'); }
+    } else {
+      setPhase('wrong');
+    }
+  };
+
+  const cardStyle = (active: boolean, done: boolean): CSSProperties => ({
+    padding: '10px 12px', fontSize: 17, textAlign: 'left', borderRadius: 6,
+    cursor: done ? 'default' : 'pointer', touchAction: 'none',
+    color:       done ? '#4aff88' : active ? '#ffe070' : '#eaf6e0',
+    background:  done ? 'rgba(20,80,20,0.9)' : active ? 'rgba(80,60,10,0.9)' : 'rgba(30,70,38,0.9)',
+    border: `2px solid ${done ? '#4aff88' : active ? '#ffe070' : '#2f6b34'}`,
+    transition: 'border-color 0.15s, background 0.15s',
+  });
+
+  return (
+    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 100, zIndex: 40 }}>
+      <div className="panel-pixel"
+        style={{ margin: '0 14px 18px', background: 'rgba(8,24,12,0.95)', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+        <p className="font-pixel" style={{ color: '#9ad08f', fontSize: 9, marginBottom: 12, letterSpacing: 2 }}>
+          CONECTE CADA PARTE À SUA FUNÇÃO
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {/* coluna esquerda — partes da planta */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {beat.pairs.map((pair, i) => (
+              <button key={i}
+                onPointerDown={(e) => { e.preventDefault(); pickLeft(i); }}
+                onContextMenu={(e) => e.preventDefault()}
+                className="font-vt"
+                style={cardStyle(selectedLeft === i, matched.has(i))}>
+                {matched.has(i) ? '✓ ' : selectedLeft === i ? '▶ ' : ''}{pair.left}
+              </button>
+            ))}
+          </div>
+          {/* coluna direita — funções embaralhadas */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {rightOrder.map((pairIdx, i) => (
+              <button key={i}
+                onPointerDown={(e) => { e.preventDefault(); pickRight(i); }}
+                onContextMenu={(e) => e.preventDefault()}
+                className="font-vt"
+                style={cardStyle(false, matched.has(pairIdx))}>
+                {matched.has(pairIdx) ? '✓ ' : ''}{beat.pairs[pairIdx].right}
+              </button>
+            ))}
+          </div>
+        </div>
+        {selectedLeft !== null && (
+          <p className="font-pixel" style={{ color: '#7fae7a', fontSize: 8, marginTop: 10, textAlign: 'center' }}>
+            ▶ agora toque na função correspondente →
+          </p>
+        )}
       </div>
     </div>
   );
@@ -572,6 +680,11 @@ export default function StoryGame({ onExit }: { onExit: () => void }) {
       {/* pergunta */}
       {beat?.t === 'question' && (
         <QuestionBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
+      )}
+
+      {/* pareamento */}
+      {beat?.t === 'match' && (
+        <MatchBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => setGateOpen(true)} />
       )}
 
       {/* D-pad de caminhada — lado esquerdo */}

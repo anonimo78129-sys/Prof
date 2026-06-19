@@ -46,18 +46,19 @@ const beats: Beat[] = [
     'Outro portão!',
     'O que essa floresta quer de mim?',
   ] },
-  { t: 'question',
-    intro: 'Raízes de luz se entrelaçam e formam palavras na névoa...',
-    q: {
-      text: 'Qual processo permite que as plantas produzam seu próprio alimento usando a luz solar?',
-      options: ['Fotossíntese', 'Fermentação', 'Respiração celular', 'Osmose'],
-      correct: 0,
-    },
+  { t: 'match',
+    intro: 'Raízes de luz se entrelaçam na névoa, formando pares de palavras...',
+    pairs: [
+      { left: 'Raiz',  right: 'Absorve água e sais minerais' },
+      { left: 'Folha', right: 'Realiza fotossíntese' },
+      { left: 'Flor',  right: 'Atrai polinizadores' },
+      { left: 'Caule', right: 'Transporta seiva pela planta' },
+    ],
     success: [
       'A clareira inteira ficou mais brilhante!',
       'O jardim me ouviu de novo.',
     ],
-    hint: 'As plantas capturam energia da luz solar com água e CO₂ para produzir glicose e oxigênio. É a base de toda a vida.',
+    hint: 'Cada parte da planta tem um papel único. Pense no que cada uma faz para a planta sobreviver.',
   },
 
   // ── ATO 3 — A Macieira ──
