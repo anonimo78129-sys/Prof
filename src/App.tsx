@@ -4,6 +4,7 @@ import type { SceneBg } from './game/types';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import StoryGame from './components/Game/StoryGame';
 import IntroSequence from './components/Game/IntroSequence';
+import ScenePreview from './components/ScenePreview';
 
 const DEV_ACTS = [
   { label: 'Ato 1 — Floresta (portão)',       beat: 0,  bg: undefined            },
@@ -63,7 +64,7 @@ function Fireflies() {
   );
 }
 
-type View = 'home' | 'intro' | 'setup' | 'jogar';
+type View = 'home' | 'intro' | 'setup' | 'jogar' | 'preview';
 
 const isTestMode = typeof window !== 'undefined' && window.location.search.includes('test');
 
@@ -92,6 +93,11 @@ export default function App() {
         onGameCreated={(_config: GameConfig) => { goHome(); }}
       />
     );
+  }
+
+  // ── PREVIEW — galeria de cenários ──
+  if (view === 'preview') {
+    return <ScenePreview onBack={() => setView('home')} />;
   }
 
   // ── INTRO — sequência ilustrada antes do jogo ──
@@ -172,6 +178,11 @@ export default function App() {
           {showDevMenu && (
             <div style={{ position: 'absolute', bottom: 48, right: 12, zIndex: 90, background: 'rgba(6,14,7,0.97)', border: '1px solid #40e0d0', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 260 }}>
               <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 10, letterSpacing: 2, marginBottom: 4 }}>PULAR PARA</div>
+              <button
+                onClick={() => { setShowDevMenu(false); setView('preview'); }}
+                style={{ background: '#101a20', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
+                🖼 Preview Cenários (24)
+              </button>
               {DEV_ACTS.map(act => (
                 <button key={act.beat}
                   onClick={() => { setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
