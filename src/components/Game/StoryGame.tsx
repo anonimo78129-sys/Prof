@@ -511,8 +511,8 @@ function TrunkParticles({ trunkX }: { trunkX: number }) {
       floatDelay: `-${s(i * 17) * 8}s`,
       glowDur: `${1.2 + s(i * 41) * 2}s`,
       glowDelay: `-${s(i * 29) * 2}s`,
-      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (30 + s(i * 19) * 150)}px`,
-      dy: `${-(70 + s(i * 31) * 250)}px`,
+      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (60 + s(i * 19) * 300)}px`,
+      dy: `${-(120 + s(i * 31) * 450)}px`,
     };
   }), []);
 
