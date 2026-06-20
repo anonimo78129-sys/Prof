@@ -21,6 +21,7 @@ function ImagePreloader() {
     '/assets/estufa/bg.jpg',
     '/assets/estufa/reflect-1.png', '/assets/estufa/reflect-2.png',
     '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png',
+    '/assets/estufa/computer-off.png', '/assets/estufa/computer-on.png',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -547,7 +548,7 @@ function TrunkSprite({ height }: { height: number }) {
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null; trunkAnchor: number | null }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -750,18 +751,14 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
               </>
             ) : landmarkKind === 'computer' ? (
               <>
-                <div style={{
-                  width: 130, height: 100,
-                  background: '#060808', border: '4px solid #1a2a1a',
-                  borderRadius: 4, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center', gap: 4,
-                  boxShadow: '0 0 14px rgba(0,255,80,0.28)',
-                }}>
-                  <span className="font-pixel" style={{ color: '#00e050', fontSize: 7, letterSpacing: 1 }}>AMAZÔNIA II</span>
-                  <span className="font-pixel" style={{ color: '#00a030', fontSize: 6 }}>SENHA: ▮</span>
-                </div>
+                <img
+                  src={computerOn ? '/assets/estufa/computer-on.png' : '/assets/estufa/computer-off.png'}
+                  alt="computador"
+                  style={{ display: 'block', height: 220, width: 'auto', imageRendering: 'pixelated',
+                    filter: computerOn ? 'drop-shadow(0 0 12px rgba(0,255,80,0.7))' : 'drop-shadow(0 8px 14px rgba(0,0,0,0.7))' }}
+                />
                 {nearby && (
-                  <div className="font-pixel" style={{ position: 'absolute', bottom: 108, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+                  <div className="font-pixel" style={{ position: 'absolute', bottom: 228, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
               </>
             ) : null}
@@ -1144,7 +1141,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
       }} />
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa') && !finished && (
         wakeUpFrame !== null
