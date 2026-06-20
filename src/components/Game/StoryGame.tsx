@@ -497,35 +497,38 @@ function LightMotes() {
 
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
-function TrunkParticles() {
-  const particles = useMemo(() => Array.from({ length: 22 }, (_, i) => {
+function TrunkParticles({ trunkX }: { trunkX: number }) {
+  const particles = useMemo(() => Array.from({ length: 28 }, (_, i) => {
     const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
-    const size = 2 + s(i * 3) * 3.5;
+    const size = 2 + s(i * 3) * 4;
     return {
       id: i,
-      left: `${30 + s(i * 7) * 40}%`,
-      bottom: `${10 + s(i * 23) * 30}%`,
+      // nascem perto do tronco (± 50px) na parte baixa da cena
+      startX: trunkX + (s(i * 7) - 0.5) * 100,
+      startY: 15 + s(i * 23) * 25,   // % from bottom
       size,
-      dur: `${1.8 + s(i * 11) * 2.5}s`,
-      delay: `-${s(i * 17) * 4}s`,
-      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (8 + s(i * 19) * 35)}px`,
-      glow: `0 0 ${Math.round(size * 2)}px #00ff66, 0 0 ${Math.round(size * 5)}px rgba(0,255,100,0.55)`,
+      dur: `${3.5 + s(i * 11) * 5}s`,
+      delay: `-${s(i * 17) * 7}s`,
+      // deriva ampla pelo cenário
+      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (40 + s(i * 19) * 160)}px`,
+      dy: `${-(80 + s(i * 31) * 220)}px`,
+      glow: `0 0 ${Math.round(size * 2)}px #00ff66, 0 0 ${Math.round(size * 6)}px rgba(0,255,100,0.5)`,
     };
-  }), []);
+  }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible', zIndex: 1 }}>
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 15, overflow: 'hidden' }}>
       {particles.map(p => (
         <div key={p.id} style={{
           position: 'absolute',
-          bottom: p.bottom,
-          left: p.left,
+          bottom: `${p.startY}%`,
+          left: `calc(50% + ${p.startX}px)`,
           width: p.size, height: p.size,
           borderRadius: '50%',
           background: '#00ff80',
           boxShadow: p.glow,
           animation: `trunk-particle ${p.dur} ease-out ${p.delay} infinite`,
-          '--dx': p.dx,
+          '--dx': p.dx, '--dy': p.dy,
         } as React.CSSProperties} />
       ))}
     </div>
@@ -726,10 +729,13 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
+        {/* partículas verdes neon emanando do tronco e vagando pela estufa */}
+        {trunkAnchor != null && <TrunkParticles trunkX={Math.round(trunkAnchor - worldX)} />}
+
         {/* tronco persistente — permanece visível mesmo após avançar para o computador */}
         {trunkAnchor != null && landmarkKind !== 'trunk' && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(trunkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 11, transform: 'translateX(-50%)', width: 'max-content' }}>
-            <div style={{ position: 'relative', transform: 'translateY(30px)' }}><TrunkSprite height={330} /><TrunkParticles /></div>
+            <div style={{ transform: 'translateY(30px)' }}><TrunkSprite height={330} /></div>
           </div>
         )}
 
@@ -738,7 +744,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             {landmarkKind === 'trunk' ? (
               <>
-                <div style={{ position: 'relative', transform: 'translateY(30px)' }}><TrunkSprite height={330} /><TrunkParticles /></div>
+                <div style={{ transform: 'translateY(30px)' }}><TrunkSprite height={330} /></div>
                 {nearby && (
                   <div className="font-pixel" style={{ position: 'absolute', bottom: 288, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
