@@ -177,7 +177,22 @@ export default function App() {
           </button>
           {showDevMenu && (
             <div style={{ position: 'absolute', bottom: 48, right: 12, zIndex: 90, background: 'rgba(6,14,7,0.97)', border: '1px solid #40e0d0', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 260 }}>
-              <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 10, letterSpacing: 2, marginBottom: 4 }}>PULAR PARA</div>
+              <button
+                onClick={async () => {
+                  if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(regs.map(r => r.unregister()));
+                  }
+                  if ('caches' in window) {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                  }
+                  window.location.reload();
+                }}
+                style={{ background: '#1a0a00', border: '1px solid #ff6020', color: '#ff9060', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left', fontWeight: 'bold' }}>
+                ♻ Forçar atualização
+              </button>
+              <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 10, letterSpacing: 2, marginTop: 4, marginBottom: 0 }}>PULAR PARA</div>
               <button
                 onClick={() => { setShowDevMenu(false); setView('preview'); }}
                 style={{ background: '#101a20', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
