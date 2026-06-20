@@ -643,7 +643,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             return (
               <div key={n} style={{
                 position: 'absolute', bottom: 0, zIndex: 1,
-                left: x, width: W, height: `calc((100vh - ${FLOOR + GROUND - 4}px) / 2)`,
+                left: x, width: W, height: `calc((100vh - ${FLOOR + GROUND - 4}px) / 2 - 10px)`,
                 backgroundImage: "url('/assets/estufa/bg.jpg')",
                 backgroundSize: '100% 100%',
                 backgroundRepeat: 'no-repeat',
