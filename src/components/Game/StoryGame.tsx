@@ -510,7 +510,7 @@ function TrunkSprite({ height }: { height: number }) {
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null; trunkAnchor: number | null }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -632,15 +632,26 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#060d07' }}>
 
-        {/* fundo interior da estufa — parallax lento com imagem única */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 1,
-          backgroundImage: "url('/assets/estufa/bg.jpg')",
-          backgroundSize: 'cover',
-          backgroundPositionX: `calc(50% + ${Math.round(-worldX * 0.12)}px)`,
-          backgroundPositionY: 'bottom',
-          backgroundRepeat: 'no-repeat',
-        }} />
+        {/* fundo interior da estufa — tiles alternados espelhados para evitar costura */}
+        {(() => {
+          const W = window.innerWidth || 400;
+          const rawX = Math.round(-worldX * 0.12);
+          const firstTile = Math.floor(-rawX / W) - 1;
+          return [0, 1, 2, 3].map(di => {
+            const n = firstTile + di;
+            const x = rawX + n * W;
+            return (
+              <div key={n} style={{
+                position: 'absolute', bottom: 0, zIndex: 1,
+                left: x, width: W, height: '50vh',
+                backgroundImage: "url('/assets/estufa/bg.jpg')",
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                transform: Math.abs(n) % 2 !== 0 ? 'scaleX(-1)' : 'none',
+              }} />
+            );
+          });
+        })()}
 
         {/* overlay escuro pulsando suavemente sobre o fundo */}
         <div style={{
@@ -679,6 +690,13 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
           imageRendering: 'pixelated',
         }} />
+
+        {/* tronco persistente — permanece visível mesmo após avançar para o computador */}
+        {trunkAnchor != null && landmarkKind !== 'trunk' && (
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(trunkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 11, transform: 'translateX(-50%)', width: 'max-content' }}>
+            <div style={{ transform: 'translateY(30px)' }}><TrunkSprite height={330} /></div>
+          </div>
+        )}
 
         {/* landmarks: tronco pulsante ou computador */}
         {landmarkAnchor != null && (
@@ -910,6 +928,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [boulderState, setBoulderState] = useState<BoulderState>('idle');
   const [landmarkKind, setLandmarkKind] = useState<'gate' | 'estufa-ext' | 'trunk' | 'computer'>('gate');
   const [appleTreeAnchor, setAppleTreeAnchor] = useState<number | null>(null);
+  const [trunkAnchor, setTrunkAnchor] = useState<number | null>(null);
   const [sceneFade, setSceneFade] = useState(false);
 
   const beat: Beat | undefined = beats[beatIndex];
@@ -994,6 +1013,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer');
         // guarda posição da macieira para ela persistir depois do collect
         if (beat.landmark === 'gate' && bg === 'ato3') setAppleTreeAnchor(anchor);
+        // guarda posição do tronco para persistir depois do walk
+        if (beat.landmark === 'trunk') setTrunkAnchor(anchor);
       }
       // sem landmark: mantém o portão visível (sai de cena naturalmente ao rolar)
     } else if (beat?.t === 'scene') {
@@ -1002,6 +1023,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setLandmarkAnchor(null);
       setLandmarkKind('gate');
       setAppleTreeAnchor(null);
+      setTrunkAnchor(null);
       setGateFrame(0);
     } else {
       targetRef.current = null;
@@ -1084,7 +1106,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
       }} />
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa') && !finished && (
         wakeUpFrame !== null
