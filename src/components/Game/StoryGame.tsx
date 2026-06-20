@@ -595,7 +595,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                 src="/assets/ato3/estufa-ext.png"
                 alt="estufa"
                 style={{
-                  display: 'block', height: `calc((100vh - ${FLOOR + GROUND - 4}px) / 2)`, width: 'auto', imageRendering: 'pixelated',
+                  display: 'block', height: 400, width: 'auto', imageRendering: 'pixelated',
                   filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
                 }}
               />
@@ -643,7 +643,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             return (
               <div key={n} style={{
                 position: 'absolute', bottom: 0, zIndex: 1,
-                left: x, width: W, height: '50vh',
+                left: x, width: W, height: `calc((100vh - ${FLOOR + GROUND - 4}px) / 2)`,
                 backgroundImage: "url('/assets/estufa/bg.jpg')",
                 backgroundSize: '100% 100%',
                 backgroundRepeat: 'no-repeat',
