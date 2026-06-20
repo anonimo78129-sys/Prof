@@ -595,7 +595,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                 src="/assets/ato3/estufa-ext.png"
                 alt="estufa"
                 style={{
-                  display: 'block', height: 400, width: 'auto', imageRendering: 'pixelated',
+                  display: 'block', height: `calc(100vh - ${FLOOR + GROUND - 4}px)`, width: 'auto', imageRendering: 'pixelated',
                   filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
                 }}
               />
