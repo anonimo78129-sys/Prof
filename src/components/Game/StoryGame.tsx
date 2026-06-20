@@ -497,37 +497,36 @@ function LightMotes() {
 
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
-function TrunkParticles({ trunkX }: { trunkX: number }) {
-  const particles = useMemo(() => Array.from({ length: 28 }, (_, i) => {
+function TrunkParticles() {
+  const particles = useMemo(() => Array.from({ length: 30 }, (_, i) => {
     const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
-    const size = 2 + s(i * 3) * 4;
+    const size = 2.5 + s(i * 3) * 4;
     return {
       id: i,
-      // nascem perto do tronco (± 50px) na parte baixa da cena
-      startX: trunkX + (s(i * 7) - 0.5) * 100,
-      startY: 15 + s(i * 23) * 25,   // % from bottom
+      // nascem na faixa inferior (onde está o tronco)
+      startLeft: `${30 + s(i * 7) * 40}%`,
+      startBottom: `${8 + s(i * 23) * 22}%`,
       size,
-      dur: `${3.5 + s(i * 11) * 5}s`,
-      delay: `-${s(i * 17) * 7}s`,
-      // deriva ampla pelo cenário
-      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (40 + s(i * 19) * 160)}px`,
-      dy: `${-(80 + s(i * 31) * 220)}px`,
-      glow: `0 0 ${Math.round(size * 2)}px #00ff66, 0 0 ${Math.round(size * 6)}px rgba(0,255,100,0.5)`,
+      floatDur: `${4 + s(i * 11) * 6}s`,
+      floatDelay: `-${s(i * 17) * 8}s`,
+      glowDur: `${1.2 + s(i * 41) * 2}s`,
+      glowDelay: `-${s(i * 29) * 2}s`,
+      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (30 + s(i * 19) * 150)}px`,
+      dy: `${-(70 + s(i * 31) * 250)}px`,
     };
-  }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  }), []);
 
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 15, overflow: 'hidden' }}>
       {particles.map(p => (
         <div key={p.id} style={{
           position: 'absolute',
-          bottom: `${p.startY}%`,
-          left: `calc(50% + ${p.startX}px)`,
+          bottom: p.startBottom,
+          left: p.startLeft,
           width: p.size, height: p.size,
           borderRadius: '50%',
-          background: '#00ff80',
-          boxShadow: p.glow,
-          animation: `trunk-particle ${p.dur} ease-out ${p.delay} infinite`,
+          background: 'radial-gradient(circle, #e0ffe8, #00ff66)',
+          animation: `trunk-particle ${p.floatDur} ease-out ${p.floatDelay} infinite, neon-glow-pulse ${p.glowDur} ease-in-out ${p.glowDelay} infinite`,
           '--dx': p.dx, '--dy': p.dy,
         } as React.CSSProperties} />
       ))}
@@ -729,8 +728,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* partículas verdes neon emanando do tronco e vagando pela estufa */}
-        {trunkAnchor != null && <TrunkParticles trunkX={Math.round(trunkAnchor - worldX)} />}
+        {/* partículas verdes neon — nascem na base do tronco e vagam pela estufa */}
+        <TrunkParticles />
 
         {/* tronco persistente — permanece visível mesmo após avançar para o computador */}
         {trunkAnchor != null && landmarkKind !== 'trunk' && (
