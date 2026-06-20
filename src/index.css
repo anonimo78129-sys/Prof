@@ -370,6 +370,11 @@
     50%       { box-shadow: 0 0 32px rgba(0,240,140,0.85), 0 0 70px rgba(0,220,110,0.5); }
   }
 
+  @keyframes trunk-particle {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), -130px) scale(0.3); opacity: 0; }
+  }
+
   @keyframes light-pulse {
     0%, 100% { opacity: 0.5; }
     50%       { opacity: 1; }

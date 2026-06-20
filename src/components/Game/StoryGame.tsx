@@ -497,6 +497,41 @@ function LightMotes() {
 
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
+function TrunkParticles() {
+  const particles = useMemo(() => Array.from({ length: 22 }, (_, i) => {
+    const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
+    const size = 2 + s(i * 3) * 3.5;
+    return {
+      id: i,
+      left: `${30 + s(i * 7) * 40}%`,
+      bottom: `${10 + s(i * 23) * 30}%`,
+      size,
+      dur: `${1.8 + s(i * 11) * 2.5}s`,
+      delay: `-${s(i * 17) * 4}s`,
+      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (8 + s(i * 19) * 35)}px`,
+      glow: `0 0 ${Math.round(size * 2)}px #00ff66, 0 0 ${Math.round(size * 5)}px rgba(0,255,100,0.55)`,
+    };
+  }), []);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible', zIndex: 1 }}>
+      {particles.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute',
+          bottom: p.bottom,
+          left: p.left,
+          width: p.size, height: p.size,
+          borderRadius: '50%',
+          background: '#00ff80',
+          boxShadow: p.glow,
+          animation: `trunk-particle ${p.dur} ease-out ${p.delay} infinite`,
+          '--dx': p.dx,
+        } as React.CSSProperties} />
+      ))}
+    </div>
+  );
+}
+
 function TrunkSprite({ height }: { height: number }) {
   const [frame, setFrame] = useState(1);
   useEffect(() => {
@@ -694,7 +729,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* tronco persistente — permanece visível mesmo após avançar para o computador */}
         {trunkAnchor != null && landmarkKind !== 'trunk' && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(trunkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 11, transform: 'translateX(-50%)', width: 'max-content' }}>
-            <div style={{ transform: 'translateY(30px)' }}><TrunkSprite height={330} /></div>
+            <div style={{ position: 'relative', transform: 'translateY(30px)' }}><TrunkSprite height={330} /><TrunkParticles /></div>
           </div>
         )}
 
@@ -703,7 +738,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             {landmarkKind === 'trunk' ? (
               <>
-                <div style={{ transform: 'translateY(30px)' }}><TrunkSprite height={330} /></div>
+                <div style={{ position: 'relative', transform: 'translateY(30px)' }}><TrunkSprite height={330} /><TrunkParticles /></div>
                 {nearby && (
                   <div className="font-pixel" style={{ position: 'absolute', bottom: 288, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
                 )}
@@ -727,8 +762,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             ) : null}
           </div>
         )}
-
-        <LightMotes />
 
         {/* grama de primeiro plano */}
         <div style={{ ...fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20), transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' }} />
