@@ -497,15 +497,15 @@ function LightMotes() {
 
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
-function TrunkParticles() {
-  const particles = useMemo(() => Array.from({ length: 30 }, (_, i) => {
+function TrunkParticles({ trunkX }: { trunkX: number }) {
+  // apenas os offsets aleatórios — posição X real calculada no render com trunkX
+  const offsets = useMemo(() => Array.from({ length: 30 }, (_, i) => {
     const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
     const size = 2.5 + s(i * 3) * 4;
     return {
       id: i,
-      // nascem na faixa inferior (onde está o tronco)
-      startLeft: `${30 + s(i * 7) * 40}%`,
-      startBottom: `${8 + s(i * 23) * 22}%`,
+      spreadX: (s(i * 7) - 0.5) * 70,   // ±35px ao redor do tronco
+      startBottom: `${8 + s(i * 23) * 30}%`,
       size,
       floatDur: `${4 + s(i * 11) * 6}s`,
       floatDelay: `-${s(i * 17) * 8}s`,
@@ -518,11 +518,11 @@ function TrunkParticles() {
 
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 15, overflow: 'hidden' }}>
-      {particles.map(p => (
+      {offsets.map(p => (
         <div key={p.id} style={{
           position: 'absolute',
           bottom: p.startBottom,
-          left: p.startLeft,
+          left: `calc(50% + ${Math.round(trunkX + p.spreadX)}px)`,
           width: p.size, height: p.size,
           borderRadius: '50%',
           background: 'radial-gradient(circle, #e0ffe8, #00ff66)',
@@ -728,8 +728,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* partículas verdes neon — nascem na base do tronco e vagam pela estufa */}
-        <TrunkParticles />
+        {/* partículas verdes neon — nascem no tronco e vagam pela estufa */}
+        <TrunkParticles trunkX={Math.round((trunkAnchor ?? landmarkAnchor ?? 0) - worldX)} />
 
         {/* tronco persistente — permanece visível mesmo após avançar para o computador */}
         {trunkAnchor != null && landmarkKind !== 'trunk' && (
