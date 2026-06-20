@@ -510,7 +510,7 @@ function TrunkSprite({ height }: { height: number }) {
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -568,65 +568,54 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* macieira gigante do ato 3 ou estufa exterior */}
-        {landmarkAnchor != null && (
+        {/* macieira — posição própria, persiste mesmo depois do collect */}
+        {appleTreeAnchor != null && boulderState !== 'gone' && (
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(appleTreeAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
+            <img
+              src="/assets/ato3/apple-tree.png"
+              alt="macieira gigante"
+              style={{
+                display: 'block', height: 320, width: 'auto', imageRendering: 'pixelated',
+                filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
+                transformOrigin: 'bottom center',
+                animation: 'tree-sway 4s ease-in-out infinite',
+              }}
+            />
+            {nearby && landmarkKind !== 'estufa-ext' && (
+              <div className="font-pixel" style={{ position: 'absolute', bottom: 328, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+            )}
+          </div>
+        )}
+
+        {/* estufa exterior — aparece quando o herói caminha para ela */}
+        {landmarkAnchor != null && landmarkKind === 'estufa-ext' && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
-            {landmarkKind === 'estufa-ext' ? (
-              <>
-                <div style={{ position: 'relative', display: 'inline-block', transform: 'translateY(15px)' }}>
-                  <img
-                    src="/assets/ato3/estufa-ext.png"
-                    alt="estufa"
-                    style={{
-                      display: 'block', height: 400, width: 'auto', imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
-                    }}
-                  />
-                  {/* layer de luz sobreposta — blend screen para efeito aditivo */}
-                  <img
-                    src="/assets/ato3/estufa-light.png"
-                    alt=""
-                    style={{
-                      position: 'absolute', bottom: 0, left: 0,
-                      height: `calc(100vh - ${FLOOR + GROUND - 4}px)`,
-                      width: '100%',
-                      imageRendering: 'pixelated',
-                      mixBlendMode: 'screen',
-                      pointerEvents: 'none',
-                      animation: 'light-pulse 2.4s ease-in-out infinite',
-                    }}
-                  />
-                </div>
-                {nearby && (
-                  <div className="font-pixel" style={{ position: 'absolute', bottom: 408, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
-                )}
-              </>
-            ) : boulderState !== 'gone' ? (
-              // Apple tree (original)
-              <>
-                <div style={{
-                  transformOrigin: 'bottom center',
-                  transform: boulderState === 'sinking' ? 'translateY(400px)' : 'translateY(0)',
-                  transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
-                }}>
-                  <img
-                    src="/assets/ato3/apple-tree.png"
-                    alt="macieira gigante"
-                    style={{
-                      display: 'block', height: 320, width: 'auto', imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
-                      transformOrigin: 'bottom center',
-                      animation: boulderState === 'shaking'
-                        ? 'boulder-shake 0.13s ease-in-out infinite'
-                        : 'tree-sway 4s ease-in-out infinite',
-                    }}
-                  />
-                </div>
-                {nearby && boulderState === 'idle' && (
-                  <div className="font-pixel" style={{ position: 'absolute', bottom: 328, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
-                )}
-              </>
-            ) : null}
+            <div style={{ position: 'relative', display: 'inline-block', transform: 'translateY(15px)' }}>
+              <img
+                src="/assets/ato3/estufa-ext.png"
+                alt="estufa"
+                style={{
+                  display: 'block', height: 400, width: 'auto', imageRendering: 'pixelated',
+                  filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
+                }}
+              />
+              <img
+                src="/assets/ato3/estufa-light.png"
+                alt=""
+                style={{
+                  position: 'absolute', bottom: 0, left: 0,
+                  height: `calc(100vh - ${FLOOR + GROUND - 4}px)`,
+                  width: '100%',
+                  imageRendering: 'pixelated',
+                  mixBlendMode: 'screen',
+                  pointerEvents: 'none',
+                  animation: 'light-pulse 2.4s ease-in-out infinite',
+                }}
+              />
+            </div>
+            {nearby && (
+              <div className="font-pixel" style={{ position: 'absolute', bottom: 408, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+            )}
           </div>
         )}
 
@@ -920,6 +909,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [showRabbit, setShowRabbit] = useState(false);
   const [boulderState, setBoulderState] = useState<BoulderState>('idle');
   const [landmarkKind, setLandmarkKind] = useState<'gate' | 'estufa-ext' | 'trunk' | 'computer'>('gate');
+  const [appleTreeAnchor, setAppleTreeAnchor] = useState<number | null>(null);
   const [sceneFade, setSceneFade] = useState(false);
 
   const beat: Beat | undefined = beats[beatIndex];
@@ -999,8 +989,11 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       walkStartXRef.current = worldX;
       targetRef.current = worldX + beat.dist;
       if (beat.landmark) {
-        setLandmarkAnchor(worldX + beat.dist - GATE_AHEAD);
+        const anchor = worldX + beat.dist - GATE_AHEAD;
+        setLandmarkAnchor(anchor);
         setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer');
+        // guarda posição da macieira para ela persistir depois do collect
+        if (beat.landmark === 'gate' && bg === 'ato3') setAppleTreeAnchor(anchor);
       }
       // sem landmark: mantém o portão visível (sai de cena naturalmente ao rolar)
     } else if (beat?.t === 'scene') {
@@ -1008,6 +1001,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       targetRef.current = null;
       setLandmarkAnchor(null);
       setLandmarkKind('gate');
+      setAppleTreeAnchor(null);
       setGateFrame(0);
     } else {
       targetRef.current = null;
@@ -1090,7 +1084,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
       }} />
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa') && !finished && (
         wakeUpFrame !== null
