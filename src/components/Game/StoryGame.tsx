@@ -500,7 +500,7 @@ type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 function TrunkSprite({ height }: { height: number }) {
   const [frame, setFrame] = useState(1);
   useEffect(() => {
-    const id = setInterval(() => setFrame(f => f === 2 ? 1 : f + 1), 400);
+    const id = setInterval(() => setFrame(f => f === 2 ? 1 : f + 1), 900);
     return () => clearInterval(id);
   }, []);
   return (
