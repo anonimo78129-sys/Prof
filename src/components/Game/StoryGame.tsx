@@ -1085,7 +1085,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { path: '/assets/ato3/trees-a.png',        f: 0.45, z: 5 },
       { path: '/assets/ato3/trees-e.png',        f: 0.50, z: 6, extra: { backgroundPositionY: 'bottom -10px' } },
       { path: '/assets/ato3/trees-d.png',        f: 0.55, z: 7 },
-      { path: '/assets/ato3/trees-green.png',    f: 0.68, z: 8 },
       { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 9 },
     ];
     return (
