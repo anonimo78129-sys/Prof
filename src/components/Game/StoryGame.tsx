@@ -1340,11 +1340,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={layer('/assets/preview/legacy-bg.png', 0.03, 0, { backgroundSize: 'auto 100%', backgroundPositionY: 'bottom' })} />
 
         {TF.map((l, i) => (
-          <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 300px' })} />
+          <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
         ))}
 
-        {/* camada 8 */}
-        <div style={fxLayer('Layer_0002_7.png', 0.76, 12)} />
+        {/* camada 8 — subida 40px */}
+        <div style={fxLayer('Layer_0002_7.png', 0.76, 12, { backgroundPositionY: 'bottom 40px' })} />
         {/* camada 9 — atrás do herói */}
         <div style={fxLayer('Layer_0001_8.png', 0.90, 13)} />
 
