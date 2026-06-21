@@ -400,6 +400,48 @@
     100% { opacity: 0.92; }
   }
 
+  /* Ato 6 — nó da floresta: anel de ripple ao disparar */
+  @keyframes node-ripple {
+    0%   { transform: scale(1);   opacity: 0.9; }
+    100% { transform: scale(2.1); opacity: 0; }
+  }
+  /* respiração luminosa (núcleo da Consciência / brasa) */
+  @keyframes breathe-glow {
+    0%, 100% { transform: translate(-50%,-50%) scale(1);    filter: brightness(1); }
+    50%      { transform: translate(-50%,-50%) scale(1.12); filter: brightness(1.35); }
+  }
+  @keyframes pop-in {
+    0%   { transform: translate(-50%,-50%) scale(0.4); opacity: 0; }
+    60%  { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  }
+
+  /* Ato 7 — explosão de florada */
+  @keyframes burst {
+    0%   { transform: translate(-50%,-50%); opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--bx,0px)), calc(-50% + var(--by,0px))) scale(0.3); opacity: 0; }
+  }
+  @keyframes flash-bloom {
+    0%   { opacity: 0; }
+    25%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes sky-brighten {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  /* Ato 7 — fim sombrio: cinzas caindo */
+  @keyframes ash-fall {
+    0%   { transform: translate(0, 0); opacity: 0; }
+    10%  { opacity: 0.7; }
+    100% { transform: translate(var(--ax,0px), 112vh); opacity: 0; }
+  }
+  /* feixes de luz vertical (corredor / final) */
+  @keyframes beam-pulse {
+    0%, 100% { opacity: 0.12; }
+    50%      { opacity: 0.34; }
+  }
+
   @keyframes boulder-shake {
     0%,100% { transform: translateX(0) rotate(0deg); }
     10%  { transform: translateX(-7px) rotate(-1.8deg); }

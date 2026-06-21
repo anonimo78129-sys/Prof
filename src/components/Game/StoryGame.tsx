@@ -8,6 +8,41 @@ const HERO_LIFT = -5;        // ajuste fino vertical só do herói (acima do ch�
 const GATE_AHEAD = 24;       // o portão para um pouco à frente de onde o herói chega
 const WALK_SPEED = 230;      // px/seg que o herói anda
 
+// ─────────────────────────────────────────────────────────
+// Áudio — "voz" da floresta (tons pentatônicos, sempre harmônicos)
+// AudioContext criado preguiçosamente e retomado após um gesto do usuário.
+// ─────────────────────────────────────────────────────────
+let _actx: AudioContext | null = null;
+function audioCtx(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    if (!_actx) {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return null;
+      _actx = new AC();
+    }
+    if (_actx.state === 'suspended') void _actx.resume();
+    return _actx;
+  } catch { return null; }
+}
+function playTone(freq: number, dur = 0.5, type: OscillatorType = 'sine', gain = 0.16) {
+  const ctx = audioCtx(); if (!ctx) return;
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = type; osc.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(gain, t + 0.025);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(t); osc.stop(t + dur + 0.05);
+}
+// Dó maior pentatônica (C D E G A) — qualquer combinação soa agradável
+const PENTA = [523.25, 587.33, 659.25, 783.99, 880.0];
+function playChord(freqs: number[], dur = 1.6, gain = 0.1) {
+  freqs.forEach(f => playTone(f, dur, 'triangle', gain));
+}
+
 // Pré-carrega todas as imagens dos props/layers no início para
 // evitar que apareçam "achatadas" ao entrar no viewport.
 function ImagePreloader() {
@@ -471,9 +506,11 @@ function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
 }
 
 // ─────────────────────────────────────────────────────────
-// ATO 6 — Memória (Simon): a floresta pulsa sinais, você repete
+// ATO 6 — Memória (Simon): a floresta "fala" por luz e som.
+// Nós em arco ligados a um núcleo (Consciência Verde) por filamentos
+// de fungos que pulsam quando o sinal viaja. Cada nó tem um tom.
 // ─────────────────────────────────────────────────────────
-const NODE_COLORS = ['#00e0a0', '#40c0ff', '#ffd24a', '#ff7ad0', '#b07aff'];
+const NODE_COLORS = ['#37f0a8', '#48c6ff', '#ffd24a', '#ff7ad0', '#b78cff'];
 
 function MemoryBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'memory' }>; onSolved: () => void; onCorrect: () => void }) {
   type Phase = 'intro' | 'watch' | 'repeat' | 'wrong' | 'success';
@@ -481,33 +518,50 @@ function MemoryBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'm
   const [successIdx, setSuccessIdx] = useState(0);
   const [round, setRound] = useState(0);
   const [seq, setSeq] = useState<number[]>([]);
-  const [flash, setFlash] = useState<number | null>(null);
+  const [active, setActive] = useState<number | null>(null);   // nó aceso agora (watch ou tap)
+  const [fireId, setFireId] = useState(0);                     // remonta o anel a cada disparo
   const [inputIdx, setInputIdx] = useState(0);
-  const [tapFlash, setTapFlash] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);     // "Sinal reconhecido!"
   const LEN0 = 3;
+  const N = beat.nodes.length;
+
+  // posições dos nós num arco suave (espaço 0..100)
+  const pos = useMemo(() => beat.nodes.map((_, i) => {
+    const t = N === 1 ? 0.5 : i / (N - 1);
+    return { x: 15 + t * 70, y: 42 - Math.sin(t * Math.PI) * 20 };
+  }), [beat.nodes, N]);
+  const core = { x: 50, y: 74 };
+
+  const fire = (k: number, withSound = true) => {
+    setActive(k); setFireId(f => f + 1);
+    if (withSound) playTone(PENTA[k % PENTA.length], 0.5, 'sine', 0.16);
+  };
 
   // toca a sequência da rodada quando entra em 'watch'
   useEffect(() => {
     if (phase !== 'watch') return;
     const len = LEN0 + round;
-    const s = Array.from({ length: len }, () => Math.floor(Math.random() * beat.nodes.length));
-    setSeq(s); setInputIdx(0); setFlash(null);
+    const s = Array.from({ length: len }, () => Math.floor(Math.random() * N));
+    setSeq(s); setInputIdx(0); setActive(null);
+    const onMs = Math.max(300, 460 - round * 50);   // acende
+    const gapMs = Math.max(360, 560 - round * 60);  // intervalo
     const timers: number[] = [];
     let i = 0;
     const step = () => {
-      if (i >= s.length) { timers.push(window.setTimeout(() => setPhase('repeat'), 350)); return; }
-      setFlash(s[i]);
-      timers.push(window.setTimeout(() => setFlash(null), 480));
-      timers.push(window.setTimeout(() => { i++; step(); }, 780));
+      if (i >= s.length) { timers.push(window.setTimeout(() => { setActive(null); setPhase('repeat'); }, 320)); return; }
+      fire(s[i]);
+      timers.push(window.setTimeout(() => setActive(null), onMs));
+      timers.push(window.setTimeout(() => { i++; step(); }, gapMs + onMs));
     };
-    timers.push(window.setTimeout(step, 650));
+    timers.push(window.setTimeout(step, 700));
     return () => timers.forEach(clearTimeout);
-  }, [phase, round, beat.nodes.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, round, N]);
 
   if (phase === 'intro' && beat.intro)
-    return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('watch')} />;
+    return <DialogueBox who="narrador" text={beat.intro} onNext={() => { audioCtx(); setPhase('watch'); }} />;
   if (phase === 'wrong')
-    return <DialogueBox who="corujao" text={beat.hint ?? 'Repita na mesma ordem em que acendeu.'} onNext={() => setPhase('watch')} />;
+    return <DialogueBox who="corujao" text={beat.hint ?? 'Repita na mesma ordem em que os nós acenderam.'} onNext={() => setPhase('watch')} />;
   if (phase === 'success') {
     const line = beat.success[successIdx] ?? '';
     const last = successIdx >= beat.success.length - 1;
@@ -517,84 +571,224 @@ function MemoryBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'm
 
   const tapNode = (k: number) => {
     if (phase !== 'repeat') return;
-    setTapFlash(k); setTimeout(() => setTapFlash(null), 220);
+    fire(k);
     if (k === seq[inputIdx]) {
       const ni = inputIdx + 1;
       if (ni === seq.length) {
-        if (round + 1 >= beat.rounds) { onCorrect(); setSuccessIdx(0); setTimeout(() => setPhase('success'), 550); }
-        else setTimeout(() => { setRound(r => r + 1); setPhase('watch'); }, 650);
+        if (round + 1 >= beat.rounds) {
+          onCorrect(); setSuccessIdx(0);
+          playChord([PENTA[0], PENTA[2], PENTA[4]], 1.4, 0.1);
+          setTimeout(() => setPhase('success'), 650);
+        } else {
+          setToast('✓ Sinal reconhecido');
+          setTimeout(() => { setToast(null); setRound(r => r + 1); setPhase('watch'); }, 1100);
+        }
       } else setInputIdx(ni);
     } else {
-      setTimeout(() => setPhase('wrong'), 280);
+      playTone(120, 0.4, 'sawtooth', 0.12);
+      setTimeout(() => setPhase('wrong'), 320);
     }
   };
 
   const watching = phase === 'watch';
   return (
-    <>
-      {/* nós luminosos */}
-      <div style={{ position: 'absolute', left: 0, right: 0, top: '24%', zIndex: 42, display: 'flex', justifyContent: 'center', gap: 18, flexWrap: 'wrap', padding: '0 20px' }}>
-        {beat.nodes.map((label, k) => {
-          const lit = flash === k || tapFlash === k;
-          const color = NODE_COLORS[k % NODE_COLORS.length];
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, zIndex: 42, overflow: 'hidden' }}>
+      {/* filamentos de fungo (SVG distorcido) ligando o núcleo aos nós */}
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+        {pos.map((p, k) => {
+          const lit = active === k;
           return (
-            <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-              <button onPointerDown={(e) => { e.preventDefault(); tapNode(k); }}
-                disabled={watching}
-                style={{
-                  width: 72, height: 72, borderRadius: '50%', cursor: watching ? 'default' : 'pointer',
-                  background: lit ? color : 'rgba(8,20,30,0.55)',
-                  border: `3px solid ${color}`,
-                  boxShadow: lit ? `0 0 28px ${color}, 0 0 56px ${color}` : `0 0 10px ${color}55`,
-                  transition: lit ? 'none' : 'all .25s', touchAction: 'none',
-                } as CSSProperties} />
-              <span className="font-pixel" style={{ fontSize: 8, color: lit ? color : '#9ad0c8', textShadow: '0 1px 3px #000' }}>{label}</span>
-            </div>
+            <line key={k} x1={core.x} y1={core.y} x2={p.x} y2={p.y}
+              stroke={lit ? NODE_COLORS[k % NODE_COLORS.length] : '#2f6b54'}
+              strokeWidth={lit ? 0.8 : 0.35}
+              strokeLinecap="round"
+              opacity={lit ? 0.95 : 0.4}
+              style={{ transition: 'all .2s', filter: lit ? `drop-shadow(0 0 3px ${NODE_COLORS[k % NODE_COLORS.length]})` : undefined }} />
           );
         })}
-      </div>
+      </svg>
+
+      {/* núcleo — Consciência Verde */}
+      <div style={{
+        position: 'absolute', left: `${core.x}%`, top: `${core.y}%`, transform: 'translate(-50%,-50%)',
+        width: 46, height: 46, borderRadius: '50%',
+        background: 'radial-gradient(circle, #d8ffe6, #1f9c5a 70%)',
+        boxShadow: '0 0 24px rgba(40,255,150,0.7), 0 0 60px rgba(20,200,110,0.4)',
+        animation: 'breathe-glow 3s ease-in-out infinite', pointerEvents: 'none',
+      }} />
+
+      {/* nós luminosos */}
+      {beat.nodes.map((label, k) => {
+        const lit = active === k;
+        const color = NODE_COLORS[k % NODE_COLORS.length];
+        return (
+          <div key={k} style={{ position: 'absolute', left: `${pos[k].x}%`, top: `${pos[k].y}%`, transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+            <button onPointerDown={(e) => { e.preventDefault(); tapNode(k); }} disabled={watching}
+              style={{
+                position: 'relative', width: 66, height: 66, borderRadius: '50%', cursor: watching ? 'default' : 'pointer',
+                background: lit ? `radial-gradient(circle, #fff, ${color})` : 'rgba(6,18,26,0.5)',
+                border: `3px solid ${color}`,
+                boxShadow: lit ? `0 0 30px ${color}, 0 0 64px ${color}` : `0 0 12px ${color}66`,
+                transform: lit ? 'scale(1.12)' : 'scale(1)',
+                transition: lit ? 'none' : 'all .25s', touchAction: 'none',
+              } as CSSProperties}>
+              {lit && <span key={fireId} style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: `2px solid ${color}`, animation: 'node-ripple .6s ease-out forwards', pointerEvents: 'none' }} />}
+            </button>
+            <span className="font-pixel" style={{ fontSize: 8, color: lit ? '#fff' : '#9ad0c8', textShadow: '0 1px 3px #000' }}>{label}</span>
+          </div>
+        );
+      })}
+
+      {/* toast de rodada */}
+      {toast && (
+        <div className="font-pixel" style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', color: '#37f0a8', fontSize: 13, textShadow: '0 2px 8px #000', animation: 'pop-in .4s ease-out' }}>
+          {toast}
+        </div>
+      )}
+
       {/* faixa de instrução */}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 110, zIndex: 42, display: 'flex', justifyContent: 'center' }}>
-        <div className="panel-pixel" style={{ background: 'rgba(6,16,24,0.92)', padding: '12px 18px', maxWidth: 440, textAlign: 'center' }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 18, display: 'flex', justifyContent: 'center' }}>
+        <div className="panel-pixel" style={{ background: 'rgba(6,16,24,0.92)', padding: '11px 18px', maxWidth: 440, textAlign: 'center' }}>
           <p className="font-pixel" style={{ fontSize: 9, color: watching ? '#ffd24a' : '#40e0d0', marginBottom: 6 }}>
-            {watching ? '✦ A floresta está falando... observe' : '▶ Repita a sequência!'}
+            {watching ? '✦ A floresta está falando... observe' : '▶ Repita o canto da floresta'}
           </p>
           <p className="font-pixel" style={{ fontSize: 8, color: '#7fae9a' }}>
             Rodada {round + 1} de {beat.rounds}{!watching && ` · ${inputIdx}/${seq.length}`}
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────
-// ATO 7 — A Escolha: decisão final com dois desfechos
+// ATO 7 — Árvore da Vida: SVG que cresce por estágios (0 semente → 4 florida)
+// ─────────────────────────────────────────────────────────
+function GrowingTree({ stage }: { stage: number }) {
+  const show = (s: number) => stage >= s;
+  return (
+    <svg viewBox="0 0 200 240" width="270" height="324" style={{ overflow: 'visible', filter: show(3) ? 'drop-shadow(0 0 26px rgba(60,255,150,0.55))' : 'none', transition: 'filter .8s' }}>
+      <defs>
+        <radialGradient id="tl-leaf" cx="50%" cy="38%" r="65%">
+          <stop offset="0%" stopColor="#c8ffb6" /><stop offset="55%" stopColor="#42d156" /><stop offset="100%" stopColor="#1d8a34" />
+        </radialGradient>
+        <linearGradient id="tl-bark" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#5a3a1f" /><stop offset="50%" stopColor="#8a5a30" /><stop offset="100%" stopColor="#4f3219" />
+        </linearGradient>
+      </defs>
+      {/* solo */}
+      <ellipse cx="100" cy="228" rx="64" ry="12" fill="#241708" opacity="0.85" />
+      {/* semente */}
+      <ellipse cx="100" cy="214" rx="9" ry="12" fill="#d2a85e"
+        style={{ opacity: stage === 0 ? 1 : 0, transition: 'opacity .4s' }} />
+      {/* tronco — cresce em altura */}
+      <g style={{ transform: `scaleY(${show(1) ? 1 : 0})`, transformOrigin: '100px 226px', transition: 'transform .8s cubic-bezier(.2,.8,.3,1)' }}>
+        <path d="M93,226 Q96,150 100,118 Q104,150 107,226 Z" fill="url(#tl-bark)" />
+        {/* galhos */}
+        <g style={{ opacity: show(2) ? 1 : 0, transition: 'opacity .6s .25s' }}>
+          <path d="M100,152 Q80,136 64,120" stroke="url(#tl-bark)" strokeWidth="6" fill="none" strokeLinecap="round" />
+          <path d="M100,142 Q120,128 138,114" stroke="url(#tl-bark)" strokeWidth="6" fill="none" strokeLinecap="round" />
+          <path d="M100,126 Q93,108 93,92" stroke="url(#tl-bark)" strokeWidth="5" fill="none" strokeLinecap="round" />
+        </g>
+      </g>
+      {/* copa */}
+      <g style={{ opacity: show(3) ? 1 : 0, transform: show(3) ? 'scale(1)' : 'scale(0.15)', transformOrigin: '100px 96px', transition: 'all .7s cubic-bezier(.2,.9,.3,1.2)' }}>
+        <circle cx="100" cy="86" r="36" fill="url(#tl-leaf)" />
+        <circle cx="66" cy="108" r="25" fill="url(#tl-leaf)" />
+        <circle cx="136" cy="106" r="25" fill="url(#tl-leaf)" />
+        <circle cx="82" cy="72" r="21" fill="url(#tl-leaf)" />
+        <circle cx="120" cy="74" r="21" fill="url(#tl-leaf)" />
+      </g>
+      {/* flores / frutos brilhantes */}
+      <g style={{ opacity: show(4) ? 1 : 0, transition: 'opacity .6s' }}>
+        {[[100, 74], [76, 96], [126, 94], [90, 62], [118, 64], [58, 106], [142, 104], [100, 100]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="4.2" fill={i % 2 ? '#ffd9ec' : '#fff39a'} style={{ filter: 'drop-shadow(0 0 4px #fff)' }} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+// explosão de pétalas/luz quando a árvore floresce
+function BloomBurst() {
+  const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
+  const cols = ['#fff39a', '#ffd9ec', '#c8ffb6', '#bff0ff', '#fff'];
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 44, pointerEvents: 'none', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 52%, rgba(255,247,200,0.85), transparent 60%)', animation: 'flash-bloom 1.4s ease-out forwards' }} />
+      {Array.from({ length: 34 }, (_, i) => {
+        const ang = (i / 34) * Math.PI * 2 + s(i) * 0.6;
+        const dist = 120 + s(i * 3) * 260;
+        const size = 4 + s(i * 5) * 7;
+        return (
+          <div key={i} style={{
+            position: 'absolute', left: '50%', top: '52%', width: size, height: size, borderRadius: '50%',
+            background: cols[i % cols.length], boxShadow: `0 0 8px ${cols[i % cols.length]}`,
+            animation: `burst ${1.3 + s(i * 7) * 1.2}s ease-out ${s(i * 11) * 0.2}s forwards`,
+            ['--bx' as string]: `${Math.cos(ang) * dist}px`,
+            ['--by' as string]: `${Math.sin(ang) * dist}px`,
+          } as CSSProperties} />
+        );
+      })}
+    </div>
+  );
+}
+
+// fim sombrio: escurecimento + cinzas caindo + uma última brasa de esperança
+function Withering({ showEmber }: { showEmber: boolean }) {
+  const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 39, pointerEvents: 'none', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: '#05060a', animation: 'fade-in-dark 4s ease forwards' }} />
+      {Array.from({ length: 26 }, (_, i) => {
+        const size = 2 + s(i * 3) * 4;
+        return (
+          <div key={i} style={{
+            position: 'absolute', left: `${s(i * 7) * 100}%`, top: '-6%',
+            width: size, height: size, borderRadius: '50%', background: 'rgba(150,150,150,0.5)',
+            animation: `ash-fall ${6 + s(i * 11) * 6}s linear ${-s(i * 17) * 8}s infinite`,
+            ['--ax' as string]: `${(s(i * 13) - 0.5) * 80}px`,
+          } as CSSProperties} />
+        );
+      })}
+      {showEmber && (
+        <div style={{ position: 'absolute', left: '50%', bottom: '34%', transform: 'translateX(-50%)', width: 8, height: 8, borderRadius: '50%', background: 'radial-gradient(circle,#ffd9a0,#ff7a18)', boxShadow: '0 0 16px rgba(255,140,40,0.9)', animation: 'breathe-glow 2.4s ease-in-out infinite' }} />
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// ATO 7 — A Escolha: decisão final com dois desfechos cinematográficos
 // ─────────────────────────────────────────────────────────
 function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; onSolved: () => void }) {
   type Phase = 'intro' | 'deciding' | 'planting' | 'ending';
   const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'deciding');
   const [chosen, setChosen] = useState<Extract<Beat, { t: 'choice' }>['options'][number] | null>(null);
   const [endIdx, setEndIdx] = useState(0);
-  const [growth, setGrowth] = useState(0);
+  const [stage, setStage] = useState(0);      // crescimento da árvore 0..4
+  const [started, setStarted] = useState(false);
+  const [bloom, setBloom] = useState(false);
 
   if (phase === 'intro' && beat.intro)
-    return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('deciding')} />;
+    return <DialogueBox who="narrador" text={beat.intro} onNext={() => { audioCtx(); setPhase('deciding'); }} />;
 
   if (phase === 'deciding') {
     return (
       <div style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 120 }}>
-        <p className="font-vt" style={{ color: '#fff', fontSize: 25, textAlign: 'center', textShadow: '0 2px 10px #000', marginBottom: 26, padding: '0 26px', lineHeight: 1.3 }}>{beat.prompt}</p>
+        {/* a última semente, flutuando */}
+        <div style={{ position: 'absolute', top: '26%', left: '50%', transform: 'translateX(-50%)', fontSize: 46, filter: 'drop-shadow(0 0 18px rgba(255,230,150,0.9))', animation: 'hint-bob 2.4s ease-in-out infinite' }}>🌰</div>
+        <p className="font-vt" style={{ color: '#fff', fontSize: 25, textAlign: 'center', textShadow: '0 2px 12px #000', marginBottom: 26, padding: '0 26px', lineHeight: 1.3 }}>{beat.prompt}</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 340, padding: '0 24px' }}>
           {beat.options.map(opt => (
-            <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); setChosen(opt); setEndIdx(0); setGrowth(0); setPhase(opt.tone === 'luz' ? 'planting' : 'ending'); }}
+            <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); audioCtx(); setChosen(opt); setEndIdx(0); setStage(0); setStarted(false); setBloom(false); setPhase(opt.tone === 'luz' ? 'planting' : 'ending'); if (opt.tone === 'sombra') playTone(110, 0.8, 'sawtooth', 0.1); }}
               className="font-pixel"
               style={{
                 fontSize: 12, padding: '17px 12px', borderRadius: 10, cursor: 'pointer', lineHeight: 1.4,
                 color: opt.tone === 'luz' ? '#0a2010' : '#f0dee6',
                 background: opt.tone === 'luz' ? 'linear-gradient(to bottom,#7be04a,#2f9410)' : 'linear-gradient(to bottom,#5a3a4a,#2a1820)',
                 border: opt.tone === 'luz' ? '3px solid #d6ffe0' : '3px solid #6a4a5a',
-                boxShadow: opt.tone === 'luz' ? '0 0 20px rgba(0,255,100,0.45)' : '0 4px 0 #1a0e14',
+                boxShadow: opt.tone === 'luz' ? '0 0 22px rgba(0,255,100,0.5)' : '0 4px 0 #1a0e14',
                 touchAction: 'none',
               } as CSSProperties}>
               {opt.label}
@@ -606,31 +800,44 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
   }
 
   if (phase === 'planting') {
-    const stages = ['🌰', '🌱', '🌿', '🌳'];
-    const grow = () => {
-      const g = growth + 1;
-      if (g >= 3) { setGrowth(3); setTimeout(() => { setEndIdx(0); setPhase('ending'); }, 1400); }
-      else setGrowth(g);
+    const plant = () => {
+      if (started) return;
+      setStarted(true);
+      // crescimento cinemático com tons ascendentes
+      const stamps: Array<[number, number]> = [[1, 200], [2, 950], [3, 1750], [4, 2550]];
+      stamps.forEach(([st, ms]) => setTimeout(() => { setStage(st); playTone(PENTA[st - 1], 0.6, 'sine', 0.14); }, ms));
+      setTimeout(() => { setBloom(true); playChord([PENTA[0], PENTA[2], PENTA[4], PENTA[4] * 2], 2.2, 0.1); }, 2650);
+      setTimeout(() => { setEndIdx(0); setPhase('ending'); }, 5200);
     };
     return (
-      <div onPointerDown={(e) => { e.preventDefault(); if (growth < 3) grow(); }}
-        style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-        <div style={{ fontSize: 70 + growth * 46, transition: 'all .5s ease', filter: 'drop-shadow(0 0 24px rgba(0,255,120,0.75))' }}>{stages[growth]}</div>
-        <p className="font-pixel" style={{ color: '#eaffe0', fontSize: 11, marginTop: 34, textShadow: '0 2px 6px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>
-          {growth < 3 ? 'toque para fazer a vida crescer' : '✦ a floresta renasce ✦'}
+      <div onPointerDown={(e) => { e.preventDefault(); plant(); }}
+        style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: started ? 'default' : 'pointer' }}>
+        {bloom && <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 50%, rgba(255,247,210,0.45), transparent 65%)', animation: 'sky-brighten 2.5s ease-out forwards', pointerEvents: 'none' }} />}
+        <GrowingTree stage={stage} />
+        {bloom && <BloomBurst />}
+        <p className="font-pixel" style={{ color: '#eaffe0', fontSize: 11, marginTop: 26, textShadow: '0 2px 6px #000', zIndex: 45, animation: 'hint-bob 1.1s ease-in-out infinite', opacity: started ? (bloom ? 1 : 0) : 1, transition: 'opacity .5s' }}>
+          {!started ? 'toque para plantar a última semente' : bloom ? '✦ A vida encontra um caminho ✦' : ''}
         </p>
       </div>
     );
   }
 
   // ending
+  const sombra = chosen!.tone === 'sombra';
   const line = chosen!.ending[endIdx] ?? '';
   const last = endIdx >= chosen!.ending.length - 1;
   return (
     <>
-      {chosen!.tone === 'sombra' && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 41, background: '#000', pointerEvents: 'none', animation: 'fade-in-dark 2.4s ease forwards' }} />
-      )}
+      {sombra
+        ? <Withering showEmber={endIdx >= chosen!.ending.length - 1} />
+        : (
+          <>
+            <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.28), transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', left: 0, right: 0, top: '34%', zIndex: 40, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+              <GrowingTree stage={4} />
+            </div>
+          </>
+        )}
       <DialogueBox who="narrador" text={line} last={last}
         onNext={() => { if (last) onSolved(); else setEndIdx(i => i + 1); }} />
     </>
@@ -1077,10 +1284,33 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* tom de cor / clima */}
         <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />
 
+        {/* feixes de luz vertical (corredor azul) */}
+        {bg === 'corredor' && [18, 38, 58, 78].map((lx, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: '-10%', left: `${lx}%`, width: 60, height: '120%', zIndex: 3,
+            transform: 'rotate(8deg)', transformOrigin: 'top center', pointerEvents: 'none',
+            background: 'linear-gradient(to bottom, rgba(120,210,255,0.5), transparent 75%)',
+            filter: 'blur(8px)',
+            animation: `beam-pulse ${4 + i}s ease-in-out ${-i}s infinite`,
+          }} />
+        ))}
+
+        {/* brilho dourado de sol no topo (final) */}
+        {bg === 'final' && (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
+            background: 'radial-gradient(circle at 50% -10%, rgba(255,240,190,0.55), transparent 55%)' }} />
+        )}
+
         {/* atmosfera por cena */}
         {bg === 'pantano' && <SceneParticles kind="pantano" />}
         {bg === 'final' && <SceneParticles kind="final" />}
         {bg === 'corredor' && <LightMotes />}
+
+        {/* vinheta para dar profundidade (corredor / final) */}
+        {(bg === 'corredor' || bg === 'final') && (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 7, pointerEvents: 'none',
+            boxShadow: 'inset 0 0 160px 40px rgba(0,0,0,0.55)' }} />
+        )}
 
         {/* chão */}
         <div style={{

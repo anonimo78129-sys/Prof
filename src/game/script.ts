@@ -181,14 +181,14 @@ const beats: Beat[] = [
     'Para passar, você precisa repetir os sinais dela. Preste atenção!',
   ] },
   { t: 'memory',
-    intro: 'Os nós luminosos começam a pulsar uma mensagem...',
-    instruction: 'Observe a sequência e repita tocando nos nós',
-    nodes: ['Raiz', 'Caule', 'Folha', 'Flor'],
+    intro: 'Os nós luminosos começam a pulsar uma melodia de luz...',
+    instruction: 'Ouça e veja o canto da floresta — depois repita',
+    nodes: ['Luz', 'Água', 'Raiz', 'Fungo', 'Vida'],
     rounds: 3,
     success: [
       'A floresta reconheceu você.',
-      'As plantas trocam açúcar e avisos de perigo por essa rede.',
-      'Uma única floresta pode ser um só organismo, conectado por fungos.',
+      'As plantas trocam açúcar e avisos de perigo pela rede de fungos.',
+      'Uma floresta inteira pode ser um só organismo, conectado sob a terra.',
     ],
     hint: 'Repita exatamente na mesma ordem em que os nós acenderam. Comece pelo primeiro que brilhou.',
   },
@@ -234,6 +234,10 @@ const beats: Beat[] = [
       },
     ],
   },
+  { t: 'say', who: 'narrador', lines: [
+    'Toda escolha sobre a natureza é, também, uma escolha sobre o nosso futuro.',
+    'E você... o que faria, com a última semente nas mãos?',
+  ] },
   { t: 'fade', text: 'Fim.' },
 
 ];
