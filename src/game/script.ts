@@ -60,7 +60,7 @@ const beats: Beat[] = [
     ],
     hint: 'Cada parte da planta tem um papel único. Pense no que cada uma faz para a planta sobreviver.',
   },
-  { t: 'walk', dist: 400, hint: 'Siga em frente' },
+  { t: 'walk', dist: 800, hint: 'Siga em frente' },
   { t: 'say', who: 'estudante', lines: [
     'A névoa está ficando mais densa...',
     'Para onde será que vai esse caminho?',
