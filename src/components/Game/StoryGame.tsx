@@ -1329,9 +1329,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   // ── Ato 1 — Tall Forest (3 camadas parallax) ──────────────────────────────
   if (bg === 'floresta') {
     const TF = [
-      { src: '/assets/tallforest/back.png',   f: 0.06 },
-      { src: '/assets/tallforest/far.png',    f: 0.30 },
-      { src: '/assets/tallforest/middle.png', f: 0.85 },
+      { src: '/assets/tallforest/back.png', f: 0.06 },
+      { src: '/assets/tallforest/far.png',  f: 0.30 },
     ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
@@ -1359,6 +1358,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
           imageRendering: 'pixelated',
         }} />
+
+        {/* camada 10 — grama, na frente do herói */}
+        <div style={fxLayer('Layer_0000_9.png', FOREST_FOREGROUND.f, 20,
+          { transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' })} />
 
         {/* portão */}
         {landmarkAnchor != null && (
