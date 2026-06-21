@@ -1329,9 +1329,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   // ── Ato 1 — Tall Forest (3 camadas parallax) ──────────────────────────────
   if (bg === 'floresta') {
     const TF = [
-      { src: '/assets/tallforest/back.png',  f: 0.06 },
-      { src: '/assets/tallforest/far.png',   f: 0.30 },
-      { src: '/assets/grassland/bg1-sky.png', f: 0.85 },
+      { src: '/assets/tallforest/back.png', f: 0.06 },
+      { src: '/assets/tallforest/far.png',  f: 0.30 },
     ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
