@@ -1045,10 +1045,10 @@ function TrunkSprite({ height }: { height: number }) {
 function GuardianSprite() {
   const [frame, setFrame] = useState(1);
   useEffect(() => {
-    const t1 = setTimeout(() => setFrame(2), 1000);
-    const t2 = setTimeout(() => setFrame(3), 1200);
-    const t3 = setTimeout(() => setFrame(4), 1400);
-    const t4 = setTimeout(() => setFrame(5), 1600);
+    const t1 = setTimeout(() => setFrame(2), 5000);
+    const t2 = setTimeout(() => setFrame(3), 5800);
+    const t3 = setTimeout(() => setFrame(4), 6600);
+    const t4 = setTimeout(() => setFrame(5), 7400);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
   return (
@@ -1517,9 +1517,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {landmarkAnchor != null && boulderState !== 'idle' && (
           <div style={{
             position: 'absolute',
-            left: `calc(50% + ${Math.round(landmarkAnchor + 800 - worldX)}px)`,
+            left: `calc(50% + ${Math.round(landmarkAnchor + 950 - worldX)}px)`,
             bottom: GROUND - 4,
-            zIndex: 8,
+            zIndex: 7,
             transform: 'translateX(-50%)',
             width: 'max-content',
           }}>
