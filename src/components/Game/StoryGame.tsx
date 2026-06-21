@@ -1094,6 +1094,18 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {ATO3.map(l => <div key={l.path} style={layer(l.path, l.f, l.z)} />)}
 
+        {/* arbustos do Ato 3 */}
+        {([
+          { src: 'ato3/bush1.png', wx: 200,  f: 0.92, h: 80, b: GROUND - 4, z: 10 },
+          { src: 'ato3/bush2.png', wx: 480,  f: 1.04, h: 55, b: GROUND - 4, z: 15 },
+          { src: 'ato3/bush1.png', wx: 780,  f: 0.94, h: 72, b: GROUND - 4, z: 10, flip: true },
+          { src: 'ato3/bush2.png', wx: 1050, f: 1.05, h: 50, b: GROUND - 4, z: 16 },
+          { src: 'ato3/bush1.png', wx: 1350, f: 0.96, h: 76, b: GROUND - 4, z: 11, flip: true },
+          { src: 'ato3/bush2.png', wx: 1620, f: 1.03, h: 52, b: GROUND - 4, z: 15 },
+          { src: 'ato3/bush1.png', wx: 1900, f: 0.95, h: 70, b: GROUND - 4, z: 11 },
+          { src: 'ato3/bush2.png', wx: 2180, f: 1.04, h: 48, b: GROUND - 4, z: 16, flip: true },
+        ] as Prop[]).map((p, i) => <PropImg key={`ato3bush${i}`} p={p} worldX={worldX} />)}
+
         {/* chão texturizado */}
         <div style={{
           position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
