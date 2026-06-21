@@ -1080,11 +1080,12 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     const ATO3 = [
       { path: '/assets/ato3/sky.png',            f: 0.03, z: 1 },
       { path: '/assets/cute/bg2.png', f: 0.08, z: 2 },
-      { path: '/assets/cute/bg3.png', f: 0.18, z: 3 },
-      { path: '/assets/ato3/trees-a.png',         f: 0.45, z: 4 },
-      { path: '/assets/ato3/trees-b.png',         f: 0.55, z: 5 },
-      { path: '/assets/ato3/trees-green.png',     f: 0.68, z: 6 },
-      { path: '/assets/forest/Layer_0001_8.png',  f: 0.90, z: 7 },
+      { path: '/assets/cute/bg3.png',            f: 0.18, z: 3 },
+      { path: '/assets/ato3/trees-c.png',        f: 0.30, z: 4 },
+      { path: '/assets/ato3/trees-a.png',        f: 0.45, z: 5 },
+      { path: '/assets/ato3/trees-b.png',        f: 0.55, z: 6 },
+      { path: '/assets/ato3/trees-green.png',    f: 0.68, z: 7 },
+      { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 8 },
     ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
