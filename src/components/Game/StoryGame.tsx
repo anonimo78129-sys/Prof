@@ -1083,7 +1083,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { path: '/assets/cute/bg3.png',            f: 0.18, z: 3 },
       { path: '/assets/ato3/trees-c.png',        f: 0.30, z: 4 },
       { path: '/assets/ato3/trees-a.png',        f: 0.45, z: 5 },
-      { path: '/assets/ato3/trees-e.png',        f: 0.50, z: 6 },
+      { path: '/assets/ato3/trees-e.png',        f: 0.50, z: 6, extra: { backgroundPositionY: 'bottom -10px' } },
       { path: '/assets/ato3/trees-d.png',        f: 0.55, z: 7 },
       { path: '/assets/ato3/trees-green.png',    f: 0.68, z: 8 },
       { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 9 },
@@ -1092,7 +1092,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
         background: '#7dd8de' }}>
 
-        {ATO3.map(l => <div key={l.path} style={layer(l.path, l.f, l.z)} />)}
+        {ATO3.map(l => <div key={l.path} style={layer(l.path, l.f, l.z, (l as {extra?: React.CSSProperties}).extra)} />)}
 
         {/* arbustos do Ato 3 */}
         {([
