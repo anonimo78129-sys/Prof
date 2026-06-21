@@ -755,6 +755,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                   src={computerOn ? '/assets/estufa/computer-on.png' : '/assets/estufa/computer-off.png'}
                   alt="computador"
                   style={{ display: 'block', height: 220, width: 'auto', imageRendering: 'pixelated',
+                    transform: 'translateY(20px)',
                     filter: computerOn ? 'drop-shadow(0 0 12px rgba(0,255,80,0.7))' : 'drop-shadow(0 8px 14px rgba(0,0,0,0.7))' }}
                 />
                 {nearby && (
