@@ -104,6 +104,63 @@ const PACKS: Pack[] = [
       { id: 'monsters-die',    thumb: '/assets/preview/monsters-mushroom-die.png',    name: 'Cogumelo — Die' },
     ],
   },
+  {
+    label: 'Legacy Fantasy — High Forest',
+    badge: '2 CAMADAS',
+    badgeColor: '#40e0d0',
+    parallax: [
+      { src: '/assets/preview/legacy-bg.png',       factor: 0.12 },
+      { src: '/assets/preview/legacy-trees-bg.png', factor: 1.0  },
+    ],
+    scenes: [
+      { id: 'legacy-bg',        thumb: '/assets/preview/legacy-bg.png',        name: 'Camada 1 — Céu e colinas' },
+      { id: 'legacy-trees-bg',  thumb: '/assets/preview/legacy-trees-bg.png',  name: 'Camada 2 — Árvores' },
+      { id: 'legacy-char-idle', thumb: '/assets/preview/legacy-char-idle.png', name: 'Personagem — Idle' },
+      { id: 'legacy-mob-boar',  thumb: '/assets/preview/legacy-mob-boar.png',  name: 'Mob — Javali' },
+      { id: 'legacy-mob-bee',   thumb: '/assets/preview/legacy-mob-bee.png',   name: 'Mob — Abelha' },
+    ],
+  },
+  {
+    label: 'SunnyLand Forest — Godot',
+    badge: '2 CAMADAS',
+    badgeColor: '#40e0d0',
+    parallax: [
+      { src: '/assets/preview/sunnyland-godot-bg.png', factor: 0.15 },
+      { src: '/assets/preview/sunnyland-godot-mg.png', factor: 1.0  },
+    ],
+    scenes: [
+      { id: 'sl-godot-bg',      thumb: '/assets/preview/sunnyland-godot-bg.png',      name: 'Camada 1 — Background' },
+      { id: 'sl-godot-mg',      thumb: '/assets/preview/sunnyland-godot-mg.png',      name: 'Camada 2 — Middleground' },
+      { id: 'sl-godot-player',  thumb: '/assets/preview/sunnyland-godot-player.png',  name: 'Personagem — Idle' },
+      { id: 'sl-godot-tileset', thumb: '/assets/preview/sunnyland-godot-tileset.png', name: 'Tileset — Mundo' },
+    ],
+  },
+  {
+    label: 'SunnyLand Forest — Phaser',
+    badge: '2 CAMADAS',
+    badgeColor: '#40e0d0',
+    parallax: [
+      { src: '/assets/preview/phaser-bg.png', factor: 0.15 },
+      { src: '/assets/preview/phaser-mg.png', factor: 1.0  },
+    ],
+    scenes: [
+      { id: 'phaser-bg',    thumb: '/assets/preview/phaser-bg.png',    name: 'Camada 1 — Background' },
+      { id: 'phaser-mg',    thumb: '/assets/preview/phaser-mg.png',    name: 'Camada 2 — Middleground' },
+      { id: 'phaser-atlas', thumb: '/assets/preview/phaser-atlas.png', name: 'Atlas — Sprites' },
+      { id: 'phaser-title', thumb: '/assets/preview/phaser-title.png', name: 'Tela de título' },
+    ],
+  },
+  {
+    label: 'Pixel Crawler — RPG Tileset',
+    badge: 'TILESET',
+    badgeColor: '#c080ff',
+    scenes: [
+      { id: 'crawler-dungeon',   thumb: '/assets/preview/crawler-dungeon.png',   name: 'Dungeon tiles' },
+      { id: 'crawler-floors',    thumb: '/assets/preview/crawler-floors.png',    name: 'Floor tiles' },
+      { id: 'crawler-walls',     thumb: '/assets/preview/crawler-walls.png',     name: 'Wall tiles' },
+      { id: 'crawler-char-idle', thumb: '/assets/preview/crawler-char-idle.png', name: 'Personagem — Idle' },
+    ],
+  },
 ];
 
 const totalScenes = PACKS.reduce((s, p) => s + p.scenes.length, 0);
