@@ -48,6 +48,7 @@ const PACKS: Pack[] = [
       { src: '/assets/preview/grassland-free-bg5.png', factor: 1.0 },
     ],
     scenes: [
+      { id: 'gl-free-guide',   thumb: '/assets/preview/grassland-free-guide.png',   name: 'Guia de camadas' },
       { id: 'gl-free-example', thumb: '/assets/preview/grassland-free-example.png', name: 'Exemplo completo' },
       { id: 'gl-free-bg1',     thumb: '/assets/preview/grassland-free-bg1.png',     name: 'Camada 1 — Céu' },
       { id: 'gl-free-bg2',     thumb: '/assets/preview/grassland-free-bg2.png',     name: 'Camada 2 — Montanhas' },
