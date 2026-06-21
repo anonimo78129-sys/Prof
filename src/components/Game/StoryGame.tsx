@@ -756,7 +756,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                   alt="computador"
                   style={{ display: 'block', height: 220, width: 'auto', imageRendering: 'pixelated',
                     transform: 'translateY(20px)',
-                    filter: computerOn ? 'drop-shadow(0 0 12px rgba(0,255,80,0.7))' : 'drop-shadow(0 8px 14px rgba(0,0,0,0.7))' }}
+                    filter: computerOn ? 'drop-shadow(0 0 6px rgba(0,255,80,0.3))' : 'drop-shadow(0 8px 14px rgba(0,0,0,0.7))' }}
                 />
                 {nearby && (
                   <div className="font-pixel" style={{ position: 'absolute', bottom: 228, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
