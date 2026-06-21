@@ -1396,6 +1396,87 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     );
   }
 
+  if (bg === 'clareira') {
+    const TF = [
+      { src: '/assets/tallforest/back.png',   f: 0.06 },
+      { src: '/assets/tallforest/far.png',    f: 0.30 },
+      { src: '/assets/tallforest/middle.png', f: 0.85 },
+    ];
+    const BUSHES: Prop[] = [
+      { src: 'tallforest/bush3.png', wx: 160,  f: 0.92, h: 72, b: GROUND - 4, z: 9,  glow: true },
+      { src: 'tallforest/bush4.png', wx: 420,  f: 1.04, h: 48, b: GROUND - 4, z: 15 },
+      { src: 'tallforest/bush2.png', wx: 680,  f: 0.94, h: 80, b: GROUND - 4, z: 8, flip: true },
+      { src: 'tallforest/bush1.png', wx: 950,  f: 1.05, h: 70, b: GROUND - 4, z: 16 },
+      { src: 'tallforest/bush3.png', wx: 1200, f: 0.96, h: 65, b: GROUND - 4, z: 11, flip: true, glow: true },
+      { src: 'tallforest/bush4.png', wx: 1460, f: 1.03, h: 52, b: GROUND - 4, z: 17 },
+      { src: 'tallforest/bush2.png', wx: 1720, f: 0.93, h: 75, b: GROUND - 4, z: 9  },
+      { src: 'tallforest/bush1.png', wx: 1980, f: 1.06, h: 68, b: GROUND - 4, z: 15 },
+      { src: 'tallforest/bush3.png', wx: 2240, f: 0.95, h: 70, b: GROUND - 4, z: 11, glow: true },
+      { src: 'tallforest/bush4.png', wx: 2520, f: 1.04, h: 45, b: GROUND - 4, z: 16, flip: true },
+    ];
+    return (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
+        background: 'linear-gradient(to bottom, #0d1a0d 0%, #122212 40%, #1a2e18 100%)' }}>
+
+        {/* camada 1 — céu (Grassland Free) */}
+        <div style={layer('/assets/grassland/bg1-sky.png', 0.03, 0, { backgroundSize: 'auto 100%', backgroundPositionY: 'top' })} />
+
+        {TF.map((l, i) => (
+          <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
+        ))}
+
+        {/* camada 8 — subida 40px */}
+        <div style={layer('/assets/tallforest/layer8-custom.png', 0.76, 12, { backgroundPositionY: 'bottom 40px' })} />
+        {/* camada 9 — atrás do herói */}
+        <div style={fxLayer('Layer_0001_8.png', 0.90, 13)} />
+
+        <LightMotes />
+
+        {/* arbustos */}
+        {BUSHES.map((p, i) => <PropImg key={`bush${i}`} p={p} worldX={worldX} />)}
+
+        {/* flora mágica */}
+        {SCENERY.map((p, i) => <PropImg key={`flora${i}`} p={p} worldX={worldX} />)}
+
+        {/* chão */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 10,
+          backgroundImage: `url('/assets/world/ground-dark.png')`,
+          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+          imageRendering: 'pixelated',
+        }} />
+
+        {/* camada 10 — grama, na frente do herói */}
+        <div style={fxLayer('Layer_0000_9.png', FOREST_FOREGROUND.f, 20,
+          { transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' })} />
+
+        {/* pedra gigante */}
+        {landmarkAnchor != null && boulderState !== 'gone' && (
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 16, transform: 'translateX(-50%)', width: 'max-content' }}>
+            <div style={{
+              transform: boulderState === 'sinking' ? 'translateY(360px)' : 'translateY(0)',
+              transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
+            }}>
+              <img
+                src="/assets/world/boulder.png"
+                alt="pedra gigante"
+                style={{
+                  display: 'block', height: 240, width: 'auto', imageRendering: 'pixelated',
+                  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.9)) drop-shadow(0 0 8px rgba(0,0,0,0.6))',
+                  animation: boulderState === 'shaking' ? 'boulder-shake 0.13s ease-in-out infinite' : 'none',
+                }}
+              />
+            </div>
+            {nearby && boulderState === 'idle' && (
+              <div className="font-pixel" style={{ position: 'absolute', bottom: 248, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#5a6f8c' }}>
       {/* camadas da floresta (trás → frente, atrás do herói) */}
