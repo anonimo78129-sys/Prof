@@ -1336,8 +1336,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
         background: 'linear-gradient(to bottom, #0d1a0d 0%, #122212 40%, #1a2e18 100%)' }}>
 
-        {/* camada 1 — céu e colinas (Legacy Fantasy) */}
-        <div style={layer('/assets/preview/legacy-bg.png', 0.03, 0, { backgroundSize: 'auto 100%', backgroundPositionY: 'bottom' })} />
+        {/* camada 1 — céu (Grassland Free) */}
+        <div style={layer('/assets/grassland/bg1-sky.png', 0.03, 0, { backgroundSize: 'auto 100%', backgroundPositionY: 'top' })} />
 
         {TF.map((l, i) => (
           <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
