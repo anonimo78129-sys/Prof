@@ -1398,7 +1398,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
   if (bg === 'clareira') {
     const TF = [
-      { src: '/assets/tallforest/back.png',   f: 0.06 },
+      { src: '/assets/illusion/back.png',     f: 0.06 },
       { src: '/assets/tallforest/far.png',    f: 0.30 },
       { src: '/assets/tallforest/middle.png', f: 0.85 },
     ];
