@@ -1493,6 +1493,27 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             )}
           </div>
         )}
+
+        {/* guardião — aparece 400px à frente da pedra após a resposta */}
+        {landmarkAnchor != null && boulderState !== 'idle' && (
+          <div style={{
+            position: 'absolute',
+            left: `calc(50% + ${Math.round(landmarkAnchor + 400 - worldX)}px)`,
+            bottom: GROUND - 4,
+            zIndex: 15,
+            transform: 'translateX(-50%)',
+            width: 'max-content',
+          }}>
+            <img
+              src="/assets/world/guardian.png"
+              alt="guardião"
+              style={{
+                display: 'block', height: 170, width: 'auto', imageRendering: 'pixelated',
+                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.75))',
+              }}
+            />
+          </div>
+        )}
       </div>
     );
   }
