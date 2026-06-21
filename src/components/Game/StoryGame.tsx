@@ -1365,7 +1365,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* portão */}
         {landmarkAnchor != null && (
-          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 16, transform: 'translateX(-50%)', width: 'max-content' }}>
             <img
               src={gateFrame === 2 ? '/assets/world/gate-open.png'
                  : gateFrame === 1 ? '/assets/world/gate-half.png'
