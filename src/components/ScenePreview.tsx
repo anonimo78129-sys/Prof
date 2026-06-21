@@ -3,14 +3,65 @@ import { useState } from 'react';
 const PACKS = [
   {
     label: 'Floresta & Árvores',
-    layers: 12,
+    badge: '12 CAMADAS',
+    badgeColor: '#40e0d0',
     scenes: Array.from({ length: 8 }, (_, i) => ({
       id: `forest-${i + 1}`,
       thumb: `/assets/preview/forest-${i + 1}.jpg`,
       name: `Floresta ${i + 1}`,
     })),
   },
+  {
+    label: 'GrassLand — Free',
+    badge: '5 CAMADAS',
+    badgeColor: '#40e0d0',
+    scenes: [
+      { id: 'gl-free-example', thumb: '/assets/preview/grassland-free-example.png', name: 'Exemplo completo' },
+      { id: 'gl-free-bg1',     thumb: '/assets/preview/grassland-free-bg1.png',     name: 'Camada 1 — Céu' },
+      { id: 'gl-free-bg2',     thumb: '/assets/preview/grassland-free-bg2.png',     name: 'Camada 2 — Montanhas' },
+      { id: 'gl-free-bg3',     thumb: '/assets/preview/grassland-free-bg3.png',     name: 'Camada 3 — Árvores dist.' },
+      { id: 'gl-free-bg4',     thumb: '/assets/preview/grassland-free-bg4.png',     name: 'Camada 4 — Arbustos' },
+      { id: 'gl-free-bg5',     thumb: '/assets/preview/grassland-free-bg5.png',     name: 'Camada 5 — Chão' },
+    ],
+  },
+  {
+    label: 'GrassLand — Original',
+    badge: '4 CAMADAS',
+    badgeColor: '#40e0d0',
+    scenes: [
+      { id: 'gl-orig-example', thumb: '/assets/preview/grassland-orig-example.png', name: 'Exemplo completo' },
+      { id: 'gl-orig-bg1',     thumb: '/assets/preview/grassland-orig-bg1.png',     name: 'Camada 1 — Céu' },
+      { id: 'gl-orig-bg2',     thumb: '/assets/preview/grassland-orig-bg2.png',     name: 'Camada 2 — Montanhas' },
+      { id: 'gl-orig-bg3',     thumb: '/assets/preview/grassland-orig-bg3.png',     name: 'Camada 3 — Árvores' },
+      { id: 'gl-orig-bg4',     thumb: '/assets/preview/grassland-orig-bg4.png',     name: 'Camada 4 — Primeiro plano' },
+    ],
+  },
+  {
+    label: 'PixelFantasy — Cavernas',
+    badge: '5 CAMADAS',
+    badgeColor: '#40e0d0',
+    scenes: [
+      { id: 'caves-bg1',  thumb: '/assets/preview/caves-bg1.png',  name: 'Camada 1 — Fundo escuro' },
+      { id: 'caves-bg2',  thumb: '/assets/preview/caves-bg2.png',  name: 'Camada 2 — Rochas dist.' },
+      { id: 'caves-bg3',  thumb: '/assets/preview/caves-bg3.png',  name: 'Camada 3 — Stalactites' },
+      { id: 'caves-bg4a', thumb: '/assets/preview/caves-bg4a.png', name: 'Camada 4a — Pilastras' },
+      { id: 'caves-bg4b', thumb: '/assets/preview/caves-bg4b.png', name: 'Camada 4b — Chão' },
+    ],
+  },
+  {
+    label: 'Forest Monsters — Sprites',
+    badge: 'SPRITES',
+    badgeColor: '#ff9060',
+    scenes: [
+      { id: 'monsters-idle',   thumb: '/assets/preview/monsters-mushroom-idle.png',   name: 'Cogumelo — Idle' },
+      { id: 'monsters-run',    thumb: '/assets/preview/monsters-mushroom-run.png',    name: 'Cogumelo — Run' },
+      { id: 'monsters-attack', thumb: '/assets/preview/monsters-mushroom-attack.png', name: 'Cogumelo — Attack' },
+      { id: 'monsters-die',    thumb: '/assets/preview/monsters-mushroom-die.png',    name: 'Cogumelo — Die' },
+    ],
+  },
 ];
+
+const totalScenes = PACKS.reduce((s, p) => s + p.scenes.length, 0);
 
 export default function ScenePreview({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -35,19 +86,25 @@ export default function ScenePreview({ onBack }: { onBack: () => void }) {
           ← VOLTAR
         </button>
         <span style={{ fontSize: 11, letterSpacing: 2, color: '#88ff66' }}>CENÁRIOS — PREVIEW</span>
-        <span style={{ fontSize: 10, color: '#4a7a4a', marginLeft: 'auto' }}>8 cenas · 1 pack</span>
+        <span style={{ fontSize: 10, color: '#4a7a4a', marginLeft: 'auto' }}>{totalScenes} itens · {PACKS.length} packs</span>
       </div>
 
       {/* galeria */}
       <div style={{ padding: '16px 12px 40px' }}>
         {PACKS.map(pack => (
-          <div key={pack.label} style={{ marginBottom: 28 }}>
+          <div key={pack.label} style={{ marginBottom: 32 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingLeft: 2 }}>
               <p style={{ fontSize: 9, letterSpacing: 2, color: '#40e0d0', margin: 0 }}>
                 {pack.label.toUpperCase()}
               </p>
-              <span style={{ fontSize: 8, background: 'rgba(64,224,208,0.15)', border: '1px solid #40e0d0', color: '#40e0d0', borderRadius: 4, padding: '2px 6px', letterSpacing: 1 }}>
-                {pack.layers} CAMADAS
+              <span style={{
+                fontSize: 8,
+                background: `${pack.badgeColor}22`,
+                border: `1px solid ${pack.badgeColor}`,
+                color: pack.badgeColor,
+                borderRadius: 4, padding: '2px 6px', letterSpacing: 1,
+              }}>
+                {pack.badge}
               </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

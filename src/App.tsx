@@ -199,7 +199,7 @@ export default function App() {
               <button
                 onClick={() => { setShowDevMenu(false); setView('preview'); }}
                 style={{ background: '#101a20', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
-                🖼 Preview Cenários (24)
+                🖼 Preview Cenários (5 packs)
               </button>
               {DEV_ACTS.map(act => (
                 <button key={act.beat}
