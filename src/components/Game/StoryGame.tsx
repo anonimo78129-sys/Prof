@@ -66,6 +66,7 @@ function ImagePreloader() {
     '/assets/forest/Layer_0002_7_c.png',
     '/assets/forest/Layer_0003_6_c.png',
     `/assets/forest/${FOREST_FOREGROUND.src}`,
+    '/assets/tallforest/back.png', '/assets/tallforest/far.png', '/assets/tallforest/middle.png',
     '/assets/chars/player-walk-1.png', '/assets/chars/player-walk-2.png', '/assets/chars/player-walk-3.png',
     '/assets/chars/player-idle-1.png', '/assets/chars/player-idle-2.png',
     '/assets/chars/wakeup-1.png', '/assets/chars/wakeup-2.png', '/assets/chars/wakeup-3.png', '/assets/chars/wakeup-4.png',
@@ -1320,6 +1321,51 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
           imageRendering: 'pixelated',
         }} />
+      </div>
+    );
+  }
+
+  // ── Ato 1 — Tall Forest (3 camadas parallax) ──────────────────────────────
+  if (bg === 'floresta') {
+    const TF = [
+      { src: '/assets/tallforest/back.png',   f: 0.06 },
+      { src: '/assets/tallforest/far.png',    f: 0.30 },
+      { src: '/assets/tallforest/middle.png', f: 0.85 },
+    ];
+    return (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
+        background: 'linear-gradient(to bottom, #0d1a0d 0%, #122212 40%, #1a2e18 100%)' }}>
+
+        {TF.map((l, i) => (
+          <div key={l.src} style={layer(l.src, l.f, i + 1)} />
+        ))}
+
+        <LightMotes />
+
+        {/* chão */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 10,
+          backgroundImage: `url('/assets/world/ground-dark.png')`,
+          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+          imageRendering: 'pixelated',
+        }} />
+
+        {/* portão */}
+        {landmarkAnchor != null && (
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
+            <img
+              src={gateFrame === 2 ? '/assets/world/gate-open.png'
+                 : gateFrame === 1 ? '/assets/world/gate-half.png'
+                 : '/assets/world/gate-closed.png'}
+              alt="portão"
+              style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.7))' }}
+            />
+            {nearby && !gateOpen && (
+              <div className="font-pixel" style={{ position: 'absolute', bottom: 210, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
