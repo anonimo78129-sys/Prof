@@ -134,7 +134,107 @@ const beats: Beat[] = [
     'As raízes... invadem os equipamentos.',
     'A estufa e a floresta se tornaram uma só coisa.',
   ] },
-  { t: 'fade', text: 'Continua...' },
+  { t: 'say', who: 'narrador', lines: [
+    'Uma passagem se abre entre as raízes, levando para fora da estufa.',
+  ] },
+
+  // ── ATO 5 — O Pântano Encantado ──
+  { t: 'scene', bg: 'pantano' },
+  { t: 'say', who: 'estudante', lines: [
+    'O ar aqui é pesado... cheira a terra molhada.',
+    'Um pântano! E a água parece... viva.',
+  ] },
+  { t: 'walk', dist: 520, hint: 'Avance pelo pântano' },
+  { t: 'say', who: 'estudante', lines: [
+    'A água tóxica bloqueia a passagem.',
+    'Há pedras afundando... só vão me sustentar na ordem certa.',
+  ] },
+  { t: 'say', who: 'narrador', lines: [
+    'Símbolos brilham nas vitórias-régias: o ciclo de vida de uma planta.',
+  ] },
+  { t: 'sequence',
+    intro: 'Para formar a ponte, reviva o ciclo na ordem correta...',
+    instruction: 'Toque nas etapas na ordem do ciclo de vida da planta',
+    steps: ['Semente', 'Germinação', 'Plântula', 'Planta adulta', 'Flor e fruto'],
+    success: [
+      'As pedras acenderam e formaram um caminho!',
+      'Cada etapa nasce da anterior — é um ciclo sem fim.',
+      'A vida sempre recomeça pela semente.',
+    ],
+    hint: 'Tudo começa pequeno e escondido na terra. Pense em como uma planta cresce, do zero até dar frutos.',
+  },
+  { t: 'say', who: 'estudante', lines: [
+    'Consegui atravessar!',
+    'Uma luz estranha vem lá da frente...',
+  ] },
+
+  // ── ATO 6 — O Corredor de Luz ──
+  { t: 'scene', bg: 'corredor' },
+  { t: 'say', who: 'narrador', lines: [
+    'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
+  ] },
+  { t: 'walk', dist: 480, hint: 'Siga a luz' },
+  { t: 'say', who: 'corujao', lines: [
+    'Então você chegou até aqui, jovem.',
+    'Esta é a Consciência Verde — a floresta que aprendeu a pensar.',
+    'Ela se comunica por pulsos de luz, pela rede de fungos sob a terra.',
+    'Para passar, você precisa repetir os sinais dela. Preste atenção!',
+  ] },
+  { t: 'memory',
+    intro: 'Os nós luminosos começam a pulsar uma mensagem...',
+    instruction: 'Observe a sequência e repita tocando nos nós',
+    nodes: ['Raiz', 'Caule', 'Folha', 'Flor'],
+    rounds: 3,
+    success: [
+      'A floresta reconheceu você.',
+      'As plantas trocam açúcar e avisos de perigo por essa rede.',
+      'Uma única floresta pode ser um só organismo, conectado por fungos.',
+    ],
+    hint: 'Repita exatamente na mesma ordem em que os nós acenderam. Comece pelo primeiro que brilhou.',
+  },
+  { t: 'say', who: 'estudante', lines: [
+    'Eu... me comuniquei com a floresta.',
+    'Ela está me levando para algum lugar.',
+  ] },
+
+  // ── ATO 7 — O Laboratório Final / A Escolha ──
+  { t: 'scene', bg: 'final' },
+  { t: 'say', who: 'narrador', lines: [
+    'O céu se abre em ouro. Aqui termina — e começa — tudo.',
+    'Este é o Domo-Mãe: o último refúgio de vida da Terra.',
+  ] },
+  { t: 'say', who: 'corujao', lines: [
+    'Lá fora, o mundo entrou em colapso: desmatamento, poluição, calor.',
+    'Selamos este domo como uma arca, esperando alguém que entendesse.',
+    'Você provou que entende a vida. Agora, a decisão é sua.',
+  ] },
+  { t: 'choice',
+    intro: 'O jardim coloca o futuro nas suas mãos...',
+    prompt: 'O que você faz com a última semente da Terra?',
+    options: [
+      {
+        label: '🌱 Plantar o recomeço',
+        tone: 'luz',
+        ending: [
+          'Você abre a mão e deposita a semente na terra fértil.',
+          'Uma raiz desce, um broto sobe — e a floresta explode em verde.',
+          'O domo se abre. A vida transborda para o mundo lá fora.',
+          'A Terra terá uma segunda chance. E tudo começou com você.',
+        ],
+      },
+      {
+        label: '🥀 Deixar tudo terminar',
+        tone: 'sombra',
+        ending: [
+          'Você fecha a mão. A semente esfria entre seus dedos.',
+          'As luzes do domo se apagam, uma a uma.',
+          'O silêncio toma conta do último jardim.',
+          'Talvez algum dia, alguém escolha diferente...',
+        ],
+      },
+    ],
+  },
+  { t: 'fade', text: 'Fim.' },
 
 ];
 

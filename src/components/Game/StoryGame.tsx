@@ -22,6 +22,7 @@ function ImagePreloader() {
     '/assets/estufa/reflect-1.png', '/assets/estufa/reflect-2.png',
     '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png',
     '/assets/estufa/computer-off.png', '/assets/estufa/computer-on.png',
+    '/assets/scenes/pantano.jpg', '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -379,6 +380,290 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
               </div>
             </div>
           </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// ATO 5 — Sequência: ordene as etapas (ciclo de vida) p/ formar a ponte
+// ─────────────────────────────────────────────────────────
+function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'sequence' }>; onSolved: () => void; onCorrect: () => void }) {
+  type Phase = 'intro' | 'playing' | 'wrong' | 'success';
+  const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'playing');
+  const [successIdx, setSuccessIdx] = useState(0);
+  const [progress, setProgress] = useState(0);     // quantos passos já encaixados na ordem
+  const [shake, setShake] = useState<number | null>(null);
+
+  // chips embaralhados (idx = posição correta no ciclo)
+  const shuffled = useMemo(() => {
+    const arr = beat.steps.map((label, idx) => ({ label, idx }));
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [beat.steps]);
+
+  if (phase === 'intro' && beat.intro)
+    return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('playing')} />;
+  if (phase === 'wrong')
+    return <DialogueBox who="corujao" text={beat.hint ?? 'Pense na ordem do ciclo...'} onNext={() => { setProgress(0); setPhase('playing'); }} />;
+  if (phase === 'success') {
+    const line = beat.success[successIdx] ?? '';
+    const last = successIdx >= beat.success.length - 1;
+    return <DialogueBox who="estudante" text={line} last={last}
+      onNext={() => { if (last) onSolved(); else setSuccessIdx(i => i + 1); }} />;
+  }
+
+  const tap = (chip: { label: string; idx: number }) => {
+    if (chip.idx < progress) return;          // já encaixado
+    if (chip.idx === progress) {
+      const np = progress + 1;
+      setProgress(np);
+      if (np === beat.steps.length) { onCorrect(); setSuccessIdx(0); setTimeout(() => setPhase('success'), 700); }
+    } else {
+      setShake(chip.idx);
+      setTimeout(() => { setShake(null); setPhase('wrong'); }, 480);
+    }
+  };
+
+  return (
+    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 92, zIndex: 40, padding: '0 14px' }}>
+      {/* trilha de vitórias-régias (pedras que acendem) */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 14 }}>
+        {beat.steps.map((_, i) => (
+          <div key={i} style={{
+            width: 36, height: 36, borderRadius: '50%',
+            background: i < progress ? 'radial-gradient(circle,#9dffb0,#1f9c3a)' : 'rgba(8,26,14,0.75)',
+            border: i < progress ? '2px solid #d6ffe0' : '2px solid #2a5a32',
+            boxShadow: i < progress ? '0 0 16px rgba(0,255,110,0.8)' : 'none',
+            transition: 'all .3s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+          }}>{i < progress ? '🪷' : '·'}</div>
+        ))}
+      </div>
+      <div className="panel-pixel" style={{ background: 'rgba(8,24,12,0.94)', padding: '12px 14px', maxWidth: 560, margin: '0 auto' }}>
+        <p className="font-pixel" style={{ color: '#88ff66', fontSize: 9, marginBottom: 12, textAlign: 'center', lineHeight: 1.5 }}>{beat.instruction}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+          {shuffled.map(chip => {
+            const placed = chip.idx < progress;
+            return (
+              <button key={chip.idx} onPointerDown={(e) => { e.preventDefault(); tap(chip); }} disabled={placed}
+                className="font-vt"
+                style={{
+                  fontSize: 18, padding: '10px 14px', borderRadius: 8, cursor: placed ? 'default' : 'pointer',
+                  color: placed ? '#5a8a5a' : '#eaf6e0',
+                  background: placed ? 'rgba(20,50,26,0.6)' : 'rgba(30,70,38,0.95)',
+                  border: shake === chip.idx ? '2px solid #ff5a5a' : '2px solid #3a8a42',
+                  opacity: placed ? 0.35 : 1,
+                  animation: shake === chip.idx ? 'boulder-shake 0.13s ease-in-out infinite' : undefined,
+                  touchAction: 'none',
+                } as CSSProperties}>
+                {chip.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// ATO 6 — Memória (Simon): a floresta pulsa sinais, você repete
+// ─────────────────────────────────────────────────────────
+const NODE_COLORS = ['#00e0a0', '#40c0ff', '#ffd24a', '#ff7ad0', '#b07aff'];
+
+function MemoryBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'memory' }>; onSolved: () => void; onCorrect: () => void }) {
+  type Phase = 'intro' | 'watch' | 'repeat' | 'wrong' | 'success';
+  const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'watch');
+  const [successIdx, setSuccessIdx] = useState(0);
+  const [round, setRound] = useState(0);
+  const [seq, setSeq] = useState<number[]>([]);
+  const [flash, setFlash] = useState<number | null>(null);
+  const [inputIdx, setInputIdx] = useState(0);
+  const [tapFlash, setTapFlash] = useState<number | null>(null);
+  const LEN0 = 3;
+
+  // toca a sequência da rodada quando entra em 'watch'
+  useEffect(() => {
+    if (phase !== 'watch') return;
+    const len = LEN0 + round;
+    const s = Array.from({ length: len }, () => Math.floor(Math.random() * beat.nodes.length));
+    setSeq(s); setInputIdx(0); setFlash(null);
+    const timers: number[] = [];
+    let i = 0;
+    const step = () => {
+      if (i >= s.length) { timers.push(window.setTimeout(() => setPhase('repeat'), 350)); return; }
+      setFlash(s[i]);
+      timers.push(window.setTimeout(() => setFlash(null), 480));
+      timers.push(window.setTimeout(() => { i++; step(); }, 780));
+    };
+    timers.push(window.setTimeout(step, 650));
+    return () => timers.forEach(clearTimeout);
+  }, [phase, round, beat.nodes.length]);
+
+  if (phase === 'intro' && beat.intro)
+    return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('watch')} />;
+  if (phase === 'wrong')
+    return <DialogueBox who="corujao" text={beat.hint ?? 'Repita na mesma ordem em que acendeu.'} onNext={() => setPhase('watch')} />;
+  if (phase === 'success') {
+    const line = beat.success[successIdx] ?? '';
+    const last = successIdx >= beat.success.length - 1;
+    return <DialogueBox who="estudante" text={line} last={last}
+      onNext={() => { if (last) onSolved(); else setSuccessIdx(i => i + 1); }} />;
+  }
+
+  const tapNode = (k: number) => {
+    if (phase !== 'repeat') return;
+    setTapFlash(k); setTimeout(() => setTapFlash(null), 220);
+    if (k === seq[inputIdx]) {
+      const ni = inputIdx + 1;
+      if (ni === seq.length) {
+        if (round + 1 >= beat.rounds) { onCorrect(); setSuccessIdx(0); setTimeout(() => setPhase('success'), 550); }
+        else setTimeout(() => { setRound(r => r + 1); setPhase('watch'); }, 650);
+      } else setInputIdx(ni);
+    } else {
+      setTimeout(() => setPhase('wrong'), 280);
+    }
+  };
+
+  const watching = phase === 'watch';
+  return (
+    <>
+      {/* nós luminosos */}
+      <div style={{ position: 'absolute', left: 0, right: 0, top: '24%', zIndex: 42, display: 'flex', justifyContent: 'center', gap: 18, flexWrap: 'wrap', padding: '0 20px' }}>
+        {beat.nodes.map((label, k) => {
+          const lit = flash === k || tapFlash === k;
+          const color = NODE_COLORS[k % NODE_COLORS.length];
+          return (
+            <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <button onPointerDown={(e) => { e.preventDefault(); tapNode(k); }}
+                disabled={watching}
+                style={{
+                  width: 72, height: 72, borderRadius: '50%', cursor: watching ? 'default' : 'pointer',
+                  background: lit ? color : 'rgba(8,20,30,0.55)',
+                  border: `3px solid ${color}`,
+                  boxShadow: lit ? `0 0 28px ${color}, 0 0 56px ${color}` : `0 0 10px ${color}55`,
+                  transition: lit ? 'none' : 'all .25s', touchAction: 'none',
+                } as CSSProperties} />
+              <span className="font-pixel" style={{ fontSize: 8, color: lit ? color : '#9ad0c8', textShadow: '0 1px 3px #000' }}>{label}</span>
+            </div>
+          );
+        })}
+      </div>
+      {/* faixa de instrução */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 110, zIndex: 42, display: 'flex', justifyContent: 'center' }}>
+        <div className="panel-pixel" style={{ background: 'rgba(6,16,24,0.92)', padding: '12px 18px', maxWidth: 440, textAlign: 'center' }}>
+          <p className="font-pixel" style={{ fontSize: 9, color: watching ? '#ffd24a' : '#40e0d0', marginBottom: 6 }}>
+            {watching ? '✦ A floresta está falando... observe' : '▶ Repita a sequência!'}
+          </p>
+          <p className="font-pixel" style={{ fontSize: 8, color: '#7fae9a' }}>
+            Rodada {round + 1} de {beat.rounds}{!watching && ` · ${inputIdx}/${seq.length}`}
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// ATO 7 — A Escolha: decisão final com dois desfechos
+// ─────────────────────────────────────────────────────────
+function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; onSolved: () => void }) {
+  type Phase = 'intro' | 'deciding' | 'planting' | 'ending';
+  const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'deciding');
+  const [chosen, setChosen] = useState<Extract<Beat, { t: 'choice' }>['options'][number] | null>(null);
+  const [endIdx, setEndIdx] = useState(0);
+  const [growth, setGrowth] = useState(0);
+
+  if (phase === 'intro' && beat.intro)
+    return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('deciding')} />;
+
+  if (phase === 'deciding') {
+    return (
+      <div style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 120 }}>
+        <p className="font-vt" style={{ color: '#fff', fontSize: 25, textAlign: 'center', textShadow: '0 2px 10px #000', marginBottom: 26, padding: '0 26px', lineHeight: 1.3 }}>{beat.prompt}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 340, padding: '0 24px' }}>
+          {beat.options.map(opt => (
+            <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); setChosen(opt); setEndIdx(0); setGrowth(0); setPhase(opt.tone === 'luz' ? 'planting' : 'ending'); }}
+              className="font-pixel"
+              style={{
+                fontSize: 12, padding: '17px 12px', borderRadius: 10, cursor: 'pointer', lineHeight: 1.4,
+                color: opt.tone === 'luz' ? '#0a2010' : '#f0dee6',
+                background: opt.tone === 'luz' ? 'linear-gradient(to bottom,#7be04a,#2f9410)' : 'linear-gradient(to bottom,#5a3a4a,#2a1820)',
+                border: opt.tone === 'luz' ? '3px solid #d6ffe0' : '3px solid #6a4a5a',
+                boxShadow: opt.tone === 'luz' ? '0 0 20px rgba(0,255,100,0.45)' : '0 4px 0 #1a0e14',
+                touchAction: 'none',
+              } as CSSProperties}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'planting') {
+    const stages = ['🌰', '🌱', '🌿', '🌳'];
+    const grow = () => {
+      const g = growth + 1;
+      if (g >= 3) { setGrowth(3); setTimeout(() => { setEndIdx(0); setPhase('ending'); }, 1400); }
+      else setGrowth(g);
+    };
+    return (
+      <div onPointerDown={(e) => { e.preventDefault(); if (growth < 3) grow(); }}
+        style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <div style={{ fontSize: 70 + growth * 46, transition: 'all .5s ease', filter: 'drop-shadow(0 0 24px rgba(0,255,120,0.75))' }}>{stages[growth]}</div>
+        <p className="font-pixel" style={{ color: '#eaffe0', fontSize: 11, marginTop: 34, textShadow: '0 2px 6px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>
+          {growth < 3 ? 'toque para fazer a vida crescer' : '✦ a floresta renasce ✦'}
+        </p>
+      </div>
+    );
+  }
+
+  // ending
+  const line = chosen!.ending[endIdx] ?? '';
+  const last = endIdx >= chosen!.ending.length - 1;
+  return (
+    <>
+      {chosen!.tone === 'sombra' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 41, background: '#000', pointerEvents: 'none', animation: 'fade-in-dark 2.4s ease forwards' }} />
+      )}
+      <DialogueBox who="narrador" text={line} last={last}
+        onNext={() => { if (last) onSolved(); else setEndIdx(i => i + 1); }} />
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Partículas atmosféricas das cenas finais
+// ─────────────────────────────────────────────────────────
+function SceneParticles({ kind }: { kind: 'pantano' | 'final' }) {
+  const cfg = kind === 'pantano'
+    ? { count: 11, grad: 'radial-gradient(circle,#d4ffb0,#7ac850)', glow: 'rgba(150,255,120,0.6)' }
+    : { count: 22, grad: 'radial-gradient(circle,#fff6d0,#ffcf57)', glow: 'rgba(255,200,80,0.7)' };
+  const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 6, pointerEvents: 'none', overflow: 'hidden' }}>
+      {kind === 'pantano' && (
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%',
+          background: 'linear-gradient(to top, rgba(110,170,120,0.4), transparent)',
+          animation: 'light-pulse-dark 5s ease-in-out infinite' }} />
+      )}
+      {Array.from({ length: cfg.count }, (_, i) => {
+        const size = 2 + s(i * 3) * 4;
+        return (
+          <div key={i} style={{
+            position: 'absolute',
+            left: `${s(i * 7) * 100}%`,
+            [kind === 'pantano' ? 'bottom' : 'top']: `${s(i * 23) * (kind === 'pantano' ? 42 : 90)}%`,
+            width: size, height: size, borderRadius: '50%',
+            background: cfg.grad, boxShadow: `0 0 8px ${cfg.glow}`,
+            animation: `mote-float ${7 + s(i * 11) * 7}s ease-in-out ${-s(i * 17) * 9}s infinite`,
+            ['--mx' as string]: `${(s(i * 13) > 0.5 ? 1 : -1) * (15 + s(i * 19) * 40)}px`,
+          } as CSSProperties} />
         );
       })}
     </div>
@@ -773,6 +1058,42 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     );
   }
 
+  // ── Atos 5-7: cenas de imagem única (pântano / corredor de luz / final) ──
+  if (bg === 'pantano' || bg === 'corredor' || bg === 'final') {
+    const cfg = {
+      pantano:  { img: '/assets/scenes/pantano.jpg',  base: '#1a2a18', tint: 'rgba(20,45,22,0.30)', tintAnim: 'light-pulse-dark 5s ease-in-out infinite' },
+      corredor: { img: '/assets/scenes/corredor.jpg', base: '#06121f', tint: 'rgba(20,120,200,0.14)', tintAnim: 'light-pulse 3s ease-in-out infinite' },
+      final:    { img: '/assets/scenes/final.jpg',    base: '#1a1208', tint: 'rgba(255,210,120,0.10)', tintAnim: undefined },
+    }[bg];
+    return (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
+        {/* fundo — leve parallax */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          backgroundImage: `url('${cfg.img}')`, backgroundSize: 'cover',
+          backgroundPositionX: `calc(50% + ${Math.round(-worldX * 0.08)}px)`, backgroundPositionY: 'center',
+          backgroundRepeat: 'no-repeat', imageRendering: 'pixelated',
+        }} />
+        {/* tom de cor / clima */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />
+
+        {/* atmosfera por cena */}
+        {bg === 'pantano' && <SceneParticles kind="pantano" />}
+        {bg === 'final' && <SceneParticles kind="final" />}
+        {bg === 'corredor' && <LightMotes />}
+
+        {/* chão */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
+          backgroundImage: `url('/assets/world/ground-dark.png')`,
+          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+          imageRendering: 'pixelated',
+        }} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#5a6f8c' }}>
       {/* camadas da floresta (trás → frente, atrás do herói) */}
@@ -1145,7 +1466,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       }} />
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
 
-      {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa') && !finished && (
+      {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
           ? <WakeUpHero frame={wakeUpFrame} />
           : <Hero moving={moving} frame={frame} facing={facing} />
@@ -1183,6 +1504,21 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {beat?.t === 'match' && (
         <MatchBeat key={beatIndex} beat={beat} onSolved={advance}
           onCorrect={bg === 'clareira' ? triggerBoulder : () => setGateOpen(true)} />
+      )}
+
+      {/* sequência — ato 5 (pântano): ordene o ciclo de vida */}
+      {beat?.t === 'sequence' && (
+        <SequenceBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => {}} />
+      )}
+
+      {/* memória — ato 6 (corredor de luz): repita os sinais da floresta */}
+      {beat?.t === 'memory' && (
+        <MemoryBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => {}} />
+      )}
+
+      {/* escolha — ato 7 (final): a decisão */}
+      {beat?.t === 'choice' && (
+        <ChoiceBeat key={beatIndex} beat={beat} onSolved={advance} />
       )}
 
       {/* D-pad de caminhada — lado esquerdo */}

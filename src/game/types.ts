@@ -4,7 +4,7 @@ import type { MCQuestion } from '../types/game';
 export type Speaker = 'narrador' | 'estudante' | 'corujao';
 
 // Cenário/tema visual de fundo
-export type SceneBg = 'noite' | 'floresta' | 'clareira' | 'ato3' | 'estufa';
+export type SceneBg = 'noite' | 'floresta' | 'clareira' | 'ato3' | 'estufa' | 'pantano' | 'corredor' | 'final';
 
 // Cada "beat" é um passo do roteiro, executado em sequência
 export type Beat =
@@ -42,6 +42,38 @@ export type Beat =
       items: Array<{ label: string; correct: boolean }>;
       success: string[];
       hint?: string;
+    }
+  // Sequência: ordene os passos na ordem correta (ex.: ciclo de vida).
+  // Cada toque certo acende uma pedra/vitória-régia formando a ponte.
+  | {
+      t: 'sequence';
+      intro?: string;
+      instruction: string;
+      steps: string[];        // já na ORDEM CORRETA (são embaralhados na tela)
+      success: string[];
+      hint?: string;
+    }
+  // Memória (Simon): a floresta pulsa os nós numa sequência crescente,
+  // o jogador repete. A cada rodada a sequência aumenta.
+  | {
+      t: 'memory';
+      intro?: string;
+      instruction: string;
+      nodes: string[];        // rótulos dos nós luminosos (4-5)
+      rounds: number;         // nº de rodadas (a sequência cresce a cada uma)
+      success: string[];
+      hint?: string;
+    }
+  // Escolha final: decisão com dois desfechos distintos
+  | {
+      t: 'choice';
+      intro?: string;
+      prompt: string;
+      options: Array<{
+        label: string;
+        tone: 'luz' | 'sombra';
+        ending: string[];     // epílogo mostrado após a escolha
+      }>;
     };
 
 export interface StoryScript {

@@ -15,6 +15,9 @@ const DEV_ACTS = [
   { label: 'Ato 4 — Estufa (dentro)',          beat: 23, bg: 'estufa' as SceneBg },
   { label: 'Ato 4 — Computador',               beat: 25, bg: 'estufa' as SceneBg },
   { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 27, bg: 'estufa' as SceneBg },
+  { label: 'Ato 5 — Pântano (sequência)',      beat: 36, bg: 'pantano' as SceneBg },
+  { label: 'Ato 6 — Corredor (memória)',       beat: 42, bg: 'corredor' as SceneBg },
+  { label: 'Ato 7 — Final (a escolha)',        beat: 47, bg: 'final' as SceneBg },
 ] as const;
 
 function seeded(seed: number) {
