@@ -1104,10 +1104,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { path: '/assets/ato3/sky.png',            f: 0.03, z: 1 },
       { path: '/assets/cute/bg2.png', f: 0.08, z: 2 },
       { path: '/assets/cute/bg3.png',            f: 0.18, z: 3 },
-      { path: '/assets/ato3/trees-c.png',        f: 0.30, z: 4 },
-      { path: '/assets/ato3/trees-a.png',        f: 0.45, z: 5, extra: { backgroundSize: 'auto 350px' } },
-      { path: '/assets/ato3/trees-e.png',        f: 0.50, z: 6, extra: { backgroundSize: 'auto 350px', backgroundPositionY: 'bottom 10px', transformOrigin: 'bottom center', animation: 'foliage-wind 7.5s ease-in-out infinite' } },
-      { path: '/assets/ato3/trees-d.png',        f: 0.55, z: 7, extra: { backgroundSize: 'auto 350px', backgroundPositionY: 'bottom 20px', transformOrigin: 'bottom center', animation: 'foliage-wind 3.8s ease-in-out 2.4s infinite' } },
+      { path: '/assets/ato3/trees-c.png',        f: 0.30, z: 4, extra: { backgroundSize: 'auto 480px' } },
+      { path: '/assets/ato3/trees-a.png',        f: 0.45, z: 5, extra: { backgroundSize: 'auto 500px' } },
+      { path: '/assets/ato3/trees-e.png',        f: 0.50, z: 6, extra: { backgroundSize: 'auto 500px', backgroundPositionY: 'bottom 10px', transformOrigin: 'bottom center', animation: 'foliage-wind 7.5s ease-in-out infinite' } },
+      { path: '/assets/ato3/trees-d.png',        f: 0.55, z: 7, extra: { backgroundSize: 'auto 500px', backgroundPositionY: 'bottom 20px', transformOrigin: 'bottom center', animation: 'foliage-wind 3.8s ease-in-out 2.4s infinite' } },
       { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 9 },
     ];
     return (
@@ -1144,7 +1144,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
               src="/assets/ato3/apple-tree.png"
               alt="macieira gigante"
               style={{
-                display: 'block', height: 320, width: 'auto', imageRendering: 'pixelated',
+                display: 'block', height: 460, width: 'auto', imageRendering: 'pixelated',
                 filter: 'drop-shadow(0 12px 18px rgba(0,0,0,0.65))',
                 transformOrigin: 'bottom center',
                 animation: 'tree-sway 4s ease-in-out infinite',
