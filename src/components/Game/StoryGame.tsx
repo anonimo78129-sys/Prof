@@ -1402,6 +1402,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { src: '/assets/jungle/plx-3.png',        f: 0.20 },
       { src: '/assets/jungle/plx-4.png',        f: 0.50 },
       { src: '/assets/jungle/plx-5.png',        f: 0.70 },
+      { src: '/assets/tallforest/far.png',      f: 0.78 },
       { src: '/assets/tallforest/middle.png',   f: 0.85 },
     ];
     const BUSHES: Prop[] = [
