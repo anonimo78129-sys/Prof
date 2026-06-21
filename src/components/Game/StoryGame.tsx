@@ -1340,6 +1340,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div key={l.src} style={layer(l.src, l.f, i + 1)} />
         ))}
 
+        {/* camada 9 — atrás do herói */}
+        <div style={fxLayer('Layer_0001_8.png', 0.90, 13)} />
+
         <LightMotes />
 
         {/* chão */}
@@ -1350,6 +1353,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
           imageRendering: 'pixelated',
         }} />
+
+        {/* camada 10 — grama, na frente do herói */}
+        <div style={fxLayer('Layer_0000_9.png', FOREST_FOREGROUND.f, 20,
+          { transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' })} />
 
         {/* portão */}
         {landmarkAnchor != null && (
