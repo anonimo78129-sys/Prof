@@ -1500,7 +1500,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             position: 'absolute',
             left: `calc(50% + ${Math.round(landmarkAnchor + 400 - worldX)}px)`,
             bottom: GROUND - 4,
-            zIndex: 15,
+            zIndex: 13,
             transform: 'translateX(-50%)',
             width: 'max-content',
           }}>
@@ -1508,7 +1508,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
               src="/assets/world/guardian.png"
               alt="guardião"
               style={{
-                display: 'block', height: 170, width: 'auto', imageRendering: 'pixelated',
+                display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated',
                 filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.75))',
               }}
             />
