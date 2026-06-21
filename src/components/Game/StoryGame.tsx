@@ -1344,7 +1344,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         ))}
 
         {/* camada 8 — subida 40px */}
-        <div style={fxLayer('Layer_0002_7.png', 0.76, 12, { backgroundPositionY: 'bottom 40px' })} />
+        <div style={layer('/assets/tallforest/layer8-custom.png', 0.76, 12, { backgroundPositionY: 'bottom 40px' })} />
         {/* camada 9 — atrás do herói */}
         <div style={fxLayer('Layer_0001_8.png', 0.90, 13)} />
 
