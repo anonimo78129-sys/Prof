@@ -1334,15 +1334,15 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { src: '/assets/tallforest/middle.png', f: 0.85 },
     ];
     const BUSHES: Prop[] = [
-      { src: 'tallforest/bush1.png', wx: 160,  f: 0.92, h: 72, b: GROUND - 4, z: 9  },
+      { src: 'tallforest/bush3.png', wx: 160,  f: 0.92, h: 72, b: GROUND - 4, z: 9,  glow: true },
       { src: 'tallforest/bush4.png', wx: 420,  f: 1.04, h: 48, b: GROUND - 4, z: 15 },
       { src: 'tallforest/bush2.png', wx: 680,  f: 0.94, h: 80, b: GROUND - 4, z: 8, flip: true },
-      { src: 'tallforest/bush3.png', wx: 950,  f: 1.05, h: 70, b: GROUND - 4, z: 16, glow: true },
-      { src: 'tallforest/bush1.png', wx: 1200, f: 0.96, h: 65, b: GROUND - 4, z: 11, flip: true },
+      { src: 'tallforest/bush1.png', wx: 950,  f: 1.05, h: 70, b: GROUND - 4, z: 16 },
+      { src: 'tallforest/bush3.png', wx: 1200, f: 0.96, h: 65, b: GROUND - 4, z: 11, flip: true, glow: true },
       { src: 'tallforest/bush4.png', wx: 1460, f: 1.03, h: 52, b: GROUND - 4, z: 17 },
       { src: 'tallforest/bush2.png', wx: 1720, f: 0.93, h: 75, b: GROUND - 4, z: 9  },
-      { src: 'tallforest/bush3.png', wx: 1980, f: 1.06, h: 68, b: GROUND - 4, z: 15, glow: true },
-      { src: 'tallforest/bush1.png', wx: 2240, f: 0.95, h: 70, b: GROUND - 4, z: 11 },
+      { src: 'tallforest/bush1.png', wx: 1980, f: 1.06, h: 68, b: GROUND - 4, z: 15 },
+      { src: 'tallforest/bush3.png', wx: 2240, f: 0.95, h: 70, b: GROUND - 4, z: 11, glow: true },
       { src: 'tallforest/bush4.png', wx: 2520, f: 1.04, h: 45, b: GROUND - 4, z: 16, flip: true },
     ];
     return (
