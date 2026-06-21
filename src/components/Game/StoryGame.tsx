@@ -1049,7 +1049,11 @@ function GuardianSprite() {
     const t2 = setTimeout(() => setFrame(3), 5800);
     const t3 = setTimeout(() => setFrame(4), 6600);
     const t4 = setTimeout(() => setFrame(5), 7400);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    let iv: ReturnType<typeof setInterval>;
+    const t5 = setTimeout(() => {
+      iv = setInterval(() => setFrame(f => f === 5 ? 4 : 5), 800);
+    }, 8200);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); clearInterval(iv); };
   }, []);
   return (
     <img
