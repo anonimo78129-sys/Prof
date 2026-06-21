@@ -1366,7 +1366,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* portão */}
         {landmarkAnchor != null && (
-          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 16, transform: 'translateX(-50%)', width: 'max-content' }}>
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 24, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
             <img
               src={gateFrame >= 1 ? '/assets/tallforest/gate-open.png' : '/assets/tallforest/gate-closed.png'}
               alt="portão"
