@@ -3,26 +3,11 @@ import { useState } from 'react';
 const PACKS = [
   {
     label: 'Floresta & Árvores',
+    layers: 12,
     scenes: Array.from({ length: 8 }, (_, i) => ({
       id: `forest-${i + 1}`,
       thumb: `/assets/preview/forest-${i + 1}.jpg`,
       name: `Floresta ${i + 1}`,
-    })),
-  },
-  {
-    label: 'Natureza',
-    scenes: Array.from({ length: 8 }, (_, i) => ({
-      id: `nature-${i + 1}`,
-      thumb: `/assets/preview/nature-${i + 1}.jpg`,
-      name: `Natureza ${i + 1}`,
-    })),
-  },
-  {
-    label: 'Verão',
-    scenes: Array.from({ length: 8 }, (_, i) => ({
-      id: `summer-${i + 1}`,
-      thumb: `/assets/preview/summer-${i + 1}.jpg`,
-      name: `Verão ${i + 1}`,
     })),
   },
 ];
@@ -50,16 +35,21 @@ export default function ScenePreview({ onBack }: { onBack: () => void }) {
           ← VOLTAR
         </button>
         <span style={{ fontSize: 11, letterSpacing: 2, color: '#88ff66' }}>CENÁRIOS — PREVIEW</span>
-        <span style={{ fontSize: 10, color: '#4a7a4a', marginLeft: 'auto' }}>24 cenas · 3 packs</span>
+        <span style={{ fontSize: 10, color: '#4a7a4a', marginLeft: 'auto' }}>8 cenas · 1 pack</span>
       </div>
 
       {/* galeria */}
       <div style={{ padding: '16px 12px 40px' }}>
         {PACKS.map(pack => (
           <div key={pack.label} style={{ marginBottom: 28 }}>
-            <p style={{ fontSize: 9, letterSpacing: 2, color: '#40e0d0', marginBottom: 10, paddingLeft: 2 }}>
-              {pack.label.toUpperCase()}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingLeft: 2 }}>
+              <p style={{ fontSize: 9, letterSpacing: 2, color: '#40e0d0', margin: 0 }}>
+                {pack.label.toUpperCase()}
+              </p>
+              <span style={{ fontSize: 8, background: 'rgba(64,224,208,0.15)', border: '1px solid #40e0d0', color: '#40e0d0', borderRadius: 4, padding: '2px 6px', letterSpacing: 1 }}>
+                {pack.layers} CAMADAS
+              </span>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {pack.scenes.map(scene => (
                 <div
