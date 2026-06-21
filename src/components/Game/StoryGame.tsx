@@ -1498,9 +1498,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {landmarkAnchor != null && boulderState !== 'idle' && (
           <div style={{
             position: 'absolute',
-            left: `calc(50% + ${Math.round(landmarkAnchor + 700 - worldX)}px)`,
+            left: `calc(50% + ${Math.round(landmarkAnchor + 750 - worldX)}px)`,
             bottom: GROUND - 4,
-            zIndex: 13,
+            zIndex: 11,
             transform: 'translateX(-50%)',
             width: 'max-content',
           }}>
