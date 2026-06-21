@@ -1333,6 +1333,18 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { src: '/assets/tallforest/far.png',    f: 0.30 },
       { src: '/assets/tallforest/middle.png', f: 0.85 },
     ];
+    const BUSHES: Prop[] = [
+      { src: 'tallforest/bush1.png', wx: 160,  f: 0.92, h: 62, b: GROUND - 4, z: 9  },
+      { src: 'tallforest/bush4.png', wx: 420,  f: 1.04, h: 48, b: GROUND - 4, z: 15 },
+      { src: 'tallforest/bush2.png', wx: 680,  f: 0.94, h: 70, b: GROUND - 4, z: 8, flip: true },
+      { src: 'tallforest/bush3.png', wx: 950,  f: 1.05, h: 60, b: GROUND - 4, z: 16, glow: true },
+      { src: 'tallforest/bush1.png', wx: 1200, f: 0.96, h: 55, b: GROUND - 4, z: 11, flip: true },
+      { src: 'tallforest/bush4.png', wx: 1460, f: 1.03, h: 52, b: GROUND - 4, z: 17 },
+      { src: 'tallforest/bush2.png', wx: 1720, f: 0.93, h: 65, b: GROUND - 4, z: 9  },
+      { src: 'tallforest/bush3.png', wx: 1980, f: 1.06, h: 58, b: GROUND - 4, z: 15, glow: true },
+      { src: 'tallforest/bush1.png', wx: 2240, f: 0.95, h: 60, b: GROUND - 4, z: 11 },
+      { src: 'tallforest/bush4.png', wx: 2520, f: 1.04, h: 45, b: GROUND - 4, z: 16, flip: true },
+    ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
         background: 'linear-gradient(to bottom, #0d1a0d 0%, #122212 40%, #1a2e18 100%)' }}>
@@ -1359,6 +1371,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
           imageRendering: 'pixelated',
         }} />
+
+        {/* arbustos — distribuídos por z-index (atrás e frente do herói) */}
+        {BUSHES.map((p, i) => <PropImg key={`bush${i}`} p={p} worldX={worldX} />)}
 
         {/* camada 10 — grama, na frente do herói */}
         <div style={fxLayer('Layer_0000_9.png', FOREST_FOREGROUND.f, 20,
