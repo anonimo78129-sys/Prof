@@ -1473,7 +1473,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* pedra gigante */}
         {landmarkAnchor != null && boulderState !== 'gone' && (
-          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 37, zIndex: 16, transform: 'translateX(-50%)', width: 'max-content' }}>
+          <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 44, zIndex: 16, transform: 'translateX(-50%)', width: 'max-content' }}>
             <div style={{
               transform: boulderState === 'sinking' ? 'translateY(360px)' : 'translateY(0)',
               transition: boulderState === 'sinking' ? 'transform 1.4s ease-in' : 'none',
