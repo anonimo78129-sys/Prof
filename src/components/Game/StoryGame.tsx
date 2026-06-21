@@ -1082,9 +1082,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { path: '/assets/cute/bg2.png', f: 0.08, z: 2 },
       { path: '/assets/cute/bg3.png',            f: 0.18, z: 3 },
       { path: '/assets/ato3/trees-c.png',        f: 0.30, z: 4 },
-      { path: '/assets/ato3/trees-a.png',        f: 0.45, z: 5, extra: { backgroundSize: 'auto 350px' } },
-      { path: '/assets/ato3/trees-e.png',        f: 0.50, z: 6, extra: { backgroundSize: 'auto 350px', backgroundPositionY: 'bottom -10px' } },
-      { path: '/assets/ato3/trees-d.png',        f: 0.55, z: 7, extra: { backgroundSize: 'auto 350px' } },
+      { path: '/assets/ato3/trees-a.png',        f: 0.45, z: 5, extra: { backgroundSize: 'auto 350px', backgroundPositionY: 'bottom 20px' } },
+      { path: '/assets/ato3/trees-e.png',        f: 0.50, z: 6, extra: { backgroundSize: 'auto 350px', backgroundPositionY: 'bottom 10px' } },
+      { path: '/assets/ato3/trees-d.png',        f: 0.55, z: 7, extra: { backgroundSize: 'auto 350px', backgroundPositionY: 'bottom 20px' } },
       { path: '/assets/forest/Layer_0001_8.png', f: 0.90, z: 9 },
     ];
     return (
