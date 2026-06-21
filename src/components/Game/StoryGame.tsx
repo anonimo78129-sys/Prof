@@ -1042,6 +1042,25 @@ function TrunkSprite({ height }: { height: number }) {
   );
 }
 
+function GuardianSprite() {
+  const [frame, setFrame] = useState(1);
+  useEffect(() => {
+    const t1 = setTimeout(() => setFrame(2), 1000);
+    const t2 = setTimeout(() => setFrame(3), 1200);
+    const t3 = setTimeout(() => setFrame(4), 1400);
+    const t4 = setTimeout(() => setFrame(5), 1600);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+  }, []);
+  return (
+    <img
+      src={`/assets/world/guardian-${frame}.png`}
+      alt="guardião"
+      style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated',
+        filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.75))' }}
+    />
+  );
+}
+
 function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean }) {
   if (bg === 'noite') {
     return (
@@ -1494,7 +1513,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           </div>
         )}
 
-        {/* guardião — aparece 400px à frente da pedra após a resposta */}
+        {/* guardião — aparece 800px à frente da pedra após a resposta, anima até frame 5 */}
         {landmarkAnchor != null && boulderState !== 'idle' && (
           <div style={{
             position: 'absolute',
@@ -1504,14 +1523,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             transform: 'translateX(-50%)',
             width: 'max-content',
           }}>
-            <img
-              src="/assets/world/guardian.png"
-              alt="guardião"
-              style={{
-                display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated',
-                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.75))',
-              }}
-            />
+            <GuardianSprite />
           </div>
         )}
       </div>
