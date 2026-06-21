@@ -1519,7 +1519,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             position: 'absolute',
             left: `calc(50% + ${Math.round(landmarkAnchor + 950 - worldX)}px)`,
             bottom: GROUND - 4,
-            zIndex: 7,
+            zIndex: 11,
             transform: 'translateX(-50%)',
             width: 'max-content',
           }}>
