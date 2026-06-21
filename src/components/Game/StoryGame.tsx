@@ -1340,6 +1340,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 300px' })} />
         ))}
 
+        {/* camada 8 */}
+        <div style={fxLayer('Layer_0002_7.png', 0.76, 12)} />
         {/* camada 9 — atrás do herói */}
         <div style={fxLayer('Layer_0001_8.png', 0.90, 13)} />
 
