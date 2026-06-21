@@ -1,6 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
 @import "tailwindcss";
 
+@font-face { font-family: '16BitDreams';      src: url('/assets/fonts/16BitDreams.ttf'); }
+@font-face { font-family: 'AccessDenied';     src: url('/assets/fonts/AccessDenied.ttf'); }
+@font-face { font-family: 'DetectivesDames';  src: url('/assets/fonts/DetectivesDames.ttf'); }
+@font-face { font-family: 'EatenByGrues';     src: url('/assets/fonts/EatenByGrues.ttf'); }
+@font-face { font-family: 'LankyGit';         src: url('/assets/fonts/LankyGit.ttf'); }
+@font-face { font-family: 'LordFlimbington';  src: url('/assets/fonts/LordFlimbington.ttf'); }
+@font-face { font-family: 'MythosMaximus';    src: url('/assets/fonts/MythosMaximus.ttf'); }
+@font-face { font-family: 'ThatsDelaware';    src: url('/assets/fonts/ThatsDelaware.ttf'); }
+@font-face { font-family: 'YoreInPeril';      src: url('/assets/fonts/YoreInPeril.ttf'); }
+@font-face { font-family: 'ItttiestBittiest'; src: url('/assets/fonts/ItttiestBittiest.ttf'); }
+@font-face { font-family: 'IttyBitty';        src: url('/assets/fonts/IttyBitty.ttf'); }
+@font-face { font-family: 'Alagard';          src: url('/assets/fonts/Alagard.ttf'); }
+@font-face { font-family: 'Romulus';          src: url('/assets/fonts/Romulus.ttf'); }
+
 @theme {
   --font-pixel: 'Press Start 2P', monospace;
   --font-vt: 'VT323', monospace;

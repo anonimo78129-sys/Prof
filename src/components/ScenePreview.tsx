@@ -557,6 +557,39 @@ export default function ScenePreview({ onBack }: { onBack: () => void }) {
       {demoPack && (
         <ParallaxDemo pack={demoPack} onClose={() => setDemoPackLabel(null)} />
       )}
+
+      {/* ── GALERIA DE FONTES ── */}
+      <div style={{ padding: '0 16px 40px' }}>
+        <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 10, letterSpacing: 3, marginBottom: 16, marginTop: 8 }}>
+          FONTES DISPONÍVEIS — "Escape Room"
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[
+            { name: '16 Bit Dreams',      family: '16BitDreams' },
+            { name: 'Access Denied',      family: 'AccessDenied' },
+            { name: 'Detectives N\' Dames', family: 'DetectivesDames' },
+            { name: 'Eaten by Grues',     family: 'EatenByGrues' },
+            { name: 'Lanky Git',          family: 'LankyGit' },
+            { name: 'Lord Flimbington',   family: 'LordFlimbington' },
+            { name: 'Mythos Maximus',     family: 'MythosMaximus' },
+            { name: 'That\'s Delaware!',  family: 'ThatsDelaware' },
+            { name: 'Yore in Peril',      family: 'YoreInPeril' },
+            { name: 'Ittiest Bittiest',   family: 'ItttiestBittiest' },
+            { name: 'Itty Bitty',         family: 'IttyBitty' },
+            { name: 'Alagard',            family: 'Alagard' },
+            { name: 'Romulus',            family: 'Romulus' },
+          ].map(f => (
+            <div key={f.family} style={{ background: 'rgba(8,20,10,0.85)', border: '1px solid #1a3a1a', borderRadius: 8, padding: '12px 16px' }}>
+              <div style={{ fontFamily: f.family, fontSize: 22, color: '#e8f8e0', letterSpacing: 2, marginBottom: 4 }}>
+                Escape Room
+              </div>
+              <div style={{ fontFamily: 'monospace', fontSize: 9, color: '#4a7a4a', letterSpacing: 1 }}>
+                {f.name}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
