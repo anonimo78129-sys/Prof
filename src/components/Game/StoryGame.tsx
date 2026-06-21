@@ -1468,6 +1468,20 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
         ))}
 
+        {/* guardião — atrás do layer8-custom (z:12), renderizado antes dele no DOM */}
+        {landmarkAnchor != null && boulderState !== 'idle' && (
+          <div style={{
+            position: 'absolute',
+            left: `calc(50% + ${Math.round(landmarkAnchor + 950 - worldX)}px)`,
+            bottom: GROUND - 4,
+            zIndex: 11,
+            transform: 'translateX(-50%)',
+            width: 'max-content',
+          }}>
+            <GuardianSprite />
+          </div>
+        )}
+
         {/* camada 8 — subida 40px */}
         <div style={layer('/assets/tallforest/layer8-custom.png', 0.76, 12, { backgroundPositionY: 'bottom 40px' })} />
         {/* camada 9 — atrás do herói */}
@@ -1517,19 +1531,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           </div>
         )}
 
-        {/* guardião — aparece 800px à frente da pedra após a resposta, anima até frame 5 */}
-        {landmarkAnchor != null && boulderState !== 'idle' && (
-          <div style={{
-            position: 'absolute',
-            left: `calc(50% + ${Math.round(landmarkAnchor + 950 - worldX)}px)`,
-            bottom: GROUND - 4,
-            zIndex: 11,
-            transform: 'translateX(-50%)',
-            width: 'max-content',
-          }}>
-            <GuardianSprite />
-          </div>
-        )}
       </div>
     );
   }
