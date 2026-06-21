@@ -1344,22 +1344,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
         ))}
 
-        {/* nuvens — 2 camadas, mesmo estilo do Ato 2 */}
-        {[
-          { src: 'cloud1.png', f: 0.04, topPx: 14, h: 52, offset: 0,   op: 0.75 },
-          { src: 'cloud2.png', f: 0.06, topPx: 44, h: 42, offset: 340, op: 0.50 },
-        ].map(c => (
-          <div key={c.src} style={{
-            position: 'absolute', left: 0, right: 0, top: 0, height: '45%',
-            zIndex: 4,
-            backgroundImage: `url('/assets/world/${c.src}')`,
-            backgroundRepeat: 'repeat-x', backgroundSize: `auto ${c.h}px`,
-            backgroundPositionX: `${Math.round(-worldX * c.f - c.offset)}px`,
-            backgroundPositionY: `${c.topPx}px`,
-            imageRendering: 'pixelated', opacity: c.op,
-          }} />
-        ))}
-
         {/* camada 8 — subida 40px */}
         <div style={layer('/assets/tallforest/layer8-custom.png', 0.76, 12, { backgroundPositionY: 'bottom 40px' })} />
         {/* camada 9 — atrás do herói */}
@@ -1375,10 +1359,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
           imageRendering: 'pixelated',
         }} />
-
-        {/* camada 10 — grama, na frente do herói */}
-        <div style={fxLayer('Layer_0000_9.png', FOREST_FOREGROUND.f, 20,
-          { transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' })} />
 
         {/* portão */}
         {landmarkAnchor != null && (
