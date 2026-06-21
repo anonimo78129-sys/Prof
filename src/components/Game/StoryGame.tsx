@@ -1398,10 +1398,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
   if (bg === 'clareira') {
     const TF = [
-      { src: '/assets/jungle/plx-2.png', f: 0.06 },
-      { src: '/assets/jungle/plx-3.png', f: 0.20 },
-      { src: '/assets/jungle/plx-4.png', f: 0.50 },
-      { src: '/assets/jungle/plx-5.png', f: 0.85 },
+      { src: '/assets/jungle/plx-2.png',        f: 0.06 },
+      { src: '/assets/jungle/plx-3.png',        f: 0.20 },
+      { src: '/assets/jungle/plx-4.png',        f: 0.50 },
+      { src: '/assets/jungle/plx-5.png',        f: 0.70 },
+      { src: '/assets/tallforest/middle.png',   f: 0.85 },
     ];
     const BUSHES: Prop[] = [
       { src: 'tallforest/bush3.png', wx: 160,  f: 0.92, h: 72, b: GROUND - 4, z: 9,  glow: true },
