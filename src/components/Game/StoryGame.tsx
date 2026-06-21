@@ -50,6 +50,7 @@ function ImagePreloader() {
     '/assets/world/ground-dark.png',
     '/assets/world/cloud1.png', '/assets/world/cloud2.png', '/assets/world/cloud3.png',
     '/assets/world/gate-closed.png', '/assets/world/gate-half.png', '/assets/world/gate-open.png',
+    '/assets/tallforest/gate-closed.png', '/assets/tallforest/gate-open.png',
     '/assets/world/boulder.png',
     '/assets/ato3/apple.png',
     '/assets/ato3/estufa-ext.png', '/assets/ato3/estufa-light.png',
@@ -1367,9 +1368,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {landmarkAnchor != null && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 16, transform: 'translateX(-50%)', width: 'max-content' }}>
             <img
-              src={gateFrame === 2 ? '/assets/world/gate-open.png'
-                 : gateFrame === 1 ? '/assets/world/gate-half.png'
-                 : '/assets/world/gate-closed.png'}
+              src={gateFrame >= 1 ? '/assets/tallforest/gate-open.png' : '/assets/tallforest/gate-closed.png'}
               alt="portão"
               style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.7))' }}
             />
