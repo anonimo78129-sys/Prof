@@ -161,6 +161,53 @@ const PACKS: Pack[] = [
       { id: 'crawler-char-idle', thumb: '/assets/preview/crawler-char-idle.png', name: 'Personagem — Idle' },
     ],
   },
+  {
+    label: 'Tall Forest',
+    badge: '3 CAMADAS',
+    badgeColor: '#40e0d0',
+    parallax: [
+      { src: '/assets/preview/tallforest-back.png',   factor: 0.08 },
+      { src: '/assets/preview/tallforest-far.png',    factor: 0.35 },
+      { src: '/assets/preview/tallforest-middle.png', factor: 1.0  },
+    ],
+    scenes: [
+      { id: 'tf-preview', thumb: '/assets/preview/tallforest-preview.png', name: 'Cena completa' },
+      { id: 'tf-back',    thumb: '/assets/preview/tallforest-back.png',    name: 'Camada 1 — Fundo' },
+      { id: 'tf-far',     thumb: '/assets/preview/tallforest-far.png',     name: 'Camada 2 — Distante' },
+      { id: 'tf-middle',  thumb: '/assets/preview/tallforest-middle.png',  name: 'Camada 3 — Primeiro plano' },
+    ],
+  },
+  {
+    label: 'SunnyLand Forest — Arquivos Originais',
+    badge: '3 CAMADAS',
+    badgeColor: '#40e0d0',
+    parallax: [
+      { src: '/assets/preview/sunnyland-files-bg.png',    factor: 0.12 },
+      { src: '/assets/preview/sunnyland-files-mg.png',    factor: 0.5  },
+      { src: '/assets/preview/sunnyland-files-props.png', factor: 1.0  },
+    ],
+    scenes: [
+      { id: 'slf-preview', thumb: '/assets/preview/sunnyland-files-preview.png', name: 'Cena completa' },
+      { id: 'slf-bg',      thumb: '/assets/preview/sunnyland-files-bg.png',      name: 'Camada 1 — Background' },
+      { id: 'slf-mg',      thumb: '/assets/preview/sunnyland-files-mg.png',      name: 'Camada 2 — Middleground' },
+      { id: 'slf-props',   thumb: '/assets/preview/sunnyland-files-props.png',   name: 'Camada 3 — Props' },
+      { id: 'slf-player',  thumb: '/assets/preview/sunnyland-files-player.png',  name: 'Personagem — Idle' },
+      { id: 'slf-bee',     thumb: '/assets/preview/sunnyland-files-bee.png',     name: 'Inimigo — Abelha' },
+    ],
+  },
+  {
+    label: 'Minifolks — Animais da Floresta',
+    badge: 'SPRITES',
+    badgeColor: '#ff9060',
+    scenes: [
+      { id: 'mf-fox',    thumb: '/assets/preview/minifolks-fox.png',    name: 'Raposa' },
+      { id: 'mf-deer',   thumb: '/assets/preview/minifolks-deer.png',   name: 'Cervo' },
+      { id: 'mf-bear',   thumb: '/assets/preview/minifolks-bear.png',   name: 'Urso' },
+      { id: 'mf-bird',   thumb: '/assets/preview/minifolks-bird.png',   name: 'Pássaro' },
+      { id: 'mf-wolf',   thumb: '/assets/preview/minifolks-wolf.png',   name: 'Lobo' },
+      { id: 'mf-bunny',  thumb: '/assets/preview/minifolks-bunny.png',  name: 'Coelho' },
+    ],
+  },
 ];
 
 const totalScenes = PACKS.reduce((s, p) => s + p.scenes.length, 0);
