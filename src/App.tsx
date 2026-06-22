@@ -159,7 +159,7 @@ export default function App() {
           onClick={() => setView('intro')}
           className="btn-game font-pixel w-full"
           style={{
-            background: 'linear-gradient(to bottom, #c4de3c 0% 33%, #84d03c 33% 66%, #2ca149 66% 100%)',
+            background: 'linear-gradient(to bottom, #2ca149 0% 54.5%, #84d03c 54.5% 72.7%, #c4de3c 72.7% 100%)',
             fontSize: 13, padding: '17px 8px', maxWidth: 320,
           }}
         >
