@@ -86,7 +86,7 @@ function ImagePreloader() {
     '/assets/ato3/estufa-ext.png', '/assets/ato3/estufa-light.png',
     '/assets/estufa/bg.jpg',
     '/assets/estufa/reflect-1.png', '/assets/estufa/reflect-2.png',
-    '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png',
+    '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png', '/assets/estufa/trunk-3.png',
     '/assets/estufa/computer-off.png', '/assets/estufa/computer-on.png',
     '/assets/scenes/pantano.jpg', '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
     '/assets/ato3/sky.png',
@@ -1062,7 +1062,7 @@ function TrunkParticles({ trunkX }: { trunkX: number }) {
 function TrunkSprite({ height }: { height: number }) {
   const [frame, setFrame] = useState(1);
   useEffect(() => {
-    const id = setInterval(() => setFrame(f => f === 2 ? 1 : f + 1), 900);
+    const id = setInterval(() => setFrame(f => f === 3 ? 1 : f + 1), 900);
     return () => clearInterval(id);
   }, []);
   return (
