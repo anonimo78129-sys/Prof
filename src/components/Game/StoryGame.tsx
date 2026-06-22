@@ -1370,7 +1370,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none',
           backgroundImage: "url('/assets/estufa/window-fg.png')",
           backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 100%',
+          backgroundSize: 'auto 350px',
           backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
           backgroundPositionY: 'bottom',
           imageRendering: 'pixelated',
