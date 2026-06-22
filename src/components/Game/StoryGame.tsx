@@ -1364,6 +1364,17 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* grama de primeiro plano */}
         <div style={{ ...fxLayer(FOREST_FOREGROUND.src, FOREST_FOREGROUND.f, 20), transformOrigin: 'bottom center', animation: 'foliage-wind 4.2s ease-in-out infinite' }} />
+
+        {/* janela com trepadeiras — acima de tudo, inclusive do herói */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none',
+          backgroundImage: "url('/assets/estufa/window-fg.png')",
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+          backgroundPositionY: 'bottom',
+          imageRendering: 'pixelated',
+        }} />
       </div>
     );
   }
