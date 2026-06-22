@@ -2002,15 +2002,15 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           <button
             onPointerDown={(e) => { e.preventDefault(); startWalkBackward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             onContextMenu={(e) => e.preventDefault()}
-            className="font-pixel"
-            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+            className="btn-game font-pixel"
+            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
             ←
           </button>
           <button
             onPointerDown={(e) => { e.preventDefault(); startWalkForward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             onContextMenu={(e) => e.preventDefault()}
-            className="font-pixel"
-            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', background: 'linear-gradient(to bottom,#7be04a,#3a9a18)', border: '4px solid #0d2a0d', boxShadow: '0 5px 0 #0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+            className="btn-game font-pixel"
+            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
             →
           </button>
         </div>
