@@ -2002,16 +2002,22 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           <button
             onPointerDown={(e) => { e.preventDefault(); startWalkBackward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             onContextMenu={(e) => e.preventDefault()}
-            className="btn-game font-pixel"
-            style={{ width: 72, height: 72,  fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
-            ←
+            className="btn-game"
+            style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 4px 0 0 #2ca149, inset -4px 0 0 #c4de3c', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <polygon points="22,4 10,16 22,28" fill="#0d2a0d"/>
+              <polygon points="20,7 11,16 20,25" fill="#e8ffe0"/>
+            </svg>
           </button>
           <button
             onPointerDown={(e) => { e.preventDefault(); startWalkForward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             onContextMenu={(e) => e.preventDefault()}
-            className="btn-game font-pixel"
-            style={{ width: 72, height: 72,  fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
-            →
+            className="btn-game"
+            style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 4px 0 0 #2ca149, inset -4px 0 0 #c4de3c', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <polygon points="10,4 22,16 10,28" fill="#0d2a0d"/>
+              <polygon points="12,7 21,16 12,25" fill="#e8ffe0"/>
+            </svg>
           </button>
         </div>
       )}
