@@ -118,13 +118,20 @@ export default function App() {
   return (
     <div className="fixed inset-0 overflow-hidden scene-fade-in" style={{ touchAction: 'none' }}>
 
-      {/* ── ARTE DE FUNDO — camada base ── */}
-      <div style={{
+      {/* ── ARTE DE FUNDO — floresta ── */}
+      <img src="/assets/landing-forest.png" alt="" style={{
         position: 'absolute', inset: 0,
-        backgroundImage: "url('/assets/landing-bg.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat',
+        width: '100%', height: '100%',
+        objectFit: 'cover', objectPosition: 'center top',
+        pointerEvents: 'none',
+      }} />
+
+      {/* ── PERSONAGEM — sobreposto ── */}
+      <img src="/assets/landing-char.png" alt="" style={{
+        position: 'absolute', inset: 0,
+        width: '100%', height: '100%',
+        objectFit: 'cover', objectPosition: 'center top',
+        pointerEvents: 'none',
         animation: 'bg-breathe 7s ease-in-out infinite',
         transformOrigin: 'center center',
       }} />
