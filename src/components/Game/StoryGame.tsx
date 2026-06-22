@@ -1201,6 +1201,18 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#060d07' }}>
 
+        {/* camada 0 — guardião sombrio (atrás do interior) */}
+        <div style={{
+          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 0,
+          height: 280,
+          backgroundImage: "url('/assets/estufa/guardian-dark.png')",
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 280px',
+          backgroundPositionX: `${Math.round(-worldX * 0.22)}px`,
+          backgroundPositionY: 'bottom',
+          imageRendering: 'pixelated',
+        }} />
+
         {/* camada 1 — interior da estufa (espelho alternado nos tiles) */}
         {(() => {
           const W = window.innerWidth || 400;
@@ -1223,21 +1235,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           });
         })()}
 
-        {/* camada 2 — guardião sombrio (meio) */}
+        {/* camada 2 — plantas frente (chão) */}
         <div style={{
           position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 2,
-          height: 280,
-          backgroundImage: "url('/assets/estufa/guardian-dark.png')",
-          backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 280px',
-          backgroundPositionX: `${Math.round(-worldX * 0.22)}px`,
-          backgroundPositionY: 'bottom',
-          imageRendering: 'pixelated',
-        }} />
-
-        {/* camada 3 — plantas frente (chão) */}
-        <div style={{
-          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 3,
           height: 130,
           backgroundImage: "url('/assets/estufa/plants-fg.png')",
           backgroundRepeat: 'repeat-x',
@@ -1245,13 +1245,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * 0.55)}px`,
           backgroundPositionY: 'bottom',
           imageRendering: 'pixelated',
-        }} />
-
-        {/* overlay escuro pulsando suavemente sobre o fundo */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-          background: 'rgba(0,0,0,0.38)',
-          animation: 'light-pulse-dark 3s ease-in-out infinite',
         }} />
 
         {/* layer de reflexo 1 — parallax lento */}
