@@ -241,6 +241,12 @@
     100% { transform: skewX(0deg)    translateX(0px); }
   }
 
+  /* ── Logo flutuação suave ── */
+  @keyframes logo-float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-10px); }
+  }
+
   /* ── Fundo respiração ── */
   @keyframes bg-breathe {
     0%, 100% { transform: scale(1.00); }
