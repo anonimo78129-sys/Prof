@@ -1189,7 +1189,15 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* estufa exterior — aparece quando o herói caminha para ela */}
         {landmarkAnchor != null && landmarkKind === 'estufa-ext' && (
           <div style={{ position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`, bottom: GROUND - 4, zIndex: 12, transform: 'translateX(-50%)', width: 'max-content' }}>
-            <div style={{ position: 'relative', display: 'inline-block', transform: 'translateY(15px)' }}>
+            {/* árvore atrás da estufa */}
+            <img src="/assets/ato3/tree-teal.png" alt="" style={{
+              position: 'absolute', bottom: 0, left: -80, zIndex: -1,
+              height: 360, width: 'auto', imageRendering: 'pixelated',
+              transform: 'translateX(-50%)',
+              filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.5))',
+            }} />
+
+            <div style={{ position: 'relative', display: 'inline-block', transform: 'translateY(45px)' }}>
               <img
                 src="/assets/ato3/estufa-ext.png"
                 alt="estufa"
@@ -1212,6 +1220,27 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
                 }}
               />
             </div>
+
+            {/* arbustos, flores e cogumelos ao redor da estufa */}
+            {([
+              { src: '/assets/ato3/bush1.png',        x: -220, h: 60,  z: 13 },
+              { src: '/assets/flora/shroom-big.png',  x: -140, h: 52,  z: 13 },
+              { src: '/assets/flora/flower-blue.png', x: -60,  h: 36,  z: 13 },
+              { src: '/assets/ato3/bush2.png',        x:  30,  h: 48,  z: 13 },
+              { src: '/assets/flora/flower-purple.png', x: 100, h: 38, z: 13 },
+              { src: '/assets/flora/shroom-small.png', x: 180, h: 34,  z: 13 },
+              { src: '/assets/ato3/bush1.png',        x:  250, h: 55,  z: 13, flip: true },
+              { src: '/assets/flora/flower-tulip.png', x: 340, h: 40,  z: 13 },
+            ] as { src: string; x: number; h: number; z: number; flip?: boolean }[]).map((p, i) => (
+              <img key={i} src={p.src} alt="" style={{
+                position: 'absolute', bottom: 0, left: p.x,
+                height: p.h, width: 'auto', imageRendering: 'pixelated',
+                zIndex: p.z,
+                transform: p.flip ? 'scaleX(-1)' : undefined,
+                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
+              }} />
+            ))}
+
             {nearby && (
               <div className="font-pixel" style={{ position: 'absolute', bottom: 408, left: '50%', transform: 'translateX(-50%)', color: '#ffe070', fontSize: 18, textShadow: '0 2px 4px #000', animation: 'hint-bob 1s ease-in-out infinite' }}>❗</div>
             )}
