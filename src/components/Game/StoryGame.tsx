@@ -9,6 +9,36 @@ const GATE_AHEAD = 24;       // o portão para um pouco à frente de onde o her�
 const WALK_SPEED = 230;      // px/seg que o herói anda
 
 // ─────────────────────────────────────────────────────────
+// Sistema de terreno — degraus e rampas
+// ─────────────────────────────────────────────────────────
+export type TerrainZone = {
+  x: number;      // worldX onde a mudança começa
+  y: number;      // offset do chão em px (positivo = mais alto)
+  ramp?: number;  // se definido: comprimento da rampa em px (senão = degrau instantâneo)
+};
+
+// Zonas de terreno ativas no jogo (vazio por padrão; preencher via editor DEV)
+export const TERRAIN_ZONES: TerrainZone[] = [];
+
+function getHeroGround(wx: number, zones: TerrainZone[]): number {
+  if (!zones.length) return 0;
+  const sorted = [...zones].sort((a, b) => a.x - b.x);
+  let ground = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    const z = sorted[i];
+    if (wx < z.x) break;
+    if (!z.ramp) {
+      ground = z.y;
+    } else {
+      const prevY = i > 0 ? sorted[i - 1].y : 0;
+      const t = Math.min(1, (wx - z.x) / z.ramp);
+      ground = prevY + (z.y - prevY) * t;
+    }
+  }
+  return ground;
+}
+
+// ─────────────────────────────────────────────────────────
 // Áudio — "voz" da floresta (tons pentatônicos, sempre harmônicos)
 // AudioContext criado preguiçosamente e retomado após um gesto do usuário.
 // ─────────────────────────────────────────────────────────
@@ -1725,18 +1755,125 @@ function WakeUpHero({ frame }: { frame: number }) {
   );
 }
 
-function Hero({ moving, frame, facing }: { moving: boolean; frame: number; facing: number }) {
+function Hero({ moving, frame, facing, groundOffset = 0 }: { moving: boolean; frame: number; facing: number; groundOffset?: number }) {
   const src = moving
     ? `/assets/chars/player-walk-${(frame % 3) + 1}.png`
     : `/assets/chars/player-idle-${(frame % 2) + 1}.png`;
   return (
     <img src={src} alt="herói"
       style={{
-        position: 'absolute', left: '34%', bottom: FLOOR + GROUND + HERO_LIFT, zIndex: 14,
+        position: 'absolute', left: '34%', bottom: FLOOR + GROUND + HERO_LIFT + groundOffset, zIndex: 14,
         height: 126, width: 'auto', imageRendering: 'pixelated',
         transform: `translateX(-50%) scaleX(${facing})`,
         filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))',
+        transition: 'bottom 80ms linear',
       }} />
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Editor de terreno — só aparece em DEV/test
+// ─────────────────────────────────────────────────────────
+const isTestMode = typeof window !== 'undefined' && window.location.search.includes('test');
+
+function TerrainEditorPanel({ worldX, zones, onAdd, onRemove }: {
+  worldX: number;
+  zones: TerrainZone[];
+  onAdd: (z: TerrainZone) => void;
+  onRemove: (x: number) => void;
+}) {
+  const [height, setHeight] = useState('60');
+  const [type, setType] = useState<'step' | 'ramp'>('step');
+  const [rampLen, setRampLen] = useState('200');
+  const [copied, setCopied] = useState(false);
+
+  const mark = () => {
+    const x = Math.round(worldX);
+    const y = parseInt(height) || 0;
+    const ramp = type === 'ramp' ? (parseInt(rampLen) || 200) : undefined;
+    onAdd({ x, y, ramp });
+  };
+
+  const copyCode = () => {
+    const sorted = [...zones].sort((a, b) => a.x - b.x);
+    const lines = sorted.map(z =>
+      z.ramp
+        ? `  { x: ${z.x}, y: ${z.y}, ramp: ${z.ramp} },`
+        : `  { x: ${z.x}, y: ${z.y} },`
+    ).join('\n');
+    navigator.clipboard.writeText(`const TERRAIN_ZONES: TerrainZone[] = [\n${lines}\n];`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const currentGround = Math.round(getHeroGround(worldX, zones));
+
+  return (
+    <div style={{
+      position: 'absolute', top: 80, right: 12, zIndex: 99,
+      background: 'rgba(4,12,6,0.96)', border: '1px solid #40e0d0',
+      padding: '10px 12px', fontFamily: 'monospace', fontSize: 10,
+      color: '#40e0d0', minWidth: 210, display: 'flex', flexDirection: 'column', gap: 6,
+    }}>
+      <div style={{ color: '#88ff66', letterSpacing: 2, marginBottom: 2 }}>TERRAIN EDITOR</div>
+
+      <div>worldX: <b style={{ color: '#fff' }}>{Math.round(worldX)}</b></div>
+      <div>chão atual: <b style={{ color: '#c4de3c' }}>+{currentGround}px</b></div>
+
+      <hr style={{ border: 'none', borderTop: '1px solid #1a3a1a', margin: '2px 0' }} />
+
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <span>altura:</span>
+        <input value={height} onChange={e => setHeight(e.target.value)}
+          style={{ width: 48, background: '#0d1f10', border: '1px solid #2a4a2e', color: '#fff', padding: '2px 4px', fontFamily: 'monospace', fontSize: 10 }} />
+        <span>px</span>
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <span>tipo:</span>
+        <select value={type} onChange={e => setType(e.target.value as 'step' | 'ramp')}
+          style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#40e0d0', fontFamily: 'monospace', fontSize: 10 }}>
+          <option value="step">degrau</option>
+          <option value="ramp">rampa</option>
+        </select>
+      </div>
+
+      {type === 'ramp' && (
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <span>rampa:</span>
+          <input value={rampLen} onChange={e => setRampLen(e.target.value)}
+            style={{ width: 48, background: '#0d1f10', border: '1px solid #2a4a2e', color: '#fff', padding: '2px 4px', fontFamily: 'monospace', fontSize: 10 }} />
+          <span>px</span>
+        </div>
+      )}
+
+      <button onClick={mark} style={{
+        background: '#0d2a0d', border: '1px solid #40e0d0', color: '#88ff66',
+        fontFamily: 'monospace', fontSize: 10, padding: '5px 8px', cursor: 'pointer', textAlign: 'left',
+      }}>
+        📍 Marcar (x={Math.round(worldX)})
+      </button>
+
+      {zones.length > 0 && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid #1a3a1a', margin: '2px 0' }} />
+          <div style={{ maxHeight: 120, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {[...zones].sort((a, b) => a.x - b.x).map(z => (
+              <div key={z.x} style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#cfe8c0' }}>
+                <span style={{ flex: 1 }}>x:{z.x} y:{z.y}{z.ramp ? ` r:${z.ramp}` : ''}</span>
+                <button onClick={() => onRemove(z.x)} style={{ background: 'none', border: 'none', color: '#ff6060', cursor: 'pointer', fontSize: 11, padding: 0 }}>✕</button>
+              </div>
+            ))}
+          </div>
+          <button onClick={copyCode} style={{
+            background: copied ? '#0d3320' : '#0d1f10', border: '1px solid #40e0d0', color: copied ? '#88ff66' : '#40e0d0',
+            fontFamily: 'monospace', fontSize: 10, padding: '5px 8px', cursor: 'pointer',
+          }}>
+            {copied ? '✓ Copiado!' : '📋 Copiar código'}
+          </button>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -1748,6 +1885,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [beatIndex, setBeatIndex] = useState(startBeat);
   const [bg, setBg] = useState<SceneBg>(startBg ?? 'noite');
   const [worldX, setWorldX] = useState(0);
+  const [terrainZones, setTerrainZones] = useState<TerrainZone[]>([...TERRAIN_ZONES]);
   const [fade, setFade] = useState<{ text?: string } | null>(null);
   const [moving, setMoving] = useState(false);
   const [frame, setFrame] = useState(0);
@@ -1944,7 +2082,17 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
           ? <WakeUpHero frame={wakeUpFrame} />
-          : <Hero moving={moving} frame={frame} facing={facing} />
+          : <Hero moving={moving} frame={frame} facing={facing} groundOffset={getHeroGround(worldX, terrainZones)} />
+      )}
+
+      {/* Editor de terreno — só em DEV/test, durante walk beats */}
+      {(import.meta.env.DEV || isTestMode) && beat?.t === 'walk' && (
+        <TerrainEditorPanel
+          worldX={worldX}
+          zones={terrainZones}
+          onAdd={z => setTerrainZones(prev => [...prev.filter(p => p.x !== z.x), z])}
+          onRemove={x => setTerrainZones(prev => prev.filter(p => p.x !== x))}
+        />
       )}
 
       {/* coelho aparece 7s após a clareira começar, passa uma vez */}
