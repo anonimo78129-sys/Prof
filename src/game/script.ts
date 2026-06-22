@@ -142,6 +142,10 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Uma passagem se abre entre as raízes, levando para fora da estufa.',
   ] },
+  { t: 'walk', dist: 900, hint: 'Saia pela passagem' },
+  { t: 'say', who: 'estudante', lines: [
+    'Que lugar estranho... o ar é completamente diferente aqui.',
+  ] },
 
   // ── ATO 5 — O Pântano Encantado ──
   { t: 'scene', bg: 'pantano' },
@@ -172,6 +176,10 @@ const beats: Beat[] = [
     'Consegui atravessar!',
     'Uma luz estranha vem lá da frente...',
   ] },
+  { t: 'walk', dist: 850, hint: 'Siga a luz ao fundo' },
+  { t: 'say', who: 'estudante', lines: [
+    'A luz fica mais intensa a cada passo...',
+  ] },
 
   // ── ATO 6 — O Corredor de Luz ──
   { t: 'scene', bg: 'corredor' },
@@ -200,6 +208,10 @@ const beats: Beat[] = [
   { t: 'say', who: 'estudante', lines: [
     'Eu... me comuniquei com a floresta.',
     'Ela está me levando para algum lugar.',
+  ] },
+  { t: 'walk', dist: 900, hint: 'Siga o chamado' },
+  { t: 'say', who: 'estudante', lines: [
+    'O céu está diferente... parece que estou chegando no fim.',
   ] },
 
   // ── ATO 7 — O Laboratório Final / A Escolha ──
