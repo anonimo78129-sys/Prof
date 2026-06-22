@@ -129,19 +129,13 @@ export default function App() {
       }} />
 
       {/* ── LOGO — meio ── */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0,
-        display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
-        paddingTop: '8%', zIndex: 5, pointerEvents: 'none',
-      }}>
-        <img src="/assets/landing-logo.png" alt="logo"
-          style={{
-            width: '88%', maxWidth: 320, height: 'auto',
-            imageRendering: 'pixelated',
-            animation: 'logo-float 3.8s ease-in-out infinite',
-          }}
-        />
-      </div>
+      <img src="/assets/landing-logo.png" alt="logo" style={{
+        position: 'absolute', inset: 0,
+        width: '100%', height: '100%',
+        objectFit: 'cover', objectPosition: 'center top',
+        pointerEvents: 'none', zIndex: 5,
+        animation: 'logo-float 3.8s ease-in-out infinite',
+      }} />
 
       {/* ── PERSONAGEM — sobreposto ── */}
       <img src="/assets/landing-char.png" alt="" style={{
