@@ -403,8 +403,8 @@
     50%       { filter: drop-shadow(0 0 10px rgba(0,255,80,0.55)) drop-shadow(0 0 20px rgba(0,200,60,0.2)); }
   }
   @keyframes neon-glow-pulse {
-    0%, 100% { box-shadow: 0 0 4px #00ff66, 0 0 10px rgba(0,255,100,0.5); }
-    50%       { box-shadow: 0 0 10px #00ff88, 0 0 24px rgba(0,255,120,0.9), 0 0 40px rgba(0,200,80,0.4); }
+    0%, 100% { box-shadow: 0 0 4px #40e0d0, 0 0 10px rgba(64,224,208,0.5); }
+    50%       { box-shadow: 0 0 10px #40e0d0, 0 0 24px rgba(64,224,208,0.9), 0 0 40px rgba(32,200,200,0.4); }
   }
 
   @keyframes light-pulse {

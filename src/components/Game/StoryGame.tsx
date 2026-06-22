@@ -1023,13 +1023,12 @@ function LightMotes() {
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
 function TrunkParticles({ trunkX }: { trunkX: number }) {
-  // apenas os offsets aleatórios — posição X real calculada no render com trunkX
-  const offsets = useMemo(() => Array.from({ length: 30 }, (_, i) => {
+  const offsets = useMemo(() => Array.from({ length: 60 }, (_, i) => {
     const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
     const size = 2.5 + s(i * 3) * 4;
     return {
       id: i,
-      spreadX: (s(i * 7) - 0.5) * 70,   // ±35px ao redor do tronco
+      spreadX: (s(i * 7) - 0.5) * 70,
       startBottom: `${8 + s(i * 23) * 30}%`,
       size,
       floatDur: `${4 + s(i * 11) * 6}s`,
@@ -1050,9 +1049,42 @@ function TrunkParticles({ trunkX }: { trunkX: number }) {
           left: `calc(50% + ${Math.round(trunkX + p.spreadX)}px)`,
           width: p.size, height: p.size,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, #e0ffe8, #00ff66)',
+          background: 'radial-gradient(circle, #e0fffa, #40e0d0)',
           animation: `trunk-particle ${p.floatDur} ease-out ${p.floatDelay} infinite, neon-glow-pulse ${p.glowDur} ease-in-out ${p.glowDelay} infinite`,
           '--dx': p.dx, '--dy': p.dy,
+        } as React.CSSProperties} />
+      ))}
+    </div>
+  );
+}
+
+function EstufaAmbientParticles() {
+  const motes = useMemo(() => Array.from({ length: 50 }, (_, i) => {
+    const s = (n: number) => { const x = Math.sin(n + 7) * 10000; return x - Math.floor(x); };
+    const size = 2 + s(i * 5) * 3;
+    return {
+      id: i,
+      left: `${s(i * 11) * 100}%`,
+      bottom: `${s(i * 17) * 70}%`,
+      size,
+      dur: `${6 + s(i * 13) * 10}s`,
+      delay: `-${s(i * 19) * 12}s`,
+      dx: `${(s(i * 23) - 0.5) * 60}px`,
+    };
+  }), []);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 16, overflow: 'hidden' }}>
+      {motes.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute',
+          left: p.left, bottom: p.bottom,
+          width: p.size, height: p.size,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, #e0fffa, #40e0d0)',
+          boxShadow: `0 0 ${Math.round(p.size * 2)}px rgba(64,224,208,0.7)`,
+          animation: `mote-float ${p.dur} ease-in-out ${p.delay} infinite`,
+          '--mx': p.dx,
         } as React.CSSProperties} />
       ))}
     </div>
@@ -1345,8 +1377,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* partículas verdes neon — nascem no tronco e vagam pela estufa */}
+        {/* partículas turquesa — nascem no tronco e vagam pela estufa */}
         <TrunkParticles trunkX={Math.round((trunkAnchor ?? landmarkAnchor ?? 0) - worldX)} />
+
+        {/* partículas ambiente — flutuam por toda a estufa (2–5px) */}
+        <EstufaAmbientParticles />
 
         {/* tronco persistente — permanece visível mesmo após avançar para o computador */}
         {trunkAnchor != null && landmarkKind !== 'trunk' && (
