@@ -124,6 +124,8 @@ export default function App() {
         width: '100%', height: '100%',
         objectFit: 'cover', objectPosition: 'center top',
         pointerEvents: 'none',
+        animation: 'bg-breathe 7s ease-in-out infinite',
+        transformOrigin: 'center center',
       }} />
 
       {/* ── PERSONAGEM — sobreposto ── */}
@@ -132,8 +134,6 @@ export default function App() {
         width: '100%', height: '100%',
         objectFit: 'cover', objectPosition: 'center top',
         pointerEvents: 'none',
-        animation: 'bg-breathe 7s ease-in-out infinite',
-        transformOrigin: 'center center',
       }} />
 
       {/* ── SHIMMER TELA TODA ── */}
