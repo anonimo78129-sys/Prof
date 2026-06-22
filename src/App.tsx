@@ -128,21 +128,21 @@ export default function App() {
         transformOrigin: 'center center',
       }} />
 
-      {/* ── LOGO — meio ── */}
-      <img src="/assets/landing-logo.png" alt="logo" style={{
-        position: 'absolute', inset: 0,
-        width: '100%', height: '100%',
-        objectFit: 'cover', objectPosition: 'center top',
-        pointerEvents: 'none', zIndex: 5,
-        animation: 'logo-float 3.8s ease-in-out infinite',
-      }} />
-
       {/* ── PERSONAGEM — sobreposto ── */}
       <img src="/assets/landing-char.png" alt="" style={{
         position: 'absolute', inset: 0,
         width: '100%', height: '100%',
         objectFit: 'cover', objectPosition: 'center top',
         pointerEvents: 'none',
+      }} />
+
+      {/* ── LOGO — acima do personagem ── */}
+      <img src="/assets/landing-logo.png" alt="logo" style={{
+        position: 'absolute', inset: 0,
+        width: '100%', height: '100%',
+        objectFit: 'cover', objectPosition: 'center top',
+        pointerEvents: 'none',
+        animation: 'logo-float 3.8s ease-in-out infinite',
       }} />
 
       {/* ── SHIMMER TELA TODA ── */}
