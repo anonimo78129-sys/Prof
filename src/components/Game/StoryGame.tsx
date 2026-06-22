@@ -1331,8 +1331,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* camada 0 — céu e colinas (Legacy Fantasy) */}
         <div style={layer('/assets/preview/legacy-bg.png', 0.03, 0, { backgroundSize: 'auto 100%', backgroundPositionY: 'bottom' })} />
 
-        {/* jungle plx-2 — camada mais distante */}
-        <div style={layer('/assets/jungle/plx-2.png', 0.06, 1, { backgroundSize: 'auto 350px' })} />
         {/* jungle plx-3 */}
         <div style={layer('/assets/jungle/plx-3.png', 0.14, 2, { backgroundSize: 'auto 350px' })} />
         {/* jungle plx-4 */}
@@ -1390,27 +1388,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           background: '#000',
         }} />
 
-        {/* layer de reflexo 1 — parallax lento */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
-          backgroundImage: "url('/assets/estufa/reflect-1.png')",
-          backgroundSize: '100% 50%',
-          backgroundPositionX: `${Math.round(-worldX * 0.18)}px`,
-          backgroundPositionY: 'calc(100% - 150px)',
-          backgroundRepeat: 'repeat-x',
-          mixBlendMode: 'screen',
-        }} />
-
-        {/* layer de reflexo 2 — parallax levemente diferente */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none',
-          backgroundImage: "url('/assets/estufa/reflect-2.png')",
-          backgroundSize: '100% 50%',
-          backgroundPositionX: `${Math.round(-worldX * 0.28)}px`,
-          backgroundPositionY: 'calc(100% - 150px)',
-          backgroundRepeat: 'repeat-x',
-          mixBlendMode: 'screen',
-        }} />
 
         {/* chão */}
         <div style={{
