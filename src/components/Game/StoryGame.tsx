@@ -2051,7 +2051,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
             A jornada continua nos próximos atos do jardim.
           </p>
           <button onClick={onExit} className="btn-game font-pixel"
-            style={{ background: 'linear-gradient(to bottom,#5ad22a,#2f9410)', fontSize: 10, padding: '14px 22px' }}>
+            style={{ fontSize: 10, padding: '14px 22px' }}>
             ← VOLTAR
           </button>
         </div>

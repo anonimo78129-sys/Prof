@@ -52,8 +52,9 @@
   /* ── Chunky pixel game button (beveled, stacked menu) ── */
   .btn-game {
     font-family: 'Press Start 2P', monospace;
+    background: linear-gradient(to bottom, #2ca149 0% 12.5%, #84d03c 12.5% 87.5%, #c4de3c 87.5% 100%);
     border: 4px solid #0d2a0d;
-    box-shadow: 0 6px 0 #0d2a0d, 0 8px 0 rgba(0,0,0,0.35);
+    box-shadow: inset 4px 0 0 #2ca149, inset -4px 0 0 #c4de3c, 0 6px 0 #0d2a0d, 0 8px 0 rgba(0,0,0,0.35);
     color: #ffffff;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.55);
     border-radius: 4px;
@@ -64,7 +65,7 @@
   }
   .btn-game:active {
     transform: translateY(6px);
-    box-shadow: 0 0 0 #0d2a0d;
+    box-shadow: inset 4px 0 0 #2ca149, inset -4px 0 0 #c4de3c, 0 0 0 #0d2a0d;
   }
 
   /* ── Gold RPG button (warm, parchment style) ── */
