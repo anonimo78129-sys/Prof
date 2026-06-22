@@ -1023,72 +1023,116 @@ function LightMotes() {
 type BoulderState = 'idle' | 'shaking' | 'sinking' | 'gone';
 
 function TrunkParticles({ trunkX }: { trunkX: number }) {
-  const offsets = useMemo(() => Array.from({ length: 60 }, (_, i) => {
-    const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
-    const size = 2.5 + s(i * 3) * 4;
-    return {
-      id: i,
-      spreadX: (s(i * 7) - 0.5) * 70,
-      startBottom: `${8 + s(i * 23) * 30}%`,
-      size,
-      floatDur: `${4 + s(i * 11) * 6}s`,
-      floatDelay: `-${s(i * 17) * 8}s`,
-      glowDur: `${1.2 + s(i * 41) * 2}s`,
-      glowDelay: `-${s(i * 29) * 2}s`,
-      dx: `${(s(i * 13) > 0.5 ? 1 : -1) * (60 + s(i * 19) * 300)}px`,
-      dy: `${-(120 + s(i * 31) * 450)}px`,
-    };
-  }), []);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const trunkXRef = useRef(trunkX);
+  trunkXRef.current = trunkX;
 
-  return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 15, overflow: 'hidden' }}>
-      {offsets.map(p => (
-        <div key={p.id} style={{
-          position: 'absolute',
-          bottom: p.startBottom,
-          left: `calc(50% + ${Math.round(trunkX + p.spreadX)}px)`,
-          width: p.size, height: p.size,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, #e0fffa, #40e0d0)',
-          animation: `trunk-particle ${p.floatDur} ease-out ${p.floatDelay} infinite, neon-glow-pulse ${p.glowDur} ease-in-out ${p.glowDelay} infinite`,
-          '--dx': p.dx, '--dy': p.dy,
-        } as React.CSSProperties} />
-      ))}
-    </div>
-  );
+  useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
+    const particles = Array.from({ length: 60 }, (_, i) => ({
+      spreadX: (s(i * 7) - 0.5) * 70,
+      size: 2.5 + s(i * 3) * 4,
+      speed: 30 + s(i * 11) * 60,
+      driftX: (s(i * 13) > 0.5 ? 1 : -1) * (20 + s(i * 19) * 80),
+      life: s(i * 17),   // 0–1, offset de fase
+      maxLife: 4 + s(i * 23) * 6,
+    }));
+
+    let raf: number;
+    let last = 0;
+    const tick = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      const W = canvas.width; const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2 + trunkXRef.current;
+
+      for (const p of particles) {
+        p.life += dt / p.maxLife;
+        if (p.life > 1) p.life -= 1;
+        const t = p.life;
+        const alpha = t < 0.1 ? t / 0.1 : t > 0.85 ? (1 - t) / 0.15 : 1;
+        const x = cx + p.spreadX + p.driftX * t;
+        const y = H - 80 - p.speed * p.maxLife * t;
+        if (y < 0 || y > H) continue;
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.9;
+        ctx.shadowColor = '#40e0d0';
+        ctx.shadowBlur = p.size * 3;
+        ctx.fillStyle = '#40e0d0';
+        ctx.beginPath();
+        ctx.arc(x, y, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, []);
+
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 15 }} />;
 }
 
 function EstufaAmbientParticles() {
-  const motes = useMemo(() => Array.from({ length: 50 }, (_, i) => {
-    const s = (n: number) => { const x = Math.sin(n + 7) * 10000; return x - Math.floor(x); };
-    const size = 2 + s(i * 5) * 3;
-    return {
-      id: i,
-      left: `${s(i * 11) * 100}%`,
-      bottom: `${s(i * 17) * 70}%`,
-      size,
-      dur: `${6 + s(i * 13) * 10}s`,
-      delay: `-${s(i * 19) * 12}s`,
-      dx: `${(s(i * 23) - 0.5) * 60}px`,
-    };
-  }), []);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 16, overflow: 'hidden' }}>
-      {motes.map(p => (
-        <div key={p.id} style={{
-          position: 'absolute',
-          left: p.left, bottom: p.bottom,
-          width: p.size, height: p.size,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, #e0fffa, #40e0d0)',
-          boxShadow: `0 0 ${Math.round(p.size * 2)}px rgba(64,224,208,0.7)`,
-          animation: `mote-float ${p.dur} ease-in-out ${p.delay} infinite`,
-          '--mx': p.dx,
-        } as React.CSSProperties} />
-      ))}
-    </div>
-  );
+  useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const s = (n: number) => { const x = Math.sin(n + 7) * 10000; return x - Math.floor(x); };
+    const particles = Array.from({ length: 50 }, (_, i) => ({
+      x: s(i * 11),   // 0–1 normalizado
+      y: s(i * 17),
+      size: 2 + s(i * 5) * 3,
+      speed: 8 + s(i * 13) * 18,
+      driftX: (s(i * 23) - 0.5) * 40,
+      life: s(i * 19),
+      maxLife: 6 + s(i * 29) * 10,
+    }));
+
+    let raf: number;
+    let last = 0;
+    const tick = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      const W = canvas.width; const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      for (const p of particles) {
+        p.life += dt / p.maxLife;
+        if (p.life > 1) p.life -= 1;
+        const t = p.life;
+        const alpha = t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 0.7;
+        const x = p.x * W + p.driftX * t;
+        const y = p.y * H - p.speed * p.maxLife * t;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = '#40e0d0';
+        ctx.shadowBlur = p.size * 2;
+        ctx.fillStyle = '#b0fff8';
+        ctx.beginPath();
+        ctx.arc(x, ((y % H) + H) % H, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, []);
+
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 16 }} />;
 }
 
 function TrunkSprite({ height }: { height: number }) {
