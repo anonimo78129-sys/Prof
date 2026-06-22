@@ -187,7 +187,7 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
               style={{
                 textAlign: 'left', padding: '10px 14px', fontSize: 18,
                 color: '#eaf6e0', background: 'rgba(30,70,38,0.9)',
-                border: '2px solid #2f6b34', borderRadius: 6, cursor: 'pointer',
+                border: '2px solid #2f6b34',  cursor: 'pointer',
                 touchAction: 'none',
               } as CSSProperties}>
               {String.fromCharCode(65 + i)}. {opt}
@@ -256,7 +256,7 @@ function MatchBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'ma
   };
 
   const cardStyle = (active: boolean, done: boolean): CSSProperties => ({
-    padding: '10px 12px', fontSize: 17, textAlign: 'left', borderRadius: 6,
+    padding: '10px 12px', fontSize: 17, textAlign: 'left', 
     cursor: done ? 'default' : 'pointer', touchAction: 'none',
     color:       done ? '#4aff88' : active ? '#ffe070' : '#eaf6e0',
     background:  done ? 'rgba(20,80,20,0.9)' : active ? 'rgba(80,60,10,0.9)' : 'rgba(30,70,38,0.9)',
@@ -372,7 +372,7 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
       <div className="font-pixel" style={{
         position: 'absolute', bottom: 112, left: '50%', transform: 'translateX(-50%)',
         background: 'rgba(8,24,12,0.92)', border: '1px solid #2f6b34',
-        padding: '7px 14px', borderRadius: 6, color: '#eaf6e0',
+        padding: '7px 14px',  color: '#eaf6e0',
         fontSize: 9, letterSpacing: 1, textAlign: 'center', maxWidth: 320, zIndex: 35,
       }}>
         {beat.instruction}<br />{collected.size}/{correctCount}
@@ -410,7 +410,7 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
                   filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.6))' }} />
               <div className="font-pixel" style={{
                 background: 'rgba(8,24,12,0.88)', color: '#eaf6e0',
-                fontSize: 8, padding: '3px 8px', borderRadius: 4,
+                fontSize: 8, padding: '3px 8px', 
                 border: '1px solid #2f6b34', whiteSpace: 'nowrap',
               }}>
                 {apple.label}
@@ -489,7 +489,7 @@ function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
               <button key={chip.idx} onPointerDown={(e) => { e.preventDefault(); tap(chip); }} disabled={placed}
                 className="font-vt"
                 style={{
-                  fontSize: 18, padding: '10px 14px', borderRadius: 8, cursor: placed ? 'default' : 'pointer',
+                  fontSize: 18, padding: '10px 14px',  cursor: placed ? 'default' : 'pointer',
                   color: placed ? '#5a8a5a' : '#eaf6e0',
                   background: placed ? 'rgba(20,50,26,0.6)' : 'rgba(30,70,38,0.95)',
                   border: shake === chip.idx ? '2px solid #ff5a5a' : '2px solid #3a8a42',
@@ -786,7 +786,7 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
             <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); audioCtx(); setChosen(opt); setEndIdx(0); setStage(0); setStarted(false); setBloom(false); setPhase(opt.tone === 'luz' ? 'planting' : 'ending'); if (opt.tone === 'sombra') playTone(110, 0.8, 'sawtooth', 0.1); }}
               className="font-pixel"
               style={{
-                fontSize: 12, padding: '17px 12px', borderRadius: 10, cursor: 'pointer', lineHeight: 1.4,
+                fontSize: 12, padding: '17px 12px',  cursor: 'pointer', lineHeight: 1.4,
                 color: opt.tone === 'luz' ? '#0a2010' : '#f0dee6',
                 background: opt.tone === 'luz' ? 'linear-gradient(to bottom,#7be04a,#2f9410)' : 'linear-gradient(to bottom,#5a3a4a,#2a1820)',
                 border: opt.tone === 'luz' ? '3px solid #d6ffe0' : '3px solid #6a4a5a',
@@ -1954,7 +1954,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       <button onPointerDown={(e) => { e.preventDefault(); onExit(); }}
         onContextMenu={(e) => e.preventDefault()}
         className="font-pixel"
-        style={{ position: 'absolute', top: 48, right: 12, zIndex: 50, fontSize: 8, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34', borderRadius: 6, padding: '8px 10px', cursor: 'pointer', touchAction: 'none' }}>
+        style={{ position: 'absolute', top: 48, right: 12, zIndex: 50, fontSize: 8, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34',  padding: '8px 10px', cursor: 'pointer', touchAction: 'none' }}>
         ✕ SAIR
       </button>
 
@@ -2003,14 +2003,14 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
             onPointerDown={(e) => { e.preventDefault(); startWalkBackward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             onContextMenu={(e) => e.preventDefault()}
             className="btn-game font-pixel"
-            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+            style={{ width: 72, height: 72,  fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
             ←
           </button>
           <button
             onPointerDown={(e) => { e.preventDefault(); startWalkForward(); }} onPointerUp={stopWalk} onPointerLeave={stopWalk} onPointerCancel={stopWalk}
             onContextMenu={(e) => e.preventDefault()}
             className="btn-game font-pixel"
-            style={{ width: 72, height: 72, borderRadius: 14, fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+            style={{ width: 72, height: 72,  fontSize: 22, color: '#0d2a0d', cursor: 'pointer', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
             →
           </button>
         </div>
@@ -2021,7 +2021,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         : !gateOpen) && (
         <button onPointerDown={(e) => { e.preventDefault(); advance(); }} onContextMenu={(e) => e.preventDefault()}
           className="font-pixel"
-          style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72, borderRadius: 14, fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+          style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72,  fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
           OK
         </button>
       )}

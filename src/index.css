@@ -57,7 +57,7 @@
     box-shadow: inset 4px 0 0 #2ca149, inset -4px 0 0 #c4de3c, 0 6px 0 #0d2a0d, 0 8px 0 rgba(0,0,0,0.35);
     color: #ffffff;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.55);
-    border-radius: 4px;
+    border-radius: 0;
     cursor: pointer;
     user-select: none;
     transition: transform 70ms, box-shadow 70ms;
@@ -75,7 +75,7 @@
     border: 3px solid #7a4f1a;
     box-shadow: 0 4px 0 #4a2d08, inset 0 1px 0 rgba(255,255,255,0.3);
     color: #2a1400;
-    border-radius: 3px;
+    border-radius: 0;
     cursor: pointer;
     user-select: none;
     transition: transform 80ms, box-shadow 80ms;
