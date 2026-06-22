@@ -13,6 +13,28 @@ type Pack = {
 
 const PACKS: Pack[] = [
   {
+    label: 'Pântano — Free Swamp Tileset',
+    badge: '3 CENÁRIOS',
+    badgeColor: '#88ff66',
+    parallax: [
+      { src: '/assets/pantano/layer1.png', factor: 0.05 },
+      { src: '/assets/pantano/layer2.png', factor: 0.18 },
+      { src: '/assets/pantano/layer3.png', factor: 0.40 },
+      { src: '/assets/pantano/layer4.png', factor: 0.70 },
+      { src: '/assets/pantano/layer5.png', factor: 1.0  },
+    ],
+    scenes: [
+      { id: 'pant-deep',    thumb: '/assets/preview/pantano-deep.png',    name: 'Cenário 1 — Pântano profundo' },
+      { id: 'pant-willows', thumb: '/assets/preview/pantano-willows.png', name: 'Cenário 2 — Salgueiros' },
+      { id: 'pant-dead',    thumb: '/assets/preview/pantano-dead.png',    name: 'Cenário 3 — Bosque morto' },
+      { id: 'pant-l1',      thumb: '/assets/pantano/layer1.png',          name: 'Camada 1 — Névoa' },
+      { id: 'pant-l2',      thumb: '/assets/pantano/layer2.png',          name: 'Camada 2 — Árvores dist.' },
+      { id: 'pant-l3',      thumb: '/assets/pantano/layer3.png',          name: 'Camada 3 — Árvores meio' },
+      { id: 'pant-l4',      thumb: '/assets/pantano/layer4.png',          name: 'Camada 4 — Água' },
+      { id: 'pant-l5',      thumb: '/assets/pantano/layer5.png',          name: 'Camada 5 — Juncos (frente)' },
+    ],
+  },
+  {
     label: 'Eder Muniz Forest — Ato 1 (antigo)',
     badge: '12 CAMADAS',
     badgeColor: '#40e0d0',
