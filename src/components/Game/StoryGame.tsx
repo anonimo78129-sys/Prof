@@ -1290,7 +1290,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={{
           position: 'absolute', left: 0, right: 0, top: 0, bottom: 350,
           zIndex: 7, pointerEvents: 'none',
-          background: 'linear-gradient(to bottom, #000 60%, transparent)',
+          background: '#000',
         }} />
 
         {/* layer de reflexo 1 — parallax lento */}
