@@ -1210,11 +1210,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* camada 4 — guardião sombrio (atrás do interior) */}
         <div style={{
-          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 4,
-          height: 280,
+          position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4,
+          height: 350,
           backgroundImage: "url('/assets/estufa/guardian-dark.png')",
           backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 280px',
+          backgroundSize: 'auto 350px',
           backgroundPositionX: `${Math.round(-worldX * 0.22)}px`,
           backgroundPositionY: 'bottom',
           imageRendering: 'pixelated',
@@ -1225,14 +1225,13 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           const W = window.innerWidth || 400;
           const rawX = Math.round(-worldX * 0.08);
           const firstTile = Math.floor(-rawX / W) - 1;
-          const tileH = `calc((100vh - ${FLOOR + GROUND - 4}px) / 2 - 10px)`;
           return [0, 1, 2, 3].map(di => {
             const n = firstTile + di;
             const x = rawX + n * W;
             return (
               <div key={n} style={{
                 position: 'absolute', bottom: 0, zIndex: 5,
-                left: x, width: W, height: tileH,
+                left: x, width: W, height: 350,
                 backgroundImage: "url('/assets/estufa/bg-interior.png')",
                 backgroundSize: 'auto 100%',
                 backgroundRepeat: 'no-repeat',
@@ -1244,11 +1243,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* camada 6 — plantas frente (chão) */}
         <div style={{
-          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 6,
-          height: 130,
+          position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 6,
+          height: 350,
           backgroundImage: "url('/assets/estufa/plants-fg.png')",
           backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 130px',
+          backgroundSize: 'auto 350px',
           backgroundPositionX: `${Math.round(-worldX * 0.55)}px`,
           backgroundPositionY: 'bottom',
           imageRendering: 'pixelated',
