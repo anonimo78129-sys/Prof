@@ -1201,6 +1201,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#060d07' }}>
 
+        {/* camada 0 — céu e colinas (Legacy Fantasy) */}
+        <div style={layer('/assets/preview/legacy-bg.png', 0.03, 0, { backgroundSize: 'auto 100%', backgroundPositionY: 'bottom' })} />
+
         {/* jungle plx-2 — camada mais distante */}
         <div style={layer('/assets/jungle/plx-2.png', 0.06, 1, { backgroundSize: 'auto 350px' })} />
         {/* jungle plx-3 */}
