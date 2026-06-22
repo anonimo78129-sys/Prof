@@ -176,7 +176,7 @@ export default function App() {
           onClick={() => { window.location.hash = '#setup'; }}
           className="btn-game font-pixel w-full"
           style={{
-            background: 'linear-gradient(to bottom, #b06010 0% 12.5%, #d48820 12.5% 87.5%, #f0c840 87.5% 100%)',
+            background: 'linear-gradient(to bottom, #b06010 0% 12.5%, #f0a010 12.5% 87.5%, #f0c840 87.5% 100%)',
             boxShadow: 'inset 4px 0 0 #b06010, inset -4px 0 0 #f0c840, 0 6px 0 #0d2a0d, 0 8px 0 rgba(0,0,0,0.35)',
             fontSize: 13, padding: '17px 8px', maxWidth: 320,
           }}
