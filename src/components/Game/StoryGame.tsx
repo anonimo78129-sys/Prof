@@ -1256,6 +1256,13 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
+        {/* faixa preta — cobre tudo acima das camadas de 350px */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, top: 0, bottom: 350,
+          zIndex: 7, pointerEvents: 'none',
+          background: 'linear-gradient(to bottom, #000 60%, transparent)',
+        }} />
+
         {/* layer de reflexo 1 — parallax lento */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
