@@ -1201,26 +1201,51 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#060d07' }}>
 
-        {/* fundo interior da estufa — tiles alternados espelhados para evitar costura */}
+        {/* camada 1 — interior da estufa (espelho alternado nos tiles) */}
         {(() => {
           const W = window.innerWidth || 400;
-          const rawX = Math.round(-worldX * 0.12);
+          const rawX = Math.round(-worldX * 0.08);
           const firstTile = Math.floor(-rawX / W) - 1;
+          const tileH = `calc((100vh - ${FLOOR + GROUND - 4}px) / 2 - 10px)`;
           return [0, 1, 2, 3].map(di => {
             const n = firstTile + di;
             const x = rawX + n * W;
             return (
               <div key={n} style={{
                 position: 'absolute', bottom: 0, zIndex: 1,
-                left: x, width: W, height: `calc((100vh - ${FLOOR + GROUND - 4}px) / 2 - 10px)`,
-                backgroundImage: "url('/assets/estufa/bg.jpg')",
-                backgroundSize: '100% 100%',
+                left: x, width: W, height: tileH,
+                backgroundImage: "url('/assets/estufa/bg-interior.png')",
+                backgroundSize: 'auto 100%',
                 backgroundRepeat: 'no-repeat',
                 transform: Math.abs(n) % 2 !== 0 ? 'scaleX(-1)' : 'none',
               }} />
             );
           });
         })()}
+
+        {/* camada 2 — guardião sombrio (meio) */}
+        <div style={{
+          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 2,
+          height: 280,
+          backgroundImage: "url('/assets/estufa/guardian-dark.png')",
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 280px',
+          backgroundPositionX: `${Math.round(-worldX * 0.22)}px`,
+          backgroundPositionY: 'bottom',
+          imageRendering: 'pixelated',
+        }} />
+
+        {/* camada 3 — plantas frente (chão) */}
+        <div style={{
+          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 3,
+          height: 130,
+          backgroundImage: "url('/assets/estufa/plants-fg.png')",
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 130px',
+          backgroundPositionX: `${Math.round(-worldX * 0.55)}px`,
+          backgroundPositionY: 'bottom',
+          imageRendering: 'pixelated',
+        }} />
 
         {/* overlay escuro pulsando suavemente sobre o fundo */}
         <div style={{
