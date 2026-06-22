@@ -1201,9 +1201,16 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#060d07' }}>
 
-        {/* camada 0 — guardião sombrio (atrás do interior) */}
+        {/* jungle plx-2 — camada mais distante */}
+        <div style={layer('/assets/jungle/plx-2.png', 0.06, 1, { backgroundSize: 'auto 350px' })} />
+        {/* jungle plx-3 */}
+        <div style={layer('/assets/jungle/plx-3.png', 0.14, 2, { backgroundSize: 'auto 350px' })} />
+        {/* jungle plx-4 */}
+        <div style={layer('/assets/jungle/plx-4.png', 0.24, 3, { backgroundSize: 'auto 350px' })} />
+
+        {/* camada 4 — guardião sombrio (atrás do interior) */}
         <div style={{
-          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 0,
+          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 4,
           height: 280,
           backgroundImage: "url('/assets/estufa/guardian-dark.png')",
           backgroundRepeat: 'repeat-x',
@@ -1213,7 +1220,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
 
-        {/* camada 1 — interior da estufa (espelho alternado nos tiles) */}
+        {/* camada 5 — interior da estufa (espelho alternado nos tiles) */}
         {(() => {
           const W = window.innerWidth || 400;
           const rawX = Math.round(-worldX * 0.08);
@@ -1224,7 +1231,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             const x = rawX + n * W;
             return (
               <div key={n} style={{
-                position: 'absolute', bottom: 0, zIndex: 1,
+                position: 'absolute', bottom: 0, zIndex: 5,
                 left: x, width: W, height: tileH,
                 backgroundImage: "url('/assets/estufa/bg-interior.png')",
                 backgroundSize: 'auto 100%',
@@ -1235,9 +1242,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           });
         })()}
 
-        {/* camada 2 — plantas frente (chão) */}
+        {/* camada 6 — plantas frente (chão) */}
         <div style={{
-          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 2,
+          position: 'absolute', bottom: GROUND - 4, left: 0, right: 0, zIndex: 6,
           height: 130,
           backgroundImage: "url('/assets/estufa/plants-fg.png')",
           backgroundRepeat: 'repeat-x',
