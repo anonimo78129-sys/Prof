@@ -68,13 +68,14 @@
     box-shadow: inset 4px 0 0 #2ca149, inset -4px 0 0 #c4de3c, 0 0 0 #0d2a0d;
   }
 
-  /* ── Gold RPG button (warm, parchment style) ── */
+  /* ── Gold RPG button (pixel art 3-stripe) ── */
   .btn-rpg {
     font-family: 'Press Start 2P', monospace;
-    background: linear-gradient(to bottom, #f0c455 0%, #c88f20 100%);
-    border: 3px solid #7a4f1a;
-    box-shadow: 0 4px 0 #4a2d08, inset 0 1px 0 rgba(255,255,255,0.3);
-    color: #2a1400;
+    background: linear-gradient(to bottom, #b06010 0% 12.5%, #d48820 12.5% 87.5%, #f0c840 87.5% 100%);
+    border: 4px solid #0d2a0d;
+    box-shadow: inset 4px 0 0 #b06010, inset -4px 0 0 #f0c840, 0 6px 0 #0d2a0d, 0 8px 0 rgba(0,0,0,0.35);
+    color: #ffffff;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.55);
     border-radius: 0;
     cursor: pointer;
     user-select: none;
@@ -82,8 +83,8 @@
     -webkit-tap-highlight-color: transparent;
   }
   .btn-rpg:active {
-    transform: translateY(4px);
-    box-shadow: none;
+    transform: translateY(6px);
+    box-shadow: inset 4px 0 0 #b06010, inset -4px 0 0 #f0c840, 0 0 0 #0d2a0d;
   }
 
   /* ── Parchment panel (menus, dialogs) ── */

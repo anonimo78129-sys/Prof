@@ -2027,7 +2027,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         : !gateOpen) && (
         <button onPointerDown={(e) => { e.preventDefault(); advance(); }} onContextMenu={(e) => e.preventDefault()}
           className="font-pixel"
-          style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72,  fontSize: 13, color: '#fff8e0', background: 'linear-gradient(to bottom,#e8c820,#a07800)', border: '4px solid #5a4000', boxShadow: '0 5px 0 #5a4000', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
+          style={{ position: 'absolute', right: 5, bottom: FLOOR - 112, zIndex: 45, width: 72, height: 72, fontSize: 13, color: '#ffffff', textShadow: '2px 2px 0 rgba(0,0,0,0.55)', background: 'linear-gradient(to bottom, #b06010 0% 12.5%, #d48820 12.5% 87.5%, #f0c840 87.5% 100%)', border: '4px solid #0d2a0d', boxShadow: 'inset 4px 0 0 #b06010, inset -4px 0 0 #f0c840, 0 6px 0 #0d2a0d', cursor: 'pointer', animation: 'hint-bob 0.9s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', WebkitTouchCallout: 'none' } as CSSProperties}>
           OK
         </button>
       )}
