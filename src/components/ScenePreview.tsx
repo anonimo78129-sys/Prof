@@ -367,6 +367,84 @@ const PACKS: Pack[] = [
 
 const totalScenes = PACKS.reduce((s, p) => s + p.scenes.length, 0);
 
+// ── LOGO em pixel art (3 estilos) ─────────────────────────────────────────────
+// Estilo do "MUNDO PERDIDO — ESCAPE ROOM": letras blocadas, verde, com profundidade 3D.
+const LOGO_LINES = ['JARDIM', 'BOTÂNICO'];
+const LOGO_SUB = 'A FLORESTA VIVA';
+
+function PixelLogo({ variant }: { variant: 1 | 2 | 3 }) {
+  // extrusão 3D (sombra empilhada diagonal)
+  const extrude = (color: string, depth: number) =>
+    Array.from({ length: depth }, (_, i) => `${i + 1}px ${i + 1}px 0 ${color}`).join(', ');
+
+  // ── ESTILO 1 — Clássico (igual à referência): verde com extrusão escura + contorno
+  if (variant === 1) {
+    return (
+      <div style={{ textAlign: 'center', lineHeight: 1.05, padding: '8px 0' }}>
+        {LOGO_LINES.map(line => (
+          <div key={line} className="font-pixel" style={{
+            fontSize: 'clamp(26px, 9vw, 52px)',
+            background: 'linear-gradient(#bdf25a 0%, #74c82c 48%, #3f8f12 100%)',
+            WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+            WebkitTextStroke: '2px #173a09',
+            textShadow: extrude('#173a09', 7),
+            letterSpacing: 2,
+          }}>{line}</div>
+        ))}
+        <div className="font-pixel" style={{
+          marginTop: 12, fontSize: 'clamp(11px, 3.4vw, 18px)',
+          color: '#a96a2c', WebkitTextStroke: '1px #4a2a0c',
+          textShadow: extrude('#4a2a0c', 4), letterSpacing: 4,
+        }}>{LOGO_SUB}</div>
+      </div>
+    );
+  }
+
+  // ── ESTILO 2 — Contorno grosso (lima vibrante, borda preta marcante)
+  if (variant === 2) {
+    return (
+      <div style={{ textAlign: 'center', lineHeight: 1.05, padding: '8px 0' }}>
+        {LOGO_LINES.map(line => (
+          <div key={line} className="font-pixel" style={{
+            fontSize: 'clamp(26px, 9vw, 52px)',
+            background: 'linear-gradient(#e8ff8a 0%, #9be03a 50%, #5aab1e 100%)',
+            WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+            WebkitTextStroke: '3px #0b2604',
+            textShadow: `${extrude('#0b2604', 4)}, 0 5px 8px rgba(0,0,0,0.55)`,
+            letterSpacing: 2,
+          }}>{line}</div>
+        ))}
+        <div className="font-pixel" style={{
+          marginTop: 12, fontSize: 'clamp(11px, 3.4vw, 18px)',
+          color: '#ffd24a', WebkitTextStroke: '2px #5a3a08',
+          textShadow: extrude('#5a3a08', 3), letterSpacing: 4,
+        }}>{LOGO_SUB}</div>
+      </div>
+    );
+  }
+
+  // ── ESTILO 3 — Mágico (verde com brilho turquesa, clima da floresta encantada)
+  return (
+    <div style={{ textAlign: 'center', lineHeight: 1.05, padding: '8px 0' }}>
+      {LOGO_LINES.map(line => (
+        <div key={line} className="font-pixel" style={{
+          fontSize: 'clamp(26px, 9vw, 52px)',
+          background: 'linear-gradient(#d6ffe8 0%, #5ad29a 45%, #2f9466 100%)',
+          WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+          WebkitTextStroke: '2px #0d3326',
+          textShadow: `${extrude('#0d3326', 5)}, 0 0 14px rgba(64,224,208,0.85), 0 0 28px rgba(64,224,208,0.5)`,
+          letterSpacing: 2,
+        }}>{line}</div>
+      ))}
+      <div className="font-pixel" style={{
+        marginTop: 12, fontSize: 'clamp(11px, 3.4vw, 18px)',
+        color: '#40e0d0', WebkitTextStroke: '1px #0d3326',
+        textShadow: '0 0 10px rgba(64,224,208,0.8), 0 2px 0 #0d3326', letterSpacing: 4,
+      }}>{LOGO_SUB}</div>
+    </div>
+  );
+}
+
 // ── Parallax demo modal ──────────────────────────────────────────────────────
 function ParallaxDemo({ pack, onClose }: { pack: Pack; onClose: () => void }) {
   const scrollRef = useRef(0);
@@ -468,6 +546,29 @@ export default function ScenePreview({ onBack }: { onBack: () => void }) {
         </button>
         <span style={{ fontSize: 11, letterSpacing: 2, color: '#88ff66' }}>CENÁRIOS — PREVIEW</span>
         <span style={{ fontSize: 10, color: '#4a7a4a', marginLeft: 'auto' }}>{totalScenes} itens · {PACKS.length} packs</span>
+      </div>
+
+      {/* ── LOGO — 3 estilos em pixel art ── */}
+      <div style={{ padding: '20px 12px 8px' }}>
+        <div style={{ color: '#40e0d0', fontSize: 10, letterSpacing: 3, marginBottom: 14 }}>
+          LOGO — 3 ESTILOS
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {[1, 2, 3].map(v => (
+            <div key={v} style={{
+              position: 'relative',
+              background: 'radial-gradient(circle at 50% 40%, #0e2412, #060d07 80%)',
+              border: '1px solid #1a3a1a', borderRadius: 10,
+              padding: '22px 12px 18px', overflow: 'hidden',
+            }}>
+              <span style={{
+                position: 'absolute', top: 8, left: 10,
+                fontSize: 8, letterSpacing: 1, color: '#4a7a4a',
+              }}>ESTILO {v}</span>
+              <PixelLogo variant={v as 1 | 2 | 3} />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* galeria */}
