@@ -1456,7 +1456,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   const pantanoProps: { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean }[] = [
     // fundo distante — altos e pequenos
     { src: 'pantano/plant-tall.png', wx: 80,   f: 0.22, h: 80,  b: G + 80,  z: 6 },
-    { src: 'pantano/plant-bush.png', wx: 340,  f: 0.25, h: 56,  b: G + 60,  z: 6, flip: true },
+    { src: 'pantano/plant-bush.png', wx: 340,  f: 0.25, h: 56,  b: G + 50,  z: 6, flip: true },
     { src: 'pantano/plant-tall.png', wx: 700,  f: 0.20, h: 76,  b: G + 90,  z: 6 },
     { src: 'pantano/plant-bush.png', wx: 1050, f: 0.23, h: 60,  b: G + 70,  z: 6, flip: true },
     { src: 'pantano/plant-tall.png', wx: 1400, f: 0.21, h: 72,  b: G + 85,  z: 6 },
