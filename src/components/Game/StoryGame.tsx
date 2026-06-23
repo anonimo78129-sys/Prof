@@ -1182,7 +1182,7 @@ function GuardianSprite() {
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -2302,7 +2302,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           </div>
         );
       })}
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
