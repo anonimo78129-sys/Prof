@@ -1459,20 +1459,20 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           zIndex: 0, imageRendering: 'pixelated',
         }} />
 
-        {/* camada_4 — hills */}
-        <div style={layer('/assets/pantano/hills.png', 0.70, 1, { backgroundSize: 'auto 350px' })} />
+        {/* camada_4 — hills (mais distante, move menos) */}
+        <div style={layer('/assets/pantano/hills.png', 0.05, 1, { backgroundSize: 'auto 350px' })} />
 
-        {/* camada_3 — back-silh (em cima da 4) */}
-        <div style={layer('/assets/pantano/back-silh.png', 0.40, 2, { backgroundSize: 'auto 350px' })} />
+        {/* camada_3 — back-silh */}
+        <div style={layer('/assets/pantano/back-silh.png', 0.18, 2, { backgroundSize: 'auto 350px' })} />
 
-        {/* camada_2 — mix-trees (em cima da 3) */}
-        <div style={layer('/assets/pantano/mix-trees.png', 0.18, 3, { backgroundSize: 'auto 350px' })} />
+        {/* camada_2 — mix-trees */}
+        <div style={layer('/assets/pantano/mix-trees.png', 0.40, 3, { backgroundSize: 'auto 350px' })} />
 
-        {/* camada_1 — dead-trees (em cima da 2) */}
-        <div style={layer('/assets/pantano/dead-trees.png', 0.05, 4, { backgroundSize: 'auto 350px' })} />
+        {/* camada_1 — dead-trees (mais próxima, move mais) */}
+        <div style={layer('/assets/pantano/dead-trees.png', 0.70, 4, { backgroundSize: 'auto 350px' })} />
 
-        {/* camada_0 — ground-fg (estático, mais à frente) */}
-        <div style={layer('/assets/pantano/ground-fg.png', 0, 5, { backgroundSize: 'auto 350px' })} />
+        {/* camada_0 — ground-fg (ancorada ao início do mundo, não repete) */}
+        <div style={layer('/assets/pantano/ground-fg.png', 1.0, 5, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat' })} />
       </div>
     );
   }
