@@ -18,7 +18,13 @@ export type TerrainZone = {
 };
 
 // Zonas de terreno ativas no jogo (vazio por padrão; preencher via editor DEV)
-export const TERRAIN_ZONES: TerrainZone[] = [];
+export const TERRAIN_ZONES: TerrainZone[] = [
+  { x: 219, y: -3 },
+  { x: 304, y: 0 },
+  { x: 410, y: -3 },
+  { x: 536, y: 0 },
+  { x: 640, y: -4 },
+];
 
 function getHeroGround(wx: number, zones: TerrainZone[]): number {
   if (!zones.length) return 0;
