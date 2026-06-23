@@ -2196,8 +2196,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
         backgroundImage: "url('/assets/pantano/dead-trees.png')",
         backgroundRepeat: 'repeat-x', backgroundSize: `auto ${FLOOR}px`,
-        backgroundPositionX: `${Math.round(-worldX * 0.70)}px`, backgroundPositionY: '200px',
-        imageRendering: 'pixelated', zIndex: 25,
+        backgroundPositionX: `${Math.round(-worldX * 0.70)}px`, backgroundPositionY: 'top',
+        imageRendering: 'pixelated', zIndex: 25, backgroundSize: `auto ${FLOOR * 1.4}px`,
       }} />}
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
 
