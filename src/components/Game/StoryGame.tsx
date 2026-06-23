@@ -1473,6 +1473,14 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     { src: 'pantano/plant-tall.png', wx: 660,  f: 0.70, h: 140, b: G + 10,  z: 11 },
     { src: 'pantano/plant-bush.png', wx: 950,  f: 0.73, h: 95,  b: G + 8,   z: 11, flip: true },
     { src: 'pantano/plant-tall.png', wx: 1250, f: 0.71, h: 130, b: G - 2,   z: 11 },
+    // atrás do rodapé — base abaixo da borda, topo aparece na linha do chão
+    { src: 'pantano/plant-bush.png', wx: 50,   f: 0.80, h: 120, b: -55,  z: 12 },
+    { src: 'pantano/plant-tall.png', wx: 270,  f: 0.78, h: 150, b: -70,  z: 12, flip: true },
+    { src: 'pantano/plant-bush.png', wx: 500,  f: 0.82, h: 110, b: -50,  z: 12 },
+    { src: 'pantano/plant-tall.png', wx: 750,  f: 0.79, h: 160, b: -75,  z: 12, flip: true },
+    { src: 'pantano/plant-bush.png', wx: 1000, f: 0.81, h: 125, b: -60,  z: 12 },
+    { src: 'pantano/plant-tall.png', wx: 1300, f: 0.77, h: 145, b: -65,  z: 12 },
+    { src: 'pantano/plant-bush.png', wx: 1600, f: 0.80, h: 115, b: -55,  z: 12, flip: true },
   ];
   const frogPositions = [
     { wx: 290,  f: 0.48, z: 9,  b: G + 55 },   // sobre lily do meio
