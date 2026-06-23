@@ -1452,23 +1452,32 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   }
 
   // ── Ato 5 — Pântano ───────────────────────────────────────────────────────
+  const G = GROUND;
   const pantanoProps: { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean }[] = [
-    { src: 'pantano/plant-tall.png', wx: 60,   f: 0.55, h: 130, b: GROUND, z: 7 },
-    { src: 'pantano/plant-bush.png', wx: 200,  f: 0.60, h: 90,  b: GROUND, z: 8 },
-    { src: 'pantano/lily.png',       wx: 310,  f: 0.65, h: 55,  b: GROUND, z: 9 },
-    { src: 'pantano/plant-tall.png', wx: 480,  f: 0.58, h: 110, b: GROUND, z: 7, flip: true },
-    { src: 'pantano/plant-bush.png', wx: 620,  f: 0.62, h: 100, b: GROUND, z: 8 },
-    { src: 'pantano/lily.png',       wx: 750,  f: 0.66, h: 50,  b: GROUND, z: 9, flip: true },
-    { src: 'pantano/plant-tall.png', wx: 950,  f: 0.57, h: 120, b: GROUND, z: 7 },
-    { src: 'pantano/plant-bush.png', wx: 1100, f: 0.63, h: 85,  b: GROUND, z: 8, flip: true },
-    { src: 'pantano/lily.png',       wx: 1300, f: 0.64, h: 52,  b: GROUND, z: 9 },
-    { src: 'pantano/plant-tall.png', wx: 1500, f: 0.56, h: 115, b: GROUND, z: 7, flip: true },
-    { src: 'pantano/plant-bush.png', wx: 1700, f: 0.61, h: 95,  b: GROUND, z: 8 },
+    // fundo distante — altos e pequenos
+    { src: 'pantano/plant-tall.png', wx: 80,   f: 0.22, h: 100, b: G + 180, z: 6 },
+    { src: 'pantano/plant-bush.png', wx: 340,  f: 0.25, h: 70,  b: G + 160, z: 6, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 700,  f: 0.20, h: 95,  b: G + 190, z: 6 },
+    { src: 'pantano/plant-bush.png', wx: 1050, f: 0.23, h: 75,  b: G + 170, z: 6, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 1400, f: 0.21, h: 90,  b: G + 185, z: 6 },
+    // meio — altura média
+    { src: 'pantano/plant-tall.png', wx: 180,  f: 0.45, h: 120, b: G + 70,  z: 8 },
+    { src: 'pantano/lily.png',       wx: 290,  f: 0.48, h: 50,  b: G + 55,  z: 8 },
+    { src: 'pantano/plant-bush.png', wx: 530,  f: 0.43, h: 90,  b: G + 80,  z: 8 },
+    { src: 'pantano/lily.png',       wx: 820,  f: 0.46, h: 45,  b: G + 60,  z: 8, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 1100, f: 0.44, h: 115, b: G + 75,  z: 8, flip: true },
+    { src: 'pantano/plant-bush.png', wx: 1350, f: 0.47, h: 85,  b: G + 65,  z: 8 },
+    // frente — perto do chão
+    { src: 'pantano/plant-bush.png', wx: 110,  f: 0.72, h: 105, b: G + 5,   z: 11 },
+    { src: 'pantano/lily.png',       wx: 430,  f: 0.75, h: 60,  b: G - 5,   z: 11 },
+    { src: 'pantano/plant-tall.png', wx: 660,  f: 0.70, h: 140, b: G + 10,  z: 11 },
+    { src: 'pantano/plant-bush.png', wx: 950,  f: 0.73, h: 95,  b: G + 8,   z: 11, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 1250, f: 0.71, h: 130, b: G - 2,   z: 11 },
   ];
   const frogPositions = [
-    { wx: 380,  f: 0.65, z: 10 },
-    { wx: 900,  f: 0.62, z: 10 },
-    { wx: 1400, f: 0.64, z: 10 },
+    { wx: 290,  f: 0.48, z: 9,  b: G + 55 },   // sobre lily do meio
+    { wx: 430,  f: 0.75, z: 12, b: G - 5  },   // sobre lily da frente
+    { wx: 820,  f: 0.46, z: 9,  b: G + 60 },   // sobre lily do meio
   ];
 
   if (bg === 'pantano') {
@@ -1526,7 +1535,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           if (sx > vw + 200 || sx < -200) return null;
           const dur = 1.8 + i * 0.7;
           return (
-            <div key={`frog${i}`} style={{ position: 'absolute', left: sx, bottom: GROUND, zIndex: fp.z, width: 80, height: 70 }}>
+            <div key={`frog${i}`} style={{ position: 'absolute', left: sx, bottom: fp.b, zIndex: fp.z, width: 80, height: 70 }}>
               <img src="/assets/pantano/frog1.png" alt="" style={{ position: 'absolute', inset: 0, height: 70, width: 'auto', imageRendering: 'pixelated', animation: `frog-frame ${dur}s steps(1) infinite` }} />
               <img src="/assets/pantano/frog2.png" alt="" style={{ position: 'absolute', inset: 0, height: 70, width: 'auto', imageRendering: 'pixelated', animation: `frog-frame2 ${dur}s steps(1) infinite` }} />
             </div>
