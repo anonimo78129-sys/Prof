@@ -1430,55 +1430,52 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         </div>
       </div>
 
-      {/* ── Caixa de texto + menu de opções (estilo GBA) ── */}
-      <div style={{ display: 'flex', borderTop: '4px solid #202018', minHeight: 140,
+      {/* ── Painel inferior: pergunta em cima, opções em baixo ── */}
+      <div style={{ borderTop: '4px solid #202018', display: 'flex', flexDirection: 'column',
         background: 'linear-gradient(180deg,#3a4a78 0%,#2a3658 100%)', padding: 7, gap: 7 }}>
 
-        {/* Caixa de diálogo / pergunta */}
-        <div style={{ flex: 1.15, background: 'linear-gradient(180deg,#f8f8f0,#e4e4d4)',
+        {/* Caixa da pergunta / mensagem */}
+        <div style={{ background: 'linear-gradient(180deg,#f8f8f0,#e4e4d4)',
           border: '3px solid #383028', borderRadius: 8,
           boxShadow: 'inset 2px 2px 0 #fffff6, inset -2px -2px 0 #c0c0a4',
-          padding: '11px 14px', display: 'flex', alignItems: 'center' }}>
+          padding: '9px 14px', minHeight: 48, display: 'flex', alignItems: 'center',
+          justifyContent: phase === 'success' ? 'space-between' : 'flex-start' }}>
           <span className="font-pixel" style={{ fontSize: 12, color: '#282018', lineHeight: 1.7 }}>{log}</span>
-        </div>
-
-        {/* Menu de ações */}
-        <div style={{ width: '46%', maxWidth: 340, minWidth: 200, display: 'flex' }}>
-          {phase === 'question' && (
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 7 }}>
-              {q.options.map((opt, i) => {
-                const c = OPT_COLORS[i];
-                return (
-                  <button key={i} onClick={() => answer(i)} style={{
-                    background: c.bg, border: `3px solid ${c.br}`, borderRadius: 11,
-                    boxShadow: `inset 0 -4px 0 ${c.br}`, cursor: 'pointer', textAlign: 'left',
-                    display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px',
-                  }}>
-                    <span className="font-pixel" style={{ fontSize: 13, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.45)' }}>{'ABCD'[i]}</span>
-                    <span className="font-pixel" style={{ fontSize: 8.5, color: '#fff', lineHeight: 1.3, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{opt}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {phase === 'defeat' && (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <button onClick={retry} style={{ background: '#ef5350', border: '3px solid #9e2622',
-                borderRadius: 11, boxShadow: 'inset 0 -4px 0 #9e2622', padding: '10px 16px', cursor: 'pointer' }}>
-                <span className="font-pixel" style={{ fontSize: 12, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.4)' }}>Tentar novamente</span>
-              </button>
-            </div>
-          )}
-
           {phase === 'success' && (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', padding: '0 8px 8px 0' }}>
-              <button onClick={nextSuccess} style={{ background: 'transparent', border: 'none', cursor: 'pointer', animation: 'hint-bob 1s ease-in-out infinite' }}>
-                <span className="font-pixel" style={{ fontSize: 20, color: '#f8f8f0' }}>▼</span>
-              </button>
-            </div>
+            <button onClick={nextSuccess} style={{ background: 'transparent', border: 'none', cursor: 'pointer',
+              flexShrink: 0, animation: 'hint-bob 1s ease-in-out infinite' }}>
+              <span className="font-pixel" style={{ fontSize: 20, color: '#282018' }}>▼</span>
+            </button>
           )}
         </div>
+
+        {/* Grade 2×2 de alternativas */}
+        {phase === 'question' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 7, minHeight: 90 }}>
+            {q.options.map((opt, i) => {
+              const c = OPT_COLORS[i];
+              return (
+                <button key={i} onClick={() => answer(i)} style={{
+                  background: c.bg, border: `3px solid ${c.br}`, borderRadius: 11,
+                  boxShadow: `inset 0 -4px 0 ${c.br}`, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px',
+                }}>
+                  <span className="font-pixel" style={{ fontSize: 13, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.45)', flexShrink: 0 }}>{'ABCD'[i]}</span>
+                  <span className="font-pixel" style={{ fontSize: 9, color: '#fff', lineHeight: 1.3, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{opt}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {phase === 'defeat' && (
+          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 4 }}>
+            <button onClick={retry} style={{ background: '#ef5350', border: '3px solid #9e2622',
+              borderRadius: 11, boxShadow: 'inset 0 -4px 0 #9e2622', padding: '10px 28px', cursor: 'pointer' }}>
+              <span className="font-pixel" style={{ fontSize: 12, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.4)' }}>Tentar novamente</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
