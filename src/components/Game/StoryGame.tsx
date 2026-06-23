@@ -1455,7 +1455,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { src: '/assets/pantano/dead-trees.png', f: 0.05 },
       { src: '/assets/pantano/mix-trees.png',  f: 0.18 },
       { src: '/assets/pantano/back-silh.png',  f: 0.40 },
-      { src: '/assets/pantano/hills.png',       f: 0.70 },
     ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden' }}>
@@ -1473,7 +1472,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* ground-fg — estático no canto esquerdo (sem scroll) */}
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 5,
+          position: 'absolute', inset: 0, zIndex: 4,
           backgroundImage: `url('/assets/pantano/ground-fg.png')`,
           backgroundRepeat: 'no-repeat',
           backgroundSize: 'auto 350px',
@@ -1481,6 +1480,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionY: 'bottom',
           imageRendering: 'pixelated',
         }} />
+
+        {/* hills — última camada, na frente de tudo */}
+        <div style={layer('/assets/pantano/hills.png', 0.70, 5, { backgroundSize: 'auto 350px' })} />
 
         <SceneParticles kind="pantano" />
 
