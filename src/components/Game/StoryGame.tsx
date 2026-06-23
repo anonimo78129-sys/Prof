@@ -1519,9 +1519,16 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           const sx = Math.round(p.wx - worldX * p.f);
           const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
           if (sx > vw + 200 || sx < -200) return null;
+          const swayDur = 3 + (i % 5) * 0.7;
+          const swayDelay = -(i * 1.3 % swayDur);
+          const isLily = p.src.includes('lily');
           return (
             <div key={`pp${i}`} style={{ position: 'absolute', left: sx, bottom: p.b, zIndex: p.z, transform: p.flip ? 'scaleX(-1)' : undefined }}>
-              <img src={`/assets/${p.src}`} alt="" style={{ height: p.h, width: 'auto', imageRendering: 'pixelated', display: 'block' }} />
+              <img src={`/assets/${p.src}`} alt="" style={{
+                height: p.h, width: 'auto', imageRendering: 'pixelated', display: 'block',
+                transformOrigin: 'bottom center',
+                animation: isLily ? undefined : `plant-sway ${swayDur}s ease-in-out ${swayDelay}s infinite`,
+              }} />
             </div>
           );
         })}
