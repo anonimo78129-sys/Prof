@@ -150,6 +150,22 @@
     70%  { opacity: 1; }
     100% { opacity: 0; }
   }
+  @keyframes battle-shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-8px); }
+    40%       { transform: translateX(8px); }
+    60%       { transform: translateX(-6px); }
+    80%       { transform: translateX(5px); }
+  }
+  @keyframes enemy-breathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%       { transform: translateY(-6px) scale(1.04); }
+  }
+  @keyframes ring-expand {
+    0%   { transform: scale(1);   opacity: 0.7; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+
   @keyframes logs-rise {
     0%   { transform: translateY(60px); opacity: 0; }
     100% { transform: translateY(0px);  opacity: 1; }
@@ -656,24 +672,4 @@
   }
   .input-rpg::placeholder { color: #a88060; }
   .input-rpg:focus { border-color: #c88f20; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(200,143,32,0.4); }
-
-  /* ── Ato 6 — Combate estilo Pokémon GBA ── */
-  /* shake horizontal rápido no sprite atingido */
-  @keyframes battle-shake {
-    0%, 100% { transform: translateX(0); }
-    15%      { transform: translateX(-9px); }
-    30%      { transform: translateX(8px); }
-    45%      { transform: translateX(-6px); }
-    60%      { transform: translateX(5px); }
-    75%      { transform: translateX(-3px); }
-  }
-  /* flash de opacidade branca no sprite atingido */
-  @keyframes battle-flash {
-    0%, 100% { opacity: 0; }
-    40%      { opacity: 0.85; }
-  }
-  /* barra de HP: diminuição suave (transition: width 0.45s) */
-  .hp-fill {
-    transition: width 0.45s ease, background-color 0.45s ease;
-  }
 }

@@ -705,240 +705,6 @@ function MemoryBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'm
 }
 
 // ─────────────────────────────────────────────────────────
-// ATO 6 — Combate estilo Pokémon GBA (Consciência Verde)
-// O jogador "prova que entende a natureza" com movimentos botânicos.
-// Toda a lógica (moves, inimigo, HP) é hardcoded aqui.
-// ─────────────────────────────────────────────────────────
-type PlayerMove = { label: string; emoji: string; dmg: number; heal?: number; weakenEnemy?: boolean };
-const PLAYER_MOVES: PlayerMove[] = [
-  { label: 'FOTOSSÍNTESE', emoji: '🌿', dmg: 8 },
-  { label: 'REDE DE FUNGOS', emoji: '🍄', dmg: 12 },
-  { label: 'TRANSPIRAÇÃO', emoji: '💧', dmg: 0, heal: 8 },
-  { label: 'ESPORA', emoji: '🌱', dmg: 5, weakenEnemy: true },
-];
-type EnemyMove = { name: string; dmg: number; weakenPlayer?: boolean };
-const ENEMY_MOVES: EnemyMove[] = [
-  { name: 'Raízes Enredantes', dmg: 7 },
-  { name: 'Pulso de Luz', dmg: 11 },
-  { name: 'Névoa Tóxica', dmg: 4, weakenPlayer: true },
-];
-const BATTLE_PLAYER_MAX = 30;
-const BATTLE_ENEMY_MAX = 40;
-
-// Barra de HP estilo Pokémon invertido (vermelho→amarelo→verde)
-function HpBar({ hp, max }: { hp: number; max: number }) {
-  const pct = Math.max(0, hp / max) * 100;
-  const color = pct > 50 ? '#48d05a' : pct > 20 ? '#ffd24a' : '#ff4a4a';
-  return (
-    <div style={{ width: '100%', height: 10, background: '#3a2a18', border: '2px solid #120c04', borderRadius: 2, overflow: 'hidden', boxShadow: 'inset 1px 1px 0 rgba(0,0,0,0.45)' }}>
-      <div className="hp-fill" style={{ width: `${pct}%`, height: '100%', background: color }} />
-    </div>
-  );
-}
-
-// Painel de status (nome + HP) estilo caixa Pokémon
-function BattleStatus({ name, hp, max, align }: { name: string; hp: number; max: number; align: 'left' | 'right' }) {
-  return (
-    <div className="panel-pixel" style={{ background: 'rgba(248,238,213,0.96)', borderColor: '#5a3a1f', padding: '8px 12px', minWidth: 188 }}>
-      <p className="font-pixel" style={{ fontSize: 9, color: '#2a1400', marginBottom: 6, textAlign: align }}>{name}</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span className="font-pixel" style={{ fontSize: 8, color: '#b8860b' }}>HP</span>
-        <HpBar hp={hp} max={max} />
-      </div>
-      <p className="font-pixel" style={{ fontSize: 8, color: '#2a1400', textAlign: 'right', marginTop: 4 }}>{Math.max(0, hp)}/{max}</p>
-    </div>
-  );
-}
-
-// Sprite do inimigo: nó luminoso pulsante (círculos concêntricos bioluminescentes)
-function EnemyNode() {
-  return (
-    <div style={{ position: 'relative', width: 110, height: 110 }}>
-      <div style={{
-        position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)',
-        width: 84, height: 84, borderRadius: '50%',
-        background: 'radial-gradient(circle, #eafff0 0%, #5ff0a0 40%, #1f9c5a 75%, rgba(20,120,70,0) 100%)',
-        boxShadow: '0 0 28px rgba(60,255,150,0.7), 0 0 70px rgba(20,200,110,0.45)',
-        animation: 'breathe-glow 3s ease-in-out infinite',
-      }} />
-      <svg viewBox="0 0 110 110" width="110" height="110" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-        <circle cx="55" cy="55" r="30" fill="none" stroke="#9cffc8" strokeWidth="1.5" opacity="0.7" />
-        <circle cx="55" cy="55" r="42" fill="none" stroke="#5ff0a0" strokeWidth="1" opacity="0.45" />
-        <circle cx="55" cy="55" r="52" fill="none" stroke="#37f0a8" strokeWidth="0.8" opacity="0.3" />
-      </svg>
-    </div>
-  );
-}
-
-function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'battle' }>; onSolved: () => void; onCorrect: () => void }) {
-  type Phase = 'intro' | 'menu' | 'anim' | 'victory' | 'defeat' | 'success';
-  const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'menu');
-  const [playerHp, setPlayerHp] = useState(BATTLE_PLAYER_MAX);
-  const [enemyHp, setEnemyHp] = useState(BATTLE_ENEMY_MAX);
-  const [log, setLog] = useState('O que você vai fazer?');
-  const [shake, setShake] = useState<'player' | 'enemy' | null>(null);
-  const [flash, setFlash] = useState<'player' | 'enemy' | null>(null);
-  const [successIdx, setSuccessIdx] = useState(0);
-
-  // refs como fonte da verdade dentro de callbacks assíncronos (evita closures velhas)
-  const pHp = useRef(BATTLE_PLAYER_MAX);
-  const eHp = useRef(BATTLE_ENEMY_MAX);
-  const enemyWeak = useRef(false);   // próximo ataque inimigo -50% (ESPORA)
-  const playerWeak = useRef(false);  // próximo ataque jogador -4 (Névoa Tóxica)
-  const timers = useRef<number[]>([]);
-  const after = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)); };
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
-
-  const setP = (v: number) => { pHp.current = v; setPlayerHp(v); };
-  const setE = (v: number) => { eHp.current = v; setEnemyHp(v); };
-
-  const reset = () => {
-    timers.current.forEach(clearTimeout); timers.current = [];
-    setP(BATTLE_PLAYER_MAX); setE(BATTLE_ENEMY_MAX);
-    enemyWeak.current = false; playerWeak.current = false;
-    setShake(null); setFlash(null);
-    setLog('O que você vai fazer?'); setPhase('menu');
-  };
-
-  if (phase === 'intro' && beat.intro)
-    return <DialogueBox who="narrador" text={beat.intro} onNext={() => { audioCtx(); setPhase('menu'); }} />;
-
-  if (phase === 'success') {
-    const line = beat.success[successIdx] ?? '';
-    const last = successIdx >= beat.success.length - 1;
-    return <DialogueBox who="estudante" text={line} last={last}
-      onNext={() => { if (last) onSolved(); else setSuccessIdx(i => i + 1); }} />;
-  }
-
-  // turno do inimigo: escolhe um ataque aleatório
-  const enemyTurn = () => {
-    const mv = ENEMY_MOVES[Math.floor(Math.random() * ENEMY_MOVES.length)];
-    let dmg = mv.dmg;
-    if (enemyWeak.current) { dmg = Math.round(dmg * 0.5); enemyWeak.current = false; }
-    if (mv.weakenPlayer) playerWeak.current = true;
-    const note = mv.weakenPlayer ? ' A névoa enfraquece seu próximo ataque!' : '';
-    setLog(`Consciência Verde usou ${mv.name}!${note}`);
-    playTone(140, 0.35, 'sawtooth', 0.12);
-    setShake('player'); setFlash('player');
-    after(450, () => {
-      setShake(null); setFlash(null);
-      const nhp = Math.max(0, pHp.current - dmg);
-      setP(nhp);
-      if (nhp <= 0) {
-        playTone(90, 0.6, 'sawtooth', 0.12);
-        after(650, () => { setLog('A floresta recusou você...'); setPhase('defeat'); });
-      } else {
-        after(850, () => { setLog('O que você vai fazer?'); setPhase('menu'); });
-      }
-    });
-  };
-
-  // jogador escolhe um movimento
-  const pick = (m: PlayerMove) => {
-    if (phase !== 'menu') return;
-    setPhase('anim');
-
-    if (m.heal) {
-      setP(Math.min(BATTLE_PLAYER_MAX, pHp.current + m.heal));
-      setLog(`Você usou ${m.label}! Recuperou ${m.heal} HP.`);
-      playTone(660, 0.45, 'sine', 0.14);
-      setFlash('player'); after(450, () => setFlash(null));
-      after(1150, enemyTurn);
-      return;
-    }
-
-    let dmg = m.dmg;
-    if (playerWeak.current) { dmg = Math.max(0, dmg - 4); playerWeak.current = false; }
-    if (m.weakenEnemy) enemyWeak.current = true;
-    const note = m.weakenEnemy ? ' O esporo enfraquece o próximo ataque da floresta!' : '';
-    setLog(`Você usou ${m.label}!${note}`);
-    playTone(523, 0.3, 'square', 0.12);
-    setShake('enemy'); setFlash('enemy');
-    after(450, () => {
-      setShake(null); setFlash(null);
-      const nhp = Math.max(0, eHp.current - dmg);
-      setE(nhp);
-      if (nhp <= 0) {
-        onCorrect();
-        playChord([PENTA[0], PENTA[2], PENTA[4]], 1.8, 0.1);
-        after(650, () => { setLog('A floresta reconheceu você!'); setPhase('victory'); });
-        after(2500, () => { setSuccessIdx(0); setPhase('success'); });
-      } else {
-        after(950, enemyTurn);
-      }
-    });
-  };
-
-  const spriteFx = (who: 'player' | 'enemy'): CSSProperties => ({
-    animation: shake === who ? 'battle-shake 0.42s ease-in-out' : undefined,
-  });
-
-  return (
-    <div style={{
-      position: 'absolute', inset: 0, zIndex: 42, overflow: 'hidden',
-      background: 'linear-gradient(160deg, #0a2436 0%, #0e3a3a 45%, #103b2a 100%)',
-    }}>
-      {/* status do inimigo — topo-esquerda */}
-      <div style={{ position: 'absolute', top: 18, left: 18 }}>
-        <BattleStatus name="Consciência Verde" hp={enemyHp} max={BATTLE_ENEMY_MAX} align="left" />
-      </div>
-      {/* sprite do inimigo — topo-direita */}
-      <div style={{ position: 'absolute', top: 70, right: 60, ...spriteFx('enemy') }}>
-        <EnemyNode />
-        {flash === 'enemy' && <div style={{ position: 'absolute', inset: -10, borderRadius: '50%', background: '#fff', animation: 'battle-flash 0.42s ease-out', pointerEvents: 'none' }} />}
-      </div>
-
-      {/* status do jogador — meio-direita (acima do menu) */}
-      <div style={{ position: 'absolute', bottom: FLOOR + 14, right: 18 }}>
-        <BattleStatus name="Estudante" hp={playerHp} max={BATTLE_PLAYER_MAX} align="right" />
-      </div>
-      {/* sprite do jogador (de costas) — inferior-esquerda */}
-      <div style={{ position: 'absolute', bottom: FLOOR - 6, left: 64, transform: 'translateX(-50%)', ...spriteFx('player') }}>
-        <img src="/assets/chars/player-idle-1.png" alt="estudante"
-          style={{ height: 132, width: 'auto', imageRendering: 'pixelated', filter: 'drop-shadow(0 5px 4px rgba(0,0,0,0.5))', display: 'block' }} />
-        {flash === 'player' && <div style={{ position: 'absolute', inset: 0, background: '#fff', mixBlendMode: 'overlay', animation: 'battle-flash 0.42s ease-out', pointerEvents: 'none' }} />}
-      </div>
-
-      {/* caixa de mensagem + menu de ações — rodapé */}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 14px 16px' }}>
-        <div className="panel-pixel" style={{ background: 'rgba(248,238,213,0.97)', borderColor: '#5a3a1f', padding: '14px 16px', marginBottom: 10 }}>
-          <p className="font-vt" style={{ color: '#2a1400', fontSize: 21, lineHeight: 1.3, minHeight: 28 }}>{log}</p>
-        </div>
-
-        {phase === 'menu' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {PLAYER_MOVES.map((m) => (
-              <button key={m.label} onPointerDown={(e) => { e.preventDefault(); pick(m); }} onContextMenu={(e) => e.preventDefault()}
-                className="font-pixel"
-                style={{
-                  textAlign: 'left', padding: '12px 14px', fontSize: 10,
-                  color: '#2a1400', background: 'rgba(248,238,213,0.97)',
-                  border: '3px solid #5a3a1f', cursor: 'pointer', touchAction: 'none',
-                  display: 'flex', alignItems: 'center', gap: 8,
-                } as CSSProperties}>
-                <span style={{ fontSize: 16 }}>{m.emoji}</span> {m.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {phase === 'defeat' && (
-          <button onPointerDown={(e) => { e.preventDefault(); reset(); }} onContextMenu={(e) => e.preventDefault()}
-            className="font-pixel"
-            style={{
-              padding: '14px 18px', fontSize: 11, color: '#fff',
-              background: 'rgba(120,30,30,0.95)', border: '3px solid #ff6a6a',
-              cursor: 'pointer', touchAction: 'none',
-            } as CSSProperties}>
-            ↻ Tentar novamente
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────
 // ATO 7 — Árvore da Vida: SVG que cresce por estágios (0 semente → 4 florida)
 // ─────────────────────────────────────────────────────────
 function GrowingTree({ stage }: { stage: number }) {
@@ -1413,6 +1179,230 @@ function GuardianSprite() {
       style={{ display: 'block', height: 200, width: 'auto', imageRendering: 'pixelated',
         filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.75))' }}
     />
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// ATO 6 — Combate: Consciência Verde (estilo Pokémon GBA)
+// ─────────────────────────────────────────────────────────
+function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'battle' }>; onSolved: () => void; onCorrect: () => void }) {
+  const PLAYER_MAX = 30;
+  const ENEMY_MAX = 40;
+  const MOVES = [
+    { label: 'FOTOSSÍNTESE',   emoji: '🌿', power: 8,  heal: 0, debuff: false },
+    { label: 'REDE DE FUNGOS', emoji: '🍄', power: 12, heal: 0, debuff: false },
+    { label: 'TRANSPIRAÇÃO',   emoji: '💧', power: 0,  heal: 8, debuff: false },
+    { label: 'ESPORA',         emoji: '🌱', power: 5,  heal: 0, debuff: true  },
+  ] as const;
+  const ENEMY_ATKS = [
+    { name: 'Raízes Enredantes', dmg: 7,  playerDebuff: false },
+    { name: 'Pulso de Luz',      dmg: 11, playerDebuff: false },
+    { name: 'Névoa Tóxica',      dmg: 4,  playerDebuff: true  },
+  ];
+  type Phase = 'intro' | 'menu' | 'anim' | 'victory' | 'defeat' | 'success';
+  const [phase, setPhase]         = useState<Phase>(beat.intro ? 'intro' : 'menu');
+  const [playerHp, setPlayerHp]   = useState(PLAYER_MAX);
+  const [enemyHp, setEnemyHp]     = useState(ENEMY_MAX);
+  const [log, setLog]             = useState(beat.intro ?? 'O que Estudante vai fazer?');
+  const [enemyDebuff, setEnemyDebuff] = useState(false);
+  const [playerDebuff, setPlayerDebuff] = useState(false);
+  const [shakeEnemy, setShakeEnemy]   = useState(false);
+  const [shakePlayer, setShakePlayer] = useState(false);
+  const [flashEnemy, setFlashEnemy]   = useState(false);
+  const [flashPlayer, setFlashPlayer] = useState(false);
+  const [successIdx, setSuccessIdx]   = useState(0);
+
+  useEffect(() => {
+    if (phase === 'intro') {
+      const t = setTimeout(() => { setPhase('menu'); setLog('O que Estudante vai fazer?'); }, 2400);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'victory') {
+      const t = setTimeout(() => { setLog(beat.success[0]); setSuccessIdx(0); setPhase('success'); }, 500);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
+
+  function doMove(idx: number) {
+    if (phase !== 'menu') return;
+    setPhase('anim');
+    const move = MOVES[idx];
+
+    let newEHP = enemyHp;
+    let newPHP = playerHp;
+
+    if (move.heal > 0) {
+      newPHP = Math.min(PLAYER_MAX, playerHp + move.heal);
+      setPlayerHp(newPHP);
+      setLog(`Estudante usou ${move.label}! (+${move.heal} HP)`);
+    } else {
+      const dmg = enemyDebuff ? Math.ceil(move.power / 2) : move.power;
+      newEHP = Math.max(0, enemyHp - dmg);
+      setEnemyHp(newEHP);
+      setLog(`Estudante usou ${move.label}!`);
+      setFlashEnemy(true); setShakeEnemy(true);
+      setTimeout(() => { setFlashEnemy(false); setShakeEnemy(false); }, 500);
+    }
+    if (move.debuff) setEnemyDebuff(true);
+
+    setTimeout(() => {
+      if (newEHP <= 0) {
+        setLog('A Consciência Verde te reconheceu!');
+        playChord([523.25, 659.25, 783.99, 1046.5], 2.5, 0.1);
+        onCorrect();
+        setTimeout(() => setPhase('victory'), 1800);
+        return;
+      }
+      // enemy turn
+      const atk = ENEMY_ATKS[Math.floor(Math.random() * ENEMY_ATKS.length)];
+      const eDmg = playerDebuff ? Math.max(0, atk.dmg - 4) : atk.dmg;
+      setLog(`Consciência Verde usou ${atk.name}!`);
+      setTimeout(() => {
+        setFlashPlayer(true); setShakePlayer(true);
+        setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+        if (atk.playerDebuff) setPlayerDebuff(true);
+        newPHP = Math.max(0, newPHP - eDmg);
+        setPlayerHp(newPHP);
+        setTimeout(() => {
+          setEnemyDebuff(false); setPlayerDebuff(false);
+          if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
+          else { setLog('O que Estudante vai fazer?'); setPhase('menu'); }
+        }, 800);
+      }, 700);
+    }, 950);
+  }
+
+  function retry() {
+    setPlayerHp(PLAYER_MAX); setEnemyHp(ENEMY_MAX);
+    setEnemyDebuff(false); setPlayerDebuff(false);
+    setLog('O que Estudante vai fazer?'); setPhase('menu');
+  }
+
+  function nextSuccess() {
+    const next = successIdx + 1;
+    if (next >= beat.success.length) { onSolved(); return; }
+    setSuccessIdx(next); setLog(beat.success[next]);
+  }
+
+  const ePct = (enemyHp / ENEMY_MAX) * 100;
+  const pPct = (playerHp / PLAYER_MAX) * 100;
+  const hpCol = (pct: number) => pct > 50 ? '#48c850' : pct > 25 ? '#f8d030' : '#f82828';
+  const BOX: React.CSSProperties = { background: '#f0f0e8', border: '3px solid #181818', borderRadius: 4, padding: '5px 10px 7px' };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', flexDirection: 'column',
+      background: 'linear-gradient(180deg, #78c8a0 0%, #58a870 45%, #3a8050 100%)' }}>
+
+      {/* ── Arena ── */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+
+        {/* Enemy HP box — upper left */}
+        <div style={{ ...BOX, position: 'absolute', top: 14, left: 12, minWidth: 168 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+            <span className="font-pixel" style={{ fontSize: 12, color: '#181818' }}>Consciência Verde</span>
+            <span className="font-pixel" style={{ fontSize: 10, color: '#555' }}>Lv??</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span className="font-pixel" style={{ fontSize: 10, color: '#181818' }}>HP</span>
+            <div style={{ flex: 1, height: 7, background: '#585858', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ width: `${ePct}%`, height: '100%', background: hpCol(ePct), transition: 'width 0.45s ease, background 0.45s' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Enemy sprite — upper right */}
+        <div style={{ position: 'absolute', right: 36, top: 68, width: 110, height: 24, background: 'rgba(0,60,0,0.28)', borderRadius: '50%' }} />
+        <div style={{
+          position: 'absolute', right: 50, top: 14, width: 88, height: 88,
+          animation: shakeEnemy ? 'battle-shake 0.4s ease' : 'enemy-breathe 3s ease-in-out infinite',
+          opacity: flashEnemy ? 0.15 : 1, transition: 'opacity 0.06s',
+        }}>
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.22)', animation: 'ring-expand 2.6s ease-out infinite' }} />
+          <div style={{ position: 'absolute', inset: 10, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.32)', animation: 'ring-expand 2.6s ease-out 0.9s infinite' }} />
+          <div style={{
+            position: 'absolute', inset: 20, borderRadius: '50%',
+            background: 'radial-gradient(circle at 35% 35%, #b0ffbf 0%, #2ec84a 50%, #145a28 100%)',
+            boxShadow: '0 0 20px rgba(60,255,90,0.75), 0 0 7px rgba(60,255,90,0.95)',
+          }}>
+            <svg viewBox="0 0 48 48" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.55 }}>
+              {[[24,24,6,6],[24,24,42,10],[24,24,44,32],[24,24,16,44],[24,24,4,36]].map(([x1,y1,x2,y2],i) => (
+                <g key={i}><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b0ffbf" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx={x2} cy={y2} r="2.5" fill="#b0ffbf"/></g>
+              ))}
+              <circle cx="24" cy="24" r="4" fill="rgba(200,255,210,0.7)"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Player sprite — lower left */}
+        <div style={{ position: 'absolute', left: 20, bottom: 68, width: 90, height: 20, background: 'rgba(0,50,0,0.32)', borderRadius: '50%' }} />
+        <img src="/assets/chars/player-idle-1.png" alt="" style={{
+          position: 'absolute', left: 34, bottom: 65, height: 88, width: 'auto', imageRendering: 'pixelated',
+          animation: shakePlayer ? 'battle-shake 0.4s ease' : undefined,
+          opacity: flashPlayer ? 0.15 : 1, transition: 'opacity 0.06s',
+        }} />
+
+        {/* Player HP box — lower right */}
+        <div style={{ ...BOX, position: 'absolute', bottom: 6, right: 10, minWidth: 168 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+            <span className="font-pixel" style={{ fontSize: 12, color: '#181818' }}>Estudante</span>
+            <span className="font-pixel" style={{ fontSize: 10, color: '#555' }}>Lv1</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+            <span className="font-pixel" style={{ fontSize: 10, color: '#181818' }}>HP</span>
+            <div style={{ flex: 1, height: 7, background: '#585858', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ width: `${pPct}%`, height: '100%', background: hpCol(pPct), transition: 'width 0.45s ease, background 0.45s' }} />
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <span className="font-pixel" style={{ fontSize: 11, color: '#181818' }}>{playerHp}/{PLAYER_MAX}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Text box + menu ── */}
+      <div style={{ display: 'flex', borderTop: '3px solid #181818', background: '#f0f0e8', minHeight: 110 }}>
+        <div style={{ flex: 1, padding: '10px 14px', display: 'flex', alignItems: 'center' }}>
+          <span className="font-pixel" style={{ fontSize: 14, color: '#181818', lineHeight: 1.7 }}>{log}</span>
+        </div>
+
+        {phase === 'menu' && (
+          <div style={{ width: 200, borderLeft: '3px solid #181818', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' }}>
+            {MOVES.map((m, i) => (
+              <button key={i} onClick={() => doMove(i)} style={{
+                background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+                borderBottom: i < 2 ? '2px solid #c8c8c8' : 'none',
+                borderRight: i % 2 === 0 ? '2px solid #c8c8c8' : 'none',
+                padding: '5px 6px', display: 'flex', alignItems: 'center', gap: 4,
+                transition: 'background 0.15s',
+              }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#d8e8d0')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <span style={{ fontSize: 16 }}>{m.emoji}</span>
+                <span className="font-pixel" style={{ fontSize: 9, color: '#181818', lineHeight: 1.4 }}>{m.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {phase === 'defeat' && (
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px' }}>
+            <button onClick={retry} style={{ background: '#c03030', border: '3px solid #181818', borderRadius: 4, padding: '8px 14px', cursor: 'pointer' }}>
+              <span className="font-pixel" style={{ fontSize: 12, color: '#fff' }}>Tentar novamente</span>
+            </button>
+          </div>
+        )}
+
+        {phase === 'success' && (
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px' }}>
+            <button onClick={nextSuccess} style={{ background: 'transparent', border: 'none', cursor: 'pointer', animation: 'hint-bob 1s ease-in-out infinite' }}>
+              <span className="font-pixel" style={{ fontSize: 20, color: '#181818' }}>▼</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -2593,12 +2583,12 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         <SequenceBeat key={beatIndex} beat={beat} onSolved={() => { setLogsVisible(true); advance(); }} onCorrect={() => {}} />
       )}
 
-      {/* memória — Simon (não usado no roteiro atual, mantido p/ compatibilidade) */}
+      {/* memória — ato 6 (corredor de luz): repita os sinais da floresta */}
       {beat?.t === 'memory' && (
         <MemoryBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => {}} />
       )}
 
-      {/* combate — ato 6 (corredor de luz): prove que entende a natureza */}
+      {/* combate — ato 6: Consciência Verde (estilo Pokémon GBA) */}
       {beat?.t === 'battle' && (
         <BattleBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => {}} />
       )}
