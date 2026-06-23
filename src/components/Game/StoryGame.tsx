@@ -1271,12 +1271,13 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       setLog('✓ Correto! Você atinge a Consciência Verde!');
       playTone(660, 0.25, 'sine', 0.16);
 
-      // 1.4s: inimigo leva dano — sprite hit + shake
+      // 1.4s: inimigo leva dano — sprite hit + shake + flash azul
       setTimeout(() => {
         setEnemyHp(newEHP);
         setEnemyAction('hit');
         setShakeEnemy(true);
-        setTimeout(() => { setShakeEnemy(false); }, 500);
+        setFlashEnemy(true);
+        setTimeout(() => { setShakeEnemy(false); setFlashEnemy(false); }, 480);
       }, 1400);
 
       setTimeout(() => {
@@ -1378,31 +1379,47 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         {/* Plataforma + sprite do inimigo — fundo direito */}
         <div style={{ position: 'absolute', top: '8%', right: '4%', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
-          {/* Wrapper de shake — separa o translateX do centering */}
+          {/* Glow pulsante azul-turquesa + wrapper de shake */}
           <div style={{
             position: 'absolute', bottom: -66, left: 0, right: 0,
             display: 'flex', justifyContent: 'center',
             animation: shakeEnemy ? 'battle-shake 0.4s ease' : fainting ? 'battle-faint 1.4s ease-in forwards' : undefined,
+            filter: !fainting && !shakeEnemy ? undefined : undefined, // shake via animation acima
           }}>
-            {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
-            {([
-              { key: 'idle-1',  src: '/assets/enemies/consciencia-idle-1.png',  visible: enemyAction === 'idle' && idleFrame === 1 },
-              { key: 'idle-2',  src: '/assets/enemies/consciencia-idle-2.png',  visible: enemyAction === 'idle' && idleFrame === 2 },
-              { key: 'hit',     src: '/assets/enemies/consciencia-hit.png',     visible: enemyAction === 'hit' },
-              { key: 'attack',  src: '/assets/enemies/consciencia-attack.png',  visible: enemyAction === 'attack' },
-              { key: 'defeat',  src: '/assets/enemies/consciencia-defeat.png',  visible: enemyAction === 'defeat' },
-              { key: 'victory', src: '/assets/enemies/consciencia-victory.png', visible: enemyAction === 'victory' },
-            ] as const).map(({ key, src, visible }) => (
-              <img
-                key={key}
-                src={src}
-                alt=""
-                style={{
-                  height: 304, width: 'auto', imageRendering: 'pixelated',
-                  display: visible ? 'block' : 'none',
-                }}
-              />
-            ))}
+            {/* Glow always-on aplicado via wrapper interno */}
+            <div style={{
+              position: 'relative', display: 'inline-flex',
+              animation: 'enemy-glow-pulse 2.2s ease-in-out infinite',
+            }}>
+              {/* Flash azul ao levar dano */}
+              {flashEnemy && (
+                <div style={{
+                  position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+                  background: 'rgba(0, 180, 255, 0.45)',
+                  animation: 'enemy-flash-blue 0.45s ease-out forwards',
+                  mixBlendMode: 'screen',
+                }} />
+              )}
+              {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
+              {([
+                { key: 'idle-1',  src: '/assets/enemies/consciencia-idle-1.png',  visible: enemyAction === 'idle' && idleFrame === 1 },
+                { key: 'idle-2',  src: '/assets/enemies/consciencia-idle-2.png',  visible: enemyAction === 'idle' && idleFrame === 2 },
+                { key: 'hit',     src: '/assets/enemies/consciencia-hit.png',     visible: enemyAction === 'hit' },
+                { key: 'attack',  src: '/assets/enemies/consciencia-attack.png',  visible: enemyAction === 'attack' },
+                { key: 'defeat',  src: '/assets/enemies/consciencia-defeat.png',  visible: enemyAction === 'defeat' },
+                { key: 'victory', src: '/assets/enemies/consciencia-victory.png', visible: enemyAction === 'victory' },
+              ] as const).map(({ key, src, visible }) => (
+                <img
+                  key={key}
+                  src={src}
+                  alt=""
+                  style={{
+                    height: 304, width: 'auto', imageRendering: 'pixelated',
+                    display: visible ? 'block' : 'none',
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
 

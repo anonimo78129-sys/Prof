@@ -161,6 +161,14 @@
     0%, 100% { transform: translateY(0) scale(1); }
     50%       { transform: translateY(-6px) scale(1.04); }
   }
+  @keyframes enemy-glow-pulse {
+    0%, 100% { filter: drop-shadow(0 0 6px #00e5ff) drop-shadow(0 0 2px #00bcd4); }
+    50%       { filter: drop-shadow(0 0 18px #00e5ff) drop-shadow(0 0 8px #00bcd4); }
+  }
+  @keyframes enemy-flash-blue {
+    0%   { opacity: 0.55; }
+    100% { opacity: 0; }
+  }
   @keyframes ring-expand {
     0%   { transform: scale(1);   opacity: 0.7; }
     100% { transform: scale(1.9); opacity: 0; }
