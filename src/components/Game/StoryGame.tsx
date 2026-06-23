@@ -1451,40 +1451,12 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
   // ── Ato 5 — Pântano ───────────────────────────────────────────────────────
   if (bg === 'pantano') {
-    // camada_0 → camada_4, de fundo para frente
-    const PANT: { src: string; f: number; static?: boolean }[] = [
-      { src: '/assets/pantano/ground-fg.png',  f: 0,    static: true }, // camada_0 — estática
-      { src: '/assets/pantano/dead-trees.png', f: 0.05 },               // camada_1
-      { src: '/assets/pantano/mix-trees.png',  f: 0.18 },               // camada_2
-      { src: '/assets/pantano/back-silh.png',  f: 0.40 },               // camada_3
-      { src: '/assets/pantano/hills.png',       f: 0.70 },               // camada_4
-    ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden' }}>
-
-        {/* fundo — gradiente verde, cobre 100% da altura */}
         <img src="/assets/pantano/bg.png" alt="" style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%',
           objectFit: 'cover', objectPosition: 'center top',
           zIndex: 0, imageRendering: 'pixelated',
-        }} />
-
-        {PANT.map((l, i) => (
-          <div key={l.src} style={layer(l.src, l.f, i + 1, {
-            backgroundSize: 'auto 350px',
-            ...(l.static ? { backgroundRepeat: 'no-repeat', backgroundPositionX: '0px' } : {}),
-          })} />
-        ))}
-
-        <SceneParticles kind="pantano" />
-
-        {/* chão */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
-          backgroundImage: `url('/assets/world/ground-dark.png')`,
-          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
-          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
-          imageRendering: 'pixelated',
         }} />
       </div>
     );
