@@ -1460,7 +1460,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         }} />
 
         {/* camada_4b — hills2 (atrás de hills, 200px abaixo) */}
-        <div style={layer('/assets/pantano/hills2.png', 0.03, 0, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 200px)' })} />
+        <div style={layer('/assets/pantano/hills2.png', 0.03, 0, { backgroundSize: 'auto 350px' })} />
 
         {/* camada_4 — hills (mais distante, move menos) */}
         <div style={layer('/assets/pantano/hills.png', 0.05, 1, { backgroundSize: 'auto 350px' })} />
