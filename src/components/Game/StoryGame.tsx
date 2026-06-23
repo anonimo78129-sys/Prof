@@ -1458,6 +1458,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           objectFit: 'cover', objectPosition: 'center top',
           zIndex: 0, imageRendering: 'pixelated',
         }} />
+
+        {/* camada_4 — hills */}
+        <div style={layer('/assets/pantano/hills.png', 0.70, 1, { backgroundSize: 'auto 350px' })} />
       </div>
     );
   }
