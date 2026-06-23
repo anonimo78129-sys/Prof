@@ -9,29 +9,31 @@ type Pack = {
   badgeColor: string;
   scenes: PackScene[];
   parallax?: ParallaxLayer[];
+  sceneBg?: string;
 };
 
 const PACKS: Pack[] = [
   {
-    label: 'Pântano — Free Swamp Tileset',
-    badge: '3 CENÁRIOS',
+    label: 'Pântano — Camadas originais',
+    badge: '5 CAMADAS',
     badgeColor: '#88ff66',
+    sceneBg: '#bed8aa',
     parallax: [
-      { src: '/assets/pantano/layer1.png', factor: 0.05 },
-      { src: '/assets/pantano/layer2.png', factor: 0.18 },
-      { src: '/assets/pantano/layer3.png', factor: 0.40 },
-      { src: '/assets/pantano/layer4.png', factor: 0.70 },
-      { src: '/assets/pantano/layer5.png', factor: 1.0  },
+      { src: '/assets/pantano/back-silh.png',  factor: 0.05 },
+      { src: '/assets/pantano/hills.png',       factor: 0.18 },
+      { src: '/assets/pantano/dead-trees.png',  factor: 0.40 },
+      { src: '/assets/pantano/mix-trees.png',   factor: 0.70 },
+      { src: '/assets/pantano/ground-fg.png',   factor: 1.0  },
     ],
     scenes: [
-      { id: 'pant-deep',    thumb: '/assets/preview/pantano-deep.png',    name: 'Cenário 1 — Pântano profundo' },
-      { id: 'pant-willows', thumb: '/assets/preview/pantano-willows.png', name: 'Cenário 2 — Salgueiros' },
-      { id: 'pant-dead',    thumb: '/assets/preview/pantano-dead.png',    name: 'Cenário 3 — Bosque morto' },
-      { id: 'pant-l1',      thumb: '/assets/pantano/layer1.png',          name: 'Camada 1 — Névoa' },
-      { id: 'pant-l2',      thumb: '/assets/pantano/layer2.png',          name: 'Camada 2 — Árvores dist.' },
-      { id: 'pant-l3',      thumb: '/assets/pantano/layer3.png',          name: 'Camada 3 — Árvores meio' },
-      { id: 'pant-l4',      thumb: '/assets/pantano/layer4.png',          name: 'Camada 4 — Água' },
-      { id: 'pant-l5',      thumb: '/assets/pantano/layer5.png',          name: 'Camada 5 — Juncos (frente)' },
+      { id: 'pant-full',     thumb: '/assets/preview/pantano-full.png',     name: 'Cenário 1 — Pântano completo' },
+      { id: 'pant-fog',      thumb: '/assets/preview/pantano-fog.png',      name: 'Cenário 2 — Névoa madrugada' },
+      { id: 'pant-clearing', thumb: '/assets/preview/pantano-clearing.png', name: 'Cenário 3 — Clareira' },
+      { id: 'pant-silh',     thumb: '/assets/pantano/back-silh.png',        name: 'Camada 1 — Silhuetas distantes' },
+      { id: 'pant-hills',    thumb: '/assets/pantano/hills.png',            name: 'Camada 2 — Colinas' },
+      { id: 'pant-dead',     thumb: '/assets/pantano/dead-trees.png',       name: 'Camada 3 — Árvores mortas' },
+      { id: 'pant-mix',      thumb: '/assets/pantano/mix-trees.png',        name: 'Camada 4 — Salgueiro + morta' },
+      { id: 'pant-gnd',      thumb: '/assets/pantano/ground-fg.png',        name: 'Camada 5 — Chão (frente)' },
     ],
   },
   {
@@ -505,7 +507,7 @@ function ParallaxDemo({ pack, onClose }: { pack: Pack; onClose: () => void }) {
       }}
     >
       {/* scene container */}
-      <div style={{ position: 'relative', width: '100%', maxWidth: 600, aspectRatio: '2/1', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: 600, aspectRatio: '2/1', overflow: 'hidden', background: pack.sceneBg ?? '#000' }}>
         {layers.map((layer, i) => (
           <div
             key={layer.src}
