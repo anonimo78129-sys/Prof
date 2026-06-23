@@ -1448,7 +1448,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     );
   }
 
-  // ── Ato 5 — Pântano (5 camadas parallax) ─────────────────────────────────
+  // ── Ato 5 — Pântano (5 camadas parallax, mesmo tamanho do Ato 1) ──────────
   if (bg === 'pantano') {
     const PANT_LAYERS = [
       { src: '/assets/pantano/back-silh.png', f: 0.05 },
@@ -1456,25 +1456,24 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { src: '/assets/pantano/dead-trees.png', f: 0.40 },
       { src: '/assets/pantano/mix-trees.png',  f: 0.70 },
     ];
-    const imgStyle = (z: number, tx: number): CSSProperties => ({
-      position: 'absolute', inset: 0,
-      width: '100%', height: '100%',
-      objectFit: 'cover', objectPosition: 'bottom center',
-      imageRendering: 'pixelated',
-      zIndex: z,
-      transform: `translateX(${tx}px)`,
-    });
     return (
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#bed8aa' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
+        background: 'linear-gradient(to bottom, #8aaa70 0%, #a0c080 40%, #bed8aa 100%)' }}>
 
         {PANT_LAYERS.map((l, i) => (
-          <img key={l.src} src={l.src} alt=""
-            style={imgStyle(i + 1, Math.round(-worldX * l.f))} />
+          <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
         ))}
 
-        {/* ground-fg — estático, não acompanha o scroll */}
-        <img src="/assets/pantano/ground-fg.png" alt=""
-          style={{ ...imgStyle(5, 0), objectPosition: 'bottom left' }} />
+        {/* ground-fg — estático no canto esquerdo (sem scroll) */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 5,
+          backgroundImage: `url('/assets/pantano/ground-fg.png')`,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'auto 350px',
+          backgroundPositionX: '0px',
+          backgroundPositionY: 'bottom',
+          imageRendering: 'pixelated',
+        }} />
 
         <SceneParticles kind="pantano" />
 
