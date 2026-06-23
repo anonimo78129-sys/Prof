@@ -1376,8 +1376,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             src={`/assets/enemies/consciencia-idle-${idleFrame}.png`}
             alt="Consciência Verde"
             style={{
-              position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
-              height: 180, width: 'auto', imageRendering: 'pixelated',
+              position: 'absolute', bottom: -26, left: '50%', transform: 'translateX(-50%)',
+              height: 234, width: 'auto', imageRendering: 'pixelated',
               animation: fainting ? 'battle-faint 1.4s ease-in forwards'
                 : shakeEnemy ? 'battle-shake 0.4s ease' : undefined,
               opacity: flashEnemy ? 0.2 : 1, transition: 'opacity 0.06s',
