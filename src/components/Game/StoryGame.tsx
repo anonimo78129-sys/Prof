@@ -1386,20 +1386,13 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             animation: shakeEnemy ? 'battle-shake 0.4s ease' : fainting ? 'battle-faint 1.4s ease-in forwards' : undefined,
             filter: !fainting && !shakeEnemy ? undefined : undefined, // shake via animation acima
           }}>
-            {/* Glow always-on aplicado via wrapper interno */}
+            {/* Glow (ataque) + flash branco (dano) */}
             <div style={{
               position: 'relative', display: 'inline-flex',
               animation: enemyAction === 'attack' ? 'enemy-glow-pulse 2.2s ease-in-out infinite' : undefined,
+              filter: flashEnemy ? 'brightness(3)' : undefined,
+              transition: 'filter 0.05s',
             }}>
-              {/* Flash azul ao levar dano */}
-              {flashEnemy && (
-                <div style={{
-                  position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-                  background: 'rgba(0, 180, 255, 0.45)',
-                  animation: 'enemy-flash-blue 0.45s ease-out forwards',
-                  mixBlendMode: 'screen',
-                }} />
-              )}
               {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
               {([
                 { key: 'idle-1',  src: '/assets/enemies/consciencia-idle-1.png',  visible: enemyAction === 'idle' && idleFrame === 1 },
