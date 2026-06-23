@@ -1377,11 +1377,11 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           animation: 'battle-stripes 3.5s linear infinite' }} />
 
         {/* Plataforma + sprite do inimigo — fundo direito */}
-        <div style={{ position: 'absolute', top: '8%', right: '4%', width: 190, height: 200,
+        <div style={{ position: 'absolute', top: '8%', right: 'calc(4% + 30px)', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
           {/* Glow pulsante azul-turquesa + wrapper de shake */}
           <div style={{
-            position: 'absolute', bottom: -66, left: 0, right: 0,
+            position: 'absolute', bottom: -126, left: 0, right: 0,
             display: 'flex', justifyContent: 'center',
             animation: shakeEnemy ? 'battle-shake 0.4s ease' : fainting ? 'battle-faint 1.4s ease-in forwards' : undefined,
             filter: !fainting && !shakeEnemy ? undefined : undefined, // shake via animation acima
