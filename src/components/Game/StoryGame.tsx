@@ -1473,14 +1473,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     { src: 'pantano/plant-tall.png', wx: 660,  f: 0.70, h: 140, b: G + 10,  z: 11 },
     { src: 'pantano/plant-bush.png', wx: 950,  f: 0.73, h: 95,  b: G + 8,   z: 11, flip: true },
     { src: 'pantano/plant-tall.png', wx: 1250, f: 0.71, h: 130, b: G - 2,   z: 11 },
-    // atrás do rodapé — base abaixo da borda, topo aparece na linha do chão
-    { src: 'pantano/plant-bush.png', wx: 50,   f: 0.80, h: 120, b: -55,  z: 12 },
-    { src: 'pantano/plant-tall.png', wx: 270,  f: 0.78, h: 150, b: -70,  z: 12, flip: true },
-    { src: 'pantano/plant-bush.png', wx: 500,  f: 0.82, h: 110, b: -50,  z: 12 },
-    { src: 'pantano/plant-tall.png', wx: 750,  f: 0.79, h: 160, b: -75,  z: 12, flip: true },
-    { src: 'pantano/plant-bush.png', wx: 1000, f: 0.81, h: 125, b: -60,  z: 12 },
-    { src: 'pantano/plant-tall.png', wx: 1300, f: 0.77, h: 145, b: -65,  z: 12 },
-    { src: 'pantano/plant-bush.png', wx: 1600, f: 0.80, h: 115, b: -55,  z: 12, flip: true },
   ];
   const frogPositions = [
     { wx: 290,  f: 0.48, z: 9,  b: G + 55 },   // sobre lily do meio
@@ -2269,6 +2261,25 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         backgroundPositionX: `${Math.round(-worldX * 0.70)}px`, backgroundPositionY: '-80px',
         imageRendering: 'pixelated', zIndex: 25, backgroundSize: `auto ${FLOOR * 1.5}px`,
       }} />}
+      {/* pantano — plantas sobre o rodapé */}
+      {bg === 'pantano' && [
+        { src: 'pantano/plant-bush.png', wx: 50,   f: 0.80, h: 120, flip: false },
+        { src: 'pantano/plant-tall.png', wx: 270,  f: 0.78, h: 150, flip: true  },
+        { src: 'pantano/plant-bush.png', wx: 500,  f: 0.82, h: 110, flip: false },
+        { src: 'pantano/plant-tall.png', wx: 750,  f: 0.79, h: 160, flip: true  },
+        { src: 'pantano/plant-bush.png', wx: 1000, f: 0.81, h: 125, flip: false },
+        { src: 'pantano/plant-tall.png', wx: 1300, f: 0.77, h: 145, flip: false },
+        { src: 'pantano/plant-bush.png', wx: 1600, f: 0.80, h: 115, flip: true  },
+      ].map((p, i) => {
+        const sx = Math.round(p.wx - worldX * p.f);
+        const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
+        if (sx > vw + 200 || sx < -200) return null;
+        return (
+          <div key={`rp${i}`} style={{ position: 'absolute', left: sx, bottom: FLOOR, zIndex: 26, transform: p.flip ? 'scaleX(-1)' : undefined }}>
+            <img src={`/assets/${p.src}`} alt="" style={{ height: p.h, width: 'auto', imageRendering: 'pixelated', display: 'block' }} />
+          </div>
+        );
+      })}
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
