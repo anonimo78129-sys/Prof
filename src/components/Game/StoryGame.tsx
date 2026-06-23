@@ -1456,31 +1456,25 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       { src: '/assets/pantano/dead-trees.png', f: 0.40 },
       { src: '/assets/pantano/mix-trees.png',  f: 0.70 },
     ];
+    const imgStyle = (z: number, tx: number): CSSProperties => ({
+      position: 'absolute', inset: 0,
+      width: '100%', height: '100%',
+      objectFit: 'cover', objectPosition: 'bottom center',
+      imageRendering: 'pixelated',
+      zIndex: z,
+      transform: `translateX(${tx}px)`,
+    });
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#bed8aa' }}>
 
-        {/* camadas parallax */}
         {PANT_LAYERS.map((l, i) => (
-          <div key={l.src} style={{
-            position: 'absolute', inset: 0, zIndex: i + 1,
-            backgroundImage: `url('${l.src}')`,
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: 'cover',
-            backgroundPositionX: `calc(50% + ${Math.round(-worldX * l.f)}px)`,
-            backgroundPositionY: 'bottom',
-            imageRendering: 'pixelated',
-          }} />
+          <img key={l.src} src={l.src} alt=""
+            style={imgStyle(i + 1, Math.round(-worldX * l.f))} />
         ))}
 
-        {/* ground-fg — estático no início, sem parallax */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 5,
-          backgroundImage: `url('/assets/pantano/ground-fg.png')`,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
-          backgroundPosition: 'bottom left',
-          imageRendering: 'pixelated',
-        }} />
+        {/* ground-fg — estático, não acompanha o scroll */}
+        <img src="/assets/pantano/ground-fg.png" alt=""
+          style={{ ...imgStyle(5, 0), objectPosition: 'bottom left' }} />
 
         <SceneParticles kind="pantano" />
 
