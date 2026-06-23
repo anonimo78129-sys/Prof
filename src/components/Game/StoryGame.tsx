@@ -1459,8 +1459,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           zIndex: 0, imageRendering: 'pixelated',
         }} />
 
+        {/* camada_3 — back-silh */}
+        <div style={layer('/assets/pantano/back-silh.png', 0.40, 1, { backgroundSize: 'auto 350px' })} />
+
         {/* camada_4 — hills */}
-        <div style={layer('/assets/pantano/hills.png', 0.70, 1, { backgroundSize: 'auto 350px' })} />
+        <div style={layer('/assets/pantano/hills.png', 0.70, 2, { backgroundSize: 'auto 350px' })} />
       </div>
     );
   }
