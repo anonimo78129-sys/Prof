@@ -2187,7 +2187,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {/* pantano — fundo escuro do rodapé + solo/raízes por cima */}
       {bg === 'pantano' && <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
-        background: '#1e1216', zIndex: 24,
+        background: '#96c37d', zIndex: 24,
       }} />}
       {bg === 'pantano' && <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
