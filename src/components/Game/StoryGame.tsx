@@ -90,7 +90,7 @@ function ImagePreloader() {
     '/assets/estufa/computer-off.png', '/assets/estufa/computer-on.png',
     '/assets/pantano/bg.png',
     '/assets/pantano/back-silh.png', '/assets/pantano/hills.png', '/assets/pantano/dead-trees.png',
-    '/assets/pantano/mix-trees.png', '/assets/pantano/ground-fg.png',
+    '/assets/pantano/mix-trees.png', '/assets/pantano/ground-fg.png', '/assets/pantano/soil.png',
     '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
@@ -2174,6 +2174,14 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
+      }} />}
+      {/* pantano — solo/raízes acima de tudo no rodapé */}
+      {bg === 'pantano' && <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
+        backgroundImage: "url('/assets/pantano/soil.png')",
+        backgroundRepeat: 'repeat-x', backgroundSize: `auto ${FLOOR}px`,
+        backgroundPositionX: `${Math.round(-worldX)}px`, backgroundPositionY: 'top',
+        imageRendering: 'pixelated', zIndex: 25,
       }} />}
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
 
