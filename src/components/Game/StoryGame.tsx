@@ -2187,17 +2187,10 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         objectFit: 'cover', objectPosition: 'center top',
         zIndex: 0, imageRendering: 'pixelated',
       }} />}
-      {/* pantano — fundo escuro do rodapé + solo/raízes por cima */}
+      {/* pantano — fundo do rodapé */}
       {bg === 'pantano' && <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
         background: '#96c37d', zIndex: 24,
-      }} />}
-      {bg === 'pantano' && <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
-        backgroundImage: "url('/assets/pantano/soil.png')",
-        backgroundRepeat: 'repeat-x', backgroundSize: `auto ${FLOOR}px`,
-        backgroundPositionX: `${Math.round(-worldX)}px`, backgroundPositionY: 'top',
-        imageRendering: 'pixelated', zIndex: 25,
       }} />}
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
 
