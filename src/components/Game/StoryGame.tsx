@@ -1507,7 +1507,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* jacaré único — passa, pausa fora da cena, vira e volta */}
         <div style={{ position: 'absolute', bottom: GROUND + 70, zIndex: 3, left: 0, pointerEvents: 'none',
-          animation: 'croc-pass 60s linear infinite' }}>
+          animation: 'croc-pass 150s linear infinite' }}>
           <img src="/assets/pantano/croc.png" alt="" style={{ height: 61, width: 'auto', imageRendering: 'pixelated', animation: 'croc-bob 4s ease-in-out infinite' }} />
         </div>
 
