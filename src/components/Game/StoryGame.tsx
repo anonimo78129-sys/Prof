@@ -1389,8 +1389,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             }
             alt="Consciência Verde"
             style={{
-              position: 'absolute', bottom: -26, left: '50%', transform: 'translateX(-50%)',
-              height: 234, width: 'auto', imageRendering: 'pixelated',
+              position: 'absolute', bottom: -66, left: '50%', transform: 'translateX(-50%)',
+              height: 304, width: 'auto', imageRendering: 'pixelated',
               animation: fainting ? 'battle-faint 1.4s ease-in forwards'
                 : shakeEnemy ? 'battle-shake 0.4s ease' : undefined,
               opacity: 1, transition: 'opacity 0.06s',
