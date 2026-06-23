@@ -91,6 +91,8 @@ function ImagePreloader() {
     '/assets/pantano/bg.png',
     '/assets/pantano/back-silh.png', '/assets/pantano/hills.png', '/assets/pantano/hills2.png', '/assets/pantano/dead-trees.png',
     '/assets/pantano/mix-trees.png', '/assets/pantano/logs.png', '/assets/pantano/ground-fg.png', '/assets/pantano/soil.png',
+    '/assets/pantano/frog1.png', '/assets/pantano/frog2.png', '/assets/pantano/lily.png',
+    '/assets/pantano/plant-tall.png', '/assets/pantano/plant-bush.png',
     '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
@@ -1450,6 +1452,25 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   }
 
   // ── Ato 5 — Pântano ───────────────────────────────────────────────────────
+  const pantanoProps: { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean }[] = [
+    { src: 'pantano/plant-tall.png', wx: 60,   f: 0.55, h: 130, b: GROUND, z: 7 },
+    { src: 'pantano/plant-bush.png', wx: 200,  f: 0.60, h: 90,  b: GROUND, z: 8 },
+    { src: 'pantano/lily.png',       wx: 310,  f: 0.65, h: 55,  b: GROUND, z: 9 },
+    { src: 'pantano/plant-tall.png', wx: 480,  f: 0.58, h: 110, b: GROUND, z: 7, flip: true },
+    { src: 'pantano/plant-bush.png', wx: 620,  f: 0.62, h: 100, b: GROUND, z: 8 },
+    { src: 'pantano/lily.png',       wx: 750,  f: 0.66, h: 50,  b: GROUND, z: 9, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 950,  f: 0.57, h: 120, b: GROUND, z: 7 },
+    { src: 'pantano/plant-bush.png', wx: 1100, f: 0.63, h: 85,  b: GROUND, z: 8, flip: true },
+    { src: 'pantano/lily.png',       wx: 1300, f: 0.64, h: 52,  b: GROUND, z: 9 },
+    { src: 'pantano/plant-tall.png', wx: 1500, f: 0.56, h: 115, b: GROUND, z: 7, flip: true },
+    { src: 'pantano/plant-bush.png', wx: 1700, f: 0.61, h: 95,  b: GROUND, z: 8 },
+  ];
+  const frogPositions = [
+    { wx: 380,  f: 0.65, z: 10 },
+    { wx: 900,  f: 0.62, z: 10 },
+    { wx: 1400, f: 0.64, z: 10 },
+  ];
+
   if (bg === 'pantano') {
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden' }}>
@@ -1479,6 +1500,32 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* camada_0 — ground-fg (ancorada ao início do mundo, não repete) */}
         <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' })} />
+
+        {/* plantas e vitórias-régias espalhadas */}
+        {pantanoProps.map((p, i) => {
+          const sx = Math.round(p.wx - worldX * p.f);
+          const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
+          if (sx > vw + 200 || sx < -200) return null;
+          return (
+            <div key={`pp${i}`} style={{ position: 'absolute', left: sx, bottom: p.b, zIndex: p.z, transform: p.flip ? 'scaleX(-1)' : undefined }}>
+              <img src={`/assets/${p.src}`} alt="" style={{ height: p.h, width: 'auto', imageRendering: 'pixelated', display: 'block' }} />
+            </div>
+          );
+        })}
+
+        {/* sapos animados sobre vitórias-régias */}
+        {frogPositions.map((fp, i) => {
+          const sx = Math.round(fp.wx - worldX * fp.f);
+          const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
+          if (sx > vw + 200 || sx < -200) return null;
+          const dur = 1.8 + i * 0.7;
+          return (
+            <div key={`frog${i}`} style={{ position: 'absolute', left: sx, bottom: GROUND, zIndex: fp.z, width: 80, height: 70 }}>
+              <img src="/assets/pantano/frog1.png" alt="" style={{ position: 'absolute', inset: 0, height: 70, width: 'auto', imageRendering: 'pixelated', animation: `frog-frame ${dur}s steps(1) infinite` }} />
+              <img src="/assets/pantano/frog2.png" alt="" style={{ position: 'absolute', inset: 0, height: 70, width: 'auto', imageRendering: 'pixelated', animation: `frog-frame2 ${dur}s steps(1) infinite` }} />
+            </div>
+          );
+        })}
       </div>
     );
   }

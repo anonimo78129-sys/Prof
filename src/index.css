@@ -485,6 +485,15 @@
     100% { transform: rotate(0deg); }
   }
 
+  @keyframes frog-frame {
+    0%, 49%  { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  @keyframes frog-frame2 {
+    0%, 49%  { opacity: 0; }
+    50%, 100% { opacity: 1; }
+  }
+
   /* ── Map node ── */
   @keyframes map-node-pulse {
     0%, 100% { box-shadow: 5px 5px 0 #3a2010; }
