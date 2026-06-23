@@ -1501,12 +1501,12 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={layer('/assets/pantano/mix-trees.png', 0.40, 3, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 5px)' })} />
 
         {/* jacaré — direita→esquerda */}
-        <div style={{ position: 'absolute', bottom: GROUND - 10, zIndex: 3, left: 0, pointerEvents: 'none',
+        <div style={{ position: 'absolute', bottom: GROUND + 20, zIndex: 3, left: 0, pointerEvents: 'none',
           animation: 'croc-rtl 20s linear infinite' }}>
           <img src="/assets/pantano/croc.png" alt="" style={{ height: 180, width: 'auto', imageRendering: 'pixelated' }} />
         </div>
         {/* jacaré — esquerda→direita (defasado 10s) */}
-        <div style={{ position: 'absolute', bottom: GROUND - 10, zIndex: 3, left: 0, pointerEvents: 'none',
+        <div style={{ position: 'absolute', bottom: GROUND + 20, zIndex: 3, left: 0, pointerEvents: 'none',
           animation: 'croc-ltr 20s linear 10s infinite' }}>
           <img src="/assets/pantano/croc.png" alt="" style={{ height: 180, width: 'auto', imageRendering: 'pixelated' }} />
         </div>
