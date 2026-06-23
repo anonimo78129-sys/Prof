@@ -153,7 +153,7 @@ const beats: Beat[] = [
     'O ar aqui é pesado... cheira a terra molhada.',
     'Um pântano! E a água parece... viva.',
   ] },
-  { t: 'walk', dist: 520, hint: 'Avance pelo pântano' },
+  { t: 'walk', dist: 166, hint: 'Avance pelo pântano' },
   { t: 'say', who: 'estudante', lines: [
     'A água tóxica bloqueia a passagem.',
     'Há pedras afundando... só vão me sustentar na ordem certa.',
