@@ -1378,28 +1378,32 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         {/* Plataforma + sprite do inimigo — fundo direito */}
         <div style={{ position: 'absolute', top: '8%', right: '4%', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
-          {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
-          {([
-            { key: 'idle-1',  src: '/assets/enemies/consciencia-idle-1.png',  visible: enemyAction === 'idle' && idleFrame === 1 },
-            { key: 'idle-2',  src: '/assets/enemies/consciencia-idle-2.png',  visible: enemyAction === 'idle' && idleFrame === 2 },
-            { key: 'hit',     src: '/assets/enemies/consciencia-hit.png',     visible: enemyAction === 'hit' },
-            { key: 'attack',  src: '/assets/enemies/consciencia-attack.png',  visible: enemyAction === 'attack' },
-            { key: 'defeat',  src: '/assets/enemies/consciencia-defeat.png',  visible: enemyAction === 'defeat' },
-            { key: 'victory', src: '/assets/enemies/consciencia-victory.png', visible: enemyAction === 'victory' },
-          ] as const).map(({ key, src, visible }) => (
-            <img
-              key={key}
-              src={src}
-              alt=""
-              style={{
-                position: 'absolute', bottom: -66, left: '50%', transform: 'translateX(-50%)',
-                height: 304, width: 'auto', imageRendering: 'pixelated',
-                display: visible ? 'block' : 'none',
-                animation: visible && fainting ? 'battle-faint 1.4s ease-in forwards'
-                  : visible && shakeEnemy ? 'battle-shake 0.4s ease' : undefined,
-              }}
-            />
-          ))}
+          {/* Wrapper de shake — separa o translateX do centering */}
+          <div style={{
+            position: 'absolute', bottom: -66, left: 0, right: 0,
+            display: 'flex', justifyContent: 'center',
+            animation: shakeEnemy ? 'battle-shake 0.4s ease' : fainting ? 'battle-faint 1.4s ease-in forwards' : undefined,
+          }}>
+            {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
+            {([
+              { key: 'idle-1',  src: '/assets/enemies/consciencia-idle-1.png',  visible: enemyAction === 'idle' && idleFrame === 1 },
+              { key: 'idle-2',  src: '/assets/enemies/consciencia-idle-2.png',  visible: enemyAction === 'idle' && idleFrame === 2 },
+              { key: 'hit',     src: '/assets/enemies/consciencia-hit.png',     visible: enemyAction === 'hit' },
+              { key: 'attack',  src: '/assets/enemies/consciencia-attack.png',  visible: enemyAction === 'attack' },
+              { key: 'defeat',  src: '/assets/enemies/consciencia-defeat.png',  visible: enemyAction === 'defeat' },
+              { key: 'victory', src: '/assets/enemies/consciencia-victory.png', visible: enemyAction === 'victory' },
+            ] as const).map(({ key, src, visible }) => (
+              <img
+                key={key}
+                src={src}
+                alt=""
+                style={{
+                  height: 304, width: 'auto', imageRendering: 'pixelated',
+                  display: visible ? 'block' : 'none',
+                }}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Caixa de HP do inimigo — canto superior esquerdo */}
