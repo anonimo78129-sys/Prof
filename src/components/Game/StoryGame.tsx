@@ -1227,6 +1227,11 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [successIdx, setSuccessIdx]   = useState(0);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [wasCorrect, setWasCorrect]   = useState<boolean | null>(null);
+  const [idleFrame, setIdleFrame]     = useState(1);
+  useEffect(() => {
+    const t = setInterval(() => setIdleFrame(f => f === 1 ? 2 : 1), 700);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (!beat.intro) setLog(q.text);
@@ -1364,36 +1369,26 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           animation: 'battle-stripes 3.5s linear infinite' }} />
 
         {/* Plataforma + sprite do inimigo — fundo direito */}
-        <div style={{ position: 'absolute', top: '16%', right: '7%', width: 170, height: 150,
+        <div style={{ position: 'absolute', top: '8%', right: '4%', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
           {/* plataforma elíptica */}
           <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-            width: 168, height: 40, borderRadius: '50%',
+            width: 180, height: 42, borderRadius: '50%',
             background: 'radial-gradient(ellipse at 50% 35%, #7fc77f 0%, #4f9a55 60%, #3c7a44 100%)',
             boxShadow: '0 6px 10px rgba(0,40,0,0.25)' }} />
-          {/* orb da Consciência Verde */}
-          <div style={{
-            position: 'absolute', bottom: 18, left: '50%', width: 120, height: 120, marginLeft: -60,
-            animation: fainting ? 'battle-faint 1.4s ease-in forwards'
-              : shakeEnemy ? 'battle-shake 0.4s ease' : 'enemy-breathe 3s ease-in-out infinite',
-            opacity: flashEnemy ? 0.15 : 1, transition: 'opacity 0.06s',
-          }}>
-            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.22)', animation: 'ring-expand 2.6s ease-out infinite' }} />
-            <div style={{ position: 'absolute', inset: 14, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.32)', animation: 'ring-expand 2.6s ease-out 0.9s infinite' }} />
-            <div style={{
-              position: 'absolute', inset: 28, borderRadius: '50%',
-              background: 'radial-gradient(circle at 35% 35%, #b0ffbf 0%, #2ec84a 50%, #145a28 100%)',
-              boxShadow: '0 0 26px rgba(60,255,90,0.75), 0 0 9px rgba(60,255,90,0.95)',
-            }}>
-              <svg viewBox="0 0 48 48" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.55 }}>
-                {[[24,24,6,6],[24,24,42,10],[24,24,44,32],[24,24,16,44],[24,24,4,36]].map(([x1,y1,x2,y2],i) => (
-                  <g key={i}><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b0ffbf" strokeWidth="1.5" strokeLinecap="round"/>
-                  <circle cx={x2} cy={y2} r="2.5" fill="#b0ffbf"/></g>
-                ))}
-                <circle cx="24" cy="24" r="4" fill="rgba(200,255,210,0.7)"/>
-              </svg>
-            </div>
-          </div>
+          {/* sprite da Consciência Verde — alterna frame 1/2 */}
+          <img
+            src={`/assets/enemies/consciencia-idle-${idleFrame}.png`}
+            alt="Consciência Verde"
+            style={{
+              position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+              height: 180, width: 'auto', imageRendering: 'pixelated',
+              animation: fainting ? 'battle-faint 1.4s ease-in forwards'
+                : shakeEnemy ? 'battle-shake 0.4s ease' : undefined,
+              opacity: flashEnemy ? 0.2 : 1, transition: 'opacity 0.06s',
+              filter: flashEnemy ? 'brightness(3)' : undefined,
+            }}
+          />
         </div>
 
         {/* Caixa de HP do inimigo — canto superior esquerdo */}
