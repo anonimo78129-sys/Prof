@@ -1474,7 +1474,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     { src: 'pantano/plant-tall.png', wx: 1250, f: 0.71, h: 130, b: G - 32,  z: 11 },
   ];
   const frogPositions = [
-    { wx: 430,  f: 0.75, z: 12, b: G - 35 },
+    { wx: 290,  f: 0.48, z: 9,  b: G + 25 },
+    { wx: 820,  f: 0.46, z: 9,  b: G + 30 },
   ];
 
   if (bg === 'pantano') {
