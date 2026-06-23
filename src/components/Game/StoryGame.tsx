@@ -1483,7 +1483,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
                 : '';
               return (
                 <button key={i} onClick={() => answer(i)} disabled={phase === 'anim'} style={{
-                  background: bg, border: `3px solid ${br}`, borderRadius: 11,
+                  background: bg, border: `3px solid ${br}`, borderRadius: 0,
                   boxShadow: shadow, cursor: phase === 'anim' ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px',
                   transition: 'background 0.2s, border-color 0.2s',
@@ -1499,7 +1499,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         {phase === 'defeat' && (
           <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 4 }}>
             <button onClick={retry} style={{ background: '#ef5350', border: '3px solid #9e2622',
-              borderRadius: 11, boxShadow: 'inset 0 -4px 0 #9e2622', padding: '10px 28px', cursor: 'pointer' }}>
+              borderRadius: 0, boxShadow: 'inset 0 -4px 0 #9e2622', padding: '10px 28px', cursor: 'pointer' }}>
               <span className="font-pixel" style={{ fontSize: 12, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.4)' }}>Tentar novamente</span>
             </button>
           </div>
