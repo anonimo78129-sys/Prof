@@ -2279,9 +2279,15 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         const sx = Math.round(p.wx - worldX * p.f);
         const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
         if (sx > vw + 200 || sx < -200) return null;
+        const swayDur = 2.5 + (i % 4) * 0.6;
+        const swayDelay = -(i * 1.1 % swayDur);
         return (
           <div key={`rp${i}`} style={{ position: 'absolute', left: sx, bottom: FLOOR - 30, zIndex: 26, transform: p.flip ? 'scaleX(-1)' : undefined }}>
-            <img src={`/assets/${p.src}`} alt="" style={{ height: p.h, width: 'auto', imageRendering: 'pixelated', display: 'block' }} />
+            <img src={`/assets/${p.src}`} alt="" style={{
+              height: p.h, width: 'auto', imageRendering: 'pixelated', display: 'block',
+              transformOrigin: 'bottom center',
+              animation: `plant-sway-strong ${swayDur}s ease-in-out ${swayDelay}s infinite`,
+            }} />
           </div>
         );
       })}
