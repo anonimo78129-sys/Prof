@@ -2078,6 +2078,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [appleTreeAnchor, setAppleTreeAnchor] = useState<number | null>(null);
   const [trunkAnchor, setTrunkAnchor] = useState<number | null>(null);
   const [sceneFade, setSceneFade] = useState(false);
+  const [sceneFadeColor, setSceneFadeColor] = useState('#000');
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -2129,6 +2130,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   useEffect(() => {
     if (!beat) return;
     if (beat.t === 'scene') {
+      setSceneFadeColor(beat.bg === 'corredor' ? '#fff' : '#000');
       setSceneFade(true);
       const t1 = setTimeout(() => {
         setBg(beat.bg);
@@ -2407,8 +2409,16 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
 
       {/* fade */}
       {/* transição entre atos — escurece e clareia a tela */}
+      {/* luz intensa vinda da direita — diálogo antes do corredor */}
+      {bg === 'pantano' && beat?.t === 'say' && (beat as any).lines?.some((l: string) => l.includes('luz fica mais intensa')) && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 60% 100% at 100% 50%, rgba(255,255,200,0.85) 0%, rgba(255,240,150,0.4) 40%, transparent 75%)',
+          animation: 'right-light-pulse 2s ease-in-out infinite',
+        }} />
+      )}
+
       {sceneFade && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 58, background: '#000', pointerEvents: 'none', animation: 'scene-transition 1.2s ease-in-out forwards' }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 58, background: sceneFadeColor, pointerEvents: 'none', animation: 'scene-transition 1.2s ease-in-out forwards' }} />
       )}
 
       {fade && (
