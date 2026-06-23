@@ -1225,6 +1225,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [flashEnemy, setFlashEnemy]   = useState(false);
   const [flashPlayer, setFlashPlayer] = useState(false);
   const [successIdx, setSuccessIdx]   = useState(0);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [wasCorrect, setWasCorrect]   = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!beat.intro) setLog(q.text);
@@ -1245,6 +1247,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
   function nextQuestion() {
     const nq = pickQuestion();
+    setSelectedIdx(null); setWasCorrect(null);
     setQ(nq); setLog(nq.text); setPhase('question');
   }
 
@@ -1252,14 +1255,20 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     if (phase !== 'question') return;
     setPhase('anim');
     const correct = idx === q.correctIdx;
+    setSelectedIdx(idx);
+    setWasCorrect(correct);
 
     if (correct) {
       const newEHP = Math.max(0, enemyHp - HIT);
-      setEnemyHp(newEHP);
-      setLog('Correto! Você atinge a Consciência Verde!');
-      setFlashEnemy(true); setShakeEnemy(true);
+      // Mostra feedback por 1.4s antes de aplicar o dano e atacar
+      setLog('✓ Correto! Você atinge a Consciência Verde!');
       playTone(660, 0.25, 'sine', 0.16);
-      setTimeout(() => { setFlashEnemy(false); setShakeEnemy(false); }, 500);
+
+      setTimeout(() => {
+        setEnemyHp(newEHP);
+        setFlashEnemy(true); setShakeEnemy(true);
+        setTimeout(() => { setFlashEnemy(false); setShakeEnemy(false); }, 500);
+      }, 1400);
 
       setTimeout(() => {
         if (newEHP <= 0) {
@@ -1269,7 +1278,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           setTimeout(() => setPhase('victory'), 1800);
           return;
         }
-        // turno do inimigo — ataque fraco
+        // turno do inimigo — espera mais antes de revidar
         setLog('A Consciência Verde revida com um pulso...');
         setTimeout(() => {
           setFlashPlayer(true); setShakePlayer(true);
@@ -1280,21 +1289,25 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           setTimeout(() => {
             if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
             else nextQuestion();
-          }, 850);
-        }, 800);
-      }, 1000);
+          }, 900);
+        }, 1000);
+      }, 2400);  // delay total antes do contra-ataque do inimigo
     } else {
-      const newPHP = Math.max(0, playerHp - WRONG_HIT);
-      setPlayerHp(newPHP);
-      setLog('Errou! A Consciência Verde te atinge com força!');
-      setFlashPlayer(true); setShakePlayer(true);
+      // Mostra a resposta errada + correta por 1.6s antes do dano
+      setLog('✗ Errado! A Consciência Verde te atinge com força!');
       playTone(110, 0.45, 'sawtooth', 0.14);
-      setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
 
       setTimeout(() => {
-        if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
-        else nextQuestion();
-      }, 1200);
+        const newPHP = Math.max(0, playerHp - WRONG_HIT);
+        setPlayerHp(newPHP);
+        setFlashPlayer(true); setShakePlayer(true);
+        setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+
+        setTimeout(() => {
+          if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
+          else nextQuestion();
+        }, 1100);
+      }, 1600);
     }
   }
 
@@ -1449,18 +1462,33 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           )}
         </div>
 
-        {/* Grade 2×2 de alternativas */}
-        {phase === 'question' && (
+        {/* Grade 2×2 de alternativas — visível durante 'question' e 'anim' (para mostrar feedback) */}
+        {(phase === 'question' || phase === 'anim') && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 7, minHeight: 90 }}>
             {q.options.map((opt, i) => {
               const c = OPT_COLORS[i];
+              // Durante anim: verde = resposta correta, vermelho = selecionada errada, resto escurecido
+              let bg = c.bg, br = c.br, shadow = `inset 0 -4px 0 ${c.br}`;
+              if (phase === 'anim') {
+                if (i === q.correctIdx) {
+                  bg = '#2e9e3a'; br = '#1a6024'; shadow = 'inset 0 -4px 0 #1a6024';
+                } else if (i === selectedIdx && !wasCorrect) {
+                  bg = '#c0392b'; br = '#7d1e1e'; shadow = 'inset 0 -4px 0 #7d1e1e';
+                } else {
+                  bg = '#888'; br = '#555'; shadow = 'inset 0 -4px 0 #555';
+                }
+              }
+              const mark = phase === 'anim'
+                ? (i === q.correctIdx ? ' ✓' : i === selectedIdx && !wasCorrect ? ' ✗' : '')
+                : '';
               return (
-                <button key={i} onClick={() => answer(i)} style={{
-                  background: c.bg, border: `3px solid ${c.br}`, borderRadius: 11,
-                  boxShadow: `inset 0 -4px 0 ${c.br}`, cursor: 'pointer',
+                <button key={i} onClick={() => answer(i)} disabled={phase === 'anim'} style={{
+                  background: bg, border: `3px solid ${br}`, borderRadius: 11,
+                  boxShadow: shadow, cursor: phase === 'anim' ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px',
+                  transition: 'background 0.2s, border-color 0.2s',
                 }}>
-                  <span className="font-pixel" style={{ fontSize: 13, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.45)', flexShrink: 0 }}>{'ABCD'[i]}</span>
+                  <span className="font-pixel" style={{ fontSize: 13, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.45)', flexShrink: 0 }}>{'ABCD'[i]}{mark}</span>
                   <span className="font-pixel" style={{ fontSize: 9, color: '#fff', lineHeight: 1.3, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{opt}</span>
                 </button>
               );
