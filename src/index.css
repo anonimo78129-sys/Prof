@@ -485,19 +485,18 @@
     100% { transform: rotate(0deg); }
   }
 
-  @keyframes croc-rtl {
-    0%   { transform: translateX(110vw);          opacity: 0; }
-    3%   { transform: translateX(90vw);           opacity: 1; }
-    27%  { transform: translateX(-120vw);         opacity: 1; }
-    30%  { transform: translateX(-120vw);         opacity: 0; }
-    100% { transform: translateX(-120vw);         opacity: 0; }
-  }
-  @keyframes croc-ltr {
-    0%   { transform: translateX(-120vw) scaleX(-1); opacity: 0; }
-    3%   { transform: translateX(-100vw) scaleX(-1); opacity: 1; }
-    27%  { transform: translateX(110vw)  scaleX(-1); opacity: 1; }
-    30%  { transform: translateX(110vw)  scaleX(-1); opacity: 0; }
-    100% { transform: translateX(110vw)  scaleX(-1); opacity: 0; }
+  /* jacaré único: passa da direita p/ esquerda, pausa fora da cena,
+     vira e passa da esquerda p/ direita, pausa, repete (mais devagar) */
+  @keyframes croc-pass {
+    /* passagem 1: direita → esquerda */
+    0%    { transform: translateX(120vw) scaleX(1); }
+    33%   { transform: translateX(-130vw) scaleX(1); }
+    /* pausa fora da cena (esquerda) */
+    50%   { transform: translateX(-130vw) scaleX(-1); }
+    /* passagem 2: esquerda → direita */
+    83%   { transform: translateX(120vw) scaleX(-1); }
+    /* pausa fora da cena (direita) */
+    100%  { transform: translateX(120vw) scaleX(-1); }
   }
 
   @keyframes frog-frame {
