@@ -1377,7 +1377,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           animation: 'battle-stripes 3.5s linear infinite' }} />
 
         {/* Plataforma + sprite do inimigo — fundo direito */}
-        <div style={{ position: 'absolute', top: '8%', right: 'calc(4% + 30px)', width: 190, height: 200,
+        <div style={{ position: 'absolute', top: '8%', right: 'calc(4% + 20px)', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
           {/* Glow pulsante azul-turquesa + wrapper de shake */}
           <div style={{
