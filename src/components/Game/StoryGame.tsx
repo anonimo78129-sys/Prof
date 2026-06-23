@@ -1455,29 +1455,29 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   const G = GROUND;
   const pantanoProps: { src: string; wx: number; f: number; h: number; b: number; z: number; flip?: boolean }[] = [
     // fundo distante — altos e pequenos
-    { src: 'pantano/plant-tall.png', wx: 80,   f: 0.22, h: 80,  b: G + 110, z: 6 },
-    { src: 'pantano/plant-bush.png', wx: 340,  f: 0.25, h: 56,  b: G + 90,  z: 6, flip: true },
-    { src: 'pantano/plant-tall.png', wx: 700,  f: 0.20, h: 76,  b: G + 120, z: 6 },
-    { src: 'pantano/plant-bush.png', wx: 1050, f: 0.23, h: 60,  b: G + 100, z: 6, flip: true },
-    { src: 'pantano/plant-tall.png', wx: 1400, f: 0.21, h: 72,  b: G + 115, z: 6 },
+    { src: 'pantano/plant-tall.png', wx: 80,   f: 0.22, h: 80,  b: G + 80,  z: 6 },
+    { src: 'pantano/plant-bush.png', wx: 340,  f: 0.25, h: 56,  b: G + 60,  z: 6, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 700,  f: 0.20, h: 76,  b: G + 90,  z: 6 },
+    { src: 'pantano/plant-bush.png', wx: 1050, f: 0.23, h: 60,  b: G + 70,  z: 6, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 1400, f: 0.21, h: 72,  b: G + 85,  z: 6 },
     // meio — altura média
-    { src: 'pantano/plant-tall.png', wx: 180,  f: 0.45, h: 120, b: G + 70,  z: 8 },
-    { src: 'pantano/lily.png',       wx: 290,  f: 0.48, h: 50,  b: G + 55,  z: 8 },
-    { src: 'pantano/plant-bush.png', wx: 530,  f: 0.43, h: 90,  b: G + 80,  z: 8 },
-    { src: 'pantano/lily.png',       wx: 820,  f: 0.46, h: 45,  b: G + 60,  z: 8, flip: true },
-    { src: 'pantano/plant-tall.png', wx: 1100, f: 0.44, h: 115, b: G + 75,  z: 8, flip: true },
-    { src: 'pantano/plant-bush.png', wx: 1350, f: 0.47, h: 85,  b: G + 65,  z: 8 },
+    { src: 'pantano/plant-tall.png', wx: 180,  f: 0.45, h: 120, b: G + 40,  z: 8 },
+    { src: 'pantano/lily.png',       wx: 290,  f: 0.48, h: 50,  b: G + 25,  z: 8 },
+    { src: 'pantano/plant-bush.png', wx: 530,  f: 0.43, h: 90,  b: G + 50,  z: 8 },
+    { src: 'pantano/lily.png',       wx: 820,  f: 0.46, h: 45,  b: G + 30,  z: 8, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 1100, f: 0.44, h: 115, b: G + 45,  z: 8, flip: true },
+    { src: 'pantano/plant-bush.png', wx: 1350, f: 0.47, h: 85,  b: G + 35,  z: 8 },
     // frente — perto do chão
-    { src: 'pantano/plant-bush.png', wx: 110,  f: 0.72, h: 105, b: G + 5,   z: 11 },
-    { src: 'pantano/lily.png',       wx: 430,  f: 0.75, h: 60,  b: G - 5,   z: 11 },
-    { src: 'pantano/plant-tall.png', wx: 660,  f: 0.70, h: 140, b: G + 10,  z: 11 },
-    { src: 'pantano/plant-bush.png', wx: 950,  f: 0.73, h: 95,  b: G + 8,   z: 11, flip: true },
-    { src: 'pantano/plant-tall.png', wx: 1250, f: 0.71, h: 130, b: G - 2,   z: 11 },
+    { src: 'pantano/plant-bush.png', wx: 110,  f: 0.72, h: 105, b: G - 25,  z: 11 },
+    { src: 'pantano/lily.png',       wx: 430,  f: 0.75, h: 60,  b: G - 35,  z: 11 },
+    { src: 'pantano/plant-tall.png', wx: 660,  f: 0.70, h: 140, b: G - 20,  z: 11 },
+    { src: 'pantano/plant-bush.png', wx: 950,  f: 0.73, h: 95,  b: G - 22,  z: 11, flip: true },
+    { src: 'pantano/plant-tall.png', wx: 1250, f: 0.71, h: 130, b: G - 32,  z: 11 },
   ];
   const frogPositions = [
-    { wx: 290,  f: 0.48, z: 9,  b: G + 55 },   // sobre lily do meio
-    { wx: 430,  f: 0.75, z: 12, b: G - 5  },   // sobre lily da frente
-    { wx: 820,  f: 0.46, z: 9,  b: G + 60 },   // sobre lily do meio
+    { wx: 290,  f: 0.48, z: 9,  b: G + 25 },
+    { wx: 430,  f: 0.75, z: 12, b: G - 35 },
+    { wx: 820,  f: 0.46, z: 9,  b: G + 30 },
   ];
 
   if (bg === 'pantano') {
@@ -2275,7 +2275,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         const vw = typeof window !== 'undefined' ? window.innerWidth : 900;
         if (sx > vw + 200 || sx < -200) return null;
         return (
-          <div key={`rp${i}`} style={{ position: 'absolute', left: sx, bottom: FLOOR, zIndex: 26, transform: p.flip ? 'scaleX(-1)' : undefined }}>
+          <div key={`rp${i}`} style={{ position: 'absolute', left: sx, bottom: FLOOR - 30, zIndex: 26, transform: p.flip ? 'scaleX(-1)' : undefined }}>
             <img src={`/assets/${p.src}`} alt="" style={{ height: p.h, width: 'auto', imageRendering: 'pixelated', display: 'block' }} />
           </div>
         );
