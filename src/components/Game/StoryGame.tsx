@@ -88,6 +88,7 @@ function ImagePreloader() {
     '/assets/estufa/reflect-1.png', '/assets/estufa/reflect-2.png',
     '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png', '/assets/estufa/trunk-3.png',
     '/assets/estufa/computer-off.png', '/assets/estufa/computer-on.png',
+    '/assets/pantano/bg.png',
     '/assets/pantano/back-silh.png', '/assets/pantano/hills.png', '/assets/pantano/dead-trees.png',
     '/assets/pantano/mix-trees.png', '/assets/pantano/ground-fg.png',
     '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
@@ -1451,14 +1452,20 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   // ── Ato 5 — Pântano (5 camadas parallax, mesmo tamanho do Ato 1) ──────────
   if (bg === 'pantano') {
     const PANT_LAYERS = [
-      { src: '/assets/pantano/back-silh.png', f: 0.05 },
-      { src: '/assets/pantano/hills.png',      f: 0.18 },
-      { src: '/assets/pantano/dead-trees.png', f: 0.40 },
-      { src: '/assets/pantano/mix-trees.png',  f: 0.70 },
+      { src: '/assets/pantano/dead-trees.png', f: 0.05 },
+      { src: '/assets/pantano/mix-trees.png',  f: 0.18 },
+      { src: '/assets/pantano/back-silh.png',  f: 0.40 },
+      { src: '/assets/pantano/hills.png',       f: 0.70 },
     ];
     return (
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
-        background: 'linear-gradient(to bottom, #8aaa70 0%, #a0c080 40%, #bed8aa 100%)' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden' }}>
+
+        {/* fundo — gradiente verde, cobre 100% da altura */}
+        <img src="/assets/pantano/bg.png" alt="" style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center top',
+          zIndex: 0, imageRendering: 'pixelated',
+        }} />
 
         {PANT_LAYERS.map((l, i) => (
           <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
