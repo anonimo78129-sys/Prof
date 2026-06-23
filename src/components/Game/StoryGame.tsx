@@ -1445,13 +1445,13 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
       {/* ── Painel inferior: pergunta em cima, opções em baixo ── */}
       <div style={{ borderTop: '4px solid #202018', display: 'flex', flexDirection: 'column',
-        background: 'linear-gradient(180deg,#3a4a78 0%,#2a3658 100%)', padding: 7, gap: 7 }}>
+        background: 'linear-gradient(180deg,#3a4a78 0%,#2a3658 100%)', padding: 12, gap: 10, minHeight: 240 }}>
 
         {/* Caixa da pergunta / mensagem */}
         <div style={{ background: 'linear-gradient(180deg,#f8f8f0,#e4e4d4)',
           border: '3px solid #383028', borderRadius: 8,
           boxShadow: 'inset 2px 2px 0 #fffff6, inset -2px -2px 0 #c0c0a4',
-          padding: '9px 14px', minHeight: 48, display: 'flex', alignItems: 'center',
+          padding: '12px 18px', minHeight: 62, display: 'flex', alignItems: 'center',
           justifyContent: phase === 'success' ? 'space-between' : 'flex-start' }}>
           <span className="font-pixel" style={{ fontSize: 12, color: '#282018', lineHeight: 1.7 }}>{log}</span>
           {phase === 'success' && (
@@ -1464,7 +1464,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
         {/* Grade 2×2 de alternativas — visível durante 'question' e 'anim' (para mostrar feedback) */}
         {(phase === 'question' || phase === 'anim') && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 7, minHeight: 90 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 10, minHeight: 120 }}>
             {q.options.map((opt, i) => {
               const c = OPT_COLORS[i];
               // Durante anim: verde = resposta correta, vermelho = selecionada errada, resto escurecido
@@ -1485,7 +1485,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
                 <button key={i} onClick={() => answer(i)} disabled={phase === 'anim'} style={{
                   background: bg, border: `3px solid ${br}`, borderRadius: 11,
                   boxShadow: shadow, cursor: phase === 'anim' ? 'default' : 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px',
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px',
                   transition: 'background 0.2s, border-color 0.2s',
                 }}>
                   <span className="font-pixel" style={{ fontSize: 13, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.45)', flexShrink: 0 }}>{'ABCD'[i]}{mark}</span>
