@@ -1380,8 +1380,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
               height: 234, width: 'auto', imageRendering: 'pixelated',
               animation: fainting ? 'battle-faint 1.4s ease-in forwards'
                 : shakeEnemy ? 'battle-shake 0.4s ease' : undefined,
-              opacity: flashEnemy ? 0.2 : 1, transition: 'opacity 0.06s',
-              filter: flashEnemy ? 'brightness(3)' : undefined,
+              opacity: flashEnemy ? 0.55 : 1, transition: 'opacity 0.06s',
+              filter: flashEnemy ? 'brightness(1.6) saturate(0.3)' : undefined,
             }}
           />
         </div>
@@ -1411,7 +1411,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
             height: 150, width: 'auto', imageRendering: 'pixelated',
             animation: shakePlayer ? 'battle-shake 0.4s ease' : undefined,
-            opacity: flashPlayer ? 0.15 : 1, transition: 'opacity 0.06s',
+            opacity: flashPlayer ? 0.55 : 1, transition: 'opacity 0.06s',
           }} />
         </div>
 
