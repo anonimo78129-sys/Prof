@@ -161,6 +161,15 @@
     0%, 100% { transform: translateY(0) scale(1); }
     50%       { transform: translateY(-6px) scale(1.04); }
   }
+  @keyframes enemy-vibrate {
+    0%, 100% { transform: translateX(0); }
+    15%       { transform: translateX(-2px); }
+    30%       { transform: translateX(2px); }
+    45%       { transform: translateX(-2px); }
+    60%       { transform: translateX(2px); }
+    75%       { transform: translateX(-1px); }
+    90%       { transform: translateX(1px); }
+  }
   @keyframes enemy-glow-pulse {
     0%, 100% { filter: drop-shadow(0 0 6px #00e5ff) drop-shadow(0 0 2px #00bcd4); }
     50%       { filter: drop-shadow(0 0 18px #00e5ff) drop-shadow(0 0 8px #00bcd4); }

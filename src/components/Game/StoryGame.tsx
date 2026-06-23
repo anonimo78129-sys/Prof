@@ -1383,7 +1383,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           <div style={{
             position: 'absolute', bottom: -126, left: 0, right: 0,
             display: 'flex', justifyContent: 'center',
-            animation: shakeEnemy ? 'battle-shake 0.4s ease' : fainting ? 'battle-faint 1.4s ease-in forwards' : undefined,
+            animation: shakeEnemy ? 'battle-shake 0.4s ease' : fainting ? 'battle-faint 1.4s ease-in forwards' : enemyAction === 'attack' ? 'enemy-vibrate 0.18s linear infinite' : undefined,
             filter: !fainting && !shakeEnemy ? undefined : undefined, // shake via animation acima
           }}>
             {/* Glow (ataque) + flash branco (dano) */}
