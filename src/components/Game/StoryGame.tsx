@@ -1464,6 +1464,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* camada_3 — back-silh (em cima da 4) */}
         <div style={layer('/assets/pantano/back-silh.png', 0.40, 2, { backgroundSize: 'auto 350px' })} />
+
+        {/* camada_2 — mix-trees (em cima da 3) */}
+        <div style={layer('/assets/pantano/mix-trees.png', 0.18, 3, { backgroundSize: 'auto 350px' })} />
       </div>
     );
   }
