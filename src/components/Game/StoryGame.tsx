@@ -1468,7 +1468,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     { src: 'pantano/plant-tall.png', wx: 1100, f: 0.44, h: 115, b: G + 45,  z: 8, flip: true },
     { src: 'pantano/plant-bush.png', wx: 1350, f: 0.47, h: 85,  b: G + 35,  z: 8 },
     // frente — perto do chão
-    { src: 'pantano/plant-bush.png', wx: 110,  f: 0.72, h: 105, b: G - 25,  z: 11 },
     { src: 'pantano/lily.png',       wx: 430,  f: 0.75, h: 60,  b: G - 35,  z: 11 },
     { src: 'pantano/plant-tall.png', wx: 660,  f: 0.70, h: 140, b: G - 20,  z: 11 },
     { src: 'pantano/plant-bush.png', wx: 950,  f: 0.73, h: 95,  b: G - 22,  z: 11, flip: true },
