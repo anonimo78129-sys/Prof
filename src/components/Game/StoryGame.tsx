@@ -1389,7 +1389,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             {/* Glow always-on aplicado via wrapper interno */}
             <div style={{
               position: 'relative', display: 'inline-flex',
-              animation: 'enemy-glow-pulse 2.2s ease-in-out infinite',
+              animation: enemyAction === 'attack' ? 'enemy-glow-pulse 2.2s ease-in-out infinite' : undefined,
             }}>
               {/* Flash azul ao levar dano */}
               {flashEnemy && (
