@@ -91,7 +91,7 @@ function ImagePreloader() {
     '/assets/pantano/bg.png',
     '/assets/pantano/back-silh.png', '/assets/pantano/hills.png', '/assets/pantano/hills2.png', '/assets/pantano/dead-trees.png',
     '/assets/pantano/mix-trees.png', '/assets/pantano/logs.png', '/assets/pantano/ground-fg.png', '/assets/pantano/soil.png',
-    '/assets/pantano/frog1.png', '/assets/pantano/frog2.png', '/assets/pantano/lily.png',
+    '/assets/pantano/croc.png', '/assets/pantano/frog1.png', '/assets/pantano/frog2.png', '/assets/pantano/lily.png',
     '/assets/pantano/plant-tall.png', '/assets/pantano/plant-bush.png',
     '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
     '/assets/ato3/sky.png',
@@ -1491,6 +1491,12 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* camada_2 — mix-trees */}
         <div style={layer('/assets/pantano/mix-trees.png', 0.40, 3, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 5px)' })} />
+
+        {/* jacaré gigante — passa atrás de dead-trees */}
+        <div style={{ position: 'absolute', bottom: GROUND - 10, zIndex: 3, left: 0,
+          animation: 'croc-cross 22s linear 4s infinite', pointerEvents: 'none' }}>
+          <img src="/assets/pantano/croc.png" alt="" style={{ height: 180, width: 'auto', imageRendering: 'pixelated' }} />
+        </div>
 
         {/* camada_1 — dead-trees (mais próxima, move mais) */}
         <div style={layer('/assets/pantano/dead-trees.png', 0.70, 4, { backgroundSize: 'auto 350px' })} />
