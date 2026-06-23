@@ -1470,6 +1470,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {/* camada_1 — dead-trees (em cima da 2) */}
         <div style={layer('/assets/pantano/dead-trees.png', 0.05, 4, { backgroundSize: 'auto 350px' })} />
+
+        {/* camada_0 — ground-fg (estático, mais à frente) */}
+        <div style={layer('/assets/pantano/ground-fg.png', 0, 5, { backgroundSize: 'auto 350px' })} />
       </div>
     );
   }
