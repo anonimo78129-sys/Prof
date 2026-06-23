@@ -88,7 +88,9 @@ function ImagePreloader() {
     '/assets/estufa/reflect-1.png', '/assets/estufa/reflect-2.png',
     '/assets/estufa/trunk-1.png', '/assets/estufa/trunk-2.png', '/assets/estufa/trunk-3.png',
     '/assets/estufa/computer-off.png', '/assets/estufa/computer-on.png',
-    '/assets/scenes/pantano.jpg', '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
+    '/assets/pantano/back-silh.png', '/assets/pantano/hills.png', '/assets/pantano/dead-trees.png',
+    '/assets/pantano/mix-trees.png', '/assets/pantano/ground-fg.png',
+    '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
     '/assets/ato3/tree-teal.png', '/assets/ato3/trees-green.png',
@@ -1446,26 +1448,70 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     );
   }
 
-  // ── Atos 5-7: cenas de imagem única (pântano / corredor de luz / final) ──
-  if (bg === 'pantano' || bg === 'corredor' || bg === 'final') {
+  // ── Ato 5 — Pântano (5 camadas parallax) ─────────────────────────────────
+  if (bg === 'pantano') {
+    const PANT_LAYERS = [
+      { src: '/assets/pantano/back-silh.png', f: 0.05 },
+      { src: '/assets/pantano/hills.png',      f: 0.18 },
+      { src: '/assets/pantano/dead-trees.png', f: 0.40 },
+      { src: '/assets/pantano/mix-trees.png',  f: 0.70 },
+    ];
+    return (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: '#bed8aa' }}>
+
+        {/* camadas parallax */}
+        {PANT_LAYERS.map((l, i) => (
+          <div key={l.src} style={{
+            position: 'absolute', inset: 0, zIndex: i + 1,
+            backgroundImage: `url('${l.src}')`,
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'cover',
+            backgroundPositionX: `calc(50% + ${Math.round(-worldX * l.f)}px)`,
+            backgroundPositionY: 'bottom',
+            imageRendering: 'pixelated',
+          }} />
+        ))}
+
+        {/* ground-fg — estático no início, sem parallax */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 5,
+          backgroundImage: `url('/assets/pantano/ground-fg.png')`,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
+          backgroundPosition: 'bottom left',
+          imageRendering: 'pixelated',
+        }} />
+
+        <SceneParticles kind="pantano" />
+
+        {/* chão */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
+          backgroundImage: `url('/assets/world/ground-dark.png')`,
+          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
+          imageRendering: 'pixelated',
+        }} />
+      </div>
+    );
+  }
+
+  // ── Atos 6-7: cenas de imagem única (corredor de luz / final) ─────────────
+  if (bg === 'corredor' || bg === 'final') {
     const cfg = {
-      pantano:  { img: '/assets/scenes/pantano.jpg',  base: '#1a2a18', tint: 'rgba(20,45,22,0.30)', tintAnim: 'light-pulse-dark 5s ease-in-out infinite' },
       corredor: { img: '/assets/scenes/corredor.jpg', base: '#06121f', tint: 'rgba(20,120,200,0.14)', tintAnim: 'light-pulse 3s ease-in-out infinite' },
       final:    { img: '/assets/scenes/final.jpg',    base: '#1a1208', tint: 'rgba(255,210,120,0.10)', tintAnim: undefined },
     }[bg];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
-        {/* fundo — leve parallax */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
           backgroundImage: `url('${cfg.img}')`, backgroundSize: 'cover',
           backgroundPositionX: `calc(50% + ${Math.round(-worldX * 0.08)}px)`, backgroundPositionY: 'center',
           backgroundRepeat: 'no-repeat', imageRendering: 'pixelated',
         }} />
-        {/* tom de cor / clima */}
         <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />
 
-        {/* feixes de luz vertical (corredor azul) */}
         {bg === 'corredor' && [18, 38, 58, 78].map((lx, i) => (
           <div key={i} style={{
             position: 'absolute', top: '-10%', left: `${lx}%`, width: 60, height: '120%', zIndex: 3,
@@ -1476,24 +1522,17 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           }} />
         ))}
 
-        {/* brilho dourado de sol no topo (final) */}
         {bg === 'final' && (
           <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
             background: 'radial-gradient(circle at 50% -10%, rgba(255,240,190,0.55), transparent 55%)' }} />
         )}
 
-        {/* atmosfera por cena */}
-        {bg === 'pantano' && <SceneParticles kind="pantano" />}
         {bg === 'final' && <SceneParticles kind="final" />}
         {bg === 'corredor' && <LightMotes />}
 
-        {/* vinheta para dar profundidade (corredor / final) */}
-        {(bg === 'corredor' || bg === 'final') && (
-          <div style={{ position: 'absolute', inset: 0, zIndex: 7, pointerEvents: 'none',
-            boxShadow: 'inset 0 0 160px 40px rgba(0,0,0,0.55)' }} />
-        )}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 7, pointerEvents: 'none',
+          boxShadow: 'inset 0 0 160px 40px rgba(0,0,0,0.55)' }} />
 
-        {/* chão */}
         <div style={{
           position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
           backgroundImage: `url('/assets/world/ground-dark.png')`,
