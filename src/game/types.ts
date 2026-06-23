@@ -64,6 +64,15 @@ export type Beat =
       success: string[];
       hint?: string;
     }
+  // Combate estilo Pokémon GBA: o jogador "prova que entende a natureza"
+  // usando movimentos botânicos contra a Consciência Verde. Toda a lógica de
+  // batalha (moves, inimigo, HP) é hardcoded no componente BattleBeat.
+  | {
+      t: 'battle';
+      intro?: string;
+      success: string[];      // falas do estudante ao vencer
+      hint?: string;
+    }
   // Escolha final: decisão com dois desfechos distintos
   | {
       t: 'choice';
