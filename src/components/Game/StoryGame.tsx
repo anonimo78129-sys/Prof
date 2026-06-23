@@ -1466,7 +1466,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={layer('/assets/pantano/back-silh.png', 0.18, 2, { backgroundSize: 'auto 350px' })} />
 
         {/* camada_2 — mix-trees */}
-        <div style={layer('/assets/pantano/mix-trees.png', 0.40, 3, { backgroundSize: 'auto 350px' })} />
+        <div style={layer('/assets/pantano/mix-trees.png', 0.40, 3, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 5px)' })} />
 
         {/* camada_1 — dead-trees (mais próxima, move mais) */}
         <div style={layer('/assets/pantano/dead-trees.png', 0.70, 4, { backgroundSize: 'auto 350px' })} />
