@@ -1510,7 +1510,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         <div style={layer('/assets/pantano/dead-trees.png', 0.70, 4, { backgroundSize: 'auto 350px' })} />
 
         {/* troncos caídos — atrás de ground-fg */}
-        <div style={layer('/assets/pantano/logs.png', 0.85, 5, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 10px)' })} />
+        <div style={layer('/assets/pantano/logs.png', 0.85, 5, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 30px)' })} />
 
         {/* camada_0 — ground-fg (ancorada ao início do mundo, não repete) */}
         <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' })} />
