@@ -1455,7 +1455,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden' }}>
         <img src="/assets/pantano/bg.png" alt="" style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover', objectPosition: 'center top',
+          objectFit: 'cover', objectPosition: 'center 50px',
           zIndex: 0, imageRendering: 'pixelated',
         }} />
 
