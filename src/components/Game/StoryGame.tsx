@@ -2168,13 +2168,16 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       onContextMenu={(e) => e.preventDefault()}>
       <ImagePreloader />
       {/* cobre o verde do body na faixa do FLOOR (abaixo do mundo) */}
-      {bg !== 'pantano' && <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
-        backgroundImage: "url('/assets/world/ground-dark.png')",
-        backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
-        backgroundPositionX: `${Math.round(-worldX)}px`,
-        imageRendering: 'pixelated',
-      }} />}
+      {bg === 'pantano'
+        ? <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR, background: '#1a2a1a' }} />
+        : <div style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
+            backgroundImage: "url('/assets/world/ground-dark.png')",
+            backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
+            backgroundPositionX: `${Math.round(-worldX)}px`,
+            imageRendering: 'pixelated',
+          }} />
+      }
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
