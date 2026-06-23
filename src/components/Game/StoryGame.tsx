@@ -1371,11 +1371,6 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         {/* Plataforma + sprite do inimigo — fundo direito */}
         <div style={{ position: 'absolute', top: '8%', right: '4%', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
-          {/* plataforma elíptica */}
-          <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-            width: 180, height: 42, borderRadius: '50%',
-            background: 'radial-gradient(ellipse at 50% 35%, #7fc77f 0%, #4f9a55 60%, #3c7a44 100%)',
-            boxShadow: '0 6px 10px rgba(0,40,0,0.25)' }} />
           {/* sprite da Consciência Verde — alterna frame 1/2 */}
           <img
             src={`/assets/enemies/consciencia-idle-${idleFrame}.png`}
