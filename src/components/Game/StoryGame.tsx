@@ -1449,12 +1449,15 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     );
   }
 
-  // ── Ato 5 — Pântano (5 camadas parallax, mesmo tamanho do Ato 1) ──────────
+  // ── Ato 5 — Pântano ───────────────────────────────────────────────────────
   if (bg === 'pantano') {
-    const PANT_LAYERS = [
-      { src: '/assets/pantano/dead-trees.png', f: 0.05 },
-      { src: '/assets/pantano/mix-trees.png',  f: 0.18 },
-      { src: '/assets/pantano/back-silh.png',  f: 0.40 },
+    // camada_0 → camada_4, de fundo para frente
+    const PANT: { src: string; f: number; static?: boolean }[] = [
+      { src: '/assets/pantano/ground-fg.png',  f: 0,    static: true }, // camada_0 — estática
+      { src: '/assets/pantano/dead-trees.png', f: 0.05 },               // camada_1
+      { src: '/assets/pantano/mix-trees.png',  f: 0.18 },               // camada_2
+      { src: '/assets/pantano/back-silh.png',  f: 0.40 },               // camada_3
+      { src: '/assets/pantano/hills.png',       f: 0.70 },               // camada_4
     ];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden' }}>
@@ -1466,23 +1469,12 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           zIndex: 0, imageRendering: 'pixelated',
         }} />
 
-        {PANT_LAYERS.map((l, i) => (
-          <div key={l.src} style={layer(l.src, l.f, i + 1, { backgroundSize: 'auto 350px' })} />
+        {PANT.map((l, i) => (
+          <div key={l.src} style={layer(l.src, l.f, i + 1, {
+            backgroundSize: 'auto 350px',
+            ...(l.static ? { backgroundRepeat: 'no-repeat', backgroundPositionX: '0px' } : {}),
+          })} />
         ))}
-
-        {/* ground-fg — estático no canto esquerdo (sem scroll) */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 4,
-          backgroundImage: `url('/assets/pantano/ground-fg.png')`,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'auto 350px',
-          backgroundPositionX: '0px',
-          backgroundPositionY: 'bottom',
-          imageRendering: 'pixelated',
-        }} />
-
-        {/* hills — última camada, na frente de tudo */}
-        <div style={layer('/assets/pantano/hills.png', 0.70, 5, { backgroundSize: 'auto 350px' })} />
 
         <SceneParticles kind="pantano" />
 
