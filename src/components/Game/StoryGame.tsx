@@ -90,7 +90,7 @@ function ImagePreloader() {
     '/assets/estufa/computer-off.png', '/assets/estufa/computer-on.png',
     '/assets/pantano/bg.png',
     '/assets/pantano/back-silh.png', '/assets/pantano/hills.png', '/assets/pantano/hills2.png', '/assets/pantano/dead-trees.png',
-    '/assets/pantano/mix-trees.png', '/assets/pantano/ground-fg.png', '/assets/pantano/soil.png',
+    '/assets/pantano/mix-trees.png', '/assets/pantano/logs.png', '/assets/pantano/ground-fg.png', '/assets/pantano/soil.png',
     '/assets/scenes/corredor.jpg', '/assets/scenes/final.jpg',
     '/assets/ato3/sky.png',
     '/assets/ato3/mountain-back.png', '/assets/ato3/mountain-front.png',
@@ -1474,8 +1474,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* camada_1 — dead-trees (mais próxima, move mais) */}
         <div style={layer('/assets/pantano/dead-trees.png', 0.70, 4, { backgroundSize: 'auto 350px' })} />
 
+        {/* troncos caídos — atrás de ground-fg */}
+        <div style={layer('/assets/pantano/logs.png', 0.85, 5, { backgroundSize: 'auto 350px' })} />
+
         {/* camada_0 — ground-fg (ancorada ao início do mundo, não repete) */}
-        <div style={layer('/assets/pantano/ground-fg.png', 1.0, 5, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' })} />
+        <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' })} />
       </div>
     );
   }
