@@ -1311,121 +1311,174 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
   const ePct = (enemyHp / ENEMY_MAX) * 100;
   const pPct = (playerHp / PLAYER_MAX) * 100;
-  const hpCol = (pct: number) => pct > 50 ? '#48c850' : pct > 25 ? '#f8d030' : '#f82828';
-  const BOX: React.CSSProperties = { background: '#f0f0e8', border: '3px solid #181818', borderRadius: 4, padding: '5px 10px 7px' };
+  const hpCol = (pct: number) => pct > 50 ? '#58d048' : pct > 25 ? '#f8c030' : '#f04040';
+  const fainting = phase === 'victory';
+
+  // Caixa de HP estilo Pokémon GBA (creme, borda oliva, relevo)
+  const hpBox: React.CSSProperties = {
+    position: 'absolute',
+    background: 'linear-gradient(180deg,#f8f8e8 0%,#e0e0c4 100%)',
+    border: '3px solid #383028', borderRadius: 7,
+    boxShadow: 'inset 2px 2px 0 #fffff4, inset -2px -2px 0 #b8b89c, 2px 2px 0 rgba(0,0,0,0.28)',
+    padding: '6px 12px 8px',
+  };
+  const hpLabel: React.CSSProperties = {
+    fontSize: 10, color: '#f0a020', WebkitTextStroke: '0.4px #604010',
+    fontStyle: 'italic', fontWeight: 700, marginRight: 4,
+  };
+  const hpTrack: React.CSSProperties = {
+    flex: 1, height: 6, background: '#404038', borderRadius: 3,
+    overflow: 'hidden', border: '1px solid #181810',
+  };
+  // Botões de resposta no estilo dos comandos do Pokémon (FIGHT/BAG/...)
+  const OPT_COLORS = [
+    { bg: '#ef5350', br: '#9e2622' }, // A vermelho
+    { bg: '#f5a23a', br: '#a4641a' }, // B laranja
+    { bg: '#52ab57', br: '#2c6e30' }, // C verde
+    { bg: '#4f8ef0', br: '#27539e' }, // D azul
+  ];
 
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', flexDirection: 'column',
-      background: 'linear-gradient(180deg, #78c8a0 0%, #58a870 45%, #3a8050 100%)' }}>
+    <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Arena ── */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
+        background: 'linear-gradient(180deg,#bfe9c8 0%,#9bd7a6 50%,#6fb072 51%,#4d9255 100%)' }}>
 
-        {/* Enemy HP box — upper left */}
-        <div style={{ ...BOX, position: 'absolute', top: 14, left: 12, minWidth: 168 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <span className="font-pixel" style={{ fontSize: 12, color: '#181818' }}>Consciência Verde</span>
-            <span className="font-pixel" style={{ fontSize: 10, color: '#555' }}>Lv??</span>
+        {/* Listras diagonais ao fundo (estilo VS do Pokémon) */}
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none',
+          backgroundImage: 'repeating-linear-gradient(115deg, transparent 0, transparent 18px, rgba(255,255,255,0.10) 18px, rgba(255,255,255,0.10) 28px)',
+          animation: 'battle-stripes 3.5s linear infinite' }} />
+
+        {/* Plataforma + sprite do inimigo — fundo direito */}
+        <div style={{ position: 'absolute', top: '16%', right: '7%', width: 170, height: 150,
+          animation: 'battle-enemy-in 0.5s ease-out both' }}>
+          {/* plataforma elíptica */}
+          <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+            width: 168, height: 40, borderRadius: '50%',
+            background: 'radial-gradient(ellipse at 50% 35%, #7fc77f 0%, #4f9a55 60%, #3c7a44 100%)',
+            boxShadow: '0 6px 10px rgba(0,40,0,0.25)' }} />
+          {/* orb da Consciência Verde */}
+          <div style={{
+            position: 'absolute', bottom: 18, left: '50%', width: 120, height: 120, marginLeft: -60,
+            animation: fainting ? 'battle-faint 1.4s ease-in forwards'
+              : shakeEnemy ? 'battle-shake 0.4s ease' : 'enemy-breathe 3s ease-in-out infinite',
+            opacity: flashEnemy ? 0.15 : 1, transition: 'opacity 0.06s',
+          }}>
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.22)', animation: 'ring-expand 2.6s ease-out infinite' }} />
+            <div style={{ position: 'absolute', inset: 14, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.32)', animation: 'ring-expand 2.6s ease-out 0.9s infinite' }} />
+            <div style={{
+              position: 'absolute', inset: 28, borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%, #b0ffbf 0%, #2ec84a 50%, #145a28 100%)',
+              boxShadow: '0 0 26px rgba(60,255,90,0.75), 0 0 9px rgba(60,255,90,0.95)',
+            }}>
+              <svg viewBox="0 0 48 48" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.55 }}>
+                {[[24,24,6,6],[24,24,42,10],[24,24,44,32],[24,24,16,44],[24,24,4,36]].map(([x1,y1,x2,y2],i) => (
+                  <g key={i}><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b0ffbf" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx={x2} cy={y2} r="2.5" fill="#b0ffbf"/></g>
+                ))}
+                <circle cx="24" cy="24" r="4" fill="rgba(200,255,210,0.7)"/>
+              </svg>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span className="font-pixel" style={{ fontSize: 10, color: '#181818' }}>HP</span>
-            <div style={{ flex: 1, height: 7, background: '#585858', borderRadius: 2, overflow: 'hidden' }}>
+        </div>
+
+        {/* Caixa de HP do inimigo — canto superior esquerdo */}
+        <div style={{ ...hpBox, top: 14, left: 12, minWidth: 196 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+            <span className="font-pixel" style={{ fontSize: 12, color: '#282018' }}>Consciência Verde</span>
+            <span className="font-pixel" style={{ fontSize: 9, color: '#6a5' }}>Lv??</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span className="font-pixel" style={hpLabel}>HP</span>
+            <div style={hpTrack}>
               <div style={{ width: `${ePct}%`, height: '100%', background: hpCol(ePct), transition: 'width 0.45s ease, background 0.45s' }} />
             </div>
           </div>
         </div>
 
-        {/* Enemy sprite — upper right */}
-        <div style={{ position: 'absolute', right: 36, top: 68, width: 110, height: 24, background: 'rgba(0,60,0,0.28)', borderRadius: '50%' }} />
-        <div style={{
-          position: 'absolute', right: 50, top: 14, width: 88, height: 88,
-          animation: shakeEnemy ? 'battle-shake 0.4s ease' : 'enemy-breathe 3s ease-in-out infinite',
-          opacity: flashEnemy ? 0.15 : 1, transition: 'opacity 0.06s',
-        }}>
-          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.22)', animation: 'ring-expand 2.6s ease-out infinite' }} />
-          <div style={{ position: 'absolute', inset: 10, borderRadius: '50%', border: '3px solid rgba(100,255,130,0.32)', animation: 'ring-expand 2.6s ease-out 0.9s infinite' }} />
-          <div style={{
-            position: 'absolute', inset: 20, borderRadius: '50%',
-            background: 'radial-gradient(circle at 35% 35%, #b0ffbf 0%, #2ec84a 50%, #145a28 100%)',
-            boxShadow: '0 0 20px rgba(60,255,90,0.75), 0 0 7px rgba(60,255,90,0.95)',
-          }}>
-            <svg viewBox="0 0 48 48" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.55 }}>
-              {[[24,24,6,6],[24,24,42,10],[24,24,44,32],[24,24,16,44],[24,24,4,36]].map(([x1,y1,x2,y2],i) => (
-                <g key={i}><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b0ffbf" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx={x2} cy={y2} r="2.5" fill="#b0ffbf"/></g>
-              ))}
-              <circle cx="24" cy="24" r="4" fill="rgba(200,255,210,0.7)"/>
-            </svg>
-          </div>
+        {/* Plataforma + sprite do jogador — frente esquerda */}
+        <div style={{ position: 'absolute', bottom: '4%', left: '4%', width: 200, height: 175,
+          animation: 'battle-player-in 0.5s ease-out both' }}>
+          <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+            width: 198, height: 46, borderRadius: '50%',
+            background: 'radial-gradient(ellipse at 50% 35%, #7fc77f 0%, #4f9a55 60%, #3c7a44 100%)',
+            boxShadow: '0 7px 12px rgba(0,40,0,0.28)' }} />
+          <img src="/assets/chars/player-idle-1.png" alt="" style={{
+            position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+            height: 150, width: 'auto', imageRendering: 'pixelated',
+            animation: shakePlayer ? 'battle-shake 0.4s ease' : undefined,
+            opacity: flashPlayer ? 0.15 : 1, transition: 'opacity 0.06s',
+          }} />
         </div>
 
-        {/* Player sprite — lower left */}
-        <div style={{ position: 'absolute', left: 20, bottom: 68, width: 90, height: 20, background: 'rgba(0,50,0,0.32)', borderRadius: '50%' }} />
-        <img src="/assets/chars/player-idle-1.png" alt="" style={{
-          position: 'absolute', left: 34, bottom: 65, height: 88, width: 'auto', imageRendering: 'pixelated',
-          animation: shakePlayer ? 'battle-shake 0.4s ease' : undefined,
-          opacity: flashPlayer ? 0.15 : 1, transition: 'opacity 0.06s',
-        }} />
-
-        {/* Player HP box — lower right */}
-        <div style={{ ...BOX, position: 'absolute', bottom: 6, right: 10, minWidth: 168 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <span className="font-pixel" style={{ fontSize: 12, color: '#181818' }}>Estudante</span>
-            <span className="font-pixel" style={{ fontSize: 10, color: '#555' }}>Lv1</span>
+        {/* Caixa de HP do jogador — canto inferior direito */}
+        <div style={{ ...hpBox, bottom: 12, right: 12, minWidth: 200 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+            <span className="font-pixel" style={{ fontSize: 12, color: '#282018' }}>Estudante</span>
+            <span className="font-pixel" style={{ fontSize: 9, color: '#6a5' }}>Lv1</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-            <span className="font-pixel" style={{ fontSize: 10, color: '#181818' }}>HP</span>
-            <div style={{ flex: 1, height: 7, background: '#585858', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+            <span className="font-pixel" style={hpLabel}>HP</span>
+            <div style={hpTrack}>
               <div style={{ width: `${pPct}%`, height: '100%', background: hpCol(pPct), transition: 'width 0.45s ease, background 0.45s' }} />
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span className="font-pixel" style={{ fontSize: 11, color: '#181818' }}>{playerHp}/{PLAYER_MAX}</span>
+            <span className="font-pixel" style={{ fontSize: 11, color: '#282018' }}>{playerHp}/{PLAYER_MAX}</span>
           </div>
         </div>
       </div>
 
-      {/* ── Text box + opções ── */}
-      <div style={{ display: 'flex', borderTop: '3px solid #181818', background: '#f0f0e8', minHeight: 118 }}>
-        <div style={{ flex: 1, padding: '10px 14px', display: 'flex', alignItems: 'center' }}>
-          <span className="font-pixel" style={{ fontSize: 12, color: '#181818', lineHeight: 1.7 }}>{log}</span>
+      {/* ── Caixa de texto + menu de opções (estilo GBA) ── */}
+      <div style={{ display: 'flex', borderTop: '4px solid #202018', minHeight: 140,
+        background: 'linear-gradient(180deg,#3a4a78 0%,#2a3658 100%)', padding: 7, gap: 7 }}>
+
+        {/* Caixa de diálogo / pergunta */}
+        <div style={{ flex: 1.15, background: 'linear-gradient(180deg,#f8f8f0,#e4e4d4)',
+          border: '3px solid #383028', borderRadius: 8,
+          boxShadow: 'inset 2px 2px 0 #fffff6, inset -2px -2px 0 #c0c0a4',
+          padding: '11px 14px', display: 'flex', alignItems: 'center' }}>
+          <span className="font-pixel" style={{ fontSize: 12, color: '#282018', lineHeight: 1.7 }}>{log}</span>
         </div>
 
-        {phase === 'question' && (
-          <div style={{ width: 312, borderLeft: '3px solid #181818', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' }}>
-            {q.options.map((opt, i) => (
-              <button key={i} onClick={() => answer(i)} style={{
-                background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
-                borderBottom: i < 2 ? '2px solid #c8c8c8' : 'none',
-                borderRight: i % 2 === 0 ? '2px solid #c8c8c8' : 'none',
-                padding: '5px 7px', display: 'flex', alignItems: 'center', gap: 5,
-                transition: 'background 0.15s',
-              }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#d8e8d0')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <span className="font-pixel" style={{ fontSize: 10, color: '#c03030' }}>{'ABCD'[i]}</span>
-                <span className="font-pixel" style={{ fontSize: 8.5, color: '#181818', lineHeight: 1.45 }}>{opt}</span>
+        {/* Menu de ações */}
+        <div style={{ width: '46%', maxWidth: 340, minWidth: 200, display: 'flex' }}>
+          {phase === 'question' && (
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 7 }}>
+              {q.options.map((opt, i) => {
+                const c = OPT_COLORS[i];
+                return (
+                  <button key={i} onClick={() => answer(i)} style={{
+                    background: c.bg, border: `3px solid ${c.br}`, borderRadius: 11,
+                    boxShadow: `inset 0 -4px 0 ${c.br}`, cursor: 'pointer', textAlign: 'left',
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px',
+                  }}>
+                    <span className="font-pixel" style={{ fontSize: 13, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.45)' }}>{'ABCD'[i]}</span>
+                    <span className="font-pixel" style={{ fontSize: 8.5, color: '#fff', lineHeight: 1.3, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{opt}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {phase === 'defeat' && (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={retry} style={{ background: '#ef5350', border: '3px solid #9e2622',
+                borderRadius: 11, boxShadow: 'inset 0 -4px 0 #9e2622', padding: '10px 16px', cursor: 'pointer' }}>
+                <span className="font-pixel" style={{ fontSize: 12, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.4)' }}>Tentar novamente</span>
               </button>
-            ))}
-          </div>
-        )}
+            </div>
+          )}
 
-        {phase === 'defeat' && (
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px' }}>
-            <button onClick={retry} style={{ background: '#c03030', border: '3px solid #181818', borderRadius: 4, padding: '8px 14px', cursor: 'pointer' }}>
-              <span className="font-pixel" style={{ fontSize: 12, color: '#fff' }}>Tentar novamente</span>
-            </button>
-          </div>
-        )}
-
-        {phase === 'success' && (
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px' }}>
-            <button onClick={nextSuccess} style={{ background: 'transparent', border: 'none', cursor: 'pointer', animation: 'hint-bob 1s ease-in-out infinite' }}>
-              <span className="font-pixel" style={{ fontSize: 20, color: '#181818' }}>▼</span>
-            </button>
-          </div>
-        )}
+          {phase === 'success' && (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', padding: '0 8px 8px 0' }}>
+              <button onClick={nextSuccess} style={{ background: 'transparent', border: 'none', cursor: 'pointer', animation: 'hint-bob 1s ease-in-out infinite' }}>
+                <span className="font-pixel" style={{ fontSize: 20, color: '#f8f8f0' }}>▼</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
