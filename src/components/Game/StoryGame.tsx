@@ -1389,7 +1389,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             {/* Glow (ataque) + flash branco (dano) */}
             <div style={{
               position: 'relative', display: 'inline-flex',
-              animation: enemyAction === 'attack' ? 'enemy-glow-pulse 2.2s ease-in-out infinite' : undefined,
+              animation: undefined,
               filter: flashEnemy ? 'brightness(1.8)' : undefined,
               transition: 'filter 0.05s',
             }}>
