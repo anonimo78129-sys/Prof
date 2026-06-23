@@ -1499,10 +1499,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* camada_2 — mix-trees */}
         <div style={layer('/assets/pantano/mix-trees.png', 0.40, 3, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 5px)' })} />
 
-        {/* jacaré único — passa devagar, pausa fora da cena, vira e volta */}
-        <div style={{ position: 'absolute', bottom: GROUND + 40, zIndex: 3, left: 0, pointerEvents: 'none',
-          animation: 'croc-pass 40s linear infinite' }}>
-          <img src="/assets/pantano/croc.png" alt="" style={{ height: 144, width: 'auto', imageRendering: 'pixelated' }} />
+        {/* jacaré único — passa, pausa fora da cena, vira e volta */}
+        <div style={{ position: 'absolute', bottom: GROUND + 70, zIndex: 3, left: 0, pointerEvents: 'none',
+          animation: 'croc-pass 20s linear infinite' }}>
+          <img src="/assets/pantano/croc.png" alt="" style={{ height: 101, width: 'auto', imageRendering: 'pixelated' }} />
         </div>
 
         {/* camada_1 — dead-trees (mais próxima, move mais) */}
