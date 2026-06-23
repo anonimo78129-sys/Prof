@@ -1514,8 +1514,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* camada_1 — dead-trees (mais próxima, move mais) */}
         <div style={layer('/assets/pantano/dead-trees.png', 0.70, 4, { backgroundSize: 'auto 350px' })} />
 
-        {/* troncos caídos — atrás de ground-fg */}
-        <div style={layer('/assets/pantano/logs.png', 0.85, 5, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 30px)' })} />
+        {/* troncos caídos — surgem após sequência correta */}
+        {logsVisible && (
+          <div style={{ ...layer('/assets/pantano/logs.png', 0.85, 5, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 30px)' }), animation: 'logs-rise 1.2s ease-out forwards' }} />
+        )}
 
         {/* camada_0 — ground-fg (ancorada ao início do mundo, não repete) */}
         <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' })} />
@@ -2079,6 +2081,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [trunkAnchor, setTrunkAnchor] = useState<number | null>(null);
   const [sceneFade, setSceneFade] = useState(false);
   const [sceneFadeColor, setSceneFadeColor] = useState('#000');
+  const [logsVisible, setLogsVisible] = useState(false);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -2353,7 +2356,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
 
       {/* sequência — ato 5 (pântano): ordene o ciclo de vida */}
       {beat?.t === 'sequence' && (
-        <SequenceBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => {}} />
+        <SequenceBeat key={beatIndex} beat={beat} onSolved={() => { setLogsVisible(true); advance(); }} onCorrect={() => {}} />
       )}
 
       {/* memória — ato 6 (corredor de luz): repita os sinais da floresta */}

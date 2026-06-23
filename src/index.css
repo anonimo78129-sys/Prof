@@ -150,6 +150,11 @@
     70%  { opacity: 1; }
     100% { opacity: 0; }
   }
+  @keyframes logs-rise {
+    0%   { transform: translateY(60px); opacity: 0; }
+    100% { transform: translateY(0px);  opacity: 1; }
+  }
+
   @keyframes right-light-pulse {
     0%, 100% { opacity: 0.7; }
     50%       { opacity: 1; }
