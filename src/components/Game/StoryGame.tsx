@@ -1390,7 +1390,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             <div style={{
               position: 'relative', display: 'inline-flex',
               animation: enemyAction === 'attack' ? 'enemy-glow-pulse 2.2s ease-in-out infinite' : undefined,
-              filter: flashEnemy ? 'brightness(3)' : undefined,
+              filter: flashEnemy ? 'brightness(1.8)' : undefined,
               transition: 'filter 0.05s',
             }}>
               {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
