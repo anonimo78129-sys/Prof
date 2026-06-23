@@ -1228,6 +1228,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [wasCorrect, setWasCorrect]   = useState<boolean | null>(null);
   const [idleFrame, setIdleFrame]     = useState(1);
+  type EnemyAction = 'idle' | 'hit' | 'attack' | 'defeat' | 'victory';
+  const [enemyAction, setEnemyAction] = useState<EnemyAction>('idle');
   useEffect(() => {
     const t = setInterval(() => setIdleFrame(f => f === 1 ? 2 : 1), 700);
     return () => clearInterval(t);
@@ -1253,6 +1255,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   function nextQuestion() {
     const nq = pickQuestion();
     setSelectedIdx(null); setWasCorrect(null);
+    setEnemyAction('idle');
     setQ(nq); setLog(nq.text); setPhase('question');
   }
 
@@ -1265,25 +1268,28 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
     if (correct) {
       const newEHP = Math.max(0, enemyHp - HIT);
-      // Mostra feedback por 1.4s antes de aplicar o dano e atacar
       setLog('✓ Correto! Você atinge a Consciência Verde!');
       playTone(660, 0.25, 'sine', 0.16);
 
+      // 1.4s: inimigo leva dano — sprite hit + shake
       setTimeout(() => {
         setEnemyHp(newEHP);
-        setFlashEnemy(true); setShakeEnemy(true);
-        setTimeout(() => { setFlashEnemy(false); setShakeEnemy(false); }, 500);
+        setEnemyAction('hit');
+        setShakeEnemy(true);
+        setTimeout(() => { setShakeEnemy(false); }, 500);
       }, 1400);
 
       setTimeout(() => {
         if (newEHP <= 0) {
+          setEnemyAction('defeat');
           setLog('A Consciência Verde te reconheceu!');
           playChord([523.25, 659.25, 783.99, 1046.5], 2.5, 0.1);
           onCorrect();
           setTimeout(() => setPhase('victory'), 1800);
           return;
         }
-        // turno do inimigo — espera mais antes de revidar
+        // turno do inimigo: sprite attack + flash no jogador
+        setEnemyAction('attack');
         setLog('A Consciência Verde revida com um pulso...');
         setTimeout(() => {
           setFlashPlayer(true); setShakePlayer(true);
@@ -1292,13 +1298,14 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           const newPHP = Math.max(0, playerHp - ENEMY_HIT);
           setPlayerHp(newPHP);
           setTimeout(() => {
-            if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
+            if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
             else nextQuestion();
           }, 900);
         }, 1000);
-      }, 2400);  // delay total antes do contra-ataque do inimigo
+      }, 2400);
     } else {
-      // Mostra a resposta errada + correta por 1.6s antes do dano
+      // Errou: inimigo ataca direto
+      setEnemyAction('attack');
       setLog('✗ Errado! A Consciência Verde te atinge com força!');
       playTone(110, 0.45, 'sawtooth', 0.14);
 
@@ -1309,7 +1316,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
 
         setTimeout(() => {
-          if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
+          if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
           else nextQuestion();
         }, 1100);
       }, 1600);
@@ -1330,7 +1337,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const ePct = (enemyHp / ENEMY_MAX) * 100;
   const pPct = (playerHp / PLAYER_MAX) * 100;
   const hpCol = (pct: number) => pct > 50 ? '#58d048' : pct > 25 ? '#f8c030' : '#f04040';
-  const fainting = phase === 'victory';
+  const fainting = enemyAction === 'defeat' && phase === 'victory';
 
   // Caixa de HP estilo Pokémon GBA (creme, borda oliva, relevo)
   const hpBox: React.CSSProperties = {
@@ -1371,17 +1378,22 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         {/* Plataforma + sprite do inimigo — fundo direito */}
         <div style={{ position: 'absolute', top: '8%', right: '4%', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
-          {/* sprite da Consciência Verde — alterna frame 1/2 */}
+          {/* sprite da Consciência Verde */}
           <img
-            src={`/assets/enemies/consciencia-idle-${idleFrame}.png`}
+            src={
+              enemyAction === 'hit'     ? '/assets/enemies/consciencia-hit.png'
+            : enemyAction === 'attack'  ? '/assets/enemies/consciencia-attack.png'
+            : enemyAction === 'defeat'  ? '/assets/enemies/consciencia-defeat.png'
+            : enemyAction === 'victory' ? '/assets/enemies/consciencia-victory.png'
+            : `/assets/enemies/consciencia-idle-${idleFrame}.png`
+            }
             alt="Consciência Verde"
             style={{
               position: 'absolute', bottom: -26, left: '50%', transform: 'translateX(-50%)',
               height: 234, width: 'auto', imageRendering: 'pixelated',
               animation: fainting ? 'battle-faint 1.4s ease-in forwards'
                 : shakeEnemy ? 'battle-shake 0.4s ease' : undefined,
-              opacity: flashEnemy ? 0.55 : 1, transition: 'opacity 0.06s',
-              filter: flashEnemy ? 'brightness(1.6) saturate(0.3)' : undefined,
+              opacity: 1, transition: 'opacity 0.06s',
             }}
           />
         </div>
