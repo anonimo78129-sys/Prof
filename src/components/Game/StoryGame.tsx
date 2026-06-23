@@ -1188,24 +1188,38 @@ function GuardianSprite() {
 function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'battle' }>; onSolved: () => void; onCorrect: () => void }) {
   const PLAYER_MAX = 30;
   const ENEMY_MAX = 40;
-  const MOVES = [
-    { label: 'FOTOSSÍNTESE',   emoji: '🌿', power: 8,  heal: 0, debuff: false },
-    { label: 'REDE DE FUNGOS', emoji: '🍄', power: 12, heal: 0, debuff: false },
-    { label: 'TRANSPIRAÇÃO',   emoji: '💧', power: 0,  heal: 8, debuff: false },
-    { label: 'ESPORA',         emoji: '🌱', power: 5,  heal: 0, debuff: true  },
-  ] as const;
-  const ENEMY_ATKS = [
-    { name: 'Raízes Enredantes', dmg: 7,  playerDebuff: false },
-    { name: 'Pulso de Luz',      dmg: 11, playerDebuff: false },
-    { name: 'Névoa Tóxica',      dmg: 4,  playerDebuff: true  },
-  ];
-  type Phase = 'intro' | 'menu' | 'anim' | 'victory' | 'defeat' | 'success';
-  const [phase, setPhase]         = useState<Phase>(beat.intro ? 'intro' : 'menu');
+  const HIT       = 10;  // dano do jogador ao ACERTAR a pergunta
+  const WRONG_HIT = 9;   // dano que o jogador LEVA ao ERRAR (forte)
+  const ENEMY_HIT = 4;   // ataque do inimigo no turno dele (fraco)
+
+  const POOL = useMemo(() => [
+    { text: 'Qual parte da planta absorve água e nutrientes do solo?',     options: ['A raiz', 'A flor', 'O fruto', 'A folha'], correct: 0 },
+    { text: 'Que processo produz energia a partir da luz do sol?',         options: ['Fotossíntese', 'Digestão', 'Respiração', 'Germinação'], correct: 0 },
+    { text: 'O que sai pelas folhas durante a transpiração?',              options: ['Vapor de água', 'Sementes', 'Areia', 'Pólen'], correct: 0 },
+    { text: 'Como as plantas trocam nutrientes e avisos sob a terra?',     options: ['Rede de fungos', 'Pelo vento', 'Pelas flores', 'Pelos frutos'], correct: 0 },
+    { text: 'O que vem primeiro no ciclo de vida de uma planta?',          options: ['A semente', 'A flor', 'O fruto', 'A folha'], correct: 0 },
+    { text: 'Qual estrutura da planta atrai os polinizadores?',           options: ['A flor', 'A raiz', 'O caule', 'A casca'], correct: 0 },
+    { text: 'O que transporta a seiva por toda a planta?',                 options: ['O caule', 'A flor', 'O fruto', 'A raiz'], correct: 0 },
+    { text: 'Como as sementes se espalham para longe da planta-mãe?',      options: ['Vento e animais', 'Por fotossíntese', 'Pela transpiração', 'Por absorção'], correct: 0 },
+  ], []);
+
+  type Q = { text: string; options: string[]; correctIdx: number };
+  const lastQ = useRef(-1);
+  const pickQuestion = useCallback((): Q => {
+    let i = Math.floor(Math.random() * POOL.length);
+    while (POOL.length > 1 && i === lastQ.current) i = Math.floor(Math.random() * POOL.length);
+    lastQ.current = i;
+    const base = POOL[i];
+    const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+    return { text: base.text, options: order.map(o => base.options[o]), correctIdx: order.indexOf(base.correct) };
+  }, [POOL]);
+
+  type Phase = 'intro' | 'question' | 'anim' | 'victory' | 'defeat' | 'success';
+  const [phase, setPhase]         = useState<Phase>(beat.intro ? 'intro' : 'question');
+  const [q, setQ]                 = useState<Q>(pickQuestion);
   const [playerHp, setPlayerHp]   = useState(PLAYER_MAX);
   const [enemyHp, setEnemyHp]     = useState(ENEMY_MAX);
-  const [log, setLog]             = useState(beat.intro ?? 'O que Estudante vai fazer?');
-  const [enemyDebuff, setEnemyDebuff] = useState(false);
-  const [playerDebuff, setPlayerDebuff] = useState(false);
+  const [log, setLog]             = useState(beat.intro ?? '');
   const [shakeEnemy, setShakeEnemy]   = useState(false);
   const [shakePlayer, setShakePlayer] = useState(false);
   const [flashEnemy, setFlashEnemy]   = useState(false);
@@ -1213,69 +1227,80 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [successIdx, setSuccessIdx]   = useState(0);
 
   useEffect(() => {
+    if (!beat.intro) setLog(q.text);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (phase === 'intro') {
-      const t = setTimeout(() => { setPhase('menu'); setLog('O que Estudante vai fazer?'); }, 2400);
+      const t = setTimeout(() => { setLog(q.text); setPhase('question'); }, 2600);
       return () => clearTimeout(t);
     }
     if (phase === 'victory') {
       const t = setTimeout(() => { setLog(beat.success[0]); setSuccessIdx(0); setPhase('success'); }, 500);
       return () => clearTimeout(t);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  function doMove(idx: number) {
-    if (phase !== 'menu') return;
+  function nextQuestion() {
+    const nq = pickQuestion();
+    setQ(nq); setLog(nq.text); setPhase('question');
+  }
+
+  function answer(idx: number) {
+    if (phase !== 'question') return;
     setPhase('anim');
-    const move = MOVES[idx];
+    const correct = idx === q.correctIdx;
 
-    let newEHP = enemyHp;
-    let newPHP = playerHp;
-
-    if (move.heal > 0) {
-      newPHP = Math.min(PLAYER_MAX, playerHp + move.heal);
-      setPlayerHp(newPHP);
-      setLog(`Estudante usou ${move.label}! (+${move.heal} HP)`);
-    } else {
-      const dmg = enemyDebuff ? Math.ceil(move.power / 2) : move.power;
-      newEHP = Math.max(0, enemyHp - dmg);
+    if (correct) {
+      const newEHP = Math.max(0, enemyHp - HIT);
       setEnemyHp(newEHP);
-      setLog(`Estudante usou ${move.label}!`);
+      setLog('Correto! Você atinge a Consciência Verde!');
       setFlashEnemy(true); setShakeEnemy(true);
+      playTone(660, 0.25, 'sine', 0.16);
       setTimeout(() => { setFlashEnemy(false); setShakeEnemy(false); }, 500);
-    }
-    if (move.debuff) setEnemyDebuff(true);
 
-    setTimeout(() => {
-      if (newEHP <= 0) {
-        setLog('A Consciência Verde te reconheceu!');
-        playChord([523.25, 659.25, 783.99, 1046.5], 2.5, 0.1);
-        onCorrect();
-        setTimeout(() => setPhase('victory'), 1800);
-        return;
-      }
-      // enemy turn
-      const atk = ENEMY_ATKS[Math.floor(Math.random() * ENEMY_ATKS.length)];
-      const eDmg = playerDebuff ? Math.max(0, atk.dmg - 4) : atk.dmg;
-      setLog(`Consciência Verde usou ${atk.name}!`);
       setTimeout(() => {
-        setFlashPlayer(true); setShakePlayer(true);
-        setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
-        if (atk.playerDebuff) setPlayerDebuff(true);
-        newPHP = Math.max(0, newPHP - eDmg);
-        setPlayerHp(newPHP);
+        if (newEHP <= 0) {
+          setLog('A Consciência Verde te reconheceu!');
+          playChord([523.25, 659.25, 783.99, 1046.5], 2.5, 0.1);
+          onCorrect();
+          setTimeout(() => setPhase('victory'), 1800);
+          return;
+        }
+        // turno do inimigo — ataque fraco
+        setLog('A Consciência Verde revida com um pulso...');
         setTimeout(() => {
-          setEnemyDebuff(false); setPlayerDebuff(false);
-          if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
-          else { setLog('O que Estudante vai fazer?'); setPhase('menu'); }
+          setFlashPlayer(true); setShakePlayer(true);
+          playTone(200, 0.3, 'sawtooth', 0.1);
+          setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+          const newPHP = Math.max(0, playerHp - ENEMY_HIT);
+          setPlayerHp(newPHP);
+          setTimeout(() => {
+            if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
+            else nextQuestion();
+          }, 850);
         }, 800);
-      }, 700);
-    }, 950);
+      }, 1000);
+    } else {
+      const newPHP = Math.max(0, playerHp - WRONG_HIT);
+      setPlayerHp(newPHP);
+      setLog('Errou! A Consciência Verde te atinge com força!');
+      setFlashPlayer(true); setShakePlayer(true);
+      playTone(110, 0.45, 'sawtooth', 0.14);
+      setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+
+      setTimeout(() => {
+        if (newPHP <= 0) { setLog('A floresta recusou você...'); setPhase('defeat'); }
+        else nextQuestion();
+      }, 1200);
+    }
   }
 
   function retry() {
     setPlayerHp(PLAYER_MAX); setEnemyHp(ENEMY_MAX);
-    setEnemyDebuff(false); setPlayerDebuff(false);
-    setLog('O que Estudante vai fazer?'); setPhase('menu');
+    nextQuestion();
   }
 
   function nextSuccess() {
@@ -1360,27 +1385,27 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         </div>
       </div>
 
-      {/* ── Text box + menu ── */}
-      <div style={{ display: 'flex', borderTop: '3px solid #181818', background: '#f0f0e8', minHeight: 110 }}>
+      {/* ── Text box + opções ── */}
+      <div style={{ display: 'flex', borderTop: '3px solid #181818', background: '#f0f0e8', minHeight: 118 }}>
         <div style={{ flex: 1, padding: '10px 14px', display: 'flex', alignItems: 'center' }}>
-          <span className="font-pixel" style={{ fontSize: 14, color: '#181818', lineHeight: 1.7 }}>{log}</span>
+          <span className="font-pixel" style={{ fontSize: 12, color: '#181818', lineHeight: 1.7 }}>{log}</span>
         </div>
 
-        {phase === 'menu' && (
-          <div style={{ width: 200, borderLeft: '3px solid #181818', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' }}>
-            {MOVES.map((m, i) => (
-              <button key={i} onClick={() => doMove(i)} style={{
+        {phase === 'question' && (
+          <div style={{ width: 312, borderLeft: '3px solid #181818', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' }}>
+            {q.options.map((opt, i) => (
+              <button key={i} onClick={() => answer(i)} style={{
                 background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
                 borderBottom: i < 2 ? '2px solid #c8c8c8' : 'none',
                 borderRight: i % 2 === 0 ? '2px solid #c8c8c8' : 'none',
-                padding: '5px 6px', display: 'flex', alignItems: 'center', gap: 4,
+                padding: '5px 7px', display: 'flex', alignItems: 'center', gap: 5,
                 transition: 'background 0.15s',
               }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#d8e8d0')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <span style={{ fontSize: 16 }}>{m.emoji}</span>
-                <span className="font-pixel" style={{ fontSize: 9, color: '#181818', lineHeight: 1.4 }}>{m.label}</span>
+                <span className="font-pixel" style={{ fontSize: 10, color: '#c03030' }}>{'ABCD'[i]}</span>
+                <span className="font-pixel" style={{ fontSize: 8.5, color: '#181818', lineHeight: 1.45 }}>{opt}</span>
               </button>
             ))}
           </div>

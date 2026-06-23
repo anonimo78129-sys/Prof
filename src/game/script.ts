@@ -200,7 +200,7 @@ const beats: Beat[] = [
       'As plantas trocam açúcar e avisos de perigo pela rede de fungos.',
       'Uma floresta inteira pode ser um só organismo, conectado sob a terra.',
     ],
-    hint: 'Use REDE DE FUNGOS para dano alto. TRANSPIRAÇÃO cura você. ESPORA enfraquece o próximo ataque inimigo.',
+    hint: 'Responda certo para atacar. Se errar, você leva um golpe forte. Lembre o que aprendeu sobre as plantas!',
   },
   { t: 'say', who: 'estudante', lines: [
     'Eu... me comuniquei com a floresta.',
