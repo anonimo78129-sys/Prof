@@ -17,7 +17,7 @@ export type Beat =
   // O jogador caminha livremente (← →) dentro do segmento de `dist` px.
   // Se houver `landmark`, ao chegar ao fim aparece o indicador + botão OK
   // para entrar na fase; sem landmark, o OK apenas segue o roteiro.
-  | { t: 'walk'; dist: number; hint?: string; landmark?: 'gate' | 'estufa-ext' | 'trunk' | 'computer' }
+  | { t: 'walk'; dist: number; hint?: string; landmark?: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab' }
   // Um objeto surge no caminho e propõe uma pergunta
   | {
       t: 'question';

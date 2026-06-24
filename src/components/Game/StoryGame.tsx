@@ -1736,7 +1736,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -2177,6 +2177,47 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {bg === 'final' && <SceneParticles kind="final" />}
         {bg === 'corredor' && <LightMotes kind="sunset" />}
+
+        {/* PLACEHOLDER: inimigo Consciência Verde no corredor (substituir por sprite depois) */}
+        {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
+          <div style={{
+            position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
+            bottom: GROUND, zIndex: 13, transform: 'translateX(-50%)',
+            width: 120, height: 120, borderRadius: '50%',
+            background: 'radial-gradient(circle, #aaffcc 0%, #33cc77 45%, rgba(20,120,60,0.2) 75%, transparent 100%)',
+            boxShadow: '0 0 40px 12px rgba(60,255,140,0.7)',
+            animation: 'breathe-glow 2s ease-in-out infinite',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span className="font-pixel" style={{ fontSize: 7, color: '#06351c', textAlign: 'center', lineHeight: 1.4 }}>
+              CONSCIÊNCIA<br/>VERDE
+            </span>
+          </div>
+        )}
+
+        {/* PLACEHOLDER: prédio do laboratório no fim do corredor (substituir por sprite depois) */}
+        {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
+          <div style={{
+            position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
+            bottom: GROUND, zIndex: 12, transform: 'translateX(-50%)',
+            width: 220, height: 200,
+            background: 'linear-gradient(180deg, #5a6b7a 0%, #3a4a58 100%)',
+            border: '4px solid #1a2530', borderBottom: 'none',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
+            boxShadow: '0 0 30px 6px rgba(120,200,255,0.35)',
+          }}>
+            {/* domo no topo */}
+            <div style={{ position: 'absolute', top: -38, width: 120, height: 60,
+              borderRadius: '60px 60px 0 0', background: 'rgba(150,220,255,0.5)',
+              border: '4px solid #1a2530', borderBottom: 'none' }} />
+            {/* porta */}
+            <div style={{ position: 'absolute', bottom: 0, width: 50, height: 70,
+              background: '#9adcff', border: '3px solid #1a2530', borderBottom: 'none' }} />
+            <span className="font-pixel" style={{ marginTop: 14, fontSize: 8, color: '#dff2ff', textShadow: '1px 1px 0 #000' }}>
+              LABORATÓRIO
+            </span>
+          </div>
+        )}
 
       </div>
       {bg === 'corredor' && <CorredorButterflies />}
@@ -2666,7 +2707,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
   const [showRabbit, setShowRabbit] = useState(false);
   const [boulderState, setBoulderState] = useState<BoulderState>('idle');
-  const [landmarkKind, setLandmarkKind] = useState<'gate' | 'estufa-ext' | 'trunk' | 'computer'>('gate');
+  const [landmarkKind, setLandmarkKind] = useState<'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'>('gate');
   const [appleTreeAnchor, setAppleTreeAnchor] = useState<number | null>(null);
   const [trunkAnchor, setTrunkAnchor] = useState<number | null>(null);
   const [sceneFade, setSceneFade] = useState(false);
@@ -2754,7 +2795,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       if (beat.landmark) {
         const anchor = worldX + dist - GATE_AHEAD;
         setLandmarkAnchor(anchor);
-        setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer');
+        setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab');
         // guarda posição da macieira para ela persistir depois do collect
         if (beat.landmark === 'gate' && bg === 'ato3') setAppleTreeAnchor(anchor);
         // guarda posição do tronco para persistir depois do walk

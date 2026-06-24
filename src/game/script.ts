@@ -186,7 +186,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
   ] },
-  { t: 'walk', dist: 480, hint: 'Siga a luz' },
+  { t: 'walk', dist: 480, hint: 'Siga a luz', landmark: 'consciencia' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',
     'Esta é a Consciência Verde — a mente da floresta.',
@@ -215,7 +215,7 @@ const beats: Beat[] = [
     'Eu me comuniquei com a floresta.',
     'Ela está me abrindo caminho para algo...',
   ] },
-  { t: 'walk', dist: 900, hint: 'Siga o chamado' },
+  { t: 'walk', dist: 900, hint: 'Siga o chamado', landmark: 'lab' },
   { t: 'say', who: 'estudante', lines: [
     'Um prédio... aqui no meio da floresta?',
     'Parece um laboratório. Preciso entrar.',
