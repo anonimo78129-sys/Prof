@@ -2107,7 +2107,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundRepeat: 'no-repeat', imageRendering: 'pixelated',
           }} />
         )}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 9, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />
+        {bg === 'final' && <div style={{ position: 'absolute', inset: 0, zIndex: 9, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />}
 
         {bg === 'corredor' && [18, 38, 58, 78].map((lx, i) => (
           <div key={i} style={{
