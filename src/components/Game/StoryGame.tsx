@@ -2726,6 +2726,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [facing, setFacing] = useState(1);
   const [landmarkAnchor, setLandmarkAnchor] = useState<number | null>(null);
   const [conscienciaDefeated, setConscienciaDefeated] = useState(false);
+  // luz do corredor: liga após a fala "A luz fica mais intensa..." e permanece
+  const [corredorLightOn, setCorredorLightOn] = useState(false);
   // 1-4 = frame de despertar ativo; null = já acordou, usa hero normal
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
   const [showRabbit, setShowRabbit] = useState(false);
@@ -2847,9 +2849,14 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setAppleTreeAnchor(null);
       setTrunkAnchor(null);
       setGateFrame(0);
+      setCorredorLightOn(false); // luz do corredor recomeça desligada
     } else {
       targetRef.current = null;
       // say / question / fade: portão permanece no mundo
+    }
+    // liga a luz do corredor a partir da fala "A luz fica mais intensa..."
+    if (bg === 'corredor' && beat?.t === 'say' && beat.lines.some(l => l.includes('luz fica mais intensa'))) {
+      setCorredorLightOn(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beatIndex]);
@@ -3107,9 +3114,10 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         }} />
       )}
 
-      {/* luz suave em frente ao herói no corredor — persistente, mais fraca.
-          zIndex 24 fica atrás da camada de chão/terra (foreground, zIndex 25). */}
-      {bg === 'corredor' && (
+      {/* luz suave em frente ao herói no corredor — surge após a fala
+          "A luz fica mais intensa..." e permanece; zIndex 24 fica atrás
+          da camada de chão/terra (foreground, zIndex 25). */}
+      {bg === 'corredor' && corredorLightOn && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 24, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 30% 60% at 58% 56%, rgba(255,255,200,0.42) 0%, rgba(255,240,150,0.16) 45%, transparent 72%)',
           animation: 'right-light-pulse 2.6s ease-in-out infinite',
