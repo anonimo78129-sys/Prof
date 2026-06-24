@@ -1025,23 +1025,27 @@ function CorredorButterflies() {
   ];
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none', overflow: 'hidden' }}>
-      {butterflies.map((b, i) => (
-        /* div externo: só avança no eixo X */
-        <div key={i} style={{
-          position: 'absolute', left: '-60px', top: `${b.y}%`,
-          animation: `butterfly-move-x ${b.dur}s linear ${-b.delay}s infinite`,
-        }}>
-          {/* div interno: sobe/desce + rotação */}
-          <div style={{ animation: `${b.bobAnim} ${b.bobDur}s ease-in-out infinite` }}>
-            <img src={`/assets/corredor/butterfly-${b.color === 'orange' ? '' : 'blue-'}1.png`} alt=""
-              style={{ position: 'absolute', width: b.size, height: 'auto', imageRendering: 'pixelated',
-                animation: `butterfly-frame 0.22s steps(1) infinite` }} />
-            <img src={`/assets/corredor/butterfly-${b.color === 'orange' ? '' : 'blue-'}2.png`} alt=""
-              style={{ position: 'absolute', width: b.size, height: 'auto', imageRendering: 'pixelated',
-                animation: `butterfly-frame2 0.22s steps(1) infinite` }} />
+      {butterflies.map((b, i) => {
+        const prefix = b.color === 'orange' ? '' : 'blue-';
+        return (
+          /* div externo: só avança no eixo X */
+          <div key={i} style={{
+            position: 'absolute', left: '-60px', top: `${b.y}%`,
+            width: b.size, height: b.size,
+            animation: `butterfly-move-x ${b.dur}s linear ${-b.delay}s infinite`,
+          }}>
+            {/* div interno: sobe/desce + rotação */}
+            <div style={{ position: 'absolute', inset: 0, animation: `${b.bobAnim} ${b.bobDur}s ease-in-out infinite` }}>
+              <img src={`/assets/corredor/butterfly-${prefix}1.png`} alt=""
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                  animation: `butterfly-frame 0.22s steps(1) infinite` }} />
+              <img src={`/assets/corredor/butterfly-${prefix}2.png`} alt=""
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                  animation: `butterfly-frame2 0.22s steps(1) infinite` }} />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
