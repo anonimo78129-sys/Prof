@@ -2127,6 +2127,19 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {bg === 'final' && <SceneParticles kind="final" />}
         {bg === 'corredor' && <LightMotes />}
 
+        {/* Foreground do corredor — na frente de tudo incluindo o herói */}
+        {bg === 'corredor' && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 25, pointerEvents: 'none',
+            backgroundImage: `url('/assets/corredor/layer-fg.png')`,
+            backgroundRepeat: 'repeat-x',
+            backgroundSize: 'auto 350px',
+            backgroundPositionX: `${Math.round(-worldX * 0.28)}px`,
+            backgroundPositionY: 'bottom -50px',
+            imageRendering: 'pixelated',
+          }} />
+        )}
+
         <div style={{ position: 'absolute', inset: 0, zIndex: 7, pointerEvents: 'none',
           boxShadow: 'inset 0 0 160px 40px rgba(0,0,0,0.55)' }} />
 
