@@ -2200,7 +2200,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
           <div style={{
             position: 'absolute',
-            left: `calc(50% + ${Math.round(landmarkAnchor - worldX * 0.22)}px)`,
+            // base 34% = mesma linha do herói, para o face-off ficar próximo
+            left: `calc(34% + ${Math.round(landmarkAnchor - worldX * 0.22)}px)`,
             bottom: GROUND - 20, zIndex: 13,
             width: 168, height: 300,
             transform: 'translateX(-50%) scaleX(-1)',
@@ -2744,7 +2745,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   // (anchor - worldX*0.22); com limiar apertado o herói anda até bem perto dela.
   const nearby = landmarkAnchor != null && (
     bg === 'corredor' && landmarkKind === 'consciencia'
-      ? (landmarkAnchor - worldX * 0.22) < 170
+      ? (landmarkAnchor - worldX * 0.22) < 150
       : (landmarkAnchor - worldX) < 200
   );
 
@@ -2827,7 +2828,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         // landmark fica fora da tela (worldX acumula entre os atos).
         const anchor = bg === 'corredor'
           ? (beat.landmark === 'consciencia'
-              ? (worldX + dist) * 0.22 + 150
+              ? (worldX + dist) * 0.22 + 130   // 130px à direita da linha do herói (34%)
               : worldX + dist - GATE_AHEAD)
           : worldX + dist - GATE_AHEAD;
         setLandmarkAnchor(anchor);
