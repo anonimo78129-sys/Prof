@@ -2739,8 +2739,14 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
 
-  // herói está perto o suficiente do portão para apertar OK
-  const nearby = landmarkAnchor != null && (landmarkAnchor - worldX) < 200;
+  // herói está perto o suficiente do portão/landmark para apertar OK.
+  // No corredor a Consciência usa parallax 0.22, então a distância na tela é
+  // (anchor - worldX*0.22); com limiar apertado o herói anda até bem perto dela.
+  const nearby = landmarkAnchor != null && (
+    bg === 'corredor' && landmarkKind === 'consciencia'
+      ? (landmarkAnchor - worldX * 0.22) < 170
+      : (landmarkAnchor - worldX) < 200
+  );
 
   // reseta o portão só na mudança de cena (tratado no effect de beats automáticos)
   useEffect(() => { setGateOpen(false); }, [beatIndex]);
