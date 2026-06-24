@@ -2196,25 +2196,22 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {bg === 'final' && <SceneParticles kind="final" />}
         {bg === 'corredor' && <LightMotes kind="sunset" />}
 
-        {/* PLACEHOLDER: inimigo Consciência Verde no corredor (substituir por sprite depois) */}
+        {/* Inimigo: Consciência Verde no corredor */}
         {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
           <div style={{
-            position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
+            position: 'absolute',
+            left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
             bottom: GROUND, zIndex: 13, transform: 'translateX(-50%)',
-            width: 120, height: 120, borderRadius: '50%',
-            background: conscienciaDefeated
-              ? 'radial-gradient(circle, #aaffcc 0%, #33cc77 35%, rgba(20,120,60,0.1) 65%, transparent 100%)'
-              : 'radial-gradient(circle, #aaffcc 0%, #33cc77 45%, rgba(20,120,60,0.2) 75%, transparent 100%)',
-            boxShadow: conscienciaDefeated
-              ? '0 0 20px 4px rgba(60,255,140,0.3)'
-              : '0 0 40px 12px rgba(60,255,140,0.7)',
-            animation: conscienciaDefeated ? 'none' : 'breathe-glow 2s ease-in-out infinite',
-            opacity: conscienciaDefeated ? 0.45 : 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 100, height: 180,
+            opacity: conscienciaDefeated ? 0.4 : 1,
+            filter: conscienciaDefeated ? 'grayscale(0.6)' : 'drop-shadow(0 0 12px rgba(60,255,140,0.8))',
           }}>
-            <span className="font-pixel" style={{ fontSize: 7, color: '#06351c', textAlign: 'center', lineHeight: 1.4 }}>
-              {conscienciaDefeated ? 'PASSAGEM\nABERTA' : 'CONSCIÊNCIA\nVERDE'}
-            </span>
+            <img src="/assets/corredor/consciencia-idle-1.png" alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                animation: 'butterfly-frame 0.6s steps(1) infinite' }} />
+            <img src="/assets/corredor/consciencia-idle-2.png" alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                animation: 'butterfly-frame2 0.6s steps(1) infinite' }} />
           </div>
         )}
 
