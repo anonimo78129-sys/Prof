@@ -2141,13 +2141,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         )}
 
 
-        <div style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
-          backgroundImage: `url('/assets/world/ground-dark.png')`,
-          backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
-          backgroundPositionX: `${Math.round(-worldX * 1.0)}px`,
-          imageRendering: 'pixelated',
-        }} />
       </div>
     );
   }
