@@ -1238,32 +1238,28 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   // Projétil de energia + anel de impacto
   const [enemyAnchor,  setEnemyAnchor]  = useState({ x: 74, y: 34 });
   const [playerAnchor, setPlayerAnchor] = useState({ x: 21, y: 66 });
-  // DEV: qual âncora está sendo arrastada ('enemy' | 'player' | null)
-  const [draggingAnchor, setDraggingAnchor] = useState<'enemy' | 'player' | null>(null);
+  // DEV: ref para anchor em arrasto — ref evita stale closure no listener
+  const draggingAnchorRef = useRef<'enemy' | 'player' | null>(null);
   const arenaRef = useRef<HTMLDivElement>(null);
 
-  function anchorPctFromEvent(e: React.MouseEvent | MouseEvent): { x: number; y: number } {
-    const rect = arenaRef.current?.getBoundingClientRect();
-    if (!rect) return { x: 0, y: 0 };
-    return {
-      x: Math.round(((e.clientX - rect.left) / rect.width)  * 100 * 10) / 10,
-      y: Math.round(((e.clientY - rect.top)  / rect.height) * 100 * 10) / 10,
-    };
-  }
-
+  // Registra os listeners de drag uma única vez (sem deps)
   useEffect(() => {
-    if (!draggingAnchor) return;
     function onMove(e: MouseEvent) {
-      const pct = anchorPctFromEvent(e);
-      if (draggingAnchor === 'enemy')  setEnemyAnchor(pct);
-      if (draggingAnchor === 'player') setPlayerAnchor(pct);
+      if (!draggingAnchorRef.current) return;
+      const rect = arenaRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const pct = {
+        x: Math.round(((e.clientX - rect.left) / rect.width)  * 100 * 10) / 10,
+        y: Math.round(((e.clientY - rect.top)  / rect.height) * 100 * 10) / 10,
+      };
+      if (draggingAnchorRef.current === 'enemy')  setEnemyAnchor(pct);
+      if (draggingAnchorRef.current === 'player') setPlayerAnchor(pct);
     }
-    function onUp() { setDraggingAnchor(null); }
+    function onUp() { draggingAnchorRef.current = null; }
     window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('mouseup',  onUp);
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draggingAnchor]);
+  }, []);
 
   type Proj = { x: number; y: number; color: string; glow: string; moving: boolean };
   const [proj, setProj] = useState<Proj | null>(null);
@@ -1566,7 +1562,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             ].map(({ id, anchor, color, label }) => (
               <div
                 key={id}
-                onMouseDown={e => { e.preventDefault(); setDraggingAnchor(id); }}
+                onMouseDown={e => { e.preventDefault(); draggingAnchorRef.current = id; }}
                 style={{
                   position: 'absolute',
                   left: `${anchor.x}%`, top: `${anchor.y}%`,
