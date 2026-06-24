@@ -1594,7 +1594,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         </div>
 
         {/* Plataforma + sprite do jogador — frente esquerda */}
-        <div style={{ position: 'absolute', bottom: '4%', left: '4%', width: 200, height: 175,
+        <div style={{ position: 'absolute', bottom: '4%', left: 'calc(4% - 50px)', width: 200, height: 175,
           animation: 'battle-player-in 0.5s ease-out both' }}>
           <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
             width: 198, height: 46, borderRadius: '50%',
@@ -1620,7 +1620,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
                 { key: 'victory', src: '/assets/chars/player-battle-victory.png', visible: playerAction === 'victory' },
               ] as const).map(({ key, src, visible }) => (
                 <img key={key} src={src} alt="" style={{
-                  height: 195, width: 'auto', imageRendering: 'pixelated',
+                  height: 254, width: 'auto', imageRendering: 'pixelated',
                   display: visible ? 'block' : 'none',
                 }} />
               ))}
