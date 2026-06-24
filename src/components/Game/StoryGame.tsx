@@ -2708,9 +2708,10 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   useEffect(() => {
     if (beat?.t === 'walk') {
       walkStartXRef.current = worldX;
-      targetRef.current = worldX + beat.dist;
+      const dist = bg === 'corredor' ? beat.dist * 2 : beat.dist;
+      targetRef.current = worldX + dist;
       if (beat.landmark) {
-        const anchor = worldX + beat.dist - GATE_AHEAD;
+        const anchor = worldX + dist - GATE_AHEAD;
         setLandmarkAnchor(anchor);
         setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer');
         // guarda posição da macieira para ela persistir depois do collect
@@ -2749,7 +2750,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
     if (holdRef.current) {
       setWorldX(x => {
         const dir = dirRef.current;
-        const next = x + dir * WALK_SPEED * (bg === 'corredor' ? 2 : 1) * dt;
+        const next = x + dir * WALK_SPEED * dt;
         if (dir === -1) return Math.max(next, walkStartXRef.current);
         if (targetRef.current != null) return Math.min(next, targetRef.current);
         return next;
