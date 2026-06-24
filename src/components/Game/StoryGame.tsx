@@ -1227,7 +1227,6 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [successIdx, setSuccessIdx]   = useState(0);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [wasCorrect, setWasCorrect]   = useState<boolean | null>(null);
-  const [bgFrame, setBgFrame]         = useState(1);
   const [idleFrame, setIdleFrame]     = useState(1);
   const [rageFrame, setRageFrame]     = useState(1);
   const [enemyRage, setEnemyRage]     = useState(false);
@@ -1236,10 +1235,6 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [enemyAction, setEnemyAction] = useState<EnemyAction>('idle');
   type PlayerAction = 'idle' | 'hit' | 'attack' | 'defeat' | 'victory';
   const [playerAction, setPlayerAction] = useState<PlayerAction>('idle');
-  useEffect(() => {
-    const t = setInterval(() => setBgFrame(f => f === 1 ? 2 : 1), 1500);
-    return () => clearInterval(t);
-  }, []);
   useEffect(() => {
     const t = setInterval(() => setIdleFrame(f => f === 1 ? 2 : 1), 700);
     return () => clearInterval(t);
@@ -1478,12 +1473,14 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
         background: '#6fb072', overflow: 'hidden' }}>
 
-        {/* Fundo — alterna entre 2 frames sem transparência */}
-        <img src={bgFrame === 1 ? '/assets/battle-bg-1.jpg' : '/assets/battle-bg-2.jpg'} alt="" style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover', objectPosition: 'center top',
-          imageRendering: 'pixelated', zIndex: 0,
-        }} />
+        {/* Fundo em camadas — 1 (mais atrás) até 8 (mais à frente), todas abaixo dos sprites */}
+        {[1,2,3,4,5,6,7,8].map((n, i) => (
+          <img key={n} src={`/assets/battle-layer-${n}.png`} alt="" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'fill', objectPosition: 'center bottom',
+            imageRendering: 'pixelated', zIndex: i + 1,
+          }} />
+        ))}
 
         {/* Listras diagonais ao fundo (estilo VS do Pokémon) */}
         <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', zIndex: 1,
