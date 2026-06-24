@@ -1228,6 +1228,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [wasCorrect, setWasCorrect]   = useState<boolean | null>(null);
   const [idleFrame, setIdleFrame]     = useState(1);
+  const [enemyRage, setEnemyRage]     = useState(false); // fase de fúria (HP < 50%)
+  const rageAnnounced = useRef(false);
   type EnemyAction = 'idle' | 'hit' | 'attack' | 'defeat' | 'victory';
   const [enemyAction, setEnemyAction] = useState<EnemyAction>('idle');
   type PlayerAction = 'idle' | 'hit' | 'attack' | 'defeat' | 'victory';
@@ -1267,6 +1269,31 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [proj, setProj] = useState<Proj | null>(null);
   const [ring, setRing] = useState<{ x: number; y: number; color: string; key: number } | null>(null);
   const ringKey = useRef(0);
+
+  // Números de dano flutuantes
+  type DmgNum = { x: number; y: number; value: number; color: string; key: number };
+  const [dmgNums, setDmgNums] = useState<DmgNum[]>([]);
+  const dmgKey = useRef(0);
+  function popDamage(x: number, y: number, value: number, color: string) {
+    const key = dmgKey.current++;
+    setDmgNums(prev => [...prev, { x, y, value, color, key }]);
+    setTimeout(() => setDmgNums(prev => prev.filter(d => d.key !== key)), 900);
+  }
+
+  // Frases de flavour para os ataques (reforçam o conteúdo botânico)
+  const PLAYER_FLAVOR = useMemo(() => [
+    'FOTOSSÍNTESE! A luz do sol vira energia pura — super eficaz!',
+    'REDE DE FUNGOS! As raízes atacam por baixo da terra!',
+    'TRANSPIRAÇÃO! Um jato de vapor atinge em cheio!',
+    'ESPORA! Uma nuvem de esporos envolve o alvo!',
+  ], []);
+  const ENEMY_FLAVOR = useMemo(() => [
+    'Raízes Enredantes prendem você!',
+    'Pulso de Luz cega seus sentidos!',
+    'Névoa Tóxica embaça o ar ao seu redor!',
+  ], []);
+  const flavorIdx = useRef(0);
+  const pickFlavor = (pool: string[]) => pool[(flavorIdx.current++) % pool.length];
 
   function launch(dir: 'toEnemy' | 'toPlayer', onArrive: () => void) {
     const from  = dir === 'toEnemy' ? playerAnchor : enemyAnchor;
@@ -1320,9 +1347,11 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     setSelectedIdx(idx);
     setWasCorrect(correct);
 
+    const RAGE_THRESHOLD = ENEMY_MAX / 2;
+
     if (correct) {
       const newEHP = Math.max(0, enemyHp - HIT);
-      setLog('✓ Correto! Você atinge a Consciência Verde!');
+      setLog('✓ ' + pickFlavor(PLAYER_FLAVOR));
       playTone(660, 0.25, 'sine', 0.16);
 
       // 1.0s: jogador dispara projétil rumo ao inimigo (voa ~0.44s)
@@ -1335,8 +1364,11 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           setEnemyAction('hit');
           setShakeEnemy(true);
           setFlashEnemy(true);
+          popDamage(enemyAnchor.x, enemyAnchor.y - 8, HIT, '#ff5a4a');
           playTone(180, 0.25, 'square', 0.12);
           setTimeout(() => { setShakeEnemy(false); setFlashEnemy(false); }, 480);
+          // entra em fúria ao cruzar 50% do HP
+          if (newEHP > 0 && newEHP <= RAGE_THRESHOLD) setEnemyRage(true);
         });
       }, 1000);
 
@@ -1351,8 +1383,16 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           return;
         }
         // turno do inimigo: vibra, dispara projétil rumo ao jogador
+        const raging = newEHP <= RAGE_THRESHOLD;
+        const dmg = ENEMY_HIT + (raging ? 2 : 0);
         setEnemyAction('attack');
-        setLog('A Consciência Verde revida com um pulso...');
+        if (raging && !rageAnnounced.current) {
+          rageAnnounced.current = true;
+          setLog('A Consciência Verde se enfurece! ' + pickFlavor(ENEMY_FLAVOR));
+          playTone(90, 0.5, 'sawtooth', 0.15);
+        } else {
+          setLog(pickFlavor(ENEMY_FLAVOR));
+        }
         setTimeout(() => {
           playTone(300, 0.12, 'triangle', 0.1);
           launch('toPlayer', () => {
@@ -1360,28 +1400,32 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             setFlashPlayer(true); setShakePlayer(true);
             playTone(200, 0.3, 'sawtooth', 0.1);
             setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); setPlayerAction('idle'); }, 500);
-            const newPHP = Math.max(0, playerHp - ENEMY_HIT);
+            const newPHP = Math.max(0, playerHp - dmg);
             setPlayerHp(newPHP);
+            popDamage(playerAnchor.x, playerAnchor.y - 8, dmg, '#ff5a4a');
             setTimeout(() => {
               if (newPHP <= 0) { setEnemyAction('victory'); setPlayerAction('defeat'); setLog('A floresta recusou você...'); setPhase('defeat'); }
               else nextQuestion();
             }, 900);
           });
         }, 700);
-      }, 2400);
+      }, 4400);
     } else {
       // Errou: inimigo ataca direto
+      const raging = enemyRage;
+      const dmg = WRONG_HIT + (raging ? 2 : 0);
       setEnemyAction('attack');
-      setLog('✗ Errado! A Consciência Verde te atinge com força!');
+      setLog('✗ Errado! ' + pickFlavor(ENEMY_FLAVOR));
       playTone(110, 0.45, 'sawtooth', 0.14);
 
       setTimeout(() => {
         playTone(300, 0.12, 'triangle', 0.1);
         launch('toPlayer', () => {
           setPlayerAction('hit');
-          const newPHP = Math.max(0, playerHp - WRONG_HIT);
+          const newPHP = Math.max(0, playerHp - dmg);
           setPlayerHp(newPHP);
           setFlashPlayer(true); setShakePlayer(true);
+          popDamage(playerAnchor.x, playerAnchor.y - 8, dmg, '#ff5a4a');
           playTone(160, 0.35, 'sawtooth', 0.13);
           setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); setPlayerAction('idle'); }, 500);
 
@@ -1397,6 +1441,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   function retry() {
     setPlayerHp(PLAYER_MAX); setEnemyHp(ENEMY_MAX);
     setPlayerAction('idle');
+    setEnemyRage(false); rageAnnounced.current = false;
     nextQuestion();
   }
 
@@ -1473,6 +1518,19 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           }} />
         )}
 
+        {/* Números de dano flutuantes */}
+        {dmgNums.map(d => (
+          <div key={d.key} className="font-pixel" style={{
+            position: 'absolute', left: `${d.x}%`, top: `${d.y}%`,
+            transform: 'translateX(-50%)',
+            fontSize: 26, fontWeight: 700, color: d.color,
+            WebkitTextStroke: '1px #2a0808',
+            textShadow: '0 2px 3px rgba(0,0,0,0.5)',
+            zIndex: 32, pointerEvents: 'none',
+            animation: 'dmg-float 0.9s ease-out forwards',
+          }}>-{d.value}</div>
+        ))}
+
         {/* Plataforma + sprite do inimigo — fundo direito */}
         <div style={{ position: 'absolute', top: '8%', right: 'calc(4% + 20px)', width: 190, height: 200,
           animation: 'battle-enemy-in 0.5s ease-out both' }}>
@@ -1480,14 +1538,15 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           <div style={{
             position: 'absolute', bottom: -126, left: 0, right: 0,
             display: 'flex', justifyContent: 'center',
-            animation: shakeEnemy ? 'enemy-hit-recoil 0.5s ease-out' : fainting ? 'battle-faint 1.4s ease-in forwards' : enemyAction === 'attack' ? 'enemy-vibrate 0.18s linear infinite' : undefined,
-            filter: !fainting && !shakeEnemy ? undefined : undefined, // shake via animation acima
+            animation: shakeEnemy ? 'enemy-hit-recoil 0.5s ease-out' : fainting ? 'battle-faint 1.4s ease-in forwards' : enemyAction === 'attack' ? `enemy-vibrate ${enemyRage ? 0.1 : 0.18}s linear infinite` : undefined,
           }}>
-            {/* Glow (ataque) + flash branco (dano) */}
+            {/* Glow (ataque) + flash branco (dano) + tom de fúria */}
             <div style={{
               position: 'relative', display: 'inline-flex',
-              animation: undefined,
-              filter: flashEnemy ? 'brightness(1.8)' : undefined,
+              animation: enemyRage && !flashEnemy && enemyAction !== 'defeat' ? 'enemy-rage-pulse 0.7s ease-in-out infinite' : undefined,
+              filter: flashEnemy ? 'brightness(1.8)'
+                : enemyRage ? 'drop-shadow(0 0 8px rgba(255,60,40,0.85)) saturate(1.4) hue-rotate(-12deg)'
+                : undefined,
               transition: 'filter 0.05s',
             }}>
               {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
