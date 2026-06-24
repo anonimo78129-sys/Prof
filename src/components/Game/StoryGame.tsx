@@ -2818,6 +2818,19 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         />
       )}
 
+      {/* DEV: botão de atalho para o combate */}
+      {(import.meta.env.DEV || isTestMode) && beat?.t !== 'battle' && (
+        <button
+          onClick={() => { setBg('corredor'); setBeatIndex(48); }}
+          className="font-pixel"
+          style={{
+            position: 'absolute', bottom: 12, left: 12, zIndex: 50,
+            fontSize: 8, color: '#ffe080', background: 'rgba(40,20,0,0.85)',
+            border: '2px solid #c08010', padding: '8px 10px', cursor: 'pointer',
+          }}
+        >⚔ COMBATE</button>
+      )}
+
       {/* coelho aparece 7s após a clareira começar, passa uma vez */}
       {showRabbit && !finished && <WalkingRabbit onDone={() => setShowRabbit(false)} />}
 
