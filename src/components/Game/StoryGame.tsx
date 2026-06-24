@@ -2815,7 +2815,10 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       const dist = bg === 'corredor' ? beat.dist * 2 : beat.dist;
       targetRef.current = worldX + dist;
       if (beat.landmark) {
-        const anchor = worldX + dist - GATE_AHEAD;
+        // no corredor o landmark usa parallax 0.22, então o anchor precisa ser menor
+        const anchor = bg === 'corredor'
+          ? worldX * (1 - 0.22) + dist * 0.22 + 150
+          : worldX + dist - GATE_AHEAD;
         setLandmarkAnchor(anchor);
         setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab');
         // guarda posição da macieira para ela persistir depois do collect
