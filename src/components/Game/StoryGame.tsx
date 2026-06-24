@@ -1228,7 +1228,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [wasCorrect, setWasCorrect]   = useState<boolean | null>(null);
   const [idleFrame, setIdleFrame]     = useState(1);
-  const [enemyRage, setEnemyRage]     = useState(false); // fase de fúria (HP < 50%)
+  const [rageFrame, setRageFrame]     = useState(1);
+  const [enemyRage, setEnemyRage]     = useState(false);
   const rageAnnounced = useRef(false);
   type EnemyAction = 'idle' | 'hit' | 'attack' | 'defeat' | 'victory';
   const [enemyAction, setEnemyAction] = useState<EnemyAction>('idle');
@@ -1238,6 +1239,11 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     const t = setInterval(() => setIdleFrame(f => f === 1 ? 2 : 1), 700);
     return () => clearInterval(t);
   }, []);
+  useEffect(() => {
+    if (!enemyRage) return;
+    const t = setInterval(() => setRageFrame(f => f >= 3 ? 1 : f + 1), 180);
+    return () => clearInterval(t);
+  }, [enemyRage]);
 
   // Projétil de energia + anel de impacto
   const [enemyAnchor,  setEnemyAnchor]  = useState({ x: 64, y: 36 });
@@ -1543,16 +1549,17 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             {/* Glow (ataque) + flash branco (dano) + tom de fúria */}
             <div style={{
               position: 'relative', display: 'inline-flex',
-              animation: enemyRage && !flashEnemy && enemyAction !== 'defeat' ? 'enemy-rage-pulse 0.7s ease-in-out infinite' : undefined,
-              filter: flashEnemy ? 'brightness(1.8)'
-                : enemyRage ? 'drop-shadow(0 0 8px rgba(255,60,40,0.85)) saturate(1.4) hue-rotate(-12deg)'
-                : undefined,
+              animation: undefined,
+              filter: flashEnemy ? 'brightness(1.8)' : undefined,
               transition: 'filter 0.05s',
             }}>
               {/* Todas as sprites pré-carregadas; só a ativa fica visível */}
               {([
-                { key: 'idle-1',  src: '/assets/enemies/consciencia-idle-1.png',  visible: enemyAction === 'idle' && idleFrame === 1 },
-                { key: 'idle-2',  src: '/assets/enemies/consciencia-idle-2.png',  visible: enemyAction === 'idle' && idleFrame === 2 },
+                { key: 'idle-1',  src: '/assets/enemies/consciencia-idle-1.png',  visible: enemyAction === 'idle' && !enemyRage && idleFrame === 1 },
+                { key: 'idle-2',  src: '/assets/enemies/consciencia-idle-2.png',  visible: enemyAction === 'idle' && !enemyRage && idleFrame === 2 },
+                { key: 'rage-1',  src: '/assets/enemies/consciencia-rage-1.png',  visible: enemyAction === 'idle' && enemyRage && rageFrame === 1 },
+                { key: 'rage-2',  src: '/assets/enemies/consciencia-rage-2.png',  visible: enemyAction === 'idle' && enemyRage && rageFrame === 2 },
+                { key: 'rage-3',  src: '/assets/enemies/consciencia-rage-3.png',  visible: enemyAction === 'idle' && enemyRage && rageFrame === 3 },
                 { key: 'hit',     src: '/assets/enemies/consciencia-hit.png',     visible: enemyAction === 'hit' },
                 { key: 'attack',  src: '/assets/enemies/consciencia-attack.png',  visible: enemyAction === 'attack' },
                 { key: 'defeat',  src: '/assets/enemies/consciencia-defeat.png',  visible: enemyAction === 'defeat' },
