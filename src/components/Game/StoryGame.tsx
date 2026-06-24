@@ -3106,9 +3106,10 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         }} />
       )}
 
-      {/* luz suave em frente ao herói no corredor — persistente, mais fraca */}
+      {/* luz suave em frente ao herói no corredor — persistente, mais fraca.
+          zIndex 24 fica atrás da camada de chão/terra (foreground, zIndex 25). */}
       {bg === 'corredor' && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none',
+        <div style={{ position: 'absolute', inset: 0, zIndex: 24, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 30% 60% at 58% 56%, rgba(255,255,200,0.42) 0%, rgba(255,240,150,0.16) 45%, transparent 72%)',
           animation: 'right-light-pulse 2.6s ease-in-out infinite',
         }} />
