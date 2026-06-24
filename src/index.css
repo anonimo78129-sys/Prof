@@ -221,6 +221,10 @@
     from { transform: translateX(0); }
     to   { transform: translateX(calc(100vw + 120px)); }
   }
+  @keyframes butterfly-move-x-rev {
+    from { transform: translateX(calc(100vw + 120px)); }
+    to   { transform: translateX(0); }
+  }
   @keyframes butterfly-bob-a {
     0%   { transform: translateY(-22px) rotate(-4deg); }
     30%  { transform: translateY(18px)  rotate(3deg); }

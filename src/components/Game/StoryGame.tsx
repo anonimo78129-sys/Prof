@@ -1017,29 +1017,34 @@ function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
 }
 
 function CorredorButterflies() {
-  // camada da frente — junto ao personagem (zIndex 15)
+  // rev: true = voa da direita pra esquerda (com scaleX(-1))
   const front = [
-    { color: 'orange', delay: 0,  dur: 18, bobDur: 1.4, bobAnim: 'butterfly-bob-a', y: 38, size: 22 },
-    { color: 'blue',   delay: 7,  dur: 23, bobDur: 1.8, bobAnim: 'butterfly-bob-b', y: 50, size: 20 },
-    { color: 'orange', delay: 13, dur: 20, bobDur: 1.2, bobAnim: 'butterfly-bob-c', y: 28, size: 24 },
-    { color: 'blue',   delay: 21, dur: 26, bobDur: 1.6, bobAnim: 'butterfly-bob-d', y: 44, size: 18 },
+    { color: 'orange', delay: 0,  dur: 18, bobDur: 1.4, bobAnim: 'butterfly-bob-a', y: 38, size: 22, rev: false },
+    { color: 'blue',   delay: 7,  dur: 23, bobDur: 1.8, bobAnim: 'butterfly-bob-b', y: 50, size: 20, rev: true  },
+    { color: 'orange', delay: 13, dur: 20, bobDur: 1.2, bobAnim: 'butterfly-bob-c', y: 28, size: 24, rev: false },
+    { color: 'blue',   delay: 21, dur: 26, bobDur: 1.6, bobAnim: 'butterfly-bob-d', y: 44, size: 18, rev: true  },
+    { color: 'orange', delay: 9,  dur: 22, bobDur: 1.5, bobAnim: 'butterfly-bob-c', y: 34, size: 19, rev: false },
+    { color: 'blue',   delay: 30, dur: 21, bobDur: 1.3, bobAnim: 'butterfly-bob-a', y: 22, size: 21, rev: true  },
   ];
-  // camadas de fundo — menores, mais lentas, atrás das plantas (zIndex 6)
   const back = [
-    { color: 'blue',   delay: 4,  dur: 28, bobDur: 2.0, bobAnim: 'butterfly-bob-b', y: 32, size: 14 },
-    { color: 'orange', delay: 16, dur: 32, bobDur: 1.7, bobAnim: 'butterfly-bob-a', y: 42, size: 12 },
-    { color: 'blue',   delay: 25, dur: 30, bobDur: 2.2, bobAnim: 'butterfly-bob-d', y: 24, size: 13 },
+    { color: 'blue',   delay: 4,  dur: 28, bobDur: 2.0, bobAnim: 'butterfly-bob-b', y: 32, size: 15, rev: false },
+    { color: 'orange', delay: 16, dur: 32, bobDur: 1.7, bobAnim: 'butterfly-bob-a', y: 42, size: 14, rev: true  },
+    { color: 'blue',   delay: 25, dur: 30, bobDur: 2.2, bobAnim: 'butterfly-bob-d', y: 24, size: 16, rev: false },
+    { color: 'orange', delay: 11, dur: 35, bobDur: 1.9, bobAnim: 'butterfly-bob-c', y: 36, size: 15, rev: true  },
+    { color: 'blue',   delay: 20, dur: 29, bobDur: 2.1, bobAnim: 'butterfly-bob-b', y: 18, size: 14, rev: false },
   ];
 
   const renderGroup = (list: typeof front, zIndex: number, opacity: number) => (
     <div style={{ position: 'absolute', inset: 0, zIndex, pointerEvents: 'none', overflow: 'hidden' }}>
       {list.map((b, i) => {
         const prefix = b.color === 'orange' ? '' : 'blue-';
+        const anim = b.rev ? 'butterfly-move-x-rev' : 'butterfly-move-x';
         return (
           <div key={i} style={{
             position: 'absolute', left: '-40px', top: `${b.y}%`,
             width: b.size, height: b.size, opacity,
-            animation: `butterfly-move-x ${b.dur}s linear ${-b.delay}s infinite`,
+            animation: `${anim} ${b.dur}s linear ${-b.delay}s infinite`,
+            transform: b.rev ? 'scaleX(-1)' : undefined,
           }}>
             <div style={{ position: 'absolute', inset: 0, animation: `${b.bobAnim} ${b.bobDur}s ease-in-out infinite` }}>
               <img src={`/assets/corredor/butterfly-${prefix}1.png`} alt=""
