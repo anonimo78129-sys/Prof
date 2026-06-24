@@ -217,6 +217,10 @@
     0%, 100% { transform: translateY(0px); }
     50%       { transform: translateY(-6px); }
   }
+  @keyframes sunlight-pulse {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 0.75; }
+  }
   @keyframes foliage-sway {
     0%, 100% { transform: translateY(0px) skewX(0deg); }
     25%       { transform: translateY(-3px) skewX(0.8deg); }
