@@ -222,9 +222,9 @@
     50%       { opacity: 0.75; }
   }
   @keyframes foliage-sway {
-    0%, 100% { transform: translateY(0px) skewX(0deg); }
-    25%       { transform: translateY(-3px) skewX(0.8deg); }
-    75%       { transform: translateY(-2px) skewX(-0.8deg); }
+    0%, 100% { transform: rotate(0deg); }
+    25%       { transform: rotate(1deg); }
+    75%       { transform: rotate(-1deg); }
   }
   @keyframes battle-faint {
     0%   { transform: translateY(0) scale(1);      opacity: 1; }
