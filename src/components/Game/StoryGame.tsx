@@ -2201,7 +2201,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{
             position: 'absolute',
             left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
-            bottom: GROUND, zIndex: 13,
+            bottom: GROUND - 20, zIndex: 13,
             width: 140, height: 250,
             transform: 'translateX(-50%) scaleX(-1)',
             opacity: conscienciaDefeated ? 0.4 : 1,
