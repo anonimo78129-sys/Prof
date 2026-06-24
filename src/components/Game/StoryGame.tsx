@@ -1536,7 +1536,9 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
         {/* Fundo da batalha */}
         <div style={{ position: 'absolute', inset: 0, zIndex: 0,
-          background: 'linear-gradient(180deg,#bfe9c8 0%,#9bd7a6 50%,#6fb072 51%,#4d9255 100%)' }} />
+          backgroundImage: `url('/assets/corredor/battle-bg.jpg')`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          imageRendering: 'pixelated' }} />
 
         {/* Listras diagonais ao fundo (estilo VS do Pokémon) */}
         <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', zIndex: 1,
