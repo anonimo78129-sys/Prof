@@ -2081,14 +2081,23 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
         {/* Camadas do corredor com parallax */}
         {bg === 'corredor' && [1,2,3,4,5,6,7,8].map((n, i) => (
-          <img key={n} src={`/assets/corredor/layer-${n}.png`} alt=""
-            style={{
-              position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%',
-              objectFit: 'fill', imageRendering: 'pixelated',
-              transform: `translateX(${Math.round(-worldX * SPEEDS[i])}px)`,
-              zIndex: n,
-            }}
-          />
+          <div key={n} style={n === 1 ? {
+            // camada 1: céu — preenche tudo
+            position: 'absolute', inset: 0, zIndex: 1,
+            backgroundImage: `url('/assets/corredor/layer-1.png')`,
+            backgroundSize: 'cover', backgroundPositionY: 'center',
+            backgroundPositionX: `${Math.round(-worldX * SPEEDS[0])}px`,
+            imageRendering: 'pixelated',
+          } : {
+            // camadas 2-8: mesma altura da cena (auto 100%), ancoradas no fundo
+            position: 'absolute', inset: 0, zIndex: n,
+            backgroundImage: `url('/assets/corredor/layer-${n}.png')`,
+            backgroundRepeat: 'repeat-x',
+            backgroundSize: 'auto 100%',
+            backgroundPositionX: `${Math.round(-worldX * SPEEDS[i])}px`,
+            backgroundPositionY: 'bottom',
+            imageRendering: 'pixelated',
+          }} />
         ))}
         {bg === 'final' && (
           <div style={{
