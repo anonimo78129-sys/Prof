@@ -2749,7 +2749,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
     if (holdRef.current) {
       setWorldX(x => {
         const dir = dirRef.current;
-        const next = x + dir * WALK_SPEED * dt;
+        const next = x + dir * WALK_SPEED * (bg === 'corredor' ? 2 : 1) * dt;
         if (dir === -1) return Math.max(next, walkStartXRef.current);
         if (targetRef.current != null) return Math.min(next, targetRef.current);
         return next;
