@@ -2994,7 +2994,10 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {/* DEV: botão de atalho para o combate */}
       {(import.meta.env.DEV || isTestMode) && beat?.t !== 'battle' && (
         <button
-          onClick={() => { setBg('corredor'); setBeatIndex(48); }}
+          onClick={() => {
+            const idx = beats.findIndex(b => b.t === 'battle');
+            setWorldX(0); setBg('corredor'); setBeatIndex(idx);
+          }}
           className="font-pixel"
           style={{
             position: 'absolute', bottom: 12, left: 12, zIndex: 50,
@@ -3008,8 +3011,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         <button
           onClick={() => {
             const idx = beats.findIndex(b => b.t === 'walk' && (b as any).landmark === 'lab');
-            setBg('corredor');
-            setConscienciaDefeated(true);
+            setWorldX(0); setBg('corredor');
+            setConscienciaDefeated(true); setCorredorLightOn(true);
             setBeatIndex(idx);
           }}
           className="font-pixel"
