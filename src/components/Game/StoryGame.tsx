@@ -1473,16 +1473,18 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
         background: '#6fb072', overflow: 'hidden' }}>
 
-        {/* Fundo animado — crossfade entre 2 frames */}
-        {['/assets/battle-bg-1.jpg', '/assets/battle-bg-2.jpg'].map((src, i) => (
-          <img key={src} src={src} alt="" style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: 'center top',
-            imageRendering: 'pixelated',
-            animation: `battle-bg-fade ${i === 0 ? '3s' : '3s'} ease-in-out ${i === 0 ? '0s' : '1.5s'} infinite alternate`,
-            zIndex: 0,
-          }} />
-        ))}
+        {/* Fundo animado — frame 1 fixo embaixo, frame 2 faz crossfade em cima */}
+        <img src="/assets/battle-bg-1.jpg" alt="" style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center top',
+          imageRendering: 'pixelated', zIndex: 0,
+        }} />
+        <img src="/assets/battle-bg-2.jpg" alt="" style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center top',
+          imageRendering: 'pixelated', zIndex: 0,
+          animation: 'battle-bg-fade 3s ease-in-out infinite alternate',
+        }} />
 
         {/* Listras diagonais ao fundo (estilo VS do Pokémon) */}
         <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', zIndex: 1,
