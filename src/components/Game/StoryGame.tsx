@@ -1018,7 +1018,7 @@ function CorredorButterflies() {
     { color: 'blue',   delay: 21, dur: 26, bobDur: 1.6, bobAnim: 'butterfly-bob-d', y: 44, size: 38 },
   ];
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 22, pointerEvents: 'none', overflow: 'hidden' }}>
+    <div style={{ position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none', overflow: 'hidden' }}>
       {butterflies.map((b, i) => (
         /* div externo: só avança no eixo X */
         <div key={i} style={{
