@@ -2098,7 +2098,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundPositionX: `${Math.round(-worldX * SPEEDS[i])}px`,
             backgroundPositionY: 'bottom -50px',
             imageRendering: 'pixelated',
-            ...(n === 7 ? { animation: 'foliage-sway 2.8s ease-in-out infinite', transformOrigin: 'bottom center' } : {}),
             ...(n === 4 ? { mixBlendMode: 'screen', animation: 'sunlight-pulse 4s ease-in-out infinite' } : {}),
             ...(n === 6 ? { mixBlendMode: 'screen', animation: 'sunlight-pulse 5.5s ease-in-out infinite' } : {}),
           }} />
