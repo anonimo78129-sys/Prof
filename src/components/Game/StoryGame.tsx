@@ -1012,24 +1012,28 @@ function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
 
 function CorredorButterflies() {
   const butterflies = [
-    { color: 'orange', delay: 0,   dur: 18, y: 38, size: 40 },
-    { color: 'blue',   delay: 7,   dur: 22, y: 52, size: 34 },
-    { color: 'orange', delay: 13,  dur: 20, y: 30, size: 36 },
-    { color: 'blue',   delay: 20,  dur: 25, y: 45, size: 38 },
+    { color: 'orange', delay: 0,  dur: 18, bobDur: 1.4, bobAnim: 'butterfly-bob-a', y: 38, size: 40 },
+    { color: 'blue',   delay: 7,  dur: 23, bobDur: 1.8, bobAnim: 'butterfly-bob-b', y: 50, size: 34 },
+    { color: 'orange', delay: 13, dur: 20, bobDur: 1.2, bobAnim: 'butterfly-bob-c', y: 28, size: 36 },
+    { color: 'blue',   delay: 21, dur: 26, bobDur: 1.6, bobAnim: 'butterfly-bob-d', y: 44, size: 38 },
   ];
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 22, pointerEvents: 'none', overflow: 'hidden' }}>
       {butterflies.map((b, i) => (
+        /* div externo: só avança no eixo X */
         <div key={i} style={{
           position: 'absolute', left: '-60px', top: `${b.y}%`,
-          animation: `butterfly-fly ${b.dur}s linear ${-b.delay}s infinite`,
+          animation: `butterfly-move-x ${b.dur}s linear ${-b.delay}s infinite`,
         }}>
-          <img src={`/assets/corredor/butterfly-${b.color === 'orange' ? '' : 'blue-'}1.png`} alt=""
-            style={{ position: 'absolute', width: b.size, height: 'auto', imageRendering: 'pixelated',
-              animation: `butterfly-frame 0.22s steps(1) infinite` }} />
-          <img src={`/assets/corredor/butterfly-${b.color === 'orange' ? '' : 'blue-'}2.png`} alt=""
-            style={{ position: 'absolute', width: b.size, height: 'auto', imageRendering: 'pixelated',
-              animation: `butterfly-frame2 0.22s steps(1) infinite` }} />
+          {/* div interno: sobe/desce + rotação */}
+          <div style={{ animation: `${b.bobAnim} ${b.bobDur}s ease-in-out infinite` }}>
+            <img src={`/assets/corredor/butterfly-${b.color === 'orange' ? '' : 'blue-'}1.png`} alt=""
+              style={{ position: 'absolute', width: b.size, height: 'auto', imageRendering: 'pixelated',
+                animation: `butterfly-frame 0.22s steps(1) infinite` }} />
+            <img src={`/assets/corredor/butterfly-${b.color === 'orange' ? '' : 'blue-'}2.png`} alt=""
+              style={{ position: 'absolute', width: b.size, height: 'auto', imageRendering: 'pixelated',
+                animation: `butterfly-frame2 0.22s steps(1) infinite` }} />
+          </div>
         </div>
       ))}
     </div>
