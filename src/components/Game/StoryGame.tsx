@@ -2217,28 +2217,14 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           </div>
         )}
 
-        {/* PLACEHOLDER: prédio do laboratório no fim do corredor (substituir por sprite depois) */}
+        {/* prédio do laboratório (estufa de vidro) no fim do corredor */}
         {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
-          <div style={{
+          <img src="/assets/corredor/lab.png" alt="laboratório" style={{
             position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
-            bottom: GROUND, zIndex: 12, transform: 'translateX(-50%)',
-            width: 220, height: 200,
-            background: 'linear-gradient(180deg, #5a6b7a 0%, #3a4a58 100%)',
-            border: '4px solid #1a2530', borderBottom: 'none',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
-            boxShadow: '0 0 30px 6px rgba(120,200,255,0.35)',
-          }}>
-            {/* domo no topo */}
-            <div style={{ position: 'absolute', top: -38, width: 120, height: 60,
-              borderRadius: '60px 60px 0 0', background: 'rgba(150,220,255,0.5)',
-              border: '4px solid #1a2530', borderBottom: 'none' }} />
-            {/* porta */}
-            <div style={{ position: 'absolute', bottom: 0, width: 50, height: 70,
-              background: '#9adcff', border: '3px solid #1a2530', borderBottom: 'none' }} />
-            <span className="font-pixel" style={{ marginTop: 14, fontSize: 8, color: '#dff2ff', textShadow: '1px 1px 0 #000' }}>
-              LABORATÓRIO
-            </span>
-          </div>
+            bottom: GROUND - 8, zIndex: 12, transform: 'translateX(-50%)',
+            height: 400, width: 'auto', imageRendering: 'pixelated',
+            filter: 'drop-shadow(0 0 30px rgba(120,200,255,0.35))',
+          }} />
         )}
 
       </div>
