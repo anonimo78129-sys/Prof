@@ -2231,7 +2231,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <img src="/assets/corredor/lab.png" alt="laboratório" style={{
             position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
             bottom: GROUND - 8, zIndex: 12, transform: 'translateX(-50%)',
-            height: 500, width: 'auto', imageRendering: 'pixelated',
+            height: 600, width: 'auto', imageRendering: 'pixelated',
             filter: 'drop-shadow(0 0 30px rgba(120,200,255,0.35))',
           }} />
         )}
