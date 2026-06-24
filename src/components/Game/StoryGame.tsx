@@ -1557,7 +1557,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         </div>
 
         {/* ── DEV: Anchor editor crosshairs ── */}
-        {import.meta.env.DEV && (
+        {(import.meta.env.DEV || isTestMode) && (
           <>
             {/* Enemy anchor crosshair */}
             {[
