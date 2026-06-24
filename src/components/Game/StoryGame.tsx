@@ -1736,7 +1736,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -2184,13 +2184,18 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
             bottom: GROUND, zIndex: 13, transform: 'translateX(-50%)',
             width: 120, height: 120, borderRadius: '50%',
-            background: 'radial-gradient(circle, #aaffcc 0%, #33cc77 45%, rgba(20,120,60,0.2) 75%, transparent 100%)',
-            boxShadow: '0 0 40px 12px rgba(60,255,140,0.7)',
-            animation: 'breathe-glow 2s ease-in-out infinite',
+            background: conscienciaDefeated
+              ? 'radial-gradient(circle, #aaffcc 0%, #33cc77 35%, rgba(20,120,60,0.1) 65%, transparent 100%)'
+              : 'radial-gradient(circle, #aaffcc 0%, #33cc77 45%, rgba(20,120,60,0.2) 75%, transparent 100%)',
+            boxShadow: conscienciaDefeated
+              ? '0 0 20px 4px rgba(60,255,140,0.3)'
+              : '0 0 40px 12px rgba(60,255,140,0.7)',
+            animation: conscienciaDefeated ? 'none' : 'breathe-glow 2s ease-in-out infinite',
+            opacity: conscienciaDefeated ? 0.45 : 1,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <span className="font-pixel" style={{ fontSize: 7, color: '#06351c', textAlign: 'center', lineHeight: 1.4 }}>
-              CONSCIÊNCIA<br/>VERDE
+              {conscienciaDefeated ? 'PASSAGEM\nABERTA' : 'CONSCIÊNCIA\nVERDE'}
             </span>
           </div>
         )}
@@ -2703,6 +2708,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [gateFrame, setGateFrame] = useState(0); // 0=fechado 1=entreaberto 2=aberto
   const [facing, setFacing] = useState(1);
   const [landmarkAnchor, setLandmarkAnchor] = useState<number | null>(null);
+  const [conscienciaDefeated, setConscienciaDefeated] = useState(false);
   // 1-4 = frame de despertar ativo; null = já acordou, usa hero normal
   const [wakeUpFrame, setWakeUpFrame] = useState<number | null>(null);
   const [showRabbit, setShowRabbit] = useState(false);
@@ -2810,9 +2816,6 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setAppleTreeAnchor(null);
       setTrunkAnchor(null);
       setGateFrame(0);
-    } else if (beat?.t === 'battle') {
-      // batalha: limpa o inimigo do mapa
-      setLandmarkAnchor(null);
     } else {
       targetRef.current = null;
       // say / question / fade: portão permanece no mundo
@@ -2937,7 +2940,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           </div>
         );
       })}
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
@@ -3014,7 +3017,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
 
       {/* combate — ato 6: Consciência Verde (estilo Pokémon GBA) */}
       {beat?.t === 'battle' && (
-        <BattleBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => {}} />
+        <BattleBeat key={beatIndex} beat={beat} onSolved={() => { setConscienciaDefeated(true); advance(); }} onCorrect={() => {}} />
       )}
 
       {/* escolha — ato 7 (final): a decisão */}
