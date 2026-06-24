@@ -1620,7 +1620,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
                 { key: 'victory', src: '/assets/chars/player-battle-victory.png', visible: playerAction === 'victory' },
               ] as const).map(({ key, src, visible }) => (
                 <img key={key} src={src} alt="" style={{
-                  height: 150, width: 'auto', imageRendering: 'pixelated',
+                  height: 195, width: 'auto', imageRendering: 'pixelated',
                   display: visible ? 'block' : 'none',
                 }} />
               ))}
