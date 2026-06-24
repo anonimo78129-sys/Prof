@@ -1010,7 +1010,10 @@ function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
   );
 }
 
-function LightMotes() {
+function LightMotes({ kind = 'default' }: { kind?: 'default' | 'sunset' }) {
+  const color = kind === 'sunset'
+    ? { bg: 'radial-gradient(circle, #ffe59a, rgba(255,180,40,0.25))', shadow: '0 0 6px 2px rgba(255,180,40,0.7)' }
+    : { bg: 'radial-gradient(circle, #b6fff4, rgba(64,224,208,0.25))',  shadow: '0 0 6px 2px rgba(64,224,208,0.6)' };
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none', overflow: 'hidden' }}>
       {Array.from({ length: 16 }, (_, i) => {
@@ -1020,8 +1023,8 @@ function LightMotes() {
           <div key={i} style={{
             position: 'absolute', left: `${s(7) * 100}%`, bottom: `${s(13) * 60}%`,
             width: size, height: size, borderRadius: 9,
-            background: 'radial-gradient(circle, #b6fff4, rgba(64,224,208,0.25))',
-            boxShadow: '0 0 6px 2px rgba(64,224,208,0.6)',
+            background: color.bg,
+            boxShadow: color.shadow,
             ['--mx' as string]: `${(s(19) > 0.5 ? 1 : -1) * (10 + s(23) * 40)}px`,
             animation: `mote-float ${6 + s(5) * 7}s ease-in-out ${-s(11) * 8}s infinite`,
           }} />
@@ -2133,7 +2136,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         )}
 
         {bg === 'final' && <SceneParticles kind="final" />}
-        {bg === 'corredor' && <LightMotes />}
+        {bg === 'corredor' && <LightMotes kind="sunset" />}
 
       </div>
       {/* Foreground do corredor — fora do container (não cortado), na frente do herói */}
