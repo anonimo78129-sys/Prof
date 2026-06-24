@@ -1230,6 +1230,8 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const [idleFrame, setIdleFrame]     = useState(1);
   type EnemyAction = 'idle' | 'hit' | 'attack' | 'defeat' | 'victory';
   const [enemyAction, setEnemyAction] = useState<EnemyAction>('idle');
+  type PlayerAction = 'idle' | 'hit' | 'attack' | 'defeat' | 'victory';
+  const [playerAction, setPlayerAction] = useState<PlayerAction>('idle');
   useEffect(() => {
     const t = setInterval(() => setIdleFrame(f => f === 1 ? 2 : 1), 700);
     return () => clearInterval(t);
@@ -1306,7 +1308,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   function nextQuestion() {
     const nq = pickQuestion();
     setSelectedIdx(null); setWasCorrect(null);
-    setEnemyAction('idle');
+    setEnemyAction('idle'); setPlayerAction('idle');
     setProj(null); setRing(null);
     setQ(nq); setLog(nq.text); setPhase('question');
   }
@@ -1325,9 +1327,10 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
       // 1.0s: jogador dispara projétil rumo ao inimigo (voa ~0.44s)
       setTimeout(() => {
+        setPlayerAction('attack');
         playTone(520, 0.12, 'triangle', 0.1);
         launch('toEnemy', () => {
-          // chegada → inimigo leva dano
+          setPlayerAction('idle');
           setEnemyHp(newEHP);
           setEnemyAction('hit');
           setShakeEnemy(true);
@@ -1340,6 +1343,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       setTimeout(() => {
         if (newEHP <= 0) {
           setEnemyAction('defeat');
+          setPlayerAction('victory');
           setLog('A Consciência Verde te reconheceu!');
           playChord([523.25, 659.25, 783.99, 1046.5], 2.5, 0.1);
           onCorrect();
@@ -1352,13 +1356,14 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         setTimeout(() => {
           playTone(300, 0.12, 'triangle', 0.1);
           launch('toPlayer', () => {
+            setPlayerAction('hit');
             setFlashPlayer(true); setShakePlayer(true);
             playTone(200, 0.3, 'sawtooth', 0.1);
-            setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+            setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); setPlayerAction('idle'); }, 500);
             const newPHP = Math.max(0, playerHp - ENEMY_HIT);
             setPlayerHp(newPHP);
             setTimeout(() => {
-              if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
+              if (newPHP <= 0) { setEnemyAction('victory'); setPlayerAction('defeat'); setLog('A floresta recusou você...'); setPhase('defeat'); }
               else nextQuestion();
             }, 900);
           });
@@ -1373,14 +1378,15 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       setTimeout(() => {
         playTone(300, 0.12, 'triangle', 0.1);
         launch('toPlayer', () => {
+          setPlayerAction('hit');
           const newPHP = Math.max(0, playerHp - WRONG_HIT);
           setPlayerHp(newPHP);
           setFlashPlayer(true); setShakePlayer(true);
           playTone(160, 0.35, 'sawtooth', 0.13);
-          setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+          setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); setPlayerAction('idle'); }, 500);
 
           setTimeout(() => {
-            if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
+            if (newPHP <= 0) { setEnemyAction('victory'); setPlayerAction('defeat'); setLog('A floresta recusou você...'); setPhase('defeat'); }
             else nextQuestion();
           }, 1100);
         });
@@ -1390,6 +1396,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
   function retry() {
     setPlayerHp(PLAYER_MAX); setEnemyHp(ENEMY_MAX);
+    setPlayerAction('idle');
     nextQuestion();
   }
 
@@ -1527,12 +1534,32 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             width: 198, height: 46, borderRadius: '50%',
             background: 'radial-gradient(ellipse at 50% 35%, #7fc77f 0%, #4f9a55 60%, #3c7a44 100%)',
             boxShadow: '0 7px 12px rgba(0,40,0,0.28)' }} />
-          <img src="/assets/chars/player-idle-1.png" alt="" style={{
-            position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
-            height: 150, width: 'auto', imageRendering: 'pixelated',
-            animation: shakePlayer ? 'battle-shake 0.4s ease' : undefined,
-            opacity: flashPlayer ? 0.55 : 1, transition: 'opacity 0.06s',
-          }} />
+          {/* Wrapper de shake (sem transform conflitante) */}
+          <div style={{
+            position: 'absolute', bottom: 16, left: 0, right: 0,
+            display: 'flex', justifyContent: 'center',
+            animation: shakePlayer ? 'battle-shake 0.4s ease' : playerAction === 'defeat' ? 'battle-faint 1.4s ease-in forwards' : undefined,
+          }}>
+            <div style={{
+              position: 'relative', display: 'inline-flex',
+              filter: flashPlayer ? 'brightness(1.8)' : undefined,
+              transition: 'filter 0.05s',
+            }}>
+              {([
+                { key: 'idle-1',  src: '/assets/chars/player-battle-idle-1.png',  visible: playerAction === 'idle' && idleFrame === 1 },
+                { key: 'idle-2',  src: '/assets/chars/player-battle-idle-2.png',  visible: playerAction === 'idle' && idleFrame === 2 },
+                { key: 'hit',     src: '/assets/chars/player-battle-hit.png',     visible: playerAction === 'hit' },
+                { key: 'attack',  src: '/assets/chars/player-battle-attack.png',  visible: playerAction === 'attack' },
+                { key: 'defeat',  src: '/assets/chars/player-battle-defeat.png',  visible: playerAction === 'defeat' },
+                { key: 'victory', src: '/assets/chars/player-battle-victory.png', visible: playerAction === 'victory' },
+              ] as const).map(({ key, src, visible }) => (
+                <img key={key} src={src} alt="" style={{
+                  height: 150, width: 'auto', imageRendering: 'pixelated',
+                  display: visible ? 'block' : 'none',
+                }} />
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Caixa de HP do jogador — canto inferior direito */}
