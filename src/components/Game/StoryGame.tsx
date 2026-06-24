@@ -1017,24 +1017,30 @@ function PropImg({ p, worldX }: { p: Prop; worldX: number }) {
 }
 
 function CorredorButterflies() {
-  const butterflies = [
-    { color: 'orange', delay: 0,  dur: 18, bobDur: 1.4, bobAnim: 'butterfly-bob-a', y: 38, size: 40 },
-    { color: 'blue',   delay: 7,  dur: 23, bobDur: 1.8, bobAnim: 'butterfly-bob-b', y: 50, size: 34 },
-    { color: 'orange', delay: 13, dur: 20, bobDur: 1.2, bobAnim: 'butterfly-bob-c', y: 28, size: 36 },
-    { color: 'blue',   delay: 21, dur: 26, bobDur: 1.6, bobAnim: 'butterfly-bob-d', y: 44, size: 38 },
+  // camada da frente — junto ao personagem (zIndex 15)
+  const front = [
+    { color: 'orange', delay: 0,  dur: 18, bobDur: 1.4, bobAnim: 'butterfly-bob-a', y: 38, size: 22 },
+    { color: 'blue',   delay: 7,  dur: 23, bobDur: 1.8, bobAnim: 'butterfly-bob-b', y: 50, size: 20 },
+    { color: 'orange', delay: 13, dur: 20, bobDur: 1.2, bobAnim: 'butterfly-bob-c', y: 28, size: 24 },
+    { color: 'blue',   delay: 21, dur: 26, bobDur: 1.6, bobAnim: 'butterfly-bob-d', y: 44, size: 18 },
   ];
-  return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none', overflow: 'hidden' }}>
-      {butterflies.map((b, i) => {
+  // camadas de fundo — menores, mais lentas, atrás das plantas (zIndex 6)
+  const back = [
+    { color: 'blue',   delay: 4,  dur: 28, bobDur: 2.0, bobAnim: 'butterfly-bob-b', y: 32, size: 14 },
+    { color: 'orange', delay: 16, dur: 32, bobDur: 1.7, bobAnim: 'butterfly-bob-a', y: 42, size: 12 },
+    { color: 'blue',   delay: 25, dur: 30, bobDur: 2.2, bobAnim: 'butterfly-bob-d', y: 24, size: 13 },
+  ];
+
+  const renderGroup = (list: typeof front, zIndex: number, opacity: number) => (
+    <div style={{ position: 'absolute', inset: 0, zIndex, pointerEvents: 'none', overflow: 'hidden' }}>
+      {list.map((b, i) => {
         const prefix = b.color === 'orange' ? '' : 'blue-';
         return (
-          /* div externo: só avança no eixo X */
           <div key={i} style={{
-            position: 'absolute', left: '-60px', top: `${b.y}%`,
-            width: b.size, height: b.size,
+            position: 'absolute', left: '-40px', top: `${b.y}%`,
+            width: b.size, height: b.size, opacity,
             animation: `butterfly-move-x ${b.dur}s linear ${-b.delay}s infinite`,
           }}>
-            {/* div interno: sobe/desce + rotação */}
             <div style={{ position: 'absolute', inset: 0, animation: `${b.bobAnim} ${b.bobDur}s ease-in-out infinite` }}>
               <img src={`/assets/corredor/butterfly-${prefix}1.png`} alt=""
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
@@ -1047,6 +1053,13 @@ function CorredorButterflies() {
         );
       })}
     </div>
+  );
+
+  return (
+    <>
+      {renderGroup(back, 6, 0.55)}
+      {renderGroup(front, 15, 1)}
+    </>
   );
 }
 
