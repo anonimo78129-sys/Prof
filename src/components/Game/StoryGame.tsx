@@ -1246,32 +1246,10 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   }, [enemyRage]);
 
   // Projétil de energia + anel de impacto
-  const [enemyAnchor,  setEnemyAnchor]  = useState({ x: 64, y: 36 });
-  const [playerAnchor, setPlayerAnchor] = useState({ x: 21, y: 66 });
-  // DEV: ref para anchor em arrasto — ref evita stale closure no listener
-  const draggingAnchorRef = useRef<'enemy' | 'player' | null>(null);
-  const arenaRef = useRef<HTMLDivElement>(null);
+  const enemyAnchor  = { x: 64, y: 36 };
+  const playerAnchor = { x: 21, y: 66 };
 
-  // Registra os listeners de drag uma única vez (sem deps)
-  useEffect(() => {
-    function onMove(e: MouseEvent) {
-      if (!draggingAnchorRef.current) return;
-      const rect = arenaRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const pct = {
-        x: Math.round(((e.clientX - rect.left) / rect.width)  * 100 * 10) / 10,
-        y: Math.round(((e.clientY - rect.top)  / rect.height) * 100 * 10) / 10,
-      };
-      if (draggingAnchorRef.current === 'enemy')  setEnemyAnchor(pct);
-      if (draggingAnchorRef.current === 'player') setPlayerAnchor(pct);
-    }
-    function onUp() { draggingAnchorRef.current = null; }
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup',  onUp);
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
-  }, []);
-
-  type Proj = { x: number; y: number; color: string; glow: string; moving: boolean };
+  type Proj = { x: number; y: number; color: string; glow: string; moving: boolean; behind: boolean };
   const [proj, setProj] = useState<Proj | null>(null);
   const [ring, setRing] = useState<{ x: number; y: number; color: string; key: number } | null>(null);
   const ringKey = useRef(0);
@@ -1310,10 +1288,12 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       : 'radial-gradient(circle at 35% 35%, #d6fff4, #3fe0c8 55%, #0b7a8f)';
     const glow  = dir === 'toEnemy' ? 'rgba(150,232,79,0.9)' : 'rgba(63,224,200,0.9)';
     const ringColor = dir === 'toEnemy' ? '#a6ee54' : '#3fe0c8';
-    setProj({ x: from.x, y: from.y, color, glow, moving: false });
+    setProj({ x: from.x, y: from.y, color, glow, moving: false, behind: dir === 'toEnemy' });
     requestAnimationFrame(() => requestAnimationFrame(() => {
       setProj(p => p ? { ...p, x: to.x, y: to.y, moving: true } : p);
     }));
+    // sai de trás do jogador → fica na frente após 160ms
+    if (dir === 'toEnemy') setTimeout(() => setProj(p => p ? { ...p, behind: false } : p), 160);
     setTimeout(() => {
       setProj(null);
       setRing({ x: to.x, y: to.y, color: ringColor, key: ringKey.current++ });
@@ -1490,7 +1470,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Arena ── */}
-      <div ref={arenaRef} style={{ flex: 1, position: 'relative', overflow: 'hidden',
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
         background: '#6fb072', overflow: 'hidden' }}>
 
         {/* Fundo animado — crossfade entre 2 frames */}
@@ -1516,7 +1496,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             width: 30, height: 30, marginLeft: -15, marginTop: -15, borderRadius: '50%',
             background: proj.color,
             boxShadow: `0 0 18px 4px ${proj.glow}, 0 0 6px 2px ${proj.glow}`,
-            zIndex: 30, pointerEvents: 'none',
+            zIndex: proj.behind ? 8 : 30, pointerEvents: 'none',
             transition: proj.moving ? 'left 0.44s cubic-bezier(0.45,0,0.7,1), top 0.44s cubic-bezier(0.45,0,0.7,1)' : 'none',
           }}>
             <div style={{ position: 'absolute', inset: 5, borderRadius: '50%',
@@ -1606,7 +1586,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
         {/* Plataforma + sprite do jogador — frente esquerda */}
         <div style={{ position: 'absolute', bottom: 'calc(4% - 30px)', left: 'calc(4% - 30px)', width: 200, height: 175,
-          animation: 'battle-player-in 0.5s ease-out both' }}>
+          animation: 'battle-player-in 0.5s ease-out both', zIndex: 10 }}>
           {/* Wrapper de shake (sem transform conflitante) */}
           <div style={{
             position: 'absolute', bottom: 16, left: 0, right: 0,
@@ -1652,66 +1632,6 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           </div>
         </div>
 
-        {/* ── DEV: Anchor editor crosshairs ── */}
-        {(import.meta.env.DEV || isTestMode) && (
-          <>
-            {/* Enemy anchor crosshair */}
-            {[
-              { id: 'enemy' as const, anchor: enemyAnchor, color: '#3fe0c8', label: 'E' },
-              { id: 'player' as const, anchor: playerAnchor, color: '#a6ee54', label: 'P' },
-            ].map(({ id, anchor, color, label }) => (
-              <div
-                key={id}
-                onMouseDown={e => { e.preventDefault(); draggingAnchorRef.current = id; }}
-                style={{
-                  position: 'absolute',
-                  left: `${anchor.x}%`, top: `${anchor.y}%`,
-                  width: 24, height: 24,
-                  marginLeft: -12, marginTop: -12,
-                  cursor: 'grab',
-                  zIndex: 99,
-                  pointerEvents: 'all',
-                }}
-              >
-                {/* Crosshair lines */}
-                <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 2, background: color, transform: 'translateY(-50%)' }} />
-                <div style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', width: 2, background: color, transform: 'translateX(-50%)' }} />
-                {/* Label */}
-                <div style={{
-                  position: 'absolute', top: -18, left: '50%', transform: 'translateX(-50%)',
-                  background: 'rgba(0,0,0,0.75)', color, fontSize: 10, fontWeight: 700,
-                  padding: '1px 4px', borderRadius: 3, whiteSpace: 'nowrap', fontFamily: 'monospace',
-                }}>{label} {anchor.x},{anchor.y}</div>
-                {/* Dot */}
-                <div style={{
-                  position: 'absolute', top: '50%', left: '50%',
-                  width: 6, height: 6, borderRadius: '50%',
-                  background: color, transform: 'translate(-50%,-50%)',
-                  boxShadow: `0 0 6px ${color}`,
-                }} />
-              </div>
-            ))}
-            {/* Copy-values panel */}
-            <div style={{
-              position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
-              background: 'rgba(0,0,0,0.82)', color: '#fff', fontSize: 11, fontFamily: 'monospace',
-              padding: '6px 10px', borderRadius: 6, zIndex: 100, whiteSpace: 'nowrap',
-              display: 'flex', gap: 10, alignItems: 'center',
-            }}>
-              <span style={{ color: '#3fe0c8' }}>E: {enemyAnchor.x},{enemyAnchor.y}</span>
-              <span style={{ color: '#a6ee54' }}>P: {playerAnchor.x},{playerAnchor.y}</span>
-              <button
-                onClick={() => navigator.clipboard.writeText(
-                  `const ENEMY_ANCHOR  = { x: ${enemyAnchor.x}, y: ${enemyAnchor.y} };\nconst PLAYER_ANCHOR = { x: ${playerAnchor.x}, y: ${playerAnchor.y} };`
-                )}
-                style={{
-                  background: '#444', color: '#fff', border: '1px solid #777',
-                  borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontSize: 11,
-                }}
-              >Copy</button>
-            </div>
-          </>
-        )}
       </div>
 
       {/* ── Painel inferior: pergunta em cima, opções em baixo ── */}
