@@ -209,6 +209,10 @@
     0%   { transform: translateX(-140px); opacity: 0; }
     100% { transform: translateX(0);      opacity: 1; }
   }
+  @keyframes battle-bg-fade {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
   @keyframes battle-float {
     0%, 100% { transform: translateY(0px); }
     50%       { transform: translateY(-6px); }

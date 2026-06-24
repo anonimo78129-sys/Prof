@@ -1491,10 +1491,21 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
       {/* ── Arena ── */}
       <div ref={arenaRef} style={{ flex: 1, position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(180deg,#bfe9c8 0%,#9bd7a6 50%,#6fb072 51%,#4d9255 100%)' }}>
+        background: '#6fb072', overflow: 'hidden' }}>
+
+        {/* Fundo animado — crossfade entre 2 frames */}
+        {['/assets/battle-bg-1.jpg', '/assets/battle-bg-2.jpg'].map((src, i) => (
+          <img key={src} src={src} alt="" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center top',
+            imageRendering: 'pixelated',
+            animation: `battle-bg-fade ${i === 0 ? '3s' : '3s'} ease-in-out ${i === 0 ? '0s' : '1.5s'} infinite alternate`,
+            zIndex: 0,
+          }} />
+        ))}
 
         {/* Listras diagonais ao fundo (estilo VS do Pokémon) */}
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none',
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', zIndex: 1,
           backgroundImage: 'repeating-linear-gradient(115deg, transparent 0, transparent 18px, rgba(255,255,255,0.10) 18px, rgba(255,255,255,0.10) 28px)',
           animation: 'battle-stripes 3.5s linear infinite' }} />
 
