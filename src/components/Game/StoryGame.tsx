@@ -2116,11 +2116,16 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div key={i} style={{
             position: 'absolute', top: '-10%', left: `${lx}%`, width: 60, height: '120%', zIndex: 3,
             transform: 'rotate(8deg)', transformOrigin: 'top center', pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(120,210,255,0.5), transparent 75%)',
+            background: 'linear-gradient(to bottom, rgba(255,200,80,0.7), transparent 75%)',
             filter: 'blur(8px)',
             animation: `beam-pulse ${4 + i}s ease-in-out ${-i}s infinite`,
           }} />
         ))}
+        {/* tint dourado de pôr do sol */}
+        {bg === 'corredor' && (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 9, pointerEvents: 'none',
+            background: 'rgba(255,160,40,0.15)' }} />
+        )}
 
         {bg === 'final' && (
           <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
