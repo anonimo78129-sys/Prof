@@ -1,7 +1,7 @@
 import type { MCQuestion } from '../types/game';
 
 // Quem está falando numa caixa de diálogo
-export type Speaker = 'narrador' | 'estudante' | 'corujao';
+export type Speaker = 'narrador' | 'estudante' | 'corujao' | 'consciencia';
 
 // Cenário/tema visual de fundo
 export type SceneBg = 'noite' | 'floresta' | 'clareira' | 'ato3' | 'estufa' | 'pantano' | 'corredor' | 'final';

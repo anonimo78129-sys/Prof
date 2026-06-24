@@ -127,6 +127,7 @@ const SPEAKER_NAME: Record<Speaker, string> = {
   narrador: '',
   estudante: 'Estudante',
   corujao: 'Prof. Corujão',
+  consciencia: 'Consciência Verde',
 };
 
 function DialogueBox({
@@ -159,7 +160,12 @@ function DialogueBox({
             style={{ position: 'absolute', top: -54, left: 8, width: 64, height: 64, imageRendering: 'pixelated' }} />
         )}
         {name && (
-          <p className="font-pixel" style={{ color: who === 'corujao' ? '#ffd54a' : '#88ff66', fontSize: 9, marginBottom: 8 }}>
+          <p className="font-pixel" style={{
+            color: who === 'corujao' ? '#ffd54a' : who === 'consciencia' ? '#7aff9a' : '#88ff66',
+            fontSize: 9, marginBottom: 8,
+            textShadow: who === 'consciencia' ? '0 0 8px #00ff88' : 'none',
+            animation: who === 'consciencia' ? 'breathe-glow 2s ease-in-out infinite' : 'none',
+          }}>
             {name}
           </p>
         )}

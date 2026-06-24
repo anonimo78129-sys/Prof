@@ -189,26 +189,36 @@ const beats: Beat[] = [
   { t: 'walk', dist: 480, hint: 'Siga a luz' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',
-    'Esta é a Consciência Verde — a floresta que aprendeu a pensar.',
-    'Ela se comunica por pulsos de luz, pela rede de fungos sob a terra.',
-    'Para passar, você precisa repetir os sinais dela. Preste atenção!',
+    'Esta é a Consciência Verde — a mente da floresta.',
+    'Ela se comunica por pulsos de luz e pela rede de fungos sob a terra.',
+    'Ela vai te testar. Não a decepcione.',
+  ] },
+  { t: 'say', who: 'consciencia', lines: [
+    '... intruso.',
+    'Você pisa onde poucos ousam. Prove que merece continuar.',
+    'A floresta não abre passagem para quem não a entende.',
   ] },
   { t: 'battle',
-    intro: 'A Consciência Verde surge dos troncos — ela precisa te testar antes de abrir passagem.',
+    intro: 'A Consciência Verde bloqueia o caminho com pulsos de energia...',
     success: [
       'A floresta reconheceu você.',
       'As plantas trocam açúcar e avisos de perigo pela rede de fungos.',
       'Uma floresta inteira pode ser um só organismo, conectado sob a terra.',
     ],
-    hint: 'Responda certo para atacar. Se errar, você leva um golpe forte. Lembre o que aprendeu sobre as plantas!',
+    hint: 'Use REDE DE FUNGOS para dano alto. TRANSPIRAÇÃO cura você. ESPORA enfraquece o próximo ataque inimigo.',
   },
+  { t: 'say', who: 'consciencia', lines: [
+    'Você... entende a vida.',
+    'Passe. O que você busca está além desta floresta.',
+  ] },
   { t: 'say', who: 'estudante', lines: [
-    'Eu... me comuniquei com a floresta.',
-    'Ela está me levando para algum lugar.',
+    'Eu me comuniquei com a floresta.',
+    'Ela está me abrindo caminho para algo...',
   ] },
   { t: 'walk', dist: 900, hint: 'Siga o chamado' },
   { t: 'say', who: 'estudante', lines: [
-    'O céu está diferente... parece que estou chegando no fim.',
+    'Um prédio... aqui no meio da floresta?',
+    'Parece um laboratório. Preciso entrar.',
   ] },
 
   // ── ATO 7 — O Laboratório Final / A Escolha ──
