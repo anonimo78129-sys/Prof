@@ -2078,7 +2078,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     // parallax speeds por camada (1=mais lento/longe, 8=mais rápido/perto)
     const SPEEDS = [0.01, 0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.22];
     return (
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: cfg.base }}>
         {/* Camadas do corredor com parallax */}
         {bg === 'corredor' && [1,2,3,4,5,6,7,8].map((n, i) => (
           <div key={n} style={n === 1 ? {
