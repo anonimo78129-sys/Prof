@@ -2200,7 +2200,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
           <div style={{
             position: 'absolute',
-            left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
+            left: `calc(50% + ${Math.round(landmarkAnchor - worldX * 0.22)}px)`,
             bottom: GROUND - 20, zIndex: 13,
             width: 140, height: 250,
             transform: 'translateX(-50%) scaleX(-1)',
