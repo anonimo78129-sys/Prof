@@ -3003,6 +3003,23 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           }}
         >⚔ COMBATE</button>
       )}
+      {/* DEV: botão de atalho para o laboratório final */}
+      {(import.meta.env.DEV || isTestMode) && (
+        <button
+          onClick={() => {
+            const idx = beats.findIndex(b => b.t === 'walk' && (b as any).landmark === 'lab');
+            setBg('corredor');
+            setConscienciaDefeated(true);
+            setBeatIndex(idx);
+          }}
+          className="font-pixel"
+          style={{
+            position: 'absolute', bottom: 12, left: 100, zIndex: 50,
+            fontSize: 8, color: '#80ffcc', background: 'rgba(0,30,20,0.85)',
+            border: '2px solid #10c080', padding: '8px 10px', cursor: 'pointer',
+          }}
+        >🏛 LAB</button>
+      )}
 
       {/* coelho aparece 7s após a clareira começar, passa uma vez */}
       {showRabbit && !finished && <WalkingRabbit onDone={() => setShowRabbit(false)} />}
