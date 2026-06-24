@@ -2815,9 +2815,14 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       const dist = bg === 'corredor' ? beat.dist * 2 : beat.dist;
       targetRef.current = worldX + dist;
       if (beat.landmark) {
-        // no corredor o landmark usa parallax 0.22, então o anchor precisa ser menor
+        // No corredor cada landmark é renderizado com um fator de parallax
+        // diferente (consciencia → 0.22, lab → 1.0). O anchor precisa fazer o
+        // worldX acumulado se cancelar quando o herói chega ao alvo, senão o
+        // landmark fica fora da tela (worldX acumula entre os atos).
         const anchor = bg === 'corredor'
-          ? worldX * (1 - 0.22) + dist * 0.22 + 150
+          ? (beat.landmark === 'consciencia'
+              ? (worldX + dist) * 0.22 + 150
+              : worldX + dist - GATE_AHEAD)
           : worldX + dist - GATE_AHEAD;
         setLandmarkAnchor(anchor);
         setLandmarkKind(beat.landmark as 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab');
