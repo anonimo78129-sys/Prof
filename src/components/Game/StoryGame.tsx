@@ -1594,7 +1594,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         </div>
 
         {/* Plataforma + sprite do jogador — frente esquerda */}
-        <div style={{ position: 'absolute', bottom: 'calc(4% - 30px)', left: 'calc(4% - 50px)', width: 200, height: 175,
+        <div style={{ position: 'absolute', bottom: 'calc(4% - 30px)', left: 'calc(4% - 30px)', width: 200, height: 175,
           animation: 'battle-player-in 0.5s ease-out both' }}>
           {/* Wrapper de shake (sem transform conflitante) */}
           <div style={{
