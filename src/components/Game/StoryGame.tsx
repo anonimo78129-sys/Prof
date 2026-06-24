@@ -2791,8 +2791,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       onContextMenu={(e) => e.preventDefault()}>
       <ImagePreloader />
       {/* cobre o verde do body na faixa do FLOOR (abaixo do mundo) */}
-      {bg !== 'pantano' && <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: bg === 'corredor' ? -29 : 0, height: FLOOR,
+      {bg !== 'pantano' && bg !== 'corredor' && <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
         backgroundImage: "url('/assets/world/ground-dark.png')",
         backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
         backgroundPositionX: `${Math.round(-worldX)}px`,
