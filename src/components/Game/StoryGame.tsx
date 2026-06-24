@@ -2810,6 +2810,9 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setAppleTreeAnchor(null);
       setTrunkAnchor(null);
       setGateFrame(0);
+    } else if (beat?.t === 'battle') {
+      // batalha: limpa o inimigo do mapa
+      setLandmarkAnchor(null);
     } else {
       targetRef.current = null;
       // say / question / fade: portão permanece no mundo
