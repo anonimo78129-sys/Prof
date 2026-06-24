@@ -2098,6 +2098,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundPositionX: `${Math.round(-worldX * SPEEDS[i])}px`,
             backgroundPositionY: 'bottom -50px',
             imageRendering: 'pixelated',
+            ...(n === 7 ? { animation: 'foliage-sway 2.8s ease-in-out infinite' } : {}),
           }} />
         ))}
         {bg === 'final' && (
