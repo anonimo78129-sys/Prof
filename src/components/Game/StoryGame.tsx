@@ -1544,7 +1544,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           <div style={{
             position: 'absolute', bottom: -126, left: 0, right: 0,
             display: 'flex', justifyContent: 'center',
-            animation: shakeEnemy ? 'enemy-hit-recoil 0.5s ease-out' : fainting ? 'battle-faint 1.4s ease-in forwards' : enemyAction === 'attack' ? `enemy-vibrate ${enemyRage ? 0.1 : 0.18}s linear infinite` : undefined,
+            animation: shakeEnemy ? 'enemy-hit-recoil 0.5s ease-out' : fainting ? 'battle-faint 1.4s ease-in forwards' : enemyAction === 'attack' ? `enemy-vibrate ${enemyRage ? 0.1 : 0.18}s linear infinite` : 'battle-float 2.8s ease-in-out infinite',
           }}>
             {/* Glow (ataque) + flash branco (dano) + tom de fúria */}
             <div style={{
@@ -1600,7 +1600,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           <div style={{
             position: 'absolute', bottom: 16, left: 0, right: 0,
             display: 'flex', justifyContent: 'center',
-            animation: shakePlayer ? 'battle-shake 0.4s ease' : playerAction === 'defeat' ? 'battle-faint 1.4s ease-in forwards' : undefined,
+            animation: shakePlayer ? 'battle-shake 0.4s ease' : playerAction === 'defeat' ? 'battle-faint 1.4s ease-in forwards' : 'battle-float 3.2s ease-in-out infinite',
           }}>
             <div style={{
               position: 'relative', display: 'inline-flex',
