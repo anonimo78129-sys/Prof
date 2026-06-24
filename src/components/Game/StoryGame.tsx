@@ -2093,7 +2093,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             position: 'absolute', inset: 0, zIndex: n,
             backgroundImage: `url('/assets/corredor/layer-${n}.png')`,
             backgroundRepeat: 'repeat-x',
-            backgroundSize: 'auto auto',
+            backgroundSize: 'auto 350px',
             backgroundPositionX: `${Math.round(-worldX * SPEEDS[i])}px`,
             backgroundPositionY: 'bottom',
             imageRendering: 'pixelated',
