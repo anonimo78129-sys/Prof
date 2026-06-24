@@ -1236,16 +1236,43 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   }, []);
 
   // Projétil de energia + anel de impacto
-  const ENEMY_ANCHOR  = { x: 74, y: 34 };
-  const PLAYER_ANCHOR = { x: 21, y: 66 };
+  const [enemyAnchor,  setEnemyAnchor]  = useState({ x: 74, y: 34 });
+  const [playerAnchor, setPlayerAnchor] = useState({ x: 21, y: 66 });
+  // DEV: qual âncora está sendo arrastada ('enemy' | 'player' | null)
+  const [draggingAnchor, setDraggingAnchor] = useState<'enemy' | 'player' | null>(null);
+  const arenaRef = useRef<HTMLDivElement>(null);
+
+  function anchorPctFromEvent(e: React.MouseEvent | MouseEvent): { x: number; y: number } {
+    const rect = arenaRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    return {
+      x: Math.round(((e.clientX - rect.left) / rect.width)  * 100 * 10) / 10,
+      y: Math.round(((e.clientY - rect.top)  / rect.height) * 100 * 10) / 10,
+    };
+  }
+
+  useEffect(() => {
+    if (!draggingAnchor) return;
+    function onMove(e: MouseEvent) {
+      const pct = anchorPctFromEvent(e);
+      if (draggingAnchor === 'enemy')  setEnemyAnchor(pct);
+      if (draggingAnchor === 'player') setPlayerAnchor(pct);
+    }
+    function onUp() { setDraggingAnchor(null); }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draggingAnchor]);
+
   type Proj = { x: number; y: number; color: string; glow: string; moving: boolean };
   const [proj, setProj] = useState<Proj | null>(null);
   const [ring, setRing] = useState<{ x: number; y: number; color: string; key: number } | null>(null);
   const ringKey = useRef(0);
 
   function launch(dir: 'toEnemy' | 'toPlayer', onArrive: () => void) {
-    const from  = dir === 'toEnemy' ? PLAYER_ANCHOR : ENEMY_ANCHOR;
-    const to    = dir === 'toEnemy' ? ENEMY_ANCHOR  : PLAYER_ANCHOR;
+    const from  = dir === 'toEnemy' ? playerAnchor : enemyAnchor;
+    const to    = dir === 'toEnemy' ? enemyAnchor  : playerAnchor;
     // jogador dispara energia verde-amarela; inimigo dispara energia turquesa
     const color = dir === 'toEnemy'
       ? 'radial-gradient(circle at 35% 35%, #f4ffd6, #a6ee54 55%, #3c8f1c)'
@@ -1409,7 +1436,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Arena ── */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
+      <div ref={arenaRef} style={{ flex: 1, position: 'relative', overflow: 'hidden',
         background: 'linear-gradient(180deg,#bfe9c8 0%,#9bd7a6 50%,#6fb072 51%,#4d9255 100%)' }}>
 
         {/* Listras diagonais ao fundo (estilo VS do Pokémon) */}
@@ -1528,6 +1555,67 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             <span className="font-pixel" style={{ fontSize: 11, color: '#282018' }}>{playerHp}/{PLAYER_MAX}</span>
           </div>
         </div>
+
+        {/* ── DEV: Anchor editor crosshairs ── */}
+        {import.meta.env.DEV && (
+          <>
+            {/* Enemy anchor crosshair */}
+            {[
+              { id: 'enemy' as const, anchor: enemyAnchor, color: '#3fe0c8', label: 'E' },
+              { id: 'player' as const, anchor: playerAnchor, color: '#a6ee54', label: 'P' },
+            ].map(({ id, anchor, color, label }) => (
+              <div
+                key={id}
+                onMouseDown={e => { e.preventDefault(); setDraggingAnchor(id); }}
+                style={{
+                  position: 'absolute',
+                  left: `${anchor.x}%`, top: `${anchor.y}%`,
+                  width: 24, height: 24,
+                  marginLeft: -12, marginTop: -12,
+                  cursor: 'grab',
+                  zIndex: 99,
+                  pointerEvents: 'all',
+                }}
+              >
+                {/* Crosshair lines */}
+                <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 2, background: color, transform: 'translateY(-50%)' }} />
+                <div style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', width: 2, background: color, transform: 'translateX(-50%)' }} />
+                {/* Label */}
+                <div style={{
+                  position: 'absolute', top: -18, left: '50%', transform: 'translateX(-50%)',
+                  background: 'rgba(0,0,0,0.75)', color, fontSize: 10, fontWeight: 700,
+                  padding: '1px 4px', borderRadius: 3, whiteSpace: 'nowrap', fontFamily: 'monospace',
+                }}>{label} {anchor.x},{anchor.y}</div>
+                {/* Dot */}
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%',
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: color, transform: 'translate(-50%,-50%)',
+                  boxShadow: `0 0 6px ${color}`,
+                }} />
+              </div>
+            ))}
+            {/* Copy-values panel */}
+            <div style={{
+              position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+              background: 'rgba(0,0,0,0.82)', color: '#fff', fontSize: 11, fontFamily: 'monospace',
+              padding: '6px 10px', borderRadius: 6, zIndex: 100, whiteSpace: 'nowrap',
+              display: 'flex', gap: 10, alignItems: 'center',
+            }}>
+              <span style={{ color: '#3fe0c8' }}>E: {enemyAnchor.x},{enemyAnchor.y}</span>
+              <span style={{ color: '#a6ee54' }}>P: {playerAnchor.x},{playerAnchor.y}</span>
+              <button
+                onClick={() => navigator.clipboard.writeText(
+                  `const ENEMY_ANCHOR  = { x: ${enemyAnchor.x}, y: ${enemyAnchor.y} };\nconst PLAYER_ANCHOR = { x: ${playerAnchor.x}, y: ${playerAnchor.y} };`
+                )}
+                style={{
+                  background: '#444', color: '#fff', border: '1px solid #777',
+                  borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontSize: 11,
+                }}
+              >Copy</button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Painel inferior: pergunta em cima, opções em baixo ── */}
