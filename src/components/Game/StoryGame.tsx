@@ -2140,8 +2140,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           }} />
         )}
 
-        <div style={{ position: 'absolute', inset: 0, zIndex: 7, pointerEvents: 'none',
-          boxShadow: 'inset 0 0 160px 40px rgba(0,0,0,0.55)' }} />
 
         <div style={{
           position: 'absolute', left: 0, right: 0, bottom: 0, height: GROUND - 10, zIndex: 21,
