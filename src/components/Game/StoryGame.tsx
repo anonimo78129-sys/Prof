@@ -2207,15 +2207,22 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             bottom: GROUND - 20, zIndex: 13,
             width: 168, height: 300,
             transform: 'translateX(-50%) scaleX(-1)',
-            opacity: conscienciaDefeated ? 0.4 : 1,
-            filter: conscienciaDefeated ? 'grayscale(0.6)' : 'drop-shadow(0 0 12px rgba(60,255,140,0.8))',
+            filter: conscienciaDefeated ? 'drop-shadow(0 0 12px rgba(120,200,255,0.6))' : 'drop-shadow(0 0 12px rgba(60,255,140,0.8))',
           }}>
-            <img src="/assets/corredor/consciencia-idle-1.png" alt=""
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
-                animation: 'butterfly-frame 0.6s steps(1) infinite' }} />
-            <img src="/assets/corredor/consciencia-idle-2.png" alt=""
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
-                animation: 'butterfly-frame2 0.6s steps(1) infinite' }} />
+            {conscienciaDefeated ? (
+              // derrotado: sprite passivo, opacidade total, permanece na cena
+              <img src="/assets/corredor/consciencia-defeated.png" alt=""
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated' }} />
+            ) : (
+              <>
+                <img src="/assets/corredor/consciencia-idle-1.png" alt=""
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                    animation: 'butterfly-frame 0.6s steps(1) infinite' }} />
+                <img src="/assets/corredor/consciencia-idle-2.png" alt=""
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                    animation: 'butterfly-frame2 0.6s steps(1) infinite' }} />
+              </>
+            )}
           </div>
         )}
 
