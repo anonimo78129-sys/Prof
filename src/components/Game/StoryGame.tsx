@@ -2167,9 +2167,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
         {bg === 'final' && <SceneParticles kind="final" />}
         {bg === 'corredor' && <LightMotes kind="sunset" />}
-        {bg === 'corredor' && <CorredorButterflies />}
 
       </div>
+      {bg === 'corredor' && <CorredorButterflies />}
       {/* Foreground do corredor — fora do container (não cortado), na frente do herói */}
       {bg === 'corredor' && (
         <div style={{
