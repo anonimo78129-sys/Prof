@@ -1473,14 +1473,9 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
         background: '#6fb072', overflow: 'hidden' }}>
 
-        {/* Fundo em camadas — 1 (mais atrás) até 8 (mais à frente), todas abaixo dos sprites */}
-        {[1,2,3,4,5,6,7,8].map((n, i) => (
-          <img key={n} src={`/assets/battle-layer-${n}.png`} alt="" style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'fill', objectPosition: 'center bottom',
-            imageRendering: 'pixelated', zIndex: i + 1,
-          }} />
-        ))}
+        {/* Fundo da batalha */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0,
+          background: 'linear-gradient(180deg,#bfe9c8 0%,#9bd7a6 50%,#6fb072 51%,#4d9255 100%)' }} />
 
         {/* Listras diagonais ao fundo (estilo VS do Pokémon) */}
         <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none', zIndex: 1,
@@ -2077,18 +2072,33 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
   // ── Atos 6-7: cenas de imagem única (corredor de luz / final) ─────────────
   if (bg === 'corredor' || bg === 'final') {
     const cfg = {
-      corredor: { img: '/assets/scenes/corredor.jpg', base: '#06121f', tint: 'rgba(20,120,200,0.14)', tintAnim: 'light-pulse 3s ease-in-out infinite' },
-      final:    { img: '/assets/scenes/final.jpg',    base: '#1a1208', tint: 'rgba(255,210,120,0.10)', tintAnim: undefined },
+      corredor: { base: '#1a0e2e', tint: 'rgba(20,120,200,0.10)', tintAnim: 'light-pulse 3s ease-in-out infinite' },
+      final:    { base: '#1a1208', tint: 'rgba(255,210,120,0.10)', tintAnim: undefined },
     }[bg];
+    // parallax speeds por camada (1=mais lento/longe, 8=mais rápido/perto)
+    const SPEEDS = [0.01, 0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.22];
     return (
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 1,
-          backgroundImage: `url('${cfg.img}')`, backgroundSize: 'cover',
-          backgroundPositionX: `calc(50% + ${Math.round(-worldX * 0.08)}px)`, backgroundPositionY: 'center',
-          backgroundRepeat: 'no-repeat', imageRendering: 'pixelated',
-        }} />
-        <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />
+        {/* Camadas do corredor com parallax */}
+        {bg === 'corredor' && [1,2,3,4,5,6,7,8].map((n, i) => (
+          <img key={n} src={`/assets/corredor/layer-${n}.png`} alt=""
+            style={{
+              position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%',
+              objectFit: 'fill', imageRendering: 'pixelated',
+              transform: `translateX(${Math.round(-worldX * SPEEDS[i])}px)`,
+              zIndex: n,
+            }}
+          />
+        ))}
+        {bg === 'final' && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            backgroundImage: `url('/assets/scenes/final.jpg')`, backgroundSize: 'cover',
+            backgroundPositionX: `calc(50% + ${Math.round(-worldX * 0.08)}px)`, backgroundPositionY: 'center',
+            backgroundRepeat: 'no-repeat', imageRendering: 'pixelated',
+          }} />
+        )}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 9, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />
 
         {bg === 'corredor' && [18, 38, 58, 78].map((lx, i) => (
           <div key={i} style={{
