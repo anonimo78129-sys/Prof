@@ -2078,7 +2078,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     // parallax speeds por camada (1=mais lento/longe, 8=mais rápido/perto)
     const SPEEDS = [0.01, 0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.22];
     return (
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: cfg.base }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
         {/* Camadas do corredor com parallax */}
         {bg === 'corredor' && [1,2,3,4,5,6,7,8].map((n, i) => (
           <div key={n} style={n === 1 ? {
@@ -2791,12 +2791,16 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       onContextMenu={(e) => e.preventDefault()}>
       <ImagePreloader />
       {/* cobre o verde do body na faixa do FLOOR (abaixo do mundo) */}
-      {bg !== 'pantano' && <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: bg === 'corredor' ? -320 : 0, height: FLOOR,
+      {bg !== 'pantano' && bg !== 'corredor' && <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
         backgroundImage: "url('/assets/world/ground-dark.png')",
         backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%',
         backgroundPositionX: `${Math.round(-worldX)}px`,
         imageRendering: 'pixelated',
+      }} />}
+      {bg === 'corredor' && <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
+        background: '#1a0e2e',
       }} />}
       {/* pantano — bg estendido até o rodapé (cobre o verde do body) */}
       {bg === 'pantano' && <img src="/assets/pantano/bg.png" alt="" style={{
