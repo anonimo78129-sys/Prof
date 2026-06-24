@@ -1235,6 +1235,34 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     return () => clearInterval(t);
   }, []);
 
+  // Projétil de energia + anel de impacto
+  const ENEMY_ANCHOR  = { x: 74, y: 34 };
+  const PLAYER_ANCHOR = { x: 21, y: 66 };
+  type Proj = { x: number; y: number; color: string; glow: string; moving: boolean };
+  const [proj, setProj] = useState<Proj | null>(null);
+  const [ring, setRing] = useState<{ x: number; y: number; color: string; key: number } | null>(null);
+  const ringKey = useRef(0);
+
+  function launch(dir: 'toEnemy' | 'toPlayer', onArrive: () => void) {
+    const from  = dir === 'toEnemy' ? PLAYER_ANCHOR : ENEMY_ANCHOR;
+    const to    = dir === 'toEnemy' ? ENEMY_ANCHOR  : PLAYER_ANCHOR;
+    // jogador dispara energia verde-amarela; inimigo dispara energia turquesa
+    const color = dir === 'toEnemy'
+      ? 'radial-gradient(circle at 35% 35%, #f4ffd6, #a6ee54 55%, #3c8f1c)'
+      : 'radial-gradient(circle at 35% 35%, #d6fff4, #3fe0c8 55%, #0b7a8f)';
+    const glow  = dir === 'toEnemy' ? 'rgba(150,232,79,0.9)' : 'rgba(63,224,200,0.9)';
+    const ringColor = dir === 'toEnemy' ? '#a6ee54' : '#3fe0c8';
+    setProj({ x: from.x, y: from.y, color, glow, moving: false });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setProj(p => p ? { ...p, x: to.x, y: to.y, moving: true } : p);
+    }));
+    setTimeout(() => {
+      setProj(null);
+      setRing({ x: to.x, y: to.y, color: ringColor, key: ringKey.current++ });
+      onArrive();
+    }, 440);
+  }
+
   useEffect(() => {
     if (!beat.intro) setLog(q.text);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1256,6 +1284,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     const nq = pickQuestion();
     setSelectedIdx(null); setWasCorrect(null);
     setEnemyAction('idle');
+    setProj(null); setRing(null);
     setQ(nq); setLog(nq.text); setPhase('question');
   }
 
@@ -1271,14 +1300,19 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       setLog('✓ Correto! Você atinge a Consciência Verde!');
       playTone(660, 0.25, 'sine', 0.16);
 
-      // 1.4s: inimigo leva dano — sprite hit + shake + flash azul
+      // 1.0s: jogador dispara projétil rumo ao inimigo (voa ~0.44s)
       setTimeout(() => {
-        setEnemyHp(newEHP);
-        setEnemyAction('hit');
-        setShakeEnemy(true);
-        setFlashEnemy(true);
-        setTimeout(() => { setShakeEnemy(false); setFlashEnemy(false); }, 480);
-      }, 1400);
+        playTone(520, 0.12, 'triangle', 0.1);
+        launch('toEnemy', () => {
+          // chegada → inimigo leva dano
+          setEnemyHp(newEHP);
+          setEnemyAction('hit');
+          setShakeEnemy(true);
+          setFlashEnemy(true);
+          playTone(180, 0.25, 'square', 0.12);
+          setTimeout(() => { setShakeEnemy(false); setFlashEnemy(false); }, 480);
+        });
+      }, 1000);
 
       setTimeout(() => {
         if (newEHP <= 0) {
@@ -1289,20 +1323,23 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           setTimeout(() => setPhase('victory'), 1800);
           return;
         }
-        // turno do inimigo: sprite attack + flash no jogador
+        // turno do inimigo: vibra, dispara projétil rumo ao jogador
         setEnemyAction('attack');
         setLog('A Consciência Verde revida com um pulso...');
         setTimeout(() => {
-          setFlashPlayer(true); setShakePlayer(true);
-          playTone(200, 0.3, 'sawtooth', 0.1);
-          setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
-          const newPHP = Math.max(0, playerHp - ENEMY_HIT);
-          setPlayerHp(newPHP);
-          setTimeout(() => {
-            if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
-            else nextQuestion();
-          }, 900);
-        }, 1000);
+          playTone(300, 0.12, 'triangle', 0.1);
+          launch('toPlayer', () => {
+            setFlashPlayer(true); setShakePlayer(true);
+            playTone(200, 0.3, 'sawtooth', 0.1);
+            setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+            const newPHP = Math.max(0, playerHp - ENEMY_HIT);
+            setPlayerHp(newPHP);
+            setTimeout(() => {
+              if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
+              else nextQuestion();
+            }, 900);
+          });
+        }, 700);
       }, 2400);
     } else {
       // Errou: inimigo ataca direto
@@ -1311,16 +1348,20 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       playTone(110, 0.45, 'sawtooth', 0.14);
 
       setTimeout(() => {
-        const newPHP = Math.max(0, playerHp - WRONG_HIT);
-        setPlayerHp(newPHP);
-        setFlashPlayer(true); setShakePlayer(true);
-        setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
+        playTone(300, 0.12, 'triangle', 0.1);
+        launch('toPlayer', () => {
+          const newPHP = Math.max(0, playerHp - WRONG_HIT);
+          setPlayerHp(newPHP);
+          setFlashPlayer(true); setShakePlayer(true);
+          playTone(160, 0.35, 'sawtooth', 0.13);
+          setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); }, 500);
 
-        setTimeout(() => {
-          if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
-          else nextQuestion();
-        }, 1100);
-      }, 1600);
+          setTimeout(() => {
+            if (newPHP <= 0) { setEnemyAction('victory'); setLog('A floresta recusou você...'); setPhase('defeat'); }
+            else nextQuestion();
+          }, 1100);
+        });
+      }, 1100);
     }
   }
 
@@ -1375,6 +1416,32 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
         <div style={{ position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none',
           backgroundImage: 'repeating-linear-gradient(115deg, transparent 0, transparent 18px, rgba(255,255,255,0.10) 18px, rgba(255,255,255,0.10) 28px)',
           animation: 'battle-stripes 3.5s linear infinite' }} />
+
+        {/* Projétil de energia voando até o alvo */}
+        {proj && (
+          <div style={{
+            position: 'absolute', left: `${proj.x}%`, top: `${proj.y}%`,
+            width: 30, height: 30, marginLeft: -15, marginTop: -15, borderRadius: '50%',
+            background: proj.color,
+            boxShadow: `0 0 18px 4px ${proj.glow}, 0 0 6px 2px ${proj.glow}`,
+            zIndex: 30, pointerEvents: 'none',
+            transition: proj.moving ? 'left 0.44s cubic-bezier(0.45,0,0.7,1), top 0.44s cubic-bezier(0.45,0,0.7,1)' : 'none',
+          }}>
+            <div style={{ position: 'absolute', inset: 5, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.85)', animation: 'projectile-spin 0.5s linear infinite' }} />
+          </div>
+        )}
+
+        {/* Anel de impacto ao acertar */}
+        {ring && (
+          <div key={ring.key} style={{
+            position: 'absolute', left: `${ring.x}%`, top: `${ring.y}%`,
+            width: 64, height: 64, marginLeft: -32, marginTop: -32, borderRadius: '50%',
+            border: `4px solid ${ring.color}`, boxShadow: `0 0 14px ${ring.color}`,
+            zIndex: 31, pointerEvents: 'none',
+            animation: 'impact-ring 0.5s ease-out forwards',
+          }} />
+        )}
 
         {/* Plataforma + sprite do inimigo — fundo direito */}
         <div style={{ position: 'absolute', top: '8%', right: 'calc(4% + 20px)', width: 190, height: 200,

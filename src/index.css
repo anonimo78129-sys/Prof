@@ -168,6 +168,14 @@
     80%  { transform: translateX(-6px); }
     100% { transform: translateX(0); }
   }
+  @keyframes impact-ring {
+    0%   { transform: scale(0.3); opacity: 0.95; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+  @keyframes projectile-spin {
+    0%   { transform: rotate(0deg)   scale(1); }
+    100% { transform: rotate(360deg) scale(1.15); }
+  }
   @keyframes enemy-vibrate {
     0%, 100% { transform: translateX(0); }
     15%       { transform: translateX(-2px); }
