@@ -1236,7 +1236,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   }, []);
 
   // Projétil de energia + anel de impacto
-  const [enemyAnchor,  setEnemyAnchor]  = useState({ x: 74, y: 34 });
+  const [enemyAnchor,  setEnemyAnchor]  = useState({ x: 64, y: 36 });
   const [playerAnchor, setPlayerAnchor] = useState({ x: 21, y: 66 });
   // DEV: ref para anchor em arrasto — ref evita stale closure no listener
   const draggingAnchorRef = useRef<'enemy' | 'player' | null>(null);
