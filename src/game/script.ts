@@ -186,6 +186,9 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
   ] },
+  { t: 'say', who: 'estudante', lines: [
+    'A luz fica mais intensa a cada passo...',
+  ] },
   { t: 'walk', dist: 480, hint: 'Siga a luz', landmark: 'consciencia' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',

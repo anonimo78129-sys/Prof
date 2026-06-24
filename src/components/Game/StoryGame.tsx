@@ -3087,8 +3087,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
 
       {/* fade */}
       {/* transição entre atos — escurece e clareia a tela */}
-      {/* luz intensa vinda da direita — diálogo antes do corredor */}
-      {bg === 'pantano' && beat?.t === 'say' && (beat as any).lines?.some((l: string) => l.includes('luz fica mais intensa')) && (
+      {/* luz intensa vinda da direita — diálogo antes do corredor / início do corredor */}
+      {(bg === 'pantano' || bg === 'corredor') && beat?.t === 'say' && (beat as any).lines?.some((l: string) => l.includes('luz fica mais intensa')) && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 60% 100% at 100% 50%, rgba(255,255,200,0.85) 0%, rgba(255,240,150,0.4) 40%, transparent 75%)',
           animation: 'right-light-pulse 2s ease-in-out infinite',
