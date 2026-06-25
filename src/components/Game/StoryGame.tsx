@@ -2182,8 +2182,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 350, zIndex: 10, background: '#000', pointerEvents: 'none' }} />
         )}
 
-        {/* ── Lab Final: camadas 1-3 e 6 (dentro do container) ── */}
-        {bg === 'final' && [1, 2, 3, 6].map((n) => (
+        {/* ── Lab Final: camadas 1-3 (dentro do container) ── */}
+        {bg === 'final' && [1, 2, 3].map((n) => (
           <div key={n} style={n === 1 ? {
             // camada 1: céu gradiente — cover, mais lento
             position: 'absolute', inset: 0, zIndex: 1,
@@ -2191,18 +2191,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundSize: 'cover', backgroundPositionY: 'center',
             backgroundPositionX: `${Math.round(-worldX * FSPEEDS[1])}px`,
             imageRendering: 'pixelated',
-          } : n === 6 ? {
-            // camada 6: lens flare — cover, parallax lento
-            position: 'absolute', inset: 0, zIndex: n,
-            backgroundImage: `url('/assets/final/layer-6.png')`,
-            backgroundSize: 'auto 532px',
-            backgroundRepeat: 'repeat-x',
-            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6]) - 260}px`,
-            backgroundPositionY: 'calc(50% + 60px)',
-            imageRendering: 'pixelated',
-            mixBlendMode: 'screen',
-            filter: 'brightness(2) saturate(1.5)',
-            animation: 'sunlight-pulse 4s ease-in-out infinite',
           } : {
             // camadas 2-3: ancoradas no fundo
             position: 'absolute', inset: 0, zIndex: n,
@@ -2293,10 +2281,25 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
       )}
-      {/* Camada 7 do lab — na frente do herói (zIndex 16) */}
+      {/* Camada 6 do lab (sol) — uma camada acima do herói (zIndex 15) */}
       {bg === 'final' && (
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 16, pointerEvents: 'none',
+          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
+          backgroundImage: `url('/assets/final/layer-6.png')`,
+          backgroundSize: 'auto 532px',
+          backgroundRepeat: 'repeat-x',
+          backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6]) - 260}px`,
+          backgroundPositionY: 'calc(50% + 60px)',
+          imageRendering: 'pixelated',
+          mixBlendMode: 'screen',
+          filter: 'brightness(2) saturate(1.5)',
+          animation: 'sunlight-pulse 4s ease-in-out infinite',
+        }} />
+      )}
+      {/* Camada 7 do lab — na frente do herói (zIndex 17) */}
+      {bg === 'final' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 17, pointerEvents: 'none',
           backgroundImage: `url('/assets/final/layer-7.png')`,
           backgroundRepeat: 'repeat-x',
           backgroundSize: 'auto 281px',
@@ -2305,10 +2308,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
       )}
-      {/* Camada 5 (vinhas) — uma camada acima do herói (zIndex 15) */}
+      {/* Camada 5 (vinhas) — zIndex 16 */}
       {bg === 'final' && (
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
+          position: 'absolute', inset: 0, zIndex: 16, pointerEvents: 'none',
           backgroundImage: `url('/assets/final/layer-5.png')`,
           backgroundRepeat: 'repeat-x',
           backgroundSize: 'auto 351px',
