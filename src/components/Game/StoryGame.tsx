@@ -2185,18 +2185,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           animation: 'vine-sway 3.5s ease-in-out infinite',
         }} />
       )}
-      {/* Foreground lab final — na frente de tudo (zIndex 25) */}
-      {bg === 'final' && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 25, pointerEvents: 'none',
-          backgroundImage: `url('/assets/final/layer-fg.png')`,
-          backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 380px',
-          backgroundPositionX: `${Math.round(-worldX * FSPEEDS[7])}px`,
-          backgroundPositionY: 'bottom 0px',
-          imageRendering: 'pixelated',
-        }} />
-      )}
 
       </>
     );
