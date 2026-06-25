@@ -2177,6 +2177,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         )}
         {bg === 'corredor' && <LightMotes kind="sunset" />}
 
+        {/* ── Lab Final: faixa preta acima dos 350px do fundo ── */}
+        {bg === 'final' && (
+          <div style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 350, zIndex: 10, background: '#000', pointerEvents: 'none' }} />
+        )}
+
         {/* ── Lab Final: camadas 1-3 e 5-6 (dentro do container) ── */}
         {bg === 'final' && [1, 2, 3, 5, 6].map((n) => (
           <div key={n} style={n === 1 ? {
