@@ -2263,10 +2263,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
       )}
-      {/* Camada 7 do lab — na frente do herói (zIndex 15) */}
+      {/* Camada 7 do lab — na frente do herói (zIndex 16) */}
       {bg === 'final' && (
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
+          position: 'absolute', inset: 0, zIndex: 16, pointerEvents: 'none',
           backgroundImage: `url('/assets/final/layer-7.png')`,
           backgroundRepeat: 'repeat-x',
           backgroundSize: 'auto 281px',
@@ -2275,10 +2275,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
       )}
-      {/* Camada 5 (vinhas) — sobre o herói (zIndex 16) */}
+      {/* Camada 5 (vinhas) — uma camada acima do herói (zIndex 15) */}
       {bg === 'final' && (
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 16, pointerEvents: 'none',
+          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
           backgroundImage: `url('/assets/final/layer-5.png')`,
           backgroundRepeat: 'repeat-x',
           backgroundSize: 'auto 351px',
