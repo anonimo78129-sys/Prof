@@ -162,17 +162,21 @@ function DialogueBox({
           imageRendering: 'pixelated',
           position: 'relative',
         }}>
-        {who === 'corujao' && (
-          <img src="/assets/portraits/owl.png" alt="Prof. Corujão"
-            style={{ position: 'absolute', top: -54, left: 8, width: 64, height: 64, imageRendering: 'pixelated' }} />
-        )}
-        {who === 'estudante' && (
-          <img src="/assets/portraits/hero.png" alt="Estudante"
-            style={{ position: 'absolute', top: -54, left: 8, width: 64, height: 64, imageRendering: 'pixelated' }} />
-        )}
-        {who === 'consciencia' && (
-          <img src="/assets/portraits/consciencia.png" alt="Consciência Verde"
-            style={{ position: 'absolute', top: -54, left: 8, width: 64, height: 64, imageRendering: 'pixelated' }} />
+        {(who === 'corujao' || who === 'estudante' || who === 'consciencia') && (
+          <div style={{
+            position: 'absolute', top: -60, left: 8,
+            width: 68, height: 68,
+            background: '#1a0e06',
+            border: '3px solid #8b5e2e',
+            boxShadow: 'inset 0 0 0 1px #c4874c, 0 0 0 1px #3a1f08',
+            imageRendering: 'pixelated',
+          }}>
+            <img
+              src={who === 'corujao' ? '/assets/portraits/owl.png' : who === 'estudante' ? '/assets/portraits/hero.png' : '/assets/portraits/consciencia.png'}
+              alt=""
+              style={{ width: '100%', height: '100%', imageRendering: 'pixelated', display: 'block' }}
+            />
+          </div>
         )}
         {name && (
           <p className="font-pixel" style={{
