@@ -2143,17 +2143,15 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
     return (
       <>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
-        {/* Camadas do corredor com parallax */}
-        {bg === 'corredor' && [1,2,3,4,5,6,7,8].map((n, i) => (
+        {/* Camadas do corredor com parallax — usadas no corredor e no interior do lab (final) */}
+        {(bg === 'corredor' || bg === 'final') && [1,2,3,4,5,6,7,8].map((n, i) => (
           <div key={n} style={n === 1 ? {
-            // camada 1: céu — preenche tudo
             position: 'absolute', inset: 0, zIndex: 1,
             backgroundImage: `url('/assets/corredor/layer-1.png')`,
             backgroundSize: 'cover', backgroundPositionY: 'center',
             backgroundPositionX: `${Math.round(-worldX * SPEEDS[0])}px`,
             imageRendering: 'pixelated',
           } : {
-            // camadas 2-8: mesma altura da cena (auto 100%), ancoradas no fundo
             position: 'absolute', inset: 0, zIndex: n,
             backgroundImage: `url('/assets/corredor/layer-${n}.png')`,
             backgroundRepeat: 'repeat-x',
@@ -2165,17 +2163,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             ...(n === 6 ? { mixBlendMode: 'screen', animation: 'sunlight-pulse 5.5s ease-in-out infinite' } : {}),
           }} />
         ))}
-        {bg === 'final' && (
-          <div style={{
-            position: 'absolute', inset: 0, zIndex: 1,
-            backgroundImage: `url('/assets/scenes/final.jpg')`, backgroundSize: 'cover',
-            backgroundPositionX: `calc(50% + ${Math.round(-worldX * 0.08)}px)`, backgroundPositionY: 'center',
-            backgroundRepeat: 'no-repeat', imageRendering: 'pixelated',
-          }} />
-        )}
-        {bg === 'final' && <div style={{ position: 'absolute', inset: 0, zIndex: 9, background: cfg.tint, pointerEvents: 'none', animation: cfg.tintAnim }} />}
 
-        {bg === 'corredor' && [18, 38, 58, 78].map((lx, i) => (
+        {(bg === 'corredor' || bg === 'final') && [18, 38, 58, 78].map((lx, i) => (
           <div key={i} style={{
             position: 'absolute', top: '-10%', left: `${lx}%`, width: 60, height: '120%', zIndex: 3,
             transform: 'rotate(8deg)', transformOrigin: 'top center', pointerEvents: 'none',
@@ -2185,18 +2174,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           }} />
         ))}
         {/* tint dourado de pôr do sol */}
-        {bg === 'corredor' && (
+        {(bg === 'corredor' || bg === 'final') && (
           <div style={{ position: 'absolute', inset: 0, zIndex: 9, pointerEvents: 'none',
             background: 'rgba(255,160,40,0.15)' }} />
         )}
-
-        {bg === 'final' && (
-          <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
-            background: 'radial-gradient(circle at 50% -10%, rgba(255,240,190,0.55), transparent 55%)' }} />
-        )}
-
-        {bg === 'final' && <SceneParticles kind="final" />}
-        {bg === 'corredor' && <LightMotes kind="sunset" />}
+        {(bg === 'corredor' || bg === 'final') && <LightMotes kind="sunset" />}
 
         {/* Inimigo: Consciência Verde no corredor */}
         {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
@@ -2227,7 +2209,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         )}
 
       </div>
-      {bg === 'corredor' && <CorredorButterflies />}
+      {(bg === 'corredor' || bg === 'final') && <CorredorButterflies />}
       {/* prédio do laboratório — fora do container para não ser cortado pelo overflow:hidden */}
       {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
         <img src="/assets/corredor/lab.png" alt="laboratório" style={{
@@ -2238,7 +2220,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         }} />
       )}
       {/* Foreground do corredor — fora do container (não cortado), na frente do herói */}
-      {bg === 'corredor' && (
+      {(bg === 'corredor' || bg === 'final') && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 25, pointerEvents: 'none',
           backgroundImage: `url('/assets/corredor/layer-fg.png')`,
