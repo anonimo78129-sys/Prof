@@ -2240,8 +2240,23 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           </div>
         )}
 
+        {/* ── Lab Final: raios de luz dourados ── */}
+        {bg === 'final' && [15, 35, 55, 75].map((lx, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: '-10%', left: `${lx}%`, width: 55, height: '120%', zIndex: 8,
+            transform: 'rotate(6deg)', transformOrigin: 'top center', pointerEvents: 'none',
+            background: 'linear-gradient(to bottom, rgba(255,220,100,0.65), transparent 70%)',
+            filter: 'blur(9px)',
+            animation: `beam-pulse ${4.5 + i * 0.8}s ease-in-out ${-i * 1.2}s infinite`,
+          }} />
+        ))}
+
+        {/* ── Lab Final: partículas de luz ── */}
+        {bg === 'final' && <LightMotes kind="sunset" />}
+
       </div>
       {bg === 'corredor' && <CorredorButterflies />}
+      {bg === 'final' && <CorredorButterflies />}
       {/* prédio do laboratório — fora do container para não ser cortado pelo overflow:hidden */}
       {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
         <img src="/assets/corredor/lab.png" alt="laboratório" style={{
@@ -2287,6 +2302,18 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
           transformOrigin: 'top center',
           animation: 'vine-sway 3.5s ease-in-out infinite',
+        }} />
+      )}
+      {/* Foreground lab final — na frente de tudo (zIndex 25) */}
+      {bg === 'final' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 25, pointerEvents: 'none',
+          backgroundImage: `url('/assets/final/layer-fg.png')`,
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 380px',
+          backgroundPositionX: `${Math.round(-worldX * FSPEEDS[7])}px`,
+          backgroundPositionY: 'bottom 0px',
+          imageRendering: 'pixelated',
         }} />
       )}
 
