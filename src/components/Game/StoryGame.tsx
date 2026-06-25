@@ -2289,7 +2289,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundSize: 'auto 532px',
           backgroundRepeat: 'repeat-x',
           backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6]) - 260}px`,
-          backgroundPositionY: 'calc(50% - 20px)',
+          backgroundPositionY: 'calc(50% - 60px)',
           imageRendering: 'pixelated',
           mixBlendMode: 'screen',
           filter: 'brightness(2) saturate(1.5)',
