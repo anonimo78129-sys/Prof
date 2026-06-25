@@ -2200,7 +2200,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6])}px`,
             backgroundPositionY: 'center',
             imageRendering: 'pixelated',
-            mixBlendMode: 'screen',
+            mixBlendMode: 'luminosity',
             animation: 'sunlight-pulse 4s ease-in-out infinite',
           } : {
             // camadas 2-3: ancoradas no fundo
