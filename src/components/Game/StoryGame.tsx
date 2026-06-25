@@ -3013,7 +3013,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
           ? <WakeUpHero frame={wakeUpFrame} />
-          : <Hero moving={moving} frame={frame} facing={facing} groundOffset={getHeroGround(worldX, bg === 'pantano' ? TERRAIN_ZONES : terrainZones)} />
+          : <Hero moving={moving} frame={frame} facing={facing} groundOffset={getHeroGround(worldX, bg === 'pantano' ? TERRAIN_ZONES : terrainZones) + (bg === 'final' ? 60 : 0)} />
       )}
 
       {/* Editor de terreno — só em DEV/test, durante walk beats */}
