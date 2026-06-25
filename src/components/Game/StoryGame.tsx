@@ -2134,37 +2134,35 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
   // ── Atos 6-7: cenas de imagem única (corredor de luz / final) ─────────────
   if (bg === 'corredor' || bg === 'final') {
-    const cfg = {
-      corredor: { base: '#1a0e2e', tint: 'rgba(20,120,200,0.10)', tintAnim: 'light-pulse 3s ease-in-out infinite' },
-      final:    { base: '#1a1208', tint: 'rgba(255,210,120,0.10)', tintAnim: undefined },
-    }[bg];
-    // parallax speeds por camada (1=mais lento/longe, 8=mais rápido/perto)
-    const SPEEDS = [0.01, 0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.22];
+    const CSPEEDS = [0.01, 0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.22];
+    // parallax speeds do lab final (6 camadas)
+    const FSPEEDS: Record<number, number> = { 1: 0.01, 2: 0.04, 3: 0.10, 5: 0.18, 6: 0.06, 7: 0.22 };
     return (
       <>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden', background: cfg.base }}>
-        {/* Camadas do corredor com parallax — usadas no corredor e no interior do lab (final) */}
-        {(bg === 'corredor' || bg === 'final') && [1,2,3,4,5,6,7,8].map((n, i) => (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, overflow: 'hidden',
+        background: bg === 'corredor' ? '#1a0e2e' : '#e8a060' }}>
+
+        {/* ── Corredor: 8 camadas parallax ── */}
+        {bg === 'corredor' && [1,2,3,4,5,6,7,8].map((n, i) => (
           <div key={n} style={n === 1 ? {
             position: 'absolute', inset: 0, zIndex: 1,
             backgroundImage: `url('/assets/corredor/layer-1.png')`,
             backgroundSize: 'cover', backgroundPositionY: 'center',
-            backgroundPositionX: `${Math.round(-worldX * SPEEDS[0])}px`,
+            backgroundPositionX: `${Math.round(-worldX * CSPEEDS[0])}px`,
             imageRendering: 'pixelated',
           } : {
             position: 'absolute', inset: 0, zIndex: n,
             backgroundImage: `url('/assets/corredor/layer-${n}.png')`,
             backgroundRepeat: 'repeat-x',
             backgroundSize: 'auto 350px',
-            backgroundPositionX: `${Math.round(-worldX * SPEEDS[i])}px`,
+            backgroundPositionX: `${Math.round(-worldX * CSPEEDS[i])}px`,
             backgroundPositionY: 'bottom -50px',
             imageRendering: 'pixelated',
             ...(n === 4 ? { mixBlendMode: 'screen', animation: 'sunlight-pulse 4s ease-in-out infinite' } : {}),
             ...(n === 6 ? { mixBlendMode: 'screen', animation: 'sunlight-pulse 5.5s ease-in-out infinite' } : {}),
           }} />
         ))}
-
-        {(bg === 'corredor' || bg === 'final') && [18, 38, 58, 78].map((lx, i) => (
+        {bg === 'corredor' && [18, 38, 58, 78].map((lx, i) => (
           <div key={i} style={{
             position: 'absolute', top: '-10%', left: `${lx}%`, width: 60, height: '120%', zIndex: 3,
             transform: 'rotate(8deg)', transformOrigin: 'top center', pointerEvents: 'none',
@@ -2173,18 +2171,56 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             animation: `beam-pulse ${4 + i}s ease-in-out ${-i}s infinite`,
           }} />
         ))}
-        {/* tint dourado de pôr do sol */}
         {bg === 'corredor' && (
           <div style={{ position: 'absolute', inset: 0, zIndex: 9, pointerEvents: 'none',
             background: 'rgba(255,160,40,0.15)' }} />
         )}
-        {(bg === 'corredor' || bg === 'final') && <LightMotes kind="sunset" />}
+        {bg === 'corredor' && <LightMotes kind="sunset" />}
+
+        {/* ── Lab Final: camadas 1-3 e 5-6 (dentro do container) ── */}
+        {bg === 'final' && [1, 2, 3, 5, 6].map((n) => (
+          <div key={n} style={n === 1 ? {
+            // camada 1: céu gradiente — cover, mais lento
+            position: 'absolute', inset: 0, zIndex: 1,
+            backgroundImage: `url('/assets/final/layer-1.png')`,
+            backgroundSize: 'cover', backgroundPositionY: 'center',
+            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[1])}px`,
+            imageRendering: 'pixelated',
+          } : n === 5 ? {
+            // camada 5: vinhas penduradas — ancoradas no TOPO
+            position: 'absolute', inset: 0, zIndex: n,
+            backgroundImage: `url('/assets/final/layer-5.png')`,
+            backgroundRepeat: 'repeat-x',
+            backgroundSize: 'auto 100%',
+            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[5])}px`,
+            backgroundPositionY: 'top 0px',
+            imageRendering: 'pixelated',
+          } : n === 6 ? {
+            // camada 6: lens flare — cover, parallax lento
+            position: 'absolute', inset: 0, zIndex: n,
+            backgroundImage: `url('/assets/final/layer-6.png')`,
+            backgroundSize: 'cover',
+            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6])}px`,
+            backgroundPositionY: 'center',
+            imageRendering: 'pixelated',
+            mixBlendMode: 'screen',
+            animation: 'sunlight-pulse 4s ease-in-out infinite',
+          } : {
+            // camadas 2-3: ancoradas no fundo
+            position: 'absolute', inset: 0, zIndex: n,
+            backgroundImage: `url('/assets/final/layer-${n}.png')`,
+            backgroundRepeat: 'repeat-x',
+            backgroundSize: 'auto 100%',
+            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[n])}px`,
+            backgroundPositionY: 'bottom 0px',
+            imageRendering: 'pixelated',
+          }} />
+        ))}
 
         {/* Inimigo: Consciência Verde no corredor */}
         {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
           <div style={{
             position: 'absolute',
-            // base 34% = mesma linha do herói, para o face-off ficar próximo
             left: `calc(34% + ${Math.round(landmarkAnchor - worldX * 0.22)}px)`,
             bottom: GROUND - 20, zIndex: 13,
             width: 168, height: 300,
@@ -2192,7 +2228,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             filter: conscienciaDefeated ? 'drop-shadow(0 0 12px rgba(120,200,255,0.6))' : 'drop-shadow(0 0 12px rgba(60,255,140,0.8))',
           }}>
             {conscienciaDefeated ? (
-              // derrotado: sprite passivo, opacidade total, permanece na cena
               <img src="/assets/corredor/consciencia-defeated.png" alt=""
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated' }} />
             ) : (
@@ -2209,7 +2244,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         )}
 
       </div>
-      {(bg === 'corredor' || bg === 'final') && <CorredorButterflies />}
+      {bg === 'corredor' && <CorredorButterflies />}
       {/* prédio do laboratório — fora do container para não ser cortado pelo overflow:hidden */}
       {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
         <img src="/assets/corredor/lab.png" alt="laboratório" style={{
@@ -2219,8 +2254,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           filter: 'drop-shadow(0 0 30px rgba(120,200,255,0.35))',
         }} />
       )}
-      {/* Foreground do corredor — fora do container (não cortado), na frente do herói */}
-      {(bg === 'corredor' || bg === 'final') && (
+      {/* Foreground corredor — fora do container */}
+      {bg === 'corredor' && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 25, pointerEvents: 'none',
           backgroundImage: `url('/assets/corredor/layer-fg.png')`,
@@ -2231,6 +2266,19 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           imageRendering: 'pixelated',
         }} />
       )}
+      {/* Camada 7 do lab — na frente do herói (zIndex 15) */}
+      {bg === 'final' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
+          backgroundImage: `url('/assets/final/layer-7.png')`,
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 180px',
+          backgroundPositionX: `${Math.round(-worldX * FSPEEDS[7])}px`,
+          backgroundPositionY: 'bottom 0px',
+          imageRendering: 'pixelated',
+        }} />
+      )}
+
       </>
     );
   }
