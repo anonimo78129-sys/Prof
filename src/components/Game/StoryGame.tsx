@@ -153,8 +153,15 @@ function DialogueBox({
   return (
     <div onPointerDown={(e) => { e.preventDefault(); tap(); }} onContextMenu={(e) => e.preventDefault()}
       style={{ position: 'absolute', left: 0, right: 0, bottom: 100, zIndex: 40, cursor: 'pointer' }}>
-      <div className="panel-pixel"
-        style={{ margin: '0 14px 18px', background: 'rgba(8,24,12,0.94)', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+      <div style={{
+          margin: '0 14px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto',
+          padding: '14px 18px',
+          background: '#1a0e06',
+          border: '4px solid #8b5e2e',
+          boxShadow: 'inset 0 0 0 2px #c4874c, inset 0 0 0 4px #7a4f22, 0 0 0 2px #3a1f08',
+          imageRendering: 'pixelated',
+          position: 'relative',
+        }}>
         {who === 'corujao' && (
           <img src="/assets/portraits/owl.png" alt="Prof. Corujão"
             style={{ position: 'absolute', top: -54, left: 8, width: 64, height: 64, imageRendering: 'pixelated' }} />
