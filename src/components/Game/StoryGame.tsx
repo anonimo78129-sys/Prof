@@ -2193,7 +2193,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundRepeat: 'repeat-x',
             backgroundSize: 'auto 350px',
             backgroundPositionX: `${Math.round(-worldX * FSPEEDS[5])}px`,
-            backgroundPositionY: 'bottom -50px',
+            backgroundPositionY: 'bottom 0px',
             imageRendering: 'pixelated',
           } : n === 6 ? {
             // camada 6: lens flare — cover, parallax lento
