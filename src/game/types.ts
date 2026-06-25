@@ -53,17 +53,6 @@ export type Beat =
       success: string[];
       hint?: string;
     }
-  // Memória (Simon): a floresta pulsa os nós numa sequência crescente,
-  // o jogador repete. A cada rodada a sequência aumenta.
-  | {
-      t: 'memory';
-      intro?: string;
-      instruction: string;
-      nodes: string[];        // rótulos dos nós luminosos (4-5)
-      rounds: number;         // nº de rodadas (a sequência cresce a cada uma)
-      success: string[];
-      hint?: string;
-    }
   // Combate turn-based estilo Pokémon GBA — Consciência Verde
   | {
       t: 'battle';

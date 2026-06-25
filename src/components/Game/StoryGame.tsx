@@ -574,162 +574,6 @@ function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
 }
 
 // ─────────────────────────────────────────────────────────
-// ATO 6 — Memória (Simon): a floresta "fala" por luz e som.
-// Nós em arco ligados a um núcleo (Consciência Verde) por filamentos
-// de fungos que pulsam quando o sinal viaja. Cada nó tem um tom.
-// ─────────────────────────────────────────────────────────
-const NODE_COLORS = ['#37f0a8', '#48c6ff', '#ffd24a', '#ff7ad0', '#b78cff'];
-
-function MemoryBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'memory' }>; onSolved: () => void; onCorrect: () => void }) {
-  type Phase = 'intro' | 'watch' | 'repeat' | 'wrong' | 'success';
-  const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'watch');
-  const [successIdx, setSuccessIdx] = useState(0);
-  const [round, setRound] = useState(0);
-  const [seq, setSeq] = useState<number[]>([]);
-  const [active, setActive] = useState<number | null>(null);   // nó aceso agora (watch ou tap)
-  const [fireId, setFireId] = useState(0);                     // remonta o anel a cada disparo
-  const [inputIdx, setInputIdx] = useState(0);
-  const [toast, setToast] = useState<string | null>(null);     // "Sinal reconhecido!"
-  const LEN0 = 3;
-  const N = beat.nodes.length;
-
-  // posições dos nós num arco suave (espaço 0..100)
-  const pos = useMemo(() => beat.nodes.map((_, i) => {
-    const t = N === 1 ? 0.5 : i / (N - 1);
-    return { x: 15 + t * 70, y: 42 - Math.sin(t * Math.PI) * 20 };
-  }), [beat.nodes, N]);
-  const core = { x: 50, y: 74 };
-
-  const fire = (k: number, withSound = true) => {
-    setActive(k); setFireId(f => f + 1);
-    if (withSound) playTone(PENTA[k % PENTA.length], 0.5, 'sine', 0.16);
-  };
-
-  // toca a sequência da rodada quando entra em 'watch'
-  useEffect(() => {
-    if (phase !== 'watch') return;
-    const len = LEN0 + round;
-    const s = Array.from({ length: len }, () => Math.floor(Math.random() * N));
-    setSeq(s); setInputIdx(0); setActive(null);
-    const onMs = Math.max(300, 460 - round * 50);   // acende
-    const gapMs = Math.max(360, 560 - round * 60);  // intervalo
-    const timers: number[] = [];
-    let i = 0;
-    const step = () => {
-      if (i >= s.length) { timers.push(window.setTimeout(() => { setActive(null); setPhase('repeat'); }, 320)); return; }
-      fire(s[i]);
-      timers.push(window.setTimeout(() => setActive(null), onMs));
-      timers.push(window.setTimeout(() => { i++; step(); }, gapMs + onMs));
-    };
-    timers.push(window.setTimeout(step, 700));
-    return () => timers.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, round, N]);
-
-  if (phase === 'intro' && beat.intro)
-    return <DialogueBox who="narrador" text={beat.intro} onNext={() => { audioCtx(); setPhase('watch'); }} />;
-  if (phase === 'wrong')
-    return <DialogueBox who="corujao" text={beat.hint ?? 'Repita na mesma ordem em que os nós acenderam.'} onNext={() => setPhase('watch')} />;
-  if (phase === 'success') {
-    const line = beat.success[successIdx] ?? '';
-    const last = successIdx >= beat.success.length - 1;
-    return <DialogueBox who="estudante" text={line} last={last}
-      onNext={() => { if (last) onSolved(); else setSuccessIdx(i => i + 1); }} />;
-  }
-
-  const tapNode = (k: number) => {
-    if (phase !== 'repeat') return;
-    fire(k);
-    if (k === seq[inputIdx]) {
-      const ni = inputIdx + 1;
-      if (ni === seq.length) {
-        if (round + 1 >= beat.rounds) {
-          onCorrect(); setSuccessIdx(0);
-          playChord([PENTA[0], PENTA[2], PENTA[4]], 1.4, 0.1);
-          setTimeout(() => setPhase('success'), 650);
-        } else {
-          setToast('✓ Sinal reconhecido');
-          setTimeout(() => { setToast(null); setRound(r => r + 1); setPhase('watch'); }, 1100);
-        }
-      } else setInputIdx(ni);
-    } else {
-      playTone(120, 0.4, 'sawtooth', 0.12);
-      setTimeout(() => setPhase('wrong'), 320);
-    }
-  };
-
-  const watching = phase === 'watch';
-  return (
-    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: FLOOR, zIndex: 42, overflow: 'hidden' }}>
-      {/* filamentos de fungo (SVG distorcido) ligando o núcleo aos nós */}
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-        {pos.map((p, k) => {
-          const lit = active === k;
-          return (
-            <line key={k} x1={core.x} y1={core.y} x2={p.x} y2={p.y}
-              stroke={lit ? NODE_COLORS[k % NODE_COLORS.length] : '#2f6b54'}
-              strokeWidth={lit ? 0.8 : 0.35}
-              strokeLinecap="round"
-              opacity={lit ? 0.95 : 0.4}
-              style={{ transition: 'all .2s', filter: lit ? `drop-shadow(0 0 3px ${NODE_COLORS[k % NODE_COLORS.length]})` : undefined }} />
-          );
-        })}
-      </svg>
-
-      {/* núcleo — Consciência Verde */}
-      <div style={{
-        position: 'absolute', left: `${core.x}%`, top: `${core.y}%`, transform: 'translate(-50%,-50%)',
-        width: 46, height: 46, borderRadius: '50%',
-        background: 'radial-gradient(circle, #d8ffe6, #1f9c5a 70%)',
-        boxShadow: '0 0 24px rgba(40,255,150,0.7), 0 0 60px rgba(20,200,110,0.4)',
-        animation: 'breathe-glow 3s ease-in-out infinite', pointerEvents: 'none',
-      }} />
-
-      {/* nós luminosos */}
-      {beat.nodes.map((label, k) => {
-        const lit = active === k;
-        const color = NODE_COLORS[k % NODE_COLORS.length];
-        return (
-          <div key={k} style={{ position: 'absolute', left: `${pos[k].x}%`, top: `${pos[k].y}%`, transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            <button onPointerDown={(e) => { e.preventDefault(); tapNode(k); }} disabled={watching}
-              style={{
-                position: 'relative', width: 66, height: 66, borderRadius: '50%', cursor: watching ? 'default' : 'pointer',
-                background: lit ? `radial-gradient(circle, #fff, ${color})` : 'rgba(6,18,26,0.5)',
-                border: `3px solid ${color}`,
-                boxShadow: lit ? `0 0 30px ${color}, 0 0 64px ${color}` : `0 0 12px ${color}66`,
-                transform: lit ? 'scale(1.12)' : 'scale(1)',
-                transition: lit ? 'none' : 'all .25s', touchAction: 'none',
-              } as CSSProperties}>
-              {lit && <span key={fireId} style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: `2px solid ${color}`, animation: 'node-ripple .6s ease-out forwards', pointerEvents: 'none' }} />}
-            </button>
-            <span className="font-pixel" style={{ fontSize: 8, color: lit ? '#fff' : '#9ad0c8', textShadow: '0 1px 3px #000' }}>{label}</span>
-          </div>
-        );
-      })}
-
-      {/* toast de rodada */}
-      {toast && (
-        <div className="font-pixel" style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', color: '#37f0a8', fontSize: 13, textShadow: '0 2px 8px #000', animation: 'pop-in .4s ease-out' }}>
-          {toast}
-        </div>
-      )}
-
-      {/* faixa de instrução */}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 18, display: 'flex', justifyContent: 'center' }}>
-        <div className="panel-pixel" style={{ background: 'rgba(6,16,24,0.92)', padding: '11px 18px', maxWidth: 440, textAlign: 'center' }}>
-          <p className="font-pixel" style={{ fontSize: 9, color: watching ? '#ffd24a' : '#40e0d0', marginBottom: 6 }}>
-            {watching ? '✦ A floresta está falando... observe' : '▶ Repita o canto da floresta'}
-          </p>
-          <p className="font-pixel" style={{ fontSize: 8, color: '#7fae9a' }}>
-            Rodada {round + 1} de {beat.rounds}{!watching && ` · ${inputIdx}/${seq.length}`}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────
 // ATO 7 — Árvore da Vida: SVG que cresce por estágios (0 semente → 4 florida)
 // ─────────────────────────────────────────────────────────
 function GrowingTree({ stage }: { stage: number }) {
@@ -1551,7 +1395,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
       {/* ── Arena ── */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden',
-        background: '#6fb072', overflow: 'hidden' }}>
+        background: '#6fb072' }}>
 
         {/* Fundo da batalha */}
         <div style={{ position: 'absolute', inset: 0, zIndex: 0,
@@ -1775,7 +1619,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   );
 }
 
-function ParallaxWorld({ bg, worldX, sceneStartX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; sceneStartX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -2113,7 +1957,7 @@ function ParallaxWorld({ bg, worldX, sceneStartX, gateOpen, gateFrame, landmarkA
         )}
 
         {/* camada_0 — ground-fg (ancorada ao início do pântano, não repete) */}
-        <div style={{ ...layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' }), backgroundPositionX: `${Math.round(-(worldX - sceneStartX))}px` }} />
+        <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' })} />
 
         {/* plantas e vitórias-régias espalhadas */}
         {pantanoProps.map((p, i) => {
@@ -2816,7 +2660,6 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [beatIndex, setBeatIndex] = useState(startBeat);
   const [bg, setBg] = useState<SceneBg>(startBg ?? 'noite');
   const [worldX, setWorldX] = useState(0);
-  const [sceneStartX, setSceneStartX] = useState(0);
   const [terrainZones, setTerrainZones] = useState<TerrainZone[]>([]);
   const [fade, setFade] = useState<{ text?: string } | null>(null);
   const [moving, setMoving] = useState(false);
@@ -2899,6 +2742,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setSceneFade(true);
       const t1 = setTimeout(() => {
         setBg(beat.bg);
+        setWorldX(0); // cada cena recomeça com o mundo zerado (props ancorados em wx absoluto)
         if (beat.bg === 'floresta') setWakeUpFrame(1);
       }, 550);
       const t2 = setTimeout(() => { setSceneFade(false); advance(); }, 1200);
@@ -2950,7 +2794,6 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setTrunkAnchor(null);
       setGateFrame(0);
       setCorredorLightOn(false);
-      setSceneStartX(worldX);
     } else {
       targetRef.current = null;
       // say / question / fade: portão permanece no mundo
@@ -3050,9 +2893,9 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {bg === 'pantano' && <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: FLOOR,
         backgroundImage: "url('/assets/pantano/dead-trees.png')",
-        backgroundRepeat: 'repeat-x', backgroundSize: `auto ${FLOOR}px`,
+        backgroundRepeat: 'repeat-x', backgroundSize: `auto ${FLOOR * 1.5}px`,
         backgroundPositionX: `${Math.round(-worldX * 0.70)}px`, backgroundPositionY: '-80px',
-        imageRendering: 'pixelated', zIndex: 25, backgroundSize: `auto ${FLOOR * 1.5}px`,
+        imageRendering: 'pixelated', zIndex: 25,
       }} />}
       {/* pantano — plantas sobre o rodapé */}
       {bg === 'pantano' && [
@@ -3079,7 +2922,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           </div>
         );
       })}
-      <ParallaxWorld bg={bg} worldX={worldX} sceneStartX={sceneStartX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
@@ -3116,7 +2959,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {(import.meta.env.DEV || isTestMode) && (
         <button
           onClick={() => {
-            const idx = beats.findIndex(b => b.t === 'walk' && (b as any).landmark === 'lab');
+            const idx = beats.findIndex(b => b.t === 'walk' && b.landmark === 'lab');
             setWorldX(0); setBg('corredor');
             setConscienciaDefeated(true); setCorredorLightOn(true);
             setBeatIndex(idx);
@@ -3167,11 +3010,6 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {/* sequência — ato 5 (pântano): ordene o ciclo de vida */}
       {beat?.t === 'sequence' && (
         <SequenceBeat key={beatIndex} beat={beat} onSolved={() => { setLogsVisible(true); advance(); }} onCorrect={() => {}} />
-      )}
-
-      {/* memória — ato 6 (corredor de luz): repita os sinais da floresta */}
-      {beat?.t === 'memory' && (
-        <MemoryBeat key={beatIndex} beat={beat} onSolved={advance} onCorrect={() => {}} />
       )}
 
       {/* combate — ato 6: Consciência Verde (estilo Pokémon GBA) */}
@@ -3228,7 +3066,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {/* fade */}
       {/* transição entre atos — escurece e clareia a tela */}
       {/* luz intensa vinda da direita — diálogo antes do corredor (pântano) */}
-      {bg === 'pantano' && beat?.t === 'say' && (beat as any).lines?.some((l: string) => l.includes('luz fica mais intensa')) && (
+      {bg === 'pantano' && beat?.t === 'say' && beat.lines.some(l => l.includes('luz fica mais intensa')) && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 60% 100% at 100% 50%, rgba(255,255,200,0.85) 0%, rgba(255,240,150,0.4) 40%, transparent 75%)',
           animation: 'right-light-pulse 2s ease-in-out infinite',
