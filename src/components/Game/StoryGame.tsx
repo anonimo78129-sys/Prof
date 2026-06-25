@@ -2283,7 +2283,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundRepeat: 'repeat-x',
           backgroundSize: 'auto 351px',
           backgroundPositionX: `${Math.round(-worldX * FSPEEDS[5])}px`,
-          backgroundPositionY: 'bottom 42px',
+          backgroundPositionY: 'bottom 302px',
           imageRendering: 'pixelated',
           transformOrigin: 'top center',
           animation: 'vine-sway 3.5s ease-in-out infinite',
