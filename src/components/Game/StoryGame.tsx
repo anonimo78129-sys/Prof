@@ -2204,14 +2204,19 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         ))}
 
         {/* Inimigo: Consciência Verde no corredor */}
-        {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
+        {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (() => {
+          const offset = landmarkAnchor - worldX * 0.22;
+          // materializa gradualmente conforme se aproxima (surge da luz da floresta)
+          const appear = Math.max(0, Math.min(1, (470 - offset) / 300));
+          return (
           <div style={{
             position: 'absolute',
-            left: `calc(34% + ${Math.round(landmarkAnchor - worldX * 0.22)}px)`,
+            left: `calc(34% + ${Math.round(offset)}px)`,
             bottom: GROUND - 20, zIndex: 13,
             width: 168, height: 300,
-            transform: 'translateX(-50%) scaleX(-1)',
-            filter: conscienciaDefeated ? 'drop-shadow(0 0 12px rgba(120,200,255,0.6))' : 'drop-shadow(0 0 12px rgba(60,255,140,0.8))',
+            opacity: conscienciaDefeated ? 1 : appear,
+            transform: `translateX(-50%) scaleX(-1) scale(${conscienciaDefeated ? 1 : 0.9 + appear * 0.1})`,
+            filter: conscienciaDefeated ? 'drop-shadow(0 0 12px rgba(120,200,255,0.6))' : `drop-shadow(0 0 ${10 + appear * 8}px rgba(60,255,140,${0.4 + appear * 0.4}))`,
           }}>
             {conscienciaDefeated ? (
               <img src="/assets/corredor/consciencia-defeated.png" alt=""
@@ -2227,7 +2232,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
               </>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* ── Lab Final: raios de luz dourados ── */}
         {bg === 'final' && [15, 35, 55, 75].map((lx, i) => (
