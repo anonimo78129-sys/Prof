@@ -2951,6 +2951,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
             setWorldX(0); setBg('corredor'); setBeatIndex(idx);
             // posiciona a Consciência ao lado do herói para o derrotado aparecer após a luta
             setConscienciaAnchor(130); setLandmarkAnchor(130); setLandmarkKind('consciencia');
+            setCorredorLightOn(true); // no jogo normal a luz já está acesa ao chegar no combate
           }}
           className="font-pixel"
           style={{
@@ -2967,6 +2968,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
             const idx = beats.findIndex(b => b.t === 'walk' && b.landmark === 'lab');
             setWorldX(0); setBg('corredor');
             setConscienciaDefeated(true); setCorredorLightOn(true);
+            // âncora do derrotado para ele continuar na cena e recuar (como no jogo normal)
+            setConscienciaAnchor(130);
             setBeatIndex(idx);
           }}
           className="font-pixel"
