@@ -2197,10 +2197,11 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundImage: `url('/assets/final/layer-6.png')`,
             backgroundSize: 'auto 532px',
             backgroundRepeat: 'repeat-x',
-            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6]) - 210}px`,
-            backgroundPositionY: 'center',
+            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6]) - 260}px`,
+            backgroundPositionY: 'calc(50% + 60px)',
             imageRendering: 'pixelated',
             mixBlendMode: 'screen',
+            filter: 'brightness(2)',
             animation: 'sunlight-pulse 4s ease-in-out infinite',
           } : {
             // camadas 2-3: ancoradas no fundo
