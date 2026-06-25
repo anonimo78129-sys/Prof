@@ -163,6 +163,10 @@ function DialogueBox({
           <img src="/assets/portraits/hero.png" alt="Estudante"
             style={{ position: 'absolute', top: -54, left: 8, width: 64, height: 64, imageRendering: 'pixelated' }} />
         )}
+        {who === 'consciencia' && (
+          <img src="/assets/portraits/consciencia.png" alt="Consciência Verde"
+            style={{ position: 'absolute', top: -54, left: 8, width: 64, height: 64, imageRendering: 'pixelated' }} />
+        )}
         {name && (
           <p className="font-pixel" style={{
             color: who === 'corujao' ? '#ffd54a' : who === 'consciencia' ? '#7aff9a' : '#88ff66',
