@@ -2197,7 +2197,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundImage: `url('/assets/final/layer-6.png')`,
             backgroundSize: 'auto 532px',
             backgroundRepeat: 'repeat-x',
-            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6]) + 60}px`,
+            backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6]) - 60}px`,
             backgroundPositionY: 'center',
             imageRendering: 'pixelated',
             mixBlendMode: 'screen',
