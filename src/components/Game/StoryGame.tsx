@@ -2231,9 +2231,9 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
       {/* prédio do laboratório — fora do container para não ser cortado pelo overflow:hidden */}
       {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
         <img src="/assets/corredor/lab.png" alt="laboratório" style={{
-          position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
+          position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX + 40)}px)`,
           bottom: FLOOR + GROUND - 77, zIndex: 12, transform: 'translateX(-50%)',
-          height: 500, width: 1002, display: 'block',
+          height: 500, width: 1010, display: 'block',
           filter: 'drop-shadow(0 0 30px rgba(120,200,255,0.35))',
         }} />
       )}
