@@ -2195,7 +2195,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             // camada 6: lens flare — cover, parallax lento
             position: 'absolute', inset: 0, zIndex: n,
             backgroundImage: `url('/assets/final/layer-6.png')`,
-            backgroundSize: 'auto 380px',
+            backgroundSize: 'auto 532px',
             backgroundRepeat: 'repeat-x',
             backgroundPositionX: `${Math.round(-worldX * FSPEEDS[6])}px`,
             backgroundPositionY: 'center',
