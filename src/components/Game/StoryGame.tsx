@@ -2255,6 +2255,20 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
         {/* ── Lab Final: partículas de luz ── */}
         {bg === 'final' && <LightMotes kind="sunset" />}
 
+        {/* ── Lab Final: gradiente radial de sol ── */}
+        {bg === 'final' && (
+          <div style={{
+            position: 'absolute', zIndex: 9, pointerEvents: 'none',
+            left: '18%', top: '8%',
+            width: 420, height: 420,
+            borderRadius: '50%',
+            background: 'radial-gradient(ellipse at center, rgba(255,240,140,0.95) 0%, rgba(255,190,50,0.6) 35%, rgba(255,140,20,0.25) 60%, transparent 80%)',
+            mixBlendMode: 'screen',
+            filter: 'blur(18px)',
+            animation: 'sunlight-pulse 5s ease-in-out infinite',
+          }} />
+        )}
+
       </div>
       {bg === 'corredor' && <CorredorButterflies />}
       {bg === 'final' && <CorredorButterflies />}
