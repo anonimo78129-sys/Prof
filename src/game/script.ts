@@ -8,7 +8,7 @@ const beats: Beat[] = [
     'O que é este lugar...?',
     'Não lembro de como cheguei aqui.',
   ] },
-  { t: 'walk', dist: 900, hint: 'Explore a floresta', landmark: 'gate' },
+  { t: 'walk', dist: 1800, hint: 'Explore a floresta', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'O que é aquilo?',
     'Ué, um portão??',
@@ -26,7 +26,7 @@ const beats: Beat[] = [
     ],
     hint: 'As plantas bebem pela base, escondida na terra. Pense no que as sustenta firme no solo.',
   },
-  { t: 'walk', dist: 700, hint: 'Siga em frente' },
+  { t: 'walk', dist: 1400, hint: 'Siga em frente' },
   { t: 'say', who: 'estudante', lines: [
     'Não vejo ninguém aqui.',
     'Uma clareira sem saída!?',
@@ -41,7 +41,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'A clareira pulsa suavemente, como se respirasse.',
   ] },
-  { t: 'walk', dist: 850, hint: 'Atravesse a clareira', landmark: 'gate' },
+  { t: 'walk', dist: 1700, hint: 'Atravesse a clareira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Uma pedra gigante bloqueia o caminho!',
     'Coberta de musgo... parece antiga demais.',
@@ -60,7 +60,7 @@ const beats: Beat[] = [
     ],
     hint: 'Cada parte da planta tem um papel único. Pense no que cada uma faz para a planta sobreviver.',
   },
-  { t: 'walk', dist: 800, hint: 'Siga em frente' },
+  { t: 'walk', dist: 1600, hint: 'Siga em frente' },
   { t: 'say', who: 'estudante', lines: [
     'A névoa está ficando mais densa...',
     'Para onde será que vai esse caminho?',
@@ -68,7 +68,7 @@ const beats: Beat[] = [
 
   // ── ATO 3 — A Macieira ──
   { t: 'scene', bg: 'ato3' },
-  { t: 'walk', dist: 700, hint: 'Siga pela floresta' },
+  { t: 'walk', dist: 1400, hint: 'Siga pela floresta' },
   { t: 'say', who: 'estudante', lines: [
     'Caramba, que alto...',
     'Nunca vi uma macieira assim.',
@@ -76,7 +76,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'O tronco parece pulsar — como se algo dentro dele estivesse acordando.',
   ] },
-  { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
+  { t: 'walk', dist: 1800, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Essa macieira está bloqueando tudo!',
     'Nunca vi uma árvore assim, ela parece viva...',
@@ -100,19 +100,19 @@ const beats: Beat[] = [
   },
   // ── ATO 4 — A Estufa ──
   // Still in ato3 — player walks, estufa building enters from the right
-  { t: 'walk', dist: 700, hint: 'Siga em frente', landmark: 'estufa-ext' },
+  { t: 'walk', dist: 1400, hint: 'Siga em frente', landmark: 'estufa-ext' },
   // Say before entering
   { t: 'say', who: 'estudante', lines: ['Parece ser uma estufa.', 'O que é aquilo?'] },
   // Enter estufa
   { t: 'scene', bg: 'estufa' },
   // Inside estufa — find tronco pulsante
-  { t: 'walk', dist: 500, hint: 'Explore a estufa', landmark: 'trunk' },
+  { t: 'walk', dist: 1000, hint: 'Explore a estufa', landmark: 'trunk' },
   { t: 'say', who: 'estudante', lines: [
     'Esse tronco... está vivo, como um coração pulsante!',
     'Esse lugar parece ter vida própria!',
   ] },
   // Find the computer
-  { t: 'walk', dist: 600, hint: 'Encontre o computador', landmark: 'computer' },
+  { t: 'walk', dist: 1200, hint: 'Encontre o computador', landmark: 'computer' },
   { t: 'say', who: 'estudante', lines: [
     'Um dos computadores... ligou sozinho.',
     'O sistema pede uma senha.',
@@ -142,7 +142,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Uma passagem se abre entre as raízes, levando para fora da estufa.',
   ] },
-  { t: 'walk', dist: 900, hint: 'Saia pela passagem' },
+  { t: 'walk', dist: 1800, hint: 'Saia pela passagem' },
   { t: 'say', who: 'estudante', lines: [
     'Que lugar estranho... o ar é completamente diferente aqui.',
   ] },
@@ -153,7 +153,7 @@ const beats: Beat[] = [
     'O ar aqui é pesado... cheira a terra molhada.',
     'Um pântano! E a água parece... viva.',
   ] },
-  { t: 'walk', dist: 166, hint: 'Avance pelo pântano' },
+  { t: 'walk', dist: 332, hint: 'Avance pelo pântano' },
   { t: 'say', who: 'estudante', lines: [
     'A água tóxica bloqueia a passagem.',
     'Há pedras afundando... só vão me sustentar na ordem certa.',
@@ -176,7 +176,7 @@ const beats: Beat[] = [
     'Consegui atravessar!',
     'Uma luz estranha vem lá da frente...',
   ] },
-  { t: 'walk', dist: 850, hint: 'Siga a luz ao fundo' },
+  { t: 'walk', dist: 1700, hint: 'Siga a luz ao fundo' },
   { t: 'say', who: 'estudante', lines: [
     'A luz fica mais intensa a cada passo...',
   ] },
@@ -189,7 +189,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'estudante', lines: [
     'A luz fica mais intensa a cada passo...',
   ] },
-  { t: 'walk', dist: 1100, hint: 'Siga a luz', landmark: 'consciencia' },
+  { t: 'walk', dist: 2200, hint: 'Siga a luz', landmark: 'consciencia' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',
     'Esta é a Consciência Verde — a mente da floresta.',
@@ -218,7 +218,7 @@ const beats: Beat[] = [
     'Eu me comuniquei com a floresta.',
     'Ela está me abrindo caminho para algo...',
   ] },
-  { t: 'walk', dist: 900, hint: 'Siga o chamado', landmark: 'lab' },
+  { t: 'walk', dist: 1800, hint: 'Siga o chamado', landmark: 'lab' },
   { t: 'say', who: 'estudante', lines: [
     'Um prédio... aqui no meio da floresta?',
     'Parece um laboratório. Preciso entrar.',
@@ -226,7 +226,7 @@ const beats: Beat[] = [
 
   // ── ATO 7 — O Laboratório Final / A Escolha ──
   { t: 'scene', bg: 'final' },
-  { t: 'walk', dist: 100, hint: 'Entre no laboratório' },
+  { t: 'walk', dist: 200, hint: 'Entre no laboratório' },
   { t: 'say', who: 'narrador', lines: [
     'O céu se abre em ouro. Aqui termina — e começa — tudo.',
     'Este é o Domo-Mãe: o último refúgio de vida da Terra.',
