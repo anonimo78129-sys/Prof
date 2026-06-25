@@ -2202,6 +2202,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             imageRendering: 'pixelated',
             mixBlendMode: 'color-dodge',
             animation: 'sunlight-pulse 4s ease-in-out infinite',
+            outline: '2px solid #000',
           } : {
             // camadas 2-3: ancoradas no fundo
             position: 'absolute', inset: 0, zIndex: n,
