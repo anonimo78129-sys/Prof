@@ -2174,7 +2174,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           }} />
         ))}
         {/* tint dourado de pôr do sol */}
-        {(bg === 'corredor' || bg === 'final') && (
+        {bg === 'corredor' && (
           <div style={{ position: 'absolute', inset: 0, zIndex: 9, pointerEvents: 'none',
             background: 'rgba(255,160,40,0.15)' }} />
         )}
