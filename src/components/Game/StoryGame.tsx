@@ -1775,7 +1775,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
+function ParallaxWorld({ bg, worldX, sceneStartX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; sceneStartX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -2112,8 +2112,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ ...layer('/assets/pantano/logs.png', 0.85, 5, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 30px)' }), animation: 'logs-rise 1.2s ease-out forwards' }} />
         )}
 
-        {/* camada_0 — ground-fg (repete na horizontal, ancorada ao worldX do pântano) */}
-        <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'repeat-x', backgroundPositionY: 'calc(100% + 30px)' })} />
+        {/* camada_0 — ground-fg (ancorada ao início do pântano, não repete) */}
+        <div style={{ ...layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' }), backgroundPositionX: `${Math.round(-(worldX - sceneStartX))}px` }} />
 
         {/* plantas e vitórias-régias espalhadas */}
         {pantanoProps.map((p, i) => {
@@ -2816,6 +2816,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [beatIndex, setBeatIndex] = useState(startBeat);
   const [bg, setBg] = useState<SceneBg>(startBg ?? 'noite');
   const [worldX, setWorldX] = useState(0);
+  const [sceneStartX, setSceneStartX] = useState(0);
   const [terrainZones, setTerrainZones] = useState<TerrainZone[]>([]);
   const [fade, setFade] = useState<{ text?: string } | null>(null);
   const [moving, setMoving] = useState(false);
@@ -2948,7 +2949,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setAppleTreeAnchor(null);
       setTrunkAnchor(null);
       setGateFrame(0);
-      setCorredorLightOn(false); // luz do corredor recomeça desligada
+      setCorredorLightOn(false);
+      setSceneStartX(worldX);
     } else {
       targetRef.current = null;
       // say / question / fade: portão permanece no mundo
@@ -3077,7 +3079,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           </div>
         );
       })}
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
+      <ParallaxWorld bg={bg} worldX={worldX} sceneStartX={sceneStartX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
