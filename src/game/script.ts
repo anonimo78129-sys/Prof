@@ -226,6 +226,7 @@ const beats: Beat[] = [
 
   // ── ATO 7 — O Laboratório Final / A Escolha ──
   { t: 'scene', bg: 'final' },
+  { t: 'walk', dist: 100, hint: 'Entre no laboratório' },
   { t: 'say', who: 'narrador', lines: [
     'O céu se abre em ouro. Aqui termina — e começa — tudo.',
     'Este é o Domo-Mãe: o último refúgio de vida da Terra.',
