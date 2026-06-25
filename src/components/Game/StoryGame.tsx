@@ -1619,7 +1619,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   );
 }
 
-function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
+function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, conscienciaAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; conscienciaAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>
@@ -2066,29 +2066,38 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           }} />
         ))}
 
-        {/* Inimigo: Consciência Verde no corredor — entra deslizando pela direita (parallax do cenário) */}
-        {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'consciencia' && (
+        {/* Inimigo VIVO: Consciência Verde — entra deslizando pela direita (parallax do cenário) */}
+        {bg === 'corredor' && !conscienciaDefeated && landmarkAnchor != null && landmarkKind === 'consciencia' && (
           <div style={{
             position: 'absolute',
             left: `calc(34% + ${Math.round(landmarkAnchor - worldX * 0.22)}px)`,
             bottom: GROUND - 20, zIndex: 13,
             width: 168, height: 300,
             transform: 'translateX(-50%) scaleX(-1)',
-            filter: conscienciaDefeated ? 'drop-shadow(0 0 12px rgba(120,200,255,0.6))' : 'drop-shadow(0 0 12px rgba(60,255,140,0.8))',
+            filter: 'drop-shadow(0 0 12px rgba(60,255,140,0.8))',
           }}>
-            {conscienciaDefeated ? (
-              <img src="/assets/corredor/consciencia-defeated.png" alt=""
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated' }} />
-            ) : (
-              <>
-                <img src="/assets/corredor/consciencia-idle-1.png" alt=""
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
-                    animation: 'butterfly-frame 0.6s steps(1) infinite' }} />
-                <img src="/assets/corredor/consciencia-idle-2.png" alt=""
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
-                    animation: 'butterfly-frame2 0.6s steps(1) infinite' }} />
-              </>
-            )}
+            <img src="/assets/corredor/consciencia-idle-1.png" alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                animation: 'butterfly-frame 0.6s steps(1) infinite' }} />
+            <img src="/assets/corredor/consciencia-idle-2.png" alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated',
+                animation: 'butterfly-frame2 0.6s steps(1) infinite' }} />
+          </div>
+        )}
+
+        {/* Inimigo DERROTADO: persiste na cena (mesmo após o herói seguir para o lab),
+            recua lentamente conforme o herói vai embora */}
+        {bg === 'corredor' && conscienciaDefeated && conscienciaAnchor != null && (
+          <div style={{
+            position: 'absolute',
+            left: `calc(34% + ${Math.round(conscienciaAnchor - worldX * 0.22)}px)`,
+            bottom: GROUND - 20, zIndex: 13,
+            width: 168, height: 300,
+            transform: 'translateX(-50%) scaleX(-1)',
+            filter: 'drop-shadow(0 0 12px rgba(120,200,255,0.6))',
+          }}>
+            <img src="/assets/corredor/consciencia-defeated.png" alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated' }} />
           </div>
         )}
 
@@ -2666,6 +2675,9 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [landmarkKind, setLandmarkKind] = useState<'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'>('gate');
   const [appleTreeAnchor, setAppleTreeAnchor] = useState<number | null>(null);
   const [trunkAnchor, setTrunkAnchor] = useState<number | null>(null);
+  // âncora persistente da Consciência: o derrotado continua na cena depois
+  // que o herói segue para o lab (landmarkKind muda para 'lab')
+  const [conscienciaAnchor, setConscienciaAnchor] = useState<number | null>(null);
   const [sceneFade, setSceneFade] = useState(false);
   const [sceneFadeColor, setSceneFadeColor] = useState('#000');
   const [logsVisible, setLogsVisible] = useState(false);
@@ -2771,6 +2783,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         if (beat.landmark === 'gate' && bg === 'ato3') setAppleTreeAnchor(anchor);
         // guarda posição do tronco para persistir depois do walk
         if (beat.landmark === 'trunk') setTrunkAnchor(anchor);
+        // guarda posição da Consciência para o derrotado persistir até o herói ir embora
+        if (beat.landmark === 'consciencia') setConscienciaAnchor(anchor);
       }
       // sem landmark: mantém o portão visível (sai de cena naturalmente ao rolar)
     } else if (beat?.t === 'scene') {
@@ -2780,6 +2794,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       setLandmarkKind('gate');
       setAppleTreeAnchor(null);
       setTrunkAnchor(null);
+      setConscienciaAnchor(null);
       setGateFrame(0);
       setCorredorLightOn(false);
     } else {
@@ -2910,7 +2925,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           </div>
         );
       })}
-      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
+      <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} conscienciaAnchor={conscienciaAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
 
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
@@ -2934,6 +2949,8 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
           onClick={() => {
             const idx = beats.findIndex(b => b.t === 'battle');
             setWorldX(0); setBg('corredor'); setBeatIndex(idx);
+            // posiciona a Consciência ao lado do herói para o derrotado aparecer após a luta
+            setConscienciaAnchor(130); setLandmarkAnchor(130); setLandmarkKind('consciencia');
           }}
           className="font-pixel"
           style={{
