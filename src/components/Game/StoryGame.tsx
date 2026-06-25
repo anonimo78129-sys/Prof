@@ -2226,18 +2226,17 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           </div>
         )}
 
-        {/* prédio do laboratório (estufa de vidro) no fim do corredor */}
-        {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
-          <img src="/assets/corredor/lab.png" alt="laboratório" style={{
-            position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
-            bottom: GROUND - 77, zIndex: 12, transform: 'translateX(-50%)',
-            height: 600, width: 1002, display: 'block',
-            filter: 'drop-shadow(0 0 30px rgba(120,200,255,0.35))',
-          }} />
-        )}
-
       </div>
       {bg === 'corredor' && <CorredorButterflies />}
+      {/* prédio do laboratório — fora do container para não ser cortado pelo overflow:hidden */}
+      {bg === 'corredor' && landmarkAnchor != null && landmarkKind === 'lab' && (
+        <img src="/assets/corredor/lab.png" alt="laboratório" style={{
+          position: 'absolute', left: `calc(50% + ${Math.round(landmarkAnchor - worldX)}px)`,
+          bottom: FLOOR + GROUND - 77, zIndex: 12, transform: 'translateX(-50%)',
+          height: 600, width: 1002, display: 'block',
+          filter: 'drop-shadow(0 0 30px rgba(120,200,255,0.35))',
+        }} />
+      )}
       {/* Foreground do corredor — fora do container (não cortado), na frente do herói */}
       {bg === 'corredor' && (
         <div style={{
