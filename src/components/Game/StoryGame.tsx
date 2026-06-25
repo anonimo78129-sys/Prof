@@ -2134,7 +2134,7 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
 
   // ── Atos 6-7: cenas de imagem única (corredor de luz / final) ─────────────
   if (bg === 'corredor' || bg === 'final') {
-    const CSPEEDS = [0.01, 0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.22];
+    const CSPEEDS = [0.012, 0.024, 0.048, 0.072, 0.108, 0.144, 0.192, 0.264];
     // parallax speeds do lab final (6 camadas)
     const FSPEEDS: Record<number, number> = { 1: 0.01, 2: 0.04, 3: 0.10, 5: 0.18, 6: 0.06, 7: 0.22 };
     return (
