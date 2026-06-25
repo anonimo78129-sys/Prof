@@ -2198,8 +2198,10 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundRepeat: 'repeat-x',
             backgroundSize: 'auto 380px',
             backgroundPositionX: `${Math.round(-worldX * FSPEEDS[5])}px`,
-            backgroundPositionY: 'bottom 0px',
+            backgroundPositionY: 'bottom 2px',
             imageRendering: 'pixelated',
+            transformOrigin: 'top center',
+            animation: 'vine-sway 3.5s ease-in-out infinite',
           } : n === 6 ? {
             // camada 6: lens flare — cover, parallax lento
             position: 'absolute', inset: 0, zIndex: n,

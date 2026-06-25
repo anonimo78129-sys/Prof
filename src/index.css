@@ -268,6 +268,11 @@
     25%       { transform: rotate(1deg); }
     75%       { transform: rotate(-1deg); }
   }
+  @keyframes vine-sway {
+    0%, 100% { transform: skewX(0deg); }
+    30%       { transform: skewX(1.5deg); }
+    70%       { transform: skewX(-1.5deg); }
+  }
   @keyframes battle-faint {
     0%   { transform: translateY(0) scale(1);      opacity: 1; }
     100% { transform: translateY(40px) scale(0.3); opacity: 0; }
