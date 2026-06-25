@@ -2182,8 +2182,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 350, zIndex: 10, background: '#000', pointerEvents: 'none' }} />
         )}
 
-        {/* ── Lab Final: camadas 1-3 e 5-6 (dentro do container) ── */}
-        {bg === 'final' && [1, 2, 3, 5, 6].map((n) => (
+        {/* ── Lab Final: camadas 1-3 e 6 (dentro do container) ── */}
+        {bg === 'final' && [1, 2, 3, 6].map((n) => (
           <div key={n} style={n === 1 ? {
             // camada 1: céu gradiente — cover, mais lento
             position: 'absolute', inset: 0, zIndex: 1,
@@ -2191,17 +2191,6 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
             backgroundSize: 'cover', backgroundPositionY: 'center',
             backgroundPositionX: `${Math.round(-worldX * FSPEEDS[1])}px`,
             imageRendering: 'pixelated',
-          } : n === 5 ? {
-            // camada 5: vinhas penduradas — ancoradas no TOPO
-            position: 'absolute', inset: 0, zIndex: n,
-            backgroundImage: `url('/assets/final/layer-5.png')`,
-            backgroundRepeat: 'repeat-x',
-            backgroundSize: 'auto 380px',
-            backgroundPositionX: '0px',
-            backgroundPositionY: 'bottom 2px',
-            imageRendering: 'pixelated',
-            transformOrigin: 'top center',
-            animation: 'vine-sway 3.5s ease-in-out infinite',
           } : n === 6 ? {
             // camada 6: lens flare — cover, parallax lento
             position: 'absolute', inset: 0, zIndex: n,
@@ -2284,6 +2273,20 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           backgroundPositionX: `${Math.round(-worldX * FSPEEDS[7])}px`,
           backgroundPositionY: 'bottom 274px',
           imageRendering: 'pixelated',
+        }} />
+      )}
+      {/* Camada 5 (vinhas) — sobre o herói (zIndex 16) */}
+      {bg === 'final' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 16, pointerEvents: 'none',
+          backgroundImage: `url('/assets/final/layer-5.png')`,
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 380px',
+          backgroundPositionX: `${Math.round(-worldX * FSPEEDS[5])}px`,
+          backgroundPositionY: 'bottom 2px',
+          imageRendering: 'pixelated',
+          transformOrigin: 'top center',
+          animation: 'vine-sway 3.5s ease-in-out infinite',
         }} />
       )}
 
