@@ -2112,8 +2112,8 @@ function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby
           <div style={{ ...layer('/assets/pantano/logs.png', 0.85, 5, { backgroundSize: 'auto 350px', backgroundPositionY: 'calc(100% + 30px)' }), animation: 'logs-rise 1.2s ease-out forwards' }} />
         )}
 
-        {/* camada_0 — ground-fg (ancorada ao início do mundo, não repete) */}
-        <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'no-repeat', backgroundPositionY: 'calc(100% + 30px)' })} />
+        {/* camada_0 — ground-fg (repete na horizontal, ancorada ao worldX do pântano) */}
+        <div style={layer('/assets/pantano/ground-fg.png', 1.0, 6, { backgroundSize: 'auto 350px', backgroundRepeat: 'repeat-x', backgroundPositionY: 'calc(100% + 30px)' })} />
 
         {/* plantas e vitórias-régias espalhadas */}
         {pantanoProps.map((p, i) => {
