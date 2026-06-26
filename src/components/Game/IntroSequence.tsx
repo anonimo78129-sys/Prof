@@ -9,11 +9,17 @@ interface Slide {
   autoDuration?: number;   // ms — for slides with no cues, auto-advance
 }
 
-const CUE_CFG: Record<CueType, { label: string | null; color: string; bg: string; italic: boolean; center: boolean }> = {
-  narrador:     { label: null,             color: '#c8dce8', bg: 'rgba(6,14,22,0.92)',  italic: true,  center: false },
-  protagonista: { label: 'Você',           color: '#eaf6e0', bg: 'rgba(8,24,12,0.94)',  italic: false, center: false },
-  voz:          { label: 'Voz Misteriosa', color: '#40e0d0', bg: 'rgba(0,28,22,0.94)',  italic: true,  center: false },
-  evento:       { label: null,             color: '#e0e0e0', bg: 'rgba(0,0,0,0.60)',    italic: true,  center: true  },
+const CUE_CFG: Record<CueType, {
+  label: string | null;
+  color: string;
+  italic: boolean;
+  center: boolean;
+  portrait: string | null;
+}> = {
+  narrador:     { label: null,              color: '#eaf6e0', italic: true,  center: false, portrait: null },
+  protagonista: { label: 'Você',            color: '#eaf6e0', italic: false, center: false, portrait: '/assets/portraits/hero.png' },
+  voz:          { label: 'Voz Misteriosa',  color: '#40e0d0', italic: true,  center: false, portrait: null },
+  evento:       { label: null,              color: '#c8dce8', italic: true,  center: true,  portrait: null },
 };
 
 // Typewriter speed (ms per char)
@@ -112,14 +118,13 @@ export default function IntroSequence({ onDone }: { onDone: () => void }) {
   const [cueIdx,   setCueIdx]     = useState(0);
   const [shown,    setShown]      = useState('');
   const [typeDone, setTypeDone]   = useState(false);
-  const [opacity,  setOpacity]    = useState(1);   // 0→1 for slide cross-fade
+  const [opacity,  setOpacity]    = useState(1);
 
-  const slide   = SLIDES[slideIdx];
-  const cue     = slide.cues[cueIdx] ?? null;
+  const slide    = SLIDES[slideIdx];
+  const cue      = slide.cues[cueIdx] ?? null;
   const frameIdx = slide.frameForCue ? (slide.frameForCue[cueIdx] ?? 0) : 0;
   const frameSrc = slide.frames[Math.min(frameIdx, slide.frames.length - 1)];
 
-  // keep previous frame src to detect change (for within-slide frame fade)
   const prevFrame = useRef(frameSrc);
   const [imgOpacity, setImgOpacity] = useState(1);
 
@@ -196,50 +201,95 @@ export default function IntroSequence({ onDone }: { onDone: () => void }) {
       {/* gradiente embaixo para legibilidade do texto */}
       {cue && (
         <div style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0, height: '50%',
-          background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)',
+          position: 'absolute', left: 0, right: 0, bottom: 0,
+          height: cue.type === 'evento' ? '35%' : '55%',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)',
           pointerEvents: 'none',
-          opacity,
-          transition: 'opacity 0.38s ease',
+          opacity, transition: 'opacity 0.38s ease',
         }} />
       )}
 
-      {/* caixa de texto */}
+      {/* caixa de diálogo — dois estilos: normal (moldura pixel) e evento (legenda) */}
       {cue && cfg && (
         <div style={{
           position: 'absolute', left: 0, right: 0, bottom: 0,
-          padding: '0 16px 36px',
+          padding: `0 16px ${cue.type === 'evento' ? 48 : 36}px`,
           opacity, transition: 'opacity 0.38s ease',
         }}>
-          {cfg.label && (
-            <p className="font-pixel" style={{ color: cfg.color, fontSize: 8, marginBottom: 6 }}>
-              {cfg.label}
-            </p>
-          )}
-          <div className="panel-pixel" style={{ background: cfg.bg, padding: '14px 16px' }}>
+          {cue.type === 'evento' ? (
+            /* Legenda cinemática — sem moldura, centralizada */
             <p className="font-vt" style={{
               color: cfg.color,
-              fontSize: 22,
-              lineHeight: 1.35,
-              fontStyle: cfg.italic ? 'italic' : 'normal',
-              textAlign: cfg.center ? 'center' : 'left',
-              minHeight: 30,
-              textShadow: cue.type === 'voz' ? '0 0 14px rgba(64,224,208,0.9), 0 0 28px rgba(64,224,208,0.5)' : 'none',
+              fontSize: 20,
+              lineHeight: 1.4,
+              fontStyle: 'italic',
+              textAlign: 'center',
+              textShadow: '0 2px 12px rgba(0,0,0,0.95)',
+              letterSpacing: '0.04em',
             }}>
               {shown}
             </p>
-          </div>
-          {typeDone && (
-            <p className="font-pixel" style={{ color: '#7fae7a', fontSize: 8, textAlign: 'right', marginTop: 6 }}>
-              ▶ toque
-            </p>
+          ) : (
+            /* Moldura pixel art estilo madeira — igual ao jogo principal */
+            <div style={{
+              margin: '0 auto', maxWidth: 760,
+              padding: '14px 18px',
+              background: '#1a0e06',
+              border: '4px solid #8b5e2e',
+              boxShadow: 'inset 0 0 0 2px #c4874c, inset 0 0 0 4px #7a4f22, 0 0 0 2px #3a1f08',
+              position: 'relative',
+            }}>
+              {/* portrait do protagonista */}
+              {cfg.portrait && (
+                <div style={{
+                  position: 'absolute', top: -60, left: 8,
+                  width: 68, height: 68,
+                  background: '#1a0e06',
+                  border: '3px solid #8b5e2e',
+                  boxShadow: 'inset 0 0 0 1px #c4874c, 0 0 0 1px #3a1f08',
+                  imageRendering: 'pixelated',
+                }}>
+                  <img
+                    src={cfg.portrait}
+                    alt=""
+                    style={{ width: '100%', height: '100%', imageRendering: 'pixelated', display: 'block' }}
+                  />
+                </div>
+              )}
+              {/* label do personagem */}
+              {cfg.label && (
+                <p className="font-pixel" style={{
+                  color: cue.type === 'voz' ? '#40e0d0' : '#88ff66',
+                  fontSize: 9, marginBottom: 8,
+                  textShadow: cue.type === 'voz' ? '0 0 10px rgba(64,224,208,0.8)' : 'none',
+                }}>
+                  {cfg.label}
+                </p>
+              )}
+              {/* texto com typewriter */}
+              <p className="font-vt" style={{
+                color: cfg.color,
+                fontSize: 22,
+                lineHeight: 1.35,
+                fontStyle: cfg.italic ? 'italic' : 'normal',
+                minHeight: 30,
+                textShadow: cue.type === 'voz'
+                  ? '0 0 14px rgba(64,224,208,0.9), 0 0 28px rgba(64,224,208,0.5)'
+                  : 'none',
+              }}>
+                {shown}
+              </p>
+              {typeDone && (
+                <p className="font-pixel" style={{ color: '#7fae7a', fontSize: 8, textAlign: 'right', marginTop: 6 }}>
+                  ▶ toque
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}
 
-      {/* botão pular — delay de 100ms para a sequência de eventos do toque
-          completar antes do StoryGame montar (evita acionar o botão SAIR na
-          mesma posição quando os eventos de click ainda estão propagando) */}
+      {/* botão pular */}
       <button
         onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); setTimeout(onDone, 100); }}
         onContextMenu={(e) => e.preventDefault()}
