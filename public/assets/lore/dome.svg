@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <defs>
+    <linearGradient id="domeSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a0c02"/>
+      <stop offset="40%" stop-color="#3a1a04"/>
+      <stop offset="100%" stop-color="#0a0804"/>
+    </linearGradient>
+    <radialGradient id="domeGlow" cx="50%" cy="52%" r="40%">
+      <stop offset="0%" stop-color="#ffe860" stop-opacity="0.55"/>
+      <stop offset="50%" stop-color="#ffa820" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ffa820" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="0%" r="50%">
+      <stop offset="0%" stop-color="#ffee80" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ffee80" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="innerLife" cx="50%" cy="60%" r="50%">
+      <stop offset="0%" stop-color="#40ff80" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#40ff80" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect fill="url(#domeSky)" width="480" height="300"/>
+  <rect fill="url(#sunGlow)" width="480" height="300"/>
+  <!-- desolate horizon sky gradient -->
+  <rect x="0" y="0" width="480" height="180" fill="rgba(40,10,0,0.3)"/>
+  <!-- ruins / dead landscape -->
+  <rect x="0" y="220" width="480" height="80" fill="#100804"/>
+  <rect x="0" y="216" width="480" height="8" fill="#1a0c04"/>
+  <!-- rubble silhouettes -->
+  <rect x="20" y="190" width="60" height="36" fill="#0a0602"/>
+  <rect x="30" y="178" width="30" height="18" fill="#0a0602"/>
+  <rect x="50" y="170" width="16" height="26" fill="#0a0602"/>
+  <rect x="380" y="195" width="70" height="30" fill="#0a0602"/>
+  <rect x="390" y="183" width="40" height="18" fill="#0a0602"/>
+  <rect x="420" y="175" width="14" height="26" fill="#0a0602"/>
+  <rect x="120" y="205" width="50" height="20" fill="#0a0602"/>
+  <rect x="310" y="208" width="50" height="18" fill="#0a0602"/>
+  <!-- dead tree stumps -->
+  <rect x="84" y="200" width="8" height="30" fill="#0c0804"/>
+  <rect x="82" y="196" width="12" height="8" fill="#0c0804"/>
+  <rect x="388" y="196" width="8" height="28" fill="#0c0804"/>
+  <!-- DOME — glass geodesic structure -->
+  <!-- outer dome shadow -->
+  <ellipse cx="240" cy="220" rx="130" ry="20" fill="rgba(0,0,0,0.55)"/>
+  <!-- dome body -->
+  <path d="M 110 220 Q 110 60 240 60 Q 370 60 370 220 Z" fill="#1a0e04" opacity="0.9"/>
+  <!-- dome glass panels (lighter) -->
+  <path d="M 110 220 Q 110 60 240 60 Q 370 60 370 220 Z" fill="rgba(255,180,40,0.08)"/>
+  <!-- dome glass grid lines (facets) -->
+  <path d="M 240 60 L 110 220" stroke="rgba(255,180,40,0.3)" stroke-width="1.5" fill="none"/>
+  <path d="M 240 60 L 370 220" stroke="rgba(255,180,40,0.3)" stroke-width="1.5" fill="none"/>
+  <path d="M 240 60 L 240 220" stroke="rgba(255,180,40,0.25)" stroke-width="1.5" fill="none"/>
+  <path d="M 240 60 L 175 220" stroke="rgba(255,180,40,0.2)" stroke-width="1" fill="none"/>
+  <path d="M 240 60 L 305 220" stroke="rgba(255,180,40,0.2)" stroke-width="1" fill="none"/>
+  <path d="M 240 60 L 142 185" stroke="rgba(255,180,40,0.15)" stroke-width="1" fill="none"/>
+  <path d="M 240 60 L 338 185" stroke="rgba(255,180,40,0.15)" stroke-width="1" fill="none"/>
+  <!-- horizontal rings -->
+  <path d="M 120 190 Q 240 165 360 190" stroke="rgba(255,180,40,0.25)" stroke-width="1" fill="none"/>
+  <path d="M 132 160 Q 240 130 348 160" stroke="rgba(255,180,40,0.22)" stroke-width="1" fill="none"/>
+  <path d="M 150 130 Q 240 95 330 130" stroke="rgba(255,180,40,0.2)" stroke-width="1" fill="none"/>
+  <path d="M 172 102 Q 240 78 308 102" stroke="rgba(255,180,40,0.18)" stroke-width="1" fill="none"/>
+  <!-- dome glow from inside (life within) -->
+  <path d="M 110 220 Q 110 60 240 60 Q 370 60 370 220 Z" fill="url(#innerLife)"/>
+  <!-- bright dome apex -->
+  <circle cx="240" cy="62" r="8" fill="rgba(255,200,60,0.6)"/>
+  <circle cx="240" cy="62" r="4" fill="rgba(255,240,120,0.9)"/>
+  <!-- dome overall glow halo -->
+  <rect fill="url(#domeGlow)" width="480" height="300"/>
+  <!-- tree silhouette inside dome (life!) -->
+  <rect x="230" y="120" width="20" height="100" fill="rgba(20,80,10,0.7)"/>
+  <ellipse cx="240" cy="112" rx="40" ry="32" fill="rgba(20,80,10,0.65)"/>
+  <ellipse cx="240" cy="100" rx="28" ry="22" fill="rgba(30,100,20,0.7)"/>
+  <!-- foreground ground dirt -->
+  <rect x="0" y="258" width="480" height="42" fill="#0e0804"/>
+  <!-- student silhouette in front of dome, looking up -->
+  <rect x="228" y="236" width="6" height="24" fill="#060402"/>
+  <rect x="224" y="230" width="14" height="10" fill="#060402"/>
+  <rect x="226" y="225" width="10" height="7" fill="#060402" rx="3"/>
+  <!-- ash particles in sky -->
+  <rect x="80" y="40" width="3" height="3" fill="rgba(180,80,10,0.3)" rx="1"/>
+  <rect x="160" y="28" width="2" height="2" fill="rgba(180,80,10,0.25)" rx="1"/>
+  <rect x="320" y="36" width="3" height="3" fill="rgba(180,80,10,0.3)" rx="1"/>
+  <rect x="380" y="22" width="2" height="2" fill="rgba(180,80,10,0.2)" rx="1"/>
+  <rect x="110" y="60" width="2" height="2" fill="rgba(200,100,10,0.2)" rx="1"/>
+  <rect x="350" y="55" width="2" height="2" fill="rgba(200,100,10,0.2)" rx="1"/>
+</svg>

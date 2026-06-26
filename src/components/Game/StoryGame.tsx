@@ -1107,6 +1107,85 @@ function GuardianSprite() {
 }
 
 // ─────────────────────────────────────────────────────────
+// Lore: ilustração cinemática em tela cheia
+// ─────────────────────────────────────────────────────────
+function LoreBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'lore' }>; onSolved: () => void }) {
+  const [vis, setVis] = useState(false);
+  const [out, setOut] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVis(true), 40);
+    return () => clearTimeout(t);
+  }, []);
+
+  const dismiss = () => {
+    if (out) return;
+    setOut(true);
+    setTimeout(onSolved, 400);
+  };
+
+  return (
+    <div
+      onPointerDown={(e) => { e.preventDefault(); dismiss(); }}
+      style={{
+        position: 'absolute', inset: 0, zIndex: 60,
+        background: `rgba(0,0,0,${vis && !out ? 0.92 : 0})`,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        transition: 'background 0.45s',
+        cursor: 'pointer', touchAction: 'none',
+      }}
+    >
+      <img
+        src={beat.img}
+        alt=""
+        style={{
+          maxWidth: '92%', maxHeight: '60%',
+          imageRendering: 'pixelated',
+          opacity: vis && !out ? 1 : 0,
+          transition: 'opacity 0.45s',
+          filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.95))',
+          display: 'block',
+        }}
+      />
+      {beat.caption && (
+        <div
+          className="font-pixel"
+          style={{
+            marginTop: 16,
+            maxWidth: '84%',
+            padding: '12px 18px',
+            background: '#1a0e06',
+            border: '4px solid #8b5e2e',
+            boxShadow: 'inset 0 0 0 2px #c4874c, inset 0 0 0 4px #7a4f22, 0 0 0 2px #3a1f08',
+            color: '#ffe8c0',
+            fontSize: 11,
+            textAlign: 'center',
+            lineHeight: 1.6,
+            opacity: vis && !out ? 1 : 0,
+            transition: 'opacity 0.45s 0.12s',
+          }}
+        >
+          {beat.caption}
+        </div>
+      )}
+      <div
+        className="font-pixel"
+        style={{
+          position: 'absolute', bottom: 28,
+          color: 'rgba(255,255,255,0.4)',
+          fontSize: 9,
+          opacity: vis && !out ? 1 : 0,
+          transition: 'opacity 0.6s 0.3s',
+          animation: vis && !out ? 'hint-bob 1.4s ease-in-out infinite' : undefined,
+        }}
+      >
+        toque para continuar
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // ATO 6 — Combate: Consciência Verde (estilo Pokémon GBA)
 // ─────────────────────────────────────────────────────────
 function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'battle' }>; onSolved: () => void; onCorrect: () => void }) {
@@ -3028,6 +3107,11 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       {/* escolha — ato 7 (final): a decisão */}
       {beat?.t === 'choice' && (
         <ChoiceBeat key={beatIndex} beat={beat} onSolved={advance} />
+      )}
+
+      {/* lore — ilustração cinemática em tela cheia */}
+      {beat?.t === 'lore' && (
+        <LoreBeat key={beatIndex} beat={beat} onSolved={advance} />
       )}
 
       {/* D-pad de caminhada — lado esquerdo */}

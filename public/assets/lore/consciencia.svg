@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <defs>
+    <linearGradient id="corSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#020810"/>
+      <stop offset="100%" stop-color="#061220"/>
+    </linearGradient>
+    <radialGradient id="entityGlow" cx="50%" cy="38%" r="32%">
+      <stop offset="0%" stop-color="#40eeff" stop-opacity="0.5"/>
+      <stop offset="40%" stop-color="#20bbdd" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#20bbdd" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#80ffee" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#20ddbb" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#20ddbb" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="outerPulse" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#40eeff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#40eeff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect fill="url(#corSky)" width="480" height="300"/>
+  <!-- corridor tree pillars dark -->
+  <rect x="0" y="0" width="70" height="300" fill="#020810"/>
+  <rect x="40" y="0" width="50" height="300" fill="#030e18"/>
+  <rect x="370" y="0" width="110" height="300" fill="#020810"/>
+  <rect x="390" y="0" width="50" height="300" fill="#030e18"/>
+  <!-- bioluminescent roots along ground -->
+  <rect x="0" y="270" width="480" height="30" fill="#040e18"/>
+  <rect x="60" y="266" width="40" height="6" fill="#0a2a38" rx="3"/>
+  <rect x="160" y="268" width="60" height="4" fill="#0a2a38" rx="2"/>
+  <rect x="280" y="266" width="50" height="6" fill="#0a2a38" rx="3"/>
+  <rect x="380" y="268" width="40" height="4" fill="#0a2a38" rx="2"/>
+  <!-- blue glowing tree trunks in background -->
+  <rect x="80" y="30" width="18" height="240" fill="#0a2030"/>
+  <rect x="82" y="30" width="4" height="240" fill="#1a4060"/>
+  <rect x="96" y="30" width="2" height="240" fill="#204878" opacity="0.5"/>
+  <rect x="140" y="50" width="14" height="220" fill="#0a2030"/>
+  <rect x="142" y="50" width="3" height="220" fill="#1a4060"/>
+  <rect x="320" y="40" width="18" height="240" fill="#0a2030"/>
+  <rect x="322" y="40" width="4" height="240" fill="#1a4060"/>
+  <rect x="338" y="40" width="2" height="240" fill="#204878" opacity="0.5"/>
+  <rect x="360" y="55" width="14" height="220" fill="#0a2030"/>
+  <rect x="362" y="55" width="3" height="220" fill="#1a4060"/>
+  <!-- ambient glow field -->
+  <rect fill="url(#entityGlow)" width="480" height="300"/>
+  <!-- ENTITY — Consciência Verde -->
+  <!-- outer aura rings -->
+  <circle cx="240" cy="120" r="90" fill="rgba(40,200,220,0.06)"/>
+  <circle cx="240" cy="120" r="70" fill="rgba(40,200,220,0.09)"/>
+  <circle cx="240" cy="120" r="52" fill="rgba(40,200,220,0.12)"/>
+  <!-- root/tendril arms radiating outward -->
+  <rect x="190" y="90" width="50" height="6" fill="#0a4848" rx="3" transform="rotate(-30 215 93)"/>
+  <rect x="240" y="80" width="50" height="5" fill="#0a4848" rx="3" transform="rotate(20 265 83)"/>
+  <rect x="180" y="120" width="60" height="5" fill="#0a4848" rx="3" transform="rotate(-10 210 122)"/>
+  <rect x="240" y="125" width="55" height="5" fill="#0a4848" rx="3" transform="rotate(15 268 128)"/>
+  <rect x="200" y="150" width="40" height="4" fill="#0a4848" rx="3" transform="rotate(-40 220 152)"/>
+  <rect x="240" y="145" width="40" height="4" fill="#0a4848" rx="3" transform="rotate(35 260 147)"/>
+  <!-- body of consciousness — layered glowing mass -->
+  <circle cx="240" cy="120" r="38" fill="#0a3040"/>
+  <circle cx="240" cy="120" r="30" fill="#0e4858"/>
+  <circle cx="240" cy="120" r="22" fill="#165a70"/>
+  <circle cx="240" cy="120" r="16" fill="#1e7890"/>
+  <circle cx="240" cy="120" r="10" fill="#28a0b8"/>
+  <!-- bright core -->
+  <circle cx="240" cy="120" r="7" fill="url(#coreGlow)"/>
+  <circle cx="240" cy="120" r="4" fill="#c0ffee"/>
+  <circle cx="240" cy="120" r="2" fill="#ffffff"/>
+  <!-- "eyes" — two bright points -->
+  <circle cx="230" cy="114" r="4" fill="#40eeff" opacity="0.9"/>
+  <circle cx="250" cy="114" r="4" fill="#40eeff" opacity="0.9"/>
+  <circle cx="230" cy="114" r="2" fill="#aaffee"/>
+  <circle cx="250" cy="114" r="2" fill="#aaffee"/>
+  <!-- energy nodes on tendrils -->
+  <circle cx="170" cy="98" r="4" fill="#20ddbb" opacity="0.7"/>
+  <circle cx="298" cy="96" r="4" fill="#20ddbb" opacity="0.7"/>
+  <circle cx="162" cy="130" r="3" fill="#40eeff" opacity="0.6"/>
+  <circle cx="308" cy="132" r="3" fill="#40eeff" opacity="0.6"/>
+  <!-- particle scatter -->
+  <circle cx="200" cy="70" r="2" fill="#40eeff" opacity="0.5"/>
+  <circle cx="280" cy="68" r="2" fill="#40eeff" opacity="0.5"/>
+  <circle cx="160" cy="160" r="2" fill="#20ddbb" opacity="0.4"/>
+  <circle cx="320" cy="155" r="2" fill="#20ddbb" opacity="0.4"/>
+  <circle cx="210" cy="190" r="2" fill="#40eeff" opacity="0.35"/>
+  <circle cx="270" cy="188" r="2" fill="#40eeff" opacity="0.35"/>
+  <!-- student silhouette (small, below, looking up) -->
+  <rect x="232" y="248" width="6" height="22" fill="#020810"/>
+  <rect x="229" y="242" width="12" height="10" fill="#020810"/>
+  <rect x="231" y="238" width="8" height="6" fill="#020810" rx="3"/>
+  <!-- ground mist -->
+  <rect x="0" y="270" width="480" height="30" fill="rgba(10,40,60,0.6)"/>
+  <rect x="80" y="264" width="120" height="12" fill="rgba(20,80,100,0.15)" rx="6"/>
+  <rect x="260" y="260" width="100" height="14" fill="rgba(20,80,100,0.12)" rx="7"/>
+</svg>

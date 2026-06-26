@@ -70,6 +70,12 @@ export type Beat =
         tone: 'luz' | 'sombra';
         ending: string[];     // epílogo mostrado após a escolha
       }>;
+    }
+  // Ilustração de lore: imagem cinemática em tela cheia, toque para continuar
+  | {
+      t: 'lore';
+      img: string;       // caminho relativo a /public (ex: /assets/lore/gate.svg)
+      caption?: string;  // legenda opcional no estilo caixa de diálogo
     };
 
 export interface StoryScript {

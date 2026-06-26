@@ -13,6 +13,7 @@ const beats: Beat[] = [
     'O que é aquilo?',
     'Ué, um portão??',
   ] },
+  { t: 'lore', img: '/assets/lore/gate.svg', caption: 'Um portão de cipós erguido no coração da floresta...' },
   { t: 'question',
     intro: 'Há uma inscrição antiga gravada no portão de cipós...',
     q: {
@@ -76,6 +77,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'O tronco parece pulsar — como se algo dentro dele estivesse acordando.',
   ] },
+  { t: 'lore', img: '/assets/lore/apple-tree.svg', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Essa macieira está bloqueando tudo!',
@@ -153,6 +155,7 @@ const beats: Beat[] = [
     'O ar aqui é pesado... cheira a terra molhada.',
     'Um pântano! E a água parece... viva.',
   ] },
+  { t: 'lore', img: '/assets/lore/swamp.svg', caption: 'O Pântano Encantado — onde a vida e o mistério se encontram.' },
   { t: 'walk', dist: 166, hint: 'Avance pelo pântano' },
   { t: 'say', who: 'estudante', lines: [
     'A água tóxica bloqueia a passagem.',
@@ -201,6 +204,7 @@ const beats: Beat[] = [
     'Você pisa onde poucos ousam. Prove que merece continuar.',
     'A floresta não abre passagem para quem não a entende.',
   ] },
+  { t: 'lore', img: '/assets/lore/consciencia.svg', caption: 'A Consciência Verde — a mente da floresta, desperta.' },
   { t: 'battle',
     intro: 'A Consciência Verde bloqueia o caminho com pulsos de energia...',
     success: [
@@ -231,6 +235,7 @@ const beats: Beat[] = [
     'O céu se abre em ouro. Aqui termina — e começa — tudo.',
     'Este é o Domo-Mãe: o último refúgio de vida da Terra.',
   ] },
+  { t: 'lore', img: '/assets/lore/dome.svg', caption: 'O Domo-Mãe — a última arca de vida da Terra.' },
   { t: 'say', who: 'corujao', lines: [
     'Lá fora, o mundo entrou em colapso: desmatamento, poluição, calor.',
     'Selamos este domo como uma arca, esperando alguém que entendesse.',
