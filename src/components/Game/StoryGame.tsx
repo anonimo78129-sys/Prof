@@ -738,10 +738,20 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
   const sombra = chosen!.tone === 'sombra';
   const line = chosen!.ending[endIdx] ?? '';
   const last = endIdx >= chosen!.ending.length - 1;
+  // na última fala do epílogo, a ilustração do desfecho surge como imagem final
+  const showArt = last && !!chosen!.img;
   return (
     <>
-      {sombra
-        ? <Withering showEmber={endIdx >= chosen!.ending.length - 1} />
+      {showArt ? (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 39, pointerEvents: 'none',
+          backgroundImage: `url('${chosen!.img}')`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          imageRendering: 'pixelated',
+          animation: 'sky-brighten 1.4s ease forwards',
+        }} />
+      ) : sombra
+        ? <Withering showEmber={false} />
         : (
           <>
             <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.28), transparent 70%)', pointerEvents: 'none' }} />

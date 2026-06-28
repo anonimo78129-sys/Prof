@@ -42,6 +42,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'A clareira pulsa suavemente, como se respirasse.',
   ] },
+  { t: 'lore', img: '/assets/lore/clareira.svg', caption: 'A Clareira Viva — o jardim respira ao seu redor.' },
   { t: 'walk', dist: 850, hint: 'Atravesse a clareira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Uma pedra gigante bloqueia o caminho!',
@@ -141,6 +142,7 @@ const beats: Beat[] = [
     'As raízes... invadem os equipamentos.',
     'A estufa e a floresta se tornaram uma só coisa.',
   ] },
+  { t: 'lore', img: '/assets/lore/estufa.svg', caption: 'A Amazônia Artificial — onde a máquina e a floresta viraram um só coração.' },
   { t: 'say', who: 'narrador', lines: [
     'Uma passagem se abre entre as raízes, levando para fora da estufa.',
   ] },
@@ -189,6 +191,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
   ] },
+  { t: 'lore', img: '/assets/lore/corredor.svg', caption: 'O Corredor de Luz — a floresta respira em azul ao seu redor.' },
   { t: 'say', who: 'estudante', lines: [
     'A luz fica mais intensa a cada passo...',
   ] },
@@ -248,6 +251,7 @@ const beats: Beat[] = [
       {
         label: '🌱 Plantar o recomeço',
         tone: 'luz',
+        img: '/assets/lore/ending-light.svg',
         ending: [
           'Você abre a mão e deposita a semente na terra fértil.',
           'Uma raiz desce, um broto sobe — e a floresta explode em verde.',
@@ -258,6 +262,7 @@ const beats: Beat[] = [
       {
         label: '🥀 Deixar tudo terminar',
         tone: 'sombra',
+        img: '/assets/lore/ending-dark.svg',
         ending: [
           'Você fecha a mão. A semente esfria entre seus dedos.',
           'As luzes do domo se apagam, uma a uma.',

@@ -69,6 +69,7 @@ export type Beat =
         label: string;
         tone: 'luz' | 'sombra';
         ending: string[];     // epílogo mostrado após a escolha
+        img?: string;         // ilustração do desfecho (aparece durante o epílogo)
       }>;
     }
   // Ilustração de lore: imagem cinemática em tela cheia, toque para continuar

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <defs>
+    <linearGradient id="coBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#02060e"/>
+      <stop offset="100%" stop-color="#04101c"/>
+    </linearGradient>
+    <radialGradient id="endLight" cx="50%" cy="45%" r="30%">
+      <stop offset="0%" stop-color="#a0eeff" stop-opacity="0.7"/>
+      <stop offset="40%" stop-color="#40bbee" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#40bbee" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="trunkBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a2438"/>
+      <stop offset="50%" stop-color="#2a7aaa"/>
+      <stop offset="100%" stop-color="#0a2438"/>
+    </linearGradient>
+  </defs>
+  <rect fill="url(#coBg)" width="480" height="300"/>
+  <!-- vanishing-point glow at end of corridor -->
+  <rect fill="url(#endLight)" width="480" height="300"/>
+  <ellipse cx="240" cy="135" rx="70" ry="80" fill="rgba(120,220,255,0.12)"/>
+  <ellipse cx="240" cy="135" rx="40" ry="55" fill="rgba(160,240,255,0.18)"/>
+  <ellipse cx="240" cy="135" rx="20" ry="34" fill="rgba(220,250,255,0.3)"/>
+  <!-- corridor of glowing trees, receding (perspective) -->
+  <!-- far pair -->
+  <rect x="208" y="80" width="10" height="150" fill="url(#trunkBlue)"/>
+  <rect x="262" y="80" width="10" height="150" fill="url(#trunkBlue)"/>
+  <!-- mid pair -->
+  <rect x="168" y="62" width="16" height="190" fill="url(#trunkBlue)"/>
+  <rect x="296" y="62" width="16" height="190" fill="url(#trunkBlue)"/>
+  <!-- near pair -->
+  <rect x="96" y="38" width="26" height="230" fill="url(#trunkBlue)"/>
+  <rect x="358" y="38" width="26" height="230" fill="url(#trunkBlue)"/>
+  <!-- nearest pair (frame edges) -->
+  <rect x="14" y="10" width="40" height="270" fill="#0a2438"/>
+  <rect x="426" y="10" width="40" height="270" fill="#0a2438"/>
+  <rect x="20" y="10" width="10" height="270" fill="#2a7aaa" opacity="0.6"/>
+  <rect x="450" y="10" width="10" height="270" fill="#2a7aaa" opacity="0.6"/>
+  <!-- bright bioluminescent veins on near trunks -->
+  <rect x="104" y="40" width="4" height="220" fill="#80ddff" opacity="0.8"/>
+  <rect x="368" y="40" width="4" height="220" fill="#80ddff" opacity="0.8"/>
+  <rect x="172" y="64" width="3" height="180" fill="#80ddff" opacity="0.7"/>
+  <rect x="300" y="64" width="3" height="180" fill="#80ddff" opacity="0.7"/>
+  <rect x="210" y="82" width="2" height="140" fill="#a0eeff" opacity="0.6"/>
+  <rect x="266" y="82" width="2" height="140" fill="#a0eeff" opacity="0.6"/>
+  <!-- glowing canopy arch overhead -->
+  <ellipse cx="240" cy="20" rx="280" ry="60" fill="#06182a"/>
+  <ellipse cx="240" cy="14" rx="220" ry="44" fill="#0a2438" opacity="0.7"/>
+  <!-- hanging glowing tendrils -->
+  <rect x="140" y="30" width="3" height="50" fill="#40bbee" opacity="0.5"/>
+  <rect x="240" y="24" width="3" height="44" fill="#60ccff" opacity="0.5"/>
+  <rect x="330" y="30" width="3" height="48" fill="#40bbee" opacity="0.5"/>
+  <!-- glowing roots on the ground, leading forward -->
+  <rect x="0" y="262" width="480" height="38" fill="#04141f"/>
+  <path d="M 240 250 Q 160 256 40 270" stroke="#1a5a7a" stroke-width="3" fill="none" opacity="0.7"/>
+  <path d="M 240 250 Q 320 256 440 270" stroke="#1a5a7a" stroke-width="3" fill="none" opacity="0.7"/>
+  <path d="M 240 248 L 240 270" stroke="#40bbee" stroke-width="2" opacity="0.6"/>
+  <!-- floating light particles -->
+  <circle cx="180" cy="120" r="2" fill="#a0eeff" opacity="0.8"/>
+  <circle cx="300" cy="110" r="2" fill="#a0eeff" opacity="0.8"/>
+  <circle cx="220" cy="160" r="2" fill="#c0f4ff" opacity="0.7"/>
+  <circle cx="270" cy="180" r="1.5" fill="#a0eeff" opacity="0.6"/>
+  <circle cx="150" cy="170" r="1.5" fill="#80ddff" opacity="0.5"/>
+  <circle cx="340" cy="165" r="1.5" fill="#80ddff" opacity="0.5"/>
+  <circle cx="200" cy="90" r="1.5" fill="#c0f4ff" opacity="0.6"/>
+  <circle cx="285" cy="85" r="1.5" fill="#c0f4ff" opacity="0.6"/>
+  <!-- student silhouette walking toward the light -->
+  <rect x="234" y="236" width="6" height="22" fill="#02060e"/>
+  <rect x="230" y="230" width="14" height="9" fill="#02060e"/>
+  <rect x="232" y="225" width="10" height="7" fill="#02060e" rx="3"/>
+  <!-- rim light on silhouette from the glow ahead -->
+  <rect x="240" y="230" width="2" height="26" fill="rgba(160,240,255,0.4)"/>
+</svg>
