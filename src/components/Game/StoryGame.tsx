@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
+import { audioGain, playMusicFor, playSfx, preloadSfx, toggleMuted, isMuted, subscribeAudio } from '../../game/audio';
 
 const FLOOR = 300;           // faixa reservada no rodapé p/ a caixa de texto e botões
 const GROUND = 34;           // altura do chão dentro do mundo (acima da faixa FLOOR)
@@ -62,13 +63,14 @@ function audioCtx(): AudioContext | null {
   } catch { return null; }
 }
 function playTone(freq: number, dur = 0.5, type: OscillatorType = 'sine', gain = 0.16) {
+  const g0 = audioGain(gain); if (g0 <= 0) return;   // respeita mudo/volume
   const ctx = audioCtx(); if (!ctx) return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
   osc.type = type; osc.frequency.value = freq;
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.linearRampToValueAtTime(gain, t + 0.025);
+  g.gain.linearRampToValueAtTime(g0, t + 0.025);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   osc.connect(g); g.connect(ctx.destination);
   osc.start(t); osc.stop(t + dur + 0.05);
@@ -147,7 +149,7 @@ function DialogueBox({
     return () => clearInterval(id);
   }, [text]);
 
-  const tap = () => { if (!done) { setShown(text); setDone(true); } else onNext(); };
+  const tap = () => { if (!done) { setShown(text); setDone(true); } else { playSfx('tap'); onNext(); } };
   const name = SPEAKER_NAME[who];
 
   return (
@@ -236,8 +238,8 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
 
   // phase === 'asking'
   const answer = (i: number) => {
-    if (i === beat.q.correct) { setSuccessIdx(0); onCorrect(); setPhase('success'); }
-    else setPhase('wrong');
+    if (i === beat.q.correct) { playSfx('correct'); setSuccessIdx(0); onCorrect(); setPhase('success'); }
+    else { playSfx('wrong'); setPhase('wrong'); }
   };
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 100, zIndex: 40 }}>
@@ -1357,6 +1359,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       setTimeout(() => {
         setPlayerAction('attack');
         playTone(520, 0.12, 'triangle', 0.1);
+        playSfx('attack');
         launch('toEnemy', () => {
           setPlayerAction('idle');
           setEnemyHp(newEHP);
@@ -1377,6 +1380,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           setPlayerAction('victory');
           setLog('A Consciência Verde te reconheceu!');
           playChord([523.25, 659.25, 783.99, 1046.5], 2.5, 0.1);
+          playSfx('victory');
           onCorrect();
           setTimeout(() => setPhase('victory'), 1800);
           return;
@@ -1398,6 +1402,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
             setPlayerAction('hit');
             setFlashPlayer(true); setShakePlayer(true);
             playTone(200, 0.3, 'sawtooth', 0.1);
+            playSfx('hurt');
             setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); setPlayerAction('idle'); }, 500);
             const newPHP = Math.max(0, playerHp - dmg);
             setPlayerHp(newPHP);
@@ -1426,6 +1431,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           setFlashPlayer(true); setShakePlayer(true);
           popDamage(playerAnchor.x, playerAnchor.y - 8, dmg, '#ff5a4a');
           playTone(160, 0.35, 'sawtooth', 0.13);
+          playSfx('hurt');
           setTimeout(() => { setFlashPlayer(false); setShakePlayer(false); setPlayerAction('idle'); }, 500);
 
           setTimeout(() => {
@@ -2770,6 +2776,9 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [sceneFade, setSceneFade] = useState(false);
   const [sceneFadeColor, setSceneFadeColor] = useState('#000');
   const [logsVisible, setLogsVisible] = useState(false);
+  // espelha o estado de mudo para re-renderizar o botão de som
+  const [muted, setMutedState] = useState(isMuted());
+  useEffect(() => subscribeAudio(() => setMutedState(isMuted())), []);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -2789,6 +2798,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   // animação de abertura: fechado → entreaberto → aberto
   useEffect(() => {
     if (!gateOpen) return;
+    playSfx('gate');
     const t1 = setTimeout(() => setGateFrame(1), 400);
     const t2 = setTimeout(() => setGateFrame(2), 900);
     return () => { clearTimeout(t1); clearTimeout(t2); };
@@ -2816,8 +2826,15 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
     if (bg === 'ato3' || bg === 'estufa') setBoulderState('idle');
   }, [bg]);
 
+  // música de fundo: troca a faixa (com crossfade) sempre que o cenário muda
+  useEffect(() => { playMusicFor(bg); }, [bg]);
+
+  // pré-carrega os efeitos sonoros (só roda uma vez)
+  useEffect(() => { preloadSfx(); }, []);
+
   // animação da pedra: tremor → descida → desaparecimento
   const triggerBoulder = useCallback(() => {
+    playSfx('gate');
     setBoulderState('shaking');
     setTimeout(() => setBoulderState('sinking'), 800);
     setTimeout(() => setBoulderState('gone'), 1800);
@@ -3079,6 +3096,15 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         className="font-pixel"
         style={{ position: 'absolute', top: 48, right: 12, zIndex: 50, fontSize: 8, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34',  padding: '8px 10px', cursor: 'pointer', touchAction: 'none' }}>
         ✕ SAIR
+      </button>
+
+      {/* botão de som — liga/desliga toda a trilha e efeitos */}
+      <button onPointerDown={(e) => { e.preventDefault(); toggleMuted(); }}
+        onContextMenu={(e) => e.preventDefault()}
+        className="font-pixel"
+        aria-label={muted ? 'Ativar som' : 'Silenciar'}
+        style={{ position: 'absolute', top: 84, right: 12, zIndex: 50, fontSize: 12, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34', padding: '6px 9px', cursor: 'pointer', touchAction: 'none' }}>
+        {muted ? '🔇' : '🔊'}
       </button>
 
       {/* diálogo */}

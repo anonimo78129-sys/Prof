@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { playMusicFor, playSfx } from '../../game/audio';
 
 type CueType = 'narrador' | 'protagonista' | 'voz' | 'evento';
 interface Cue { type: CueType; text: string; }
@@ -182,10 +183,13 @@ export default function IntroSequence({ onDone }: { onDone: () => void }) {
 
   const cfg = cue ? CUE_CFG[cue.type] : null;
 
+  const musicStarted = useRef(false);
+  const startMusic = () => { if (!musicStarted.current) { musicStarted.current = true; playMusicFor('noite'); } };
+
   return (
     <div
       style={{ position: 'fixed', inset: 0, background: '#000', cursor: 'pointer', touchAction: 'none', userSelect: 'none' }}
-      onPointerDown={(e) => { e.preventDefault(); if (slide.cues.length > 0) advance(); }}
+      onPointerDown={(e) => { e.preventDefault(); startMusic(); if (slide.cues.length > 0) { playSfx('tap'); advance(); } }}
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* ilustração */}
