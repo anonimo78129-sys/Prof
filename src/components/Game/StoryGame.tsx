@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
-import { audioGain, playMusicFor, playSfx, preloadSfx, toggleMuted, isMuted, subscribeAudio } from '../../game/audio';
+import { audioGain, playSfx, preloadSfx, toggleMuted, isMuted, subscribeAudio } from '../../game/audio';
 
 const FLOOR = 300;           // faixa reservada no rodapé p/ a caixa de texto e botões
 const GROUND = 34;           // altura do chão dentro do mundo (acima da faixa FLOOR)
@@ -2825,9 +2825,6 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
     if (bg === 'clareira') { setShowRabbit(true); setBoulderState('idle'); }
     if (bg === 'ato3' || bg === 'estufa') setBoulderState('idle');
   }, [bg]);
-
-  // música de fundo: troca a faixa (com crossfade) sempre que o cenário muda
-  useEffect(() => { playMusicFor(bg); }, [bg]);
 
   // pré-carrega os efeitos sonoros (só roda uma vez)
   useEffect(() => { preloadSfx(); }, []);
