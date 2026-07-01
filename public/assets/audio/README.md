@@ -40,5 +40,4 @@ usando o som sintetizado.
 
 ## Ajustes
 
-No jogo, o botão 🔊/🔇 (canto superior direito) liga/desliga o som,
-e a preferência fica salva.
+O volume dos efeitos é controlado por `_volume` em `src/game/audio.ts`.

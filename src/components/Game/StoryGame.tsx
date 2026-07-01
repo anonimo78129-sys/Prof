@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
-import { audioGain, playSfx, preloadSfx, toggleMuted, isMuted, subscribeAudio } from '../../game/audio';
+import { audioGain, playSfx, preloadSfx } from '../../game/audio';
 
 const FLOOR = 300;           // faixa reservada no rodapé p/ a caixa de texto e botões
 const GROUND = 34;           // altura do chão dentro do mundo (acima da faixa FLOOR)
@@ -2776,9 +2776,6 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
   const [sceneFade, setSceneFade] = useState(false);
   const [sceneFadeColor, setSceneFadeColor] = useState('#000');
   const [logsVisible, setLogsVisible] = useState(false);
-  // espelha o estado de mudo para re-renderizar o botão de som
-  const [muted, setMutedState] = useState(isMuted());
-  useEffect(() => subscribeAudio(() => setMutedState(isMuted())), []);
 
   const beat: Beat | undefined = beats[beatIndex];
   const advance = useCallback(() => setBeatIndex(i => i + 1), []);
@@ -3093,15 +3090,6 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         className="font-pixel"
         style={{ position: 'absolute', top: 48, right: 12, zIndex: 50, fontSize: 8, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34',  padding: '8px 10px', cursor: 'pointer', touchAction: 'none' }}>
         ✕ SAIR
-      </button>
-
-      {/* botão de som — liga/desliga toda a trilha e efeitos */}
-      <button onPointerDown={(e) => { e.preventDefault(); toggleMuted(); }}
-        onContextMenu={(e) => e.preventDefault()}
-        className="font-pixel"
-        aria-label={muted ? 'Ativar som' : 'Silenciar'}
-        style={{ position: 'absolute', top: 84, right: 12, zIndex: 50, fontSize: 12, color: '#cfe8c0', background: 'rgba(8,24,12,0.8)', border: '2px solid #2f6b34', padding: '6px 9px', cursor: 'pointer', touchAction: 'none' }}>
-        {muted ? '🔇' : '🔊'}
       </button>
 
       {/* diálogo */}
