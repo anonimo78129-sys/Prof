@@ -5,19 +5,21 @@ import SetupWizard from './components/TeacherSetup/SetupWizard';
 import StoryGame from './components/Game/StoryGame';
 import IntroSequence from './components/Game/IntroSequence';
 import ScenePreview from './components/ScenePreview';
+import { getSave, clearSave, resetStats } from './game/progress';
 
+// Índices sincronizados com src/game/script.ts (incluem os beats de lore)
 const DEV_ACTS = [
   { label: 'Ato 1 — Floresta (portão)',       beat: 0,  bg: undefined            },
-  { label: 'Ato 2 — Clareira (pedra)',         beat: 7,  bg: undefined            },
-  { label: 'Ato 3 — Macieira (scene)',         beat: 13, bg: undefined            },
-  { label: 'Ato 3 — Coleta de maçãs',         beat: 19, bg: 'ato3' as SceneBg   },
-  { label: 'Ato 4 — Estufa (avistando)',       beat: 20, bg: 'ato3' as SceneBg   },
-  { label: 'Ato 4 — Estufa (dentro)',          beat: 23, bg: 'estufa' as SceneBg },
-  { label: 'Ato 4 — Computador',               beat: 25, bg: 'estufa' as SceneBg },
-  { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 27, bg: 'estufa' as SceneBg },
-  { label: 'Ato 5 — Pântano (sequência)',      beat: 36, bg: 'pantano' as SceneBg },
-  { label: 'Ato 6 — Corredor (memória)',       beat: 42, bg: 'corredor' as SceneBg },
-  { label: 'Ato 7 — Final (a escolha)',        beat: 47, bg: 'final' as SceneBg },
+  { label: 'Ato 2 — Clareira (pedra)',         beat: 8,  bg: undefined            },
+  { label: 'Ato 3 — Macieira (scene)',         beat: 17, bg: undefined            },
+  { label: 'Ato 3 — Coleta de maçãs',         beat: 23, bg: 'ato3' as SceneBg   },
+  { label: 'Ato 4 — Estufa (avistando)',       beat: 25, bg: 'ato3' as SceneBg   },
+  { label: 'Ato 4 — Estufa (dentro)',          beat: 27, bg: undefined           },
+  { label: 'Ato 4 — Computador',               beat: 30, bg: 'estufa' as SceneBg },
+  { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 32, bg: 'estufa' as SceneBg },
+  { label: 'Ato 5 — Pântano (sequência)',      beat: 40, bg: 'pantano' as SceneBg },
+  { label: 'Ato 6 — Corredor (luz)',           beat: 50, bg: 'corredor' as SceneBg },
+  { label: 'Ato 7 — Final (a escolha)',        beat: 64, bg: 'final' as SceneBg },
 ] as const;
 
 function seeded(seed: number) {
@@ -75,6 +77,11 @@ export default function App() {
   const [view, setView] = useState<View>('home');
   const [devStart, setDevStart] = useState<{ beat: number; bg?: SceneBg } | null>(null);
   const [showDevMenu, setShowDevMenu] = useState(false);
+  // remonta o StoryGame do zero em "JOGAR DE NOVO"
+  const [gameKey, setGameKey] = useState(0);
+  // checkpoint salvo (para o botão CONTINUAR); relido ao voltar à home
+  const [save, setSave] = useState(() => getSave());
+  useEffect(() => { if (view === 'home') setSave(getSave()); }, [view]);
 
   useEffect(() => {
     const handleHash = () => {
@@ -110,7 +117,9 @@ export default function App() {
 
   // ── JOGAR — aventura narrativa (visual novel + caminhada) ──
   if (view === 'jogar') {
-    return <StoryGame onExit={() => { setDevStart(null); goHome(); }}
+    return <StoryGame key={gameKey}
+      onExit={() => { setDevStart(null); goHome(); }}
+      onRestart={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); }}
       startBeat={devStart?.beat} startBg={devStart?.bg} />;
   }
 
@@ -164,12 +173,24 @@ export default function App() {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         gap: 14, padding: '0 32px 127px',
       }}>
+        {save && (
+          <button
+            onClick={() => { setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setView('jogar'); }}
+            className="btn-game font-pixel w-full"
+            style={{ fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
+          >
+            CONTINUAR
+          </button>
+        )}
         <button
-          onClick={() => setView('intro')}
+          onClick={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setView('intro'); }}
           className="btn-game font-pixel w-full"
-          style={{ fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
+          style={save ? {
+            fontSize: 13, padding: '17px 8px', maxWidth: 320,
+            filter: 'saturate(0.75) brightness(0.9)',
+          } : { fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
         >
-          JOGAR
+          {save ? 'NOVO JOGO' : 'JOGAR'}
         </button>
 
         <button

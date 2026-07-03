@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 import { audioGain, playSfx, preloadSfx } from '../../game/audio';
+import { saveCheckpoint, clearSave, recordError, recordSolved, recordEnding, getStats, medalFor } from '../../game/progress';
 
 const FLOOR = 300;           // faixa reservada no rodapé p/ a caixa de texto e botões
 const GROUND = 34;           // altura do chão dentro do mundo (acima da faixa FLOOR)
@@ -123,6 +124,60 @@ function ImagePreloader() {
 }
 
 // ─────────────────────────────────────────────────────────
+// Moldura de madeira pixel art — estilo unificado de todos os painéis
+// ─────────────────────────────────────────────────────────
+const WOOD_PANEL: CSSProperties = {
+  background: '#1a0e06',
+  border: '4px solid #8b5e2e',
+  boxShadow: 'inset 0 0 0 2px #c4874c, inset 0 0 0 4px #7a4f22, 0 0 0 2px #3a1f08',
+  imageRendering: 'pixelated',
+};
+
+// ─────────────────────────────────────────────────────────
+// Ícones pixel art (substituem emojis na UI)
+// ─────────────────────────────────────────────────────────
+function PixelIcon({ kind, size = 18 }: { kind: 'sprout' | 'wilt' | 'seed' | 'lily'; size?: number }) {
+  // Desenhados numa grade 12×12; shapeRendering mantém as bordas duras.
+  const px = (x: number, y: number, w: number, h: number, fill: string) =>
+    <rect key={`${x}-${y}-${fill}`} x={x} y={y} width={w} height={h} fill={fill} />;
+  let cells: ReactNode[] = [];
+  if (kind === 'sprout') {
+    cells = [
+      px(5, 7, 2, 4, '#3a7a2a'),                       // caule
+      px(2, 4, 3, 3, '#4fae35'), px(3, 3, 2, 2, '#6fd04a'),  // folha esq
+      px(7, 4, 3, 3, '#4fae35'), px(7, 3, 2, 2, '#6fd04a'),  // folha dir
+      px(4, 10, 4, 1, '#5a3a1a'),                      // terra
+    ];
+  } else if (kind === 'wilt') {
+    cells = [
+      px(5, 6, 2, 5, '#5a4a3a'),                       // caule seco
+      px(6, 5, 2, 2, '#5a4a3a'),                       // curvado
+      px(7, 3, 3, 3, '#7a5a6a'), px(8, 2, 2, 2, '#8a6a7a'),  // flor murcha
+      px(4, 10, 4, 1, '#3a3028'),                      // terra seca
+    ];
+  } else if (kind === 'seed') {
+    cells = [
+      px(4, 3, 4, 6, '#8a5a2a'), px(5, 2, 2, 2, '#6a4218'),   // corpo
+      px(5, 4, 1, 3, '#c49054'),                       // brilho
+      px(3, 5, 1, 3, '#6a4218'), px(8, 5, 1, 3, '#6a4218'),   // laterais
+    ];
+  } else { // lily — vitória-régia
+    cells = [
+      px(2, 6, 8, 3, '#2a8a3a'), px(3, 5, 6, 1, '#3aae4a'),   // folha redonda
+      px(8, 6, 2, 1, '#1a6a2a'),                       // recorte
+      px(5, 3, 2, 3, '#ffb0d0'), px(4, 4, 4, 1, '#ff90c0'),   // flor
+      px(5, 4, 2, 1, '#ffe0f0'),                       // miolo
+    ];
+  }
+  return (
+    <svg width={size} height={size} viewBox="0 0 12 12" shapeRendering="crispEdges"
+      style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+      {cells}
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // Caixa de diálogo com efeito máquina de escrever
 // ─────────────────────────────────────────────────────────
 const SPEAKER_NAME: Record<Speaker, string> = {
@@ -238,13 +293,13 @@ function QuestionBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
 
   // phase === 'asking'
   const answer = (i: number) => {
-    if (i === beat.q.correct) { playSfx('correct'); setSuccessIdx(0); onCorrect(); setPhase('success'); }
-    else { playSfx('wrong'); setPhase('wrong'); }
+    if (i === beat.q.correct) { playSfx('correct'); recordSolved(); setSuccessIdx(0); onCorrect(); setPhase('success'); }
+    else { playSfx('wrong'); recordError(); setPhase('wrong'); }
   };
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 100, zIndex: 40 }}>
-      <div className="panel-pixel"
-        style={{ margin: '0 14px 18px', background: 'rgba(8,24,12,0.95)', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+      <div
+        style={{ ...WOOD_PANEL, margin: '0 14px 18px', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
         <p className="font-vt" style={{ color: '#eaf6e0', fontSize: 21, lineHeight: 1.3, marginBottom: 14 }}>
           {beat.q.text}
         </p>
@@ -317,8 +372,9 @@ function MatchBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'ma
     if (selectedLeft === pairIdx) {
       const next = new Set(matched); next.add(pairIdx);
       setMatched(next); setSelectedLeft(null);
-      if (next.size === beat.pairs.length) { onCorrect(); setSuccessIdx(0); setPhase('success'); }
+      if (next.size === beat.pairs.length) { playSfx('correct'); recordSolved(); onCorrect(); setSuccessIdx(0); setPhase('success'); }
     } else {
+      playSfx('wrong'); recordError();
       setPhase('wrong');
     }
   };
@@ -334,9 +390,9 @@ function MatchBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'ma
 
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 100, zIndex: 40 }}>
-      <div className="panel-pixel"
-        style={{ margin: '0 14px 18px', background: 'rgba(8,24,12,0.95)', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-        <p className="font-pixel" style={{ color: '#9ad08f', fontSize: 9, marginBottom: 12, letterSpacing: 2 }}>
+      <div
+        style={{ ...WOOD_PANEL, margin: '0 14px 18px', padding: '16px 18px', maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+        <p className="font-pixel" style={{ color: '#e8c088', fontSize: 9, marginBottom: 12, letterSpacing: 2 }}>
           CONECTE CADA PARTE À SUA FUNÇÃO
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -424,12 +480,14 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
         collectedRef.current = next;
         setCollected(new Set(next));
         if (next.size === correctCount) {
+          playSfx('correct'); recordSolved();
           onCorrect();
           setSuccessIdx(0);
           setPhase('success');
         }
       }, 400);
     } else {
+      playSfx('wrong'); recordError();
       setPhase('wrong');
     }
   };
@@ -438,8 +496,8 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
     <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none' }}>
       {/* instrução na base, acima do FLOOR; texto pode quebrar em telas pequenas */}
       <div className="font-pixel" style={{
+        ...WOOD_PANEL,
         position: 'absolute', bottom: 112, left: '50%', transform: 'translateX(-50%)',
-        background: 'rgba(8,24,12,0.92)', border: '1px solid #2f6b34',
         padding: '7px 14px',  color: '#eaf6e0',
         fontSize: 9, letterSpacing: 1, textAlign: 'center', maxWidth: 320, zIndex: 35,
       }}>
@@ -527,8 +585,9 @@ function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
     if (chip.idx === progress) {
       const np = progress + 1;
       setProgress(np);
-      if (np === beat.steps.length) { onCorrect(); setSuccessIdx(0); setTimeout(() => setPhase('success'), 700); }
+      if (np === beat.steps.length) { playSfx('correct'); recordSolved(); onCorrect(); setSuccessIdx(0); setTimeout(() => setPhase('success'), 700); }
     } else {
+      playSfx('wrong'); recordError();
       setShake(chip.idx);
       setTimeout(() => { setShake(null); setPhase('wrong'); }, 480);
     }
@@ -545,11 +604,11 @@ function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
             border: i < progress ? '2px solid #d6ffe0' : '2px solid #2a5a32',
             boxShadow: i < progress ? '0 0 16px rgba(0,255,110,0.8)' : 'none',
             transition: 'all .3s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-          }}>{i < progress ? '🪷' : '·'}</div>
+          }}>{i < progress ? <PixelIcon kind="lily" size={22} /> : '·'}</div>
         ))}
       </div>
-      <div className="panel-pixel" style={{ background: 'rgba(8,24,12,0.94)', padding: '12px 14px', maxWidth: 560, margin: '0 auto' }}>
-        <p className="font-pixel" style={{ color: '#88ff66', fontSize: 9, marginBottom: 12, textAlign: 'center', lineHeight: 1.5 }}>{beat.instruction}</p>
+      <div style={{ ...WOOD_PANEL, padding: '12px 14px', maxWidth: 560, margin: '0 auto' }}>
+        <p className="font-pixel" style={{ color: '#e8c088', fontSize: 9, marginBottom: 12, textAlign: 'center', lineHeight: 1.5 }}>{beat.instruction}</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
           {shuffled.map(chip => {
             const placed = chip.idx < progress;
@@ -691,11 +750,13 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
     return (
       <div style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 120 }}>
         {/* a última semente, flutuando */}
-        <div style={{ position: 'absolute', top: '26%', left: '50%', transform: 'translateX(-50%)', fontSize: 46, filter: 'drop-shadow(0 0 18px rgba(255,230,150,0.9))', animation: 'hint-bob 2.4s ease-in-out infinite' }}>🌰</div>
+        <div style={{ position: 'absolute', top: '26%', left: '50%', transform: 'translateX(-50%)', filter: 'drop-shadow(0 0 18px rgba(255,230,150,0.9))', animation: 'hint-bob 2.4s ease-in-out infinite' }}>
+          <PixelIcon kind="seed" size={52} />
+        </div>
         <p className="font-vt" style={{ color: '#fff', fontSize: 25, textAlign: 'center', textShadow: '0 2px 12px #000', marginBottom: 26, padding: '0 26px', lineHeight: 1.3 }}>{beat.prompt}</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 340, padding: '0 24px' }}>
           {beat.options.map(opt => (
-            <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); audioCtx(); setChosen(opt); setEndIdx(0); setStage(0); setStarted(false); setBloom(false); setPhase(opt.tone === 'luz' ? 'planting' : 'ending'); if (opt.tone === 'sombra') playTone(110, 0.8, 'sawtooth', 0.1); }}
+            <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); audioCtx(); recordEnding(opt.tone); setChosen(opt); setEndIdx(0); setStage(0); setStarted(false); setBloom(false); setPhase(opt.tone === 'luz' ? 'planting' : 'ending'); if (opt.tone === 'sombra') playTone(110, 0.8, 'sawtooth', 0.1); }}
               className="font-pixel"
               style={{
                 fontSize: 12, padding: '17px 12px',  cursor: 'pointer', lineHeight: 1.4,
@@ -704,7 +765,9 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
                 border: opt.tone === 'luz' ? '3px solid #d6ffe0' : '3px solid #6a4a5a',
                 boxShadow: opt.tone === 'luz' ? '0 0 22px rgba(0,255,100,0.5)' : '0 4px 0 #1a0e14',
                 touchAction: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               } as CSSProperties}>
+              <PixelIcon kind={opt.tone === 'luz' ? 'sprout' : 'wilt'} size={20} />
               {opt.label}
             </button>
           ))}
@@ -769,13 +832,40 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
 }
 
 // ─────────────────────────────────────────────────────────
-// Partículas atmosféricas das cenas finais
+// Partículas atmosféricas por cena
+//  • pantano/final: motes flutuantes (esporos/pólen dourado)
+//  • folhas: folhas pixel caindo devagar (florestas)
 // ─────────────────────────────────────────────────────────
-function SceneParticles({ kind }: { kind: 'pantano' | 'final' }) {
+const LEAF_COLORS = ['#4fae35', '#6fd04a', '#8fbc3a', '#c4a03a', '#3a8a4a'];
+
+function SceneParticles({ kind }: { kind: 'pantano' | 'final' | 'folhas' }) {
+  const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
+
+  if (kind === 'folhas') {
+    return (
+      <div style={{ position: 'absolute', inset: 0, zIndex: 6, pointerEvents: 'none', overflow: 'hidden' }}>
+        {Array.from({ length: 9 }, (_, i) => {
+          const size = 3 + Math.round(s(i * 3) * 3);          // 3–6 px, quadrado (pixel)
+          const dur = 9 + s(i * 11) * 8;                      // 9–17s de queda
+          return (
+            <div key={i} style={{
+              position: 'absolute',
+              left: `${s(i * 7) * 100}%`, top: 0,
+              width: size, height: size,
+              background: LEAF_COLORS[i % LEAF_COLORS.length],
+              animation: `leaf-fall ${dur}s linear ${-s(i * 17) * dur}s infinite`,
+              ['--lx' as string]: `${(s(i * 13) > 0.5 ? 1 : -1) * (30 + s(i * 19) * 90)}px`,
+              ['--lr' as string]: `${180 + Math.round(s(i * 23) * 400)}deg`,
+            } as CSSProperties} />
+          );
+        })}
+      </div>
+    );
+  }
+
   const cfg = kind === 'pantano'
     ? { count: 11, grad: 'radial-gradient(circle,#d4ffb0,#7ac850)', glow: 'rgba(150,255,120,0.6)' }
     : { count: 22, grad: 'radial-gradient(circle,#fff6d0,#ffcf57)', glow: 'rgba(255,200,80,0.7)' };
-  const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 6, pointerEvents: 'none', overflow: 'hidden' }}>
       {kind === 'pantano' && (
@@ -1147,18 +1237,23 @@ function LoreBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'lore' }>; onSo
         cursor: 'pointer', touchAction: 'none',
       }}
     >
-      <img
-        src={beat.img}
-        alt=""
-        style={{
-          maxWidth: '92%', maxHeight: '60%',
-          imageRendering: 'pixelated',
-          opacity: vis && !out ? 1 : 0,
-          transition: 'opacity 0.45s',
-          filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.95))',
-          display: 'block',
-        }}
-      />
+      <div style={{
+        maxWidth: '92%', overflow: 'hidden',
+        opacity: vis && !out ? 1 : 0,
+        transition: 'opacity 0.45s',
+        filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.95))',
+      }}>
+        <img
+          src={beat.img}
+          alt=""
+          style={{
+            maxWidth: '100%', maxHeight: '60vh',
+            imageRendering: 'pixelated',
+            display: 'block',
+            animation: 'lore-kenburns 14s ease-out forwards',
+          }}
+        />
+      </div>
       {beat.caption && (
         <div
           className="font-pixel"
@@ -1381,6 +1476,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
           setLog('A Consciência Verde te reconheceu!');
           playChord([523.25, 659.25, 783.99, 1046.5], 2.5, 0.1);
           playSfx('victory');
+          recordSolved();
           onCorrect();
           setTimeout(() => setPhase('victory'), 1800);
           return;
@@ -1416,6 +1512,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
       }, 4400);
     } else {
       // Errou: inimigo ataca direto
+      recordError();
       const raging = enemyRage;
       const dmg = WRONG_HIT + (raging ? 2 : 0);
       setEnemyAction('attack');
@@ -2747,7 +2844,7 @@ function TerrainEditorPanel({ worldX, zones, onAdd, onRemove }: {
 // ─────────────────────────────────────────────────────────
 // Motor principal
 // ─────────────────────────────────────────────────────────
-export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: () => void; startBeat?: number; startBg?: SceneBg }) {
+export default function StoryGame({ onExit, onRestart, startBeat = 0, startBg }: { onExit: () => void; onRestart?: () => void; startBeat?: number; startBg?: SceneBg }) {
   const beats = ACT1.beats;
   const [beatIndex, setBeatIndex] = useState(startBeat);
   const [bg, setBg] = useState<SceneBg>(startBg ?? 'noite');
@@ -2825,6 +2922,15 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
 
   // pré-carrega os efeitos sonoros (só roda uma vez)
   useEffect(() => { preloadSfx(); }, []);
+
+  // checkpoint automático: salva o início do ato atual (último beat 'scene'
+  // alcançado). "CONTINUAR" na tela inicial retoma desse ponto.
+  useEffect(() => {
+    if (beatIndex >= beats.length) { clearSave(); return; }  // jornada completa
+    let cp = 0;
+    for (let i = 0; i <= beatIndex; i++) if (beats[i].t === 'scene') cp = i;
+    if (cp > 0) saveCheckpoint(cp);
+  }, [beatIndex, beats]);
 
   // animação da pedra: tremor → descida → desaparecimento
   const triggerBoulder = useCallback(() => {
@@ -3027,6 +3133,12 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
       })}
       <ParallaxWorld bg={bg} worldX={worldX} gateOpen={gateOpen} gateFrame={gateFrame} landmarkAnchor={landmarkAnchor} nearby={nearby} boulderState={boulderState} landmarkKind={landmarkKind} appleTreeAnchor={appleTreeAnchor} trunkAnchor={trunkAnchor} conscienciaAnchor={conscienciaAnchor} computerOn={landmarkKind === 'computer' && beat?.t !== 'walk'} logsVisible={logsVisible} conscienciaDefeated={conscienciaDefeated} />
 
+      {/* partículas ambientais por cena: folhas nas florestas, esporos no
+          pântano, pólen dourado no final */}
+      {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3') && <SceneParticles kind="folhas" />}
+      {bg === 'pantano' && <SceneParticles kind="pantano" />}
+      {bg === 'final' && <SceneParticles kind="final" />}
+
       {(bg === 'floresta' || bg === 'clareira' || bg === 'ato3' || bg === 'estufa' || bg === 'pantano' || bg === 'corredor' || bg === 'final') && !finished && (
         wakeUpFrame !== null
           ? <WakeUpHero frame={wakeUpFrame} />
@@ -3196,9 +3308,7 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         }} />
       )}
 
-      {sceneFade && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 58, background: sceneFadeColor, pointerEvents: 'none', animation: 'scene-transition 1.2s ease-in-out forwards' }} />
-      )}
+      {sceneFade && <PixelTransition color={sceneFadeColor} />}
 
       {fade && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fade-hold 1.7s ease-in-out' }}>
@@ -3206,19 +3316,152 @@ export default function StoryGame({ onExit, startBeat = 0, startBg }: { onExit: 
         </div>
       )}
 
-      {/* fim do trecho */}
-      {finished && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(4,12,6,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
-          <p className="font-pixel" style={{ color: '#88ff66', fontSize: 14 }}>FIM DO TRECHO</p>
-          <p className="font-vt" style={{ color: '#cfe8c0', fontSize: 20, textAlign: 'center', maxWidth: 320 }}>
-            A jornada continua nos próximos atos do jardim.
-          </p>
-          <button onClick={onExit} className="btn-game font-pixel"
-            style={{ fontSize: 10, padding: '14px 22px' }}>
-            ← VOLTAR
+      {/* tela de resultados — fim da jornada */}
+      {finished && <ResultsScreen onExit={onExit} onRestart={onRestart} />}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Tela de resultados — fim da jornada
+// Medalha (pelos erros), estatísticas e o final escolhido.
+// ─────────────────────────────────────────────────────────
+const MEDAL_CFG = {
+  ouro:   { title: 'MESTRE DO JARDIM',      ribbon: '#2f9410', metal: '#ffd54a', shine: '#fff0a0', dark: '#b8901a' },
+  prata:  { title: 'GUARDIÃO DA FLORESTA',  ribbon: '#2f6b34', metal: '#cfd8e0', shine: '#f0f6fa', dark: '#8a98a4' },
+  bronze: { title: 'EXPLORADOR BOTÂNICO',   ribbon: '#4a3a20', metal: '#cd8a4a', shine: '#eab080', dark: '#8a5a2a' },
+} as const;
+
+function MedalIcon({ medal, size = 84 }: { medal: keyof typeof MEDAL_CFG; size?: number }) {
+  const c = MEDAL_CFG[medal];
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" shapeRendering="crispEdges">
+      {/* fitas */}
+      <rect x="8" y="1" width="3" height="8" fill={c.ribbon} />
+      <rect x="13" y="1" width="3" height="8" fill={c.ribbon} />
+      <rect x="9" y="1" width="1" height="8" fill="#eaffe0" opacity="0.35" />
+      <rect x="14" y="1" width="1" height="8" fill="#eaffe0" opacity="0.35" />
+      {/* medalha */}
+      <rect x="8" y="8" width="8" height="2" fill={c.dark} />
+      <rect x="6" y="10" width="12" height="8" fill={c.dark} />
+      <rect x="7" y="9" width="10" height="9" fill={c.metal} />
+      <rect x="8" y="10" width="3" height="3" fill={c.shine} />
+      {/* estrela central */}
+      <rect x="11" y="11" width="2" height="6" fill={c.dark} />
+      <rect x="9" y="13" width="6" height="2" fill={c.dark} />
+    </svg>
+  );
+}
+
+function ResultsScreen({ onExit, onRestart }: { onExit: () => void; onRestart?: () => void }) {
+  const stats = useMemo(() => getStats(), []);
+  const medal = medalFor(stats);
+  const cfg = MEDAL_CFG[medal];
+  const [step, setStep] = useState(0);   // revela os elementos em sequência
+
+  useEffect(() => {
+    const times = [300, 900, 1500, 2100];
+    const ids = times.map((t, i) => setTimeout(() => {
+      setStep(i + 1);
+      if (i === 1) playChord([PENTA[0], PENTA[2], PENTA[4]], 1.8, 0.09);
+      else playTone(PENTA[i % PENTA.length], 0.4, 'triangle', 0.1);
+    }, t));
+    return () => ids.forEach(clearTimeout);
+  }, []);
+
+  const reveal = (n: number): CSSProperties => ({
+    opacity: step >= n ? 1 : 0,
+    transform: step >= n ? 'translateY(0)' : 'translateY(10px)',
+    transition: 'opacity .5s, transform .5s',
+  });
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(3,10,5,0.94)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ ...WOOD_PANEL, padding: '26px 26px 22px', maxWidth: 360, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+        <p className="font-pixel" style={{ color: '#e8c088', fontSize: 12, letterSpacing: 2, ...reveal(1) }}>
+          FIM DA JORNADA
+        </p>
+
+        {/* medalha + título */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, ...reveal(2) }}>
+          <div style={{ filter: `drop-shadow(0 0 18px ${cfg.metal}88)`, animation: 'hint-bob 2.6s ease-in-out infinite' }}>
+            <MedalIcon medal={medal} />
+          </div>
+          <p className="font-pixel" style={{ color: cfg.metal, fontSize: 10, textAlign: 'center' }}>{cfg.title}</p>
+        </div>
+
+        {/* estatísticas */}
+        <div className="font-vt" style={{ width: '100%', color: '#eaf6e0', fontSize: 19, lineHeight: 1.7, borderTop: '2px solid #7a4f22', borderBottom: '2px solid #7a4f22', padding: '10px 4px', ...reveal(3) }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Desafios superados</span><span style={{ color: '#88ff66' }}>{stats.solved}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Erros no caminho</span><span style={{ color: stats.errors === 0 ? '#88ff66' : '#ffb060' }}>{stats.errors}</span>
+          </div>
+          {stats.ending && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Sua escolha</span>
+              <span style={{ color: stats.ending === 'luz' ? '#9dffb0' : '#d0a8c0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <PixelIcon kind={stats.ending === 'luz' ? 'sprout' : 'wilt'} size={16} />
+                {stats.ending === 'luz' ? 'O Recomeço' : 'O Silêncio'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <p className="font-vt" style={{ color: '#cfe8c0', fontSize: 17, textAlign: 'center', fontStyle: 'italic', lineHeight: 1.4, ...reveal(3) }}>
+          {stats.ending === 'sombra'
+            ? 'Talvez algum dia, alguém escolha diferente...'
+            : 'Toda escolha sobre a natureza é uma escolha sobre o nosso futuro.'}
+        </p>
+
+        {/* ações */}
+        <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 4, ...reveal(4) }}>
+          {onRestart && (
+            <button onClick={onRestart} className="btn-game font-pixel"
+              style={{ flex: 1, fontSize: 9, padding: '14px 8px' }}>
+              JOGAR DE NOVO
+            </button>
+          )}
+          <button onClick={onExit} className="font-pixel"
+            style={{
+              flex: 1, fontSize: 9, padding: '14px 8px', cursor: 'pointer',
+              color: '#eaf6e0', background: 'rgba(30,70,38,0.9)', border: '2px solid #2f6b34',
+            }}>
+            MENU
           </button>
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Transição de cena em blocos pixel (estilo GBA)
+// Grade 12×8; cada bloco cresce com um pequeno atraso em padrão
+// diagonal, cobre a tela durante a troca do cenário (~550ms) e encolhe.
+// Duração total = 1.2s, igual ao antigo fade (os timeouts do beat 'scene'
+// continuam válidos).
+// ─────────────────────────────────────────────────────────
+function PixelTransition({ color }: { color: string }) {
+  const COLS = 12, ROWS = 8;
+  const cells = useMemo(() => Array.from({ length: COLS * ROWS }, (_, i) => {
+    const col = i % COLS, row = Math.floor(i / COLS);
+    return ((col + row) % 5) * 0.045 + ((col * 7 + row * 3) % 3) * 0.02;
+  }), []);
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, zIndex: 58, pointerEvents: 'none',
+      display: 'grid',
+      gridTemplateColumns: `repeat(${COLS}, 1fr)`,
+      gridTemplateRows: `repeat(${ROWS}, 1fr)`,
+    }}>
+      {cells.map((delay, i) => (
+        <div key={i} style={{
+          background: color,
+          animation: `block-in-out 0.95s steps(5) ${delay}s both`,
+        }} />
+      ))}
     </div>
   );
 }

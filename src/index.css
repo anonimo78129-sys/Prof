@@ -150,6 +150,26 @@
     70%  { opacity: 1; }
     100% { opacity: 0; }
   }
+  /* Transição de cena em blocos pixel (estilo GBA): cada bloco cresce,
+     segura cobrindo a tela durante a troca de cenário, e encolhe. */
+  @keyframes block-in-out {
+    0%   { transform: scale(0); }
+    28%  { transform: scale(1.04); }
+    68%  { transform: scale(1.04); }
+    100% { transform: scale(0); }
+  }
+  /* Folhas caindo — atravessam a tela derivando em X e girando */
+  @keyframes leaf-fall {
+    0%   { transform: translate(0, -6vh) rotate(0deg); opacity: 0; }
+    8%   { opacity: 0.9; }
+    88%  { opacity: 0.9; }
+    100% { transform: translate(var(--lx, 40px), 104vh) rotate(var(--lr, 300deg)); opacity: 0; }
+  }
+  /* Ken Burns sutil nas ilustrações de lore (zoom lento) */
+  @keyframes lore-kenburns {
+    0%   { transform: scale(1); }
+    100% { transform: scale(1.07) translateY(-1.2%); }
+  }
   @keyframes battle-shake {
     0%, 100% { transform: translateX(0); }
     20%       { transform: translateX(-3px); }

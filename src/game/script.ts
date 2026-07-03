@@ -249,7 +249,7 @@ const beats: Beat[] = [
     prompt: 'O que você faz com a última semente da Terra?',
     options: [
       {
-        label: '🌱 Plantar o recomeço',
+        label: 'Plantar o recomeço',
         tone: 'luz',
         img: '/assets/lore/ending-light.svg',
         ending: [
@@ -260,7 +260,7 @@ const beats: Beat[] = [
         ],
       },
       {
-        label: '🥀 Deixar tudo terminar',
+        label: 'Deixar tudo terminar',
         tone: 'sombra',
         img: '/assets/lore/ending-dark.svg',
         ending: [
