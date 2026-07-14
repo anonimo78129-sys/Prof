@@ -28,11 +28,7 @@ export const CRITICAL_IMAGES: string[] = [
   'portraits/owl.png', 'portraits/hero.png', 'portraits/consciencia.png',
 
   // ── sequência de introdução ──
-  'intro/01-ponto-onibus.png', 'intro/02-onibus-chegando.png',
-  'intro/03-janela-f1.png', 'intro/03-janela-f2.png', 'intro/03-janela-f3.png',
-  'intro/04-dormindo-f1.png', 'intro/04-neblina.png',
-  'intro/05-grama-f1.png', 'intro/05-grama-f2.png',
-  'intro/06-confuso.png', 'intro/06b-visao-geral.png', 'intro/07-explorando.png',
+  // (imagens da intro removidas — serão adicionadas novas)
 
   // ── floresta / clareira ──
   ...FOREST, ...FLORA,
