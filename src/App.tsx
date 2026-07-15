@@ -7,17 +7,18 @@ import IntroSequence from './components/Game/IntroSequence';
 import LoadingScreen from './components/Game/LoadingScreen';
 import ScenePreview from './components/ScenePreview';
 import { getSave, clearSave, resetStats } from './game/progress';
+import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 
 // Índices sincronizados com src/game/script.ts (incluem os beats de lore)
 const DEV_ACTS = [
   { label: 'Ato 1 — Floresta (portão)',       beat: 0,  bg: undefined            },
   { label: 'Ato 2 — Clareira (pedra)',         beat: 8,  bg: undefined            },
   { label: 'Ato 3 — Macieira (scene)',         beat: 17, bg: undefined            },
-  { label: 'Ato 3 — Coleta de maçãs',         beat: 23, bg: 'ato3' as SceneBg   },
+  { label: 'Ato 3 — Coleta de maçãs',         beat: 22, bg: 'ato3' as SceneBg   },
   { label: 'Ato 4 — Estufa (avistando)',       beat: 25, bg: 'ato3' as SceneBg   },
-  { label: 'Ato 4 — Estufa (dentro)',          beat: 27, bg: undefined           },
-  { label: 'Ato 4 — Computador',               beat: 30, bg: 'estufa' as SceneBg },
-  { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 32, bg: 'estufa' as SceneBg },
+  { label: 'Ato 4 — Estufa (dentro)',          beat: 28, bg: undefined           },
+  { label: 'Ato 4 — Computador',               beat: 31, bg: 'estufa' as SceneBg },
+  { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 33, bg: 'estufa' as SceneBg },
   { label: 'Ato 5 — Pântano (sequência)',      beat: 40, bg: 'pantano' as SceneBg },
   { label: 'Ato 6 — Corredor (luz)',           beat: 50, bg: 'corredor' as SceneBg },
   { label: 'Ato 7 — Final (a escolha)',        beat: 64, bg: 'final' as SceneBg },
@@ -97,7 +98,18 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
-  const goHome = () => { window.location.hash = ''; setView('home'); };
+  // Tema da tela inicial: toca em loop enquanto view === 'home'.
+  // Autoplay puro costuma ser bloqueado, então tentamos direto e também
+  // reforçamos no primeiro toque/clique na tela (gesto do usuário).
+  useEffect(() => {
+    if (view !== 'home') { stopHomeTheme(); return; }
+    startHomeTheme();
+    const onFirstGesture = () => startHomeTheme();
+    window.addEventListener('pointerdown', onFirstGesture, { once: true });
+    return () => window.removeEventListener('pointerdown', onFirstGesture);
+  }, [view]);
+
+  const goHome = () => { stopMusic(); window.location.hash = ''; setView('home'); };
 
   // ── TELA DO PROFESSOR (criador de perguntas/jornada) ──
   if (view === 'setup') {
@@ -183,7 +195,7 @@ export default function App() {
       }}>
         {save && (
           <button
-            onClick={() => { setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
+            onClick={() => { startMusic(); setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
             className="btn-game font-pixel w-full"
             style={{ fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
           >
@@ -191,7 +203,7 @@ export default function App() {
           </button>
         )}
         <button
-          onClick={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
+          onClick={() => { startMusic(); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
           className="btn-game font-pixel w-full"
           style={save ? {
             fontSize: 13, padding: '17px 8px', maxWidth: 320,
@@ -247,7 +259,7 @@ export default function App() {
               </button>
               {DEV_ACTS.map(act => (
                 <button key={act.beat}
-                  onClick={() => { setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
+                  onClick={() => { startMusic(); setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
                   style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#cfe8c8', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
                   {act.label}
                 </button>

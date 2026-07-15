@@ -2,87 +2,106 @@
 
 ## Resumo da Narrativa
 
-O protagonista é um estudante exausto, prestes a realizar uma prova importante.
-Após dias sem dormir direito, ele decide tirar um cochilo rápido. Quando acorda,
-encontra-se sozinho em um gigantesco jardim botânico misterioso. Não há pessoas,
-não há saída e um enorme portão bloqueia seu caminho. Logo percebe que aquele lugar
-funciona como um teste baseado no conhecimento sobre plantas.
+O protagonista é um estudante exausto, a **3 dias da prova final**. No fim de um
+dia longo, ele embarca no ônibus para casa e, vencido pelo cansaço, adormece no
+banco — *"só um cochilo rápido..."*. O mundo se dissolve: ele **cai por um céu
+sem fim** enquanto uma voz misteriosa sussurra: **"Acorde, jovem. Plante o seu
+amanhã..."**
 
-Durante sua jornada, o personagem atravessa diversos ambientes naturais, cada um
-apresentando um desafio relacionado à botânica. A cada resposta correta, o próprio
-jardim reage, abrindo caminhos e revelando novos segredos.
+Ele desperta num **imenso jardim selvagem** — uma floresta encantada, viva e
+brilhante. Não há pessoas nem saída, e um portão antigo coberto de cipós bloqueia
+o caminho. Logo percebe que o lugar funciona como um teste: **o jardim reage ao
+seu conhecimento sobre plantas**, abrindo passagens a cada acerto.
 
-Após passar pela clareira e pela macieira gigante, ele encontra uma antiga
-estufa-laboratório abandonada. Lá descobre registros do misterioso **Projeto Amazônia II**,
-um experimento científico criado para reproduzir uma floresta amazônica autossustentável
-dentro de domos biotecnológicos.
+Na antiga **estufa-laboratório**, ele descobre os registros do **Projeto
+Amazônia II**: cientistas criaram uma floresta amazônica autossustentável, na
+qual as plantas se comunicam por redes subterrâneas de fungos e sinais
+elétricos — uma inteligência coletiva vegetal capaz de se autorregular.
 
-Os documentos revelam que as plantas eram capazes de se comunicar por redes subterrâneas
-de fungos e sinais elétricos, formando uma espécie de inteligência coletiva vegetal.
-Os cientistas utilizaram essa capacidade para criar uma floresta capaz de se autorregular.
+No **Corredor de Luz**, essa inteligência ganha rosto: a **Consciência Verde**,
+a mente da floresta, que o desafia em combate para provar que ele entende a
+vida. Vencido o teste, ela abre caminho para o **coração do Domo-Mãe**.
 
-Enquanto isso, o mundo exterior sofreu um colapso climático causado por ações humanas:
-desmatamento, poluição e agravamento do efeito estufa. Para preservar a vida, os
-cientistas selaram o chamado **Domo-Mãe**, transformando-o numa espécie de arca ecológica.
-O jardim onde o protagonista está é justamente um desses últimos refúgios da Terra.
-
-Ao chegar ao laboratório final, o protagonista descobre que a própria estrutura vegetal
-evoluiu além do esperado. A estufa tornou-se o coração do sistema e o laboratório seu
-cérebro. A floresta passou a processar informações e responder aos estímulos humanos
-através de um mecanismo de perguntas e respostas, fortalecendo sua chamada
-**Consciência Verde**.
-
-No final, o personagem compreende seu papel naquele mundo. O destino do último
-fragmento de vida da Terra está em suas mãos. O jardim lhe oferece uma escolha
-simbólica: **plantar o recomeço** ou **permitir que tudo termine**. A mensagem final
-reforça a responsabilidade humana com a natureza e com o futuro do planeta.
+Lá, o Prof. Corujão revela a verdade: o mundo exterior entrou em **colapso
+climático** (desmatamento, poluição, calor), e os cientistas selaram o domo
+como uma **arca ecológica** — o jardim inteiro que ele atravessou é o último
+refúgio de vida da Terra. Diante da **Árvore Ancestral**, guardiã da última
+semente, o jogo entrega a decisão ao jogador: **plantar o recomeço** ou
+**deixar tudo terminar**. A mensagem final reforça a responsabilidade humana
+com a natureza e com o futuro do planeta.
 
 ---
 
 ## A Jornada em Atos
 
-| Ato | Cenário              | O que avança na história                                    |
-|-----|----------------------|-------------------------------------------------------------|
-| 0   | Quarto → escuro      | "Só um cochilo..." → acorda sozinho, sem saída              |
-| 1   | Portão de cipós      | Percebe que o lugar testa seu conhecimento                  |
-| 2   | Clareira sem saída   | O jardim reage ao acerto; Prof. Corujão aparece             |
-| 3   | Macieira colossal    | Primeiras pistas de que as plantas se comunicam             |
-| 4   | Estufa-laboratório   | Descobre o Projeto Amazônia II e a rede de fungos           |
-| 5   | Pântano encantado    | O colapso climático; o Domo-Mãe como arca                   |
-| 6   | Corredor de Luz      | A Consciência Verde desperta e fala com ele                 |
-| 7   | Laboratório Final    | A escolha: plantar o recomeço ou deixar terminar            |
+| Ato | Cenário                    | O que avança na história                                          |
+|-----|----------------------------|-------------------------------------------------------------------|
+| 0   | Parada → ônibus (intro)    | Cochilo no ônibus; queda no sonho; a voz: "Plante o seu amanhã"  |
+| 1   | Floresta — Portão          | Percebe que o lugar testa seu conhecimento (raiz)                 |
+| 2   | Clareira Viva              | O jardim reage aos acertos; pedra antiga (partes e funções)       |
+| 3   | Macieira Anciã             | Dispersão de sementes; a árvore abre caminho                      |
+| 4   | Estufa-laboratório         | Projeto Amazônia II; rede de fungos; senha (transpiração)         |
+| 5   | Pântano Encantado          | O ciclo de vida da planta forma a ponte                           |
+| 6   | Corredor de Luz            | A Consciência Verde desperta — e o testa em **combate**           |
+| 7   | Coração do Domo-Mãe        | O colapso lá fora é revelado; a escolha da última semente         |
+
+**Dois finais:** plantar a semente (a vida transborda do domo para o mundo) ou
+recusá-la (as luzes do domo se apagam, uma a uma).
 
 ---
 
-## Falas Principais do Protagonista
+## Ilustrações de lore (cartões cinemáticos)
 
-**Ao acordar:**
-- "Faltam 3 dias para a prova final... e eu mal dormi essa semana."
+Cada marco tem uma ilustração que aparece **na chegada** ao local
+(`fx` = animação ambiental sobreposta):
+
+1. `gate.png` — diante do portão coberto de cipós
+2. `clareira.png` — no centro da Clareira Viva
+3. `apple-tree.png` — ao pé da Macieira Anciã
+4. `estufa.png` — na entrada da estufa-laboratório
+5. `swamp.png` — à beira do Pântano Encantado
+6. `corredor.png` — caminhando rumo à luz
+7. `consciencia.png` — frente a frente com a Consciência Verde
+8. `dome.jpg` — chegando ao coração do Domo-Mãe
+9. `arvore-semente.jpg` — fundo da própria pergunta final (ajoelhado diante da Árvore Ancestral)
+10. `ending-light.jpg` / `ending-dark.jpg` — ao escolher, crossfade suave da #9 para o desfecho (mesmo enquadramento: árvore florida ou seca)
+
+---
+
+## Falas-chave
+
+**Intro (ônibus):**
+- "Faltam só 3 dias para a prova final... e eu mal dormi essa semana."
 - "Só um cochilo rápido..."
+- *Voz misteriosa:* "Acorde, jovem." / "Plante o seu amanhã..."
+- "Eu estava no ônibus... Como vim parar aqui?" / "Estou sonhando?"
 
-**No jardim:**
-- "O que é este lugar...?"
-- "Não lembro de como cheguei aqui."
-- "O que é aquilo?"
-- "Ué, um portão??"
+**Ato 1:**
+- "Sonho ou não... preciso descobrir onde estou."
+- "O que é aquilo?" / "Ué, um portão??"
 
-**Após abrir o primeiro portão:**
-- "O portão se abriu."
-- "Que estranho..."
-- "Não vejo ninguém aqui."
-- "Uma clareira sem saída!?"
+**Ato 2:**
+- "Espera... o jardim mudou quando eu acertei." / "As plantas... elas reagiram."
 
-**Na macieira:**
-- "Caramba, que alto..."
+**Ato 3:**
+- "Caramba, que alto..." / "Essa macieira está bloqueando tudo!"
 
-**Ao observar a estufa:**
-- "Parece ser uma estufa."
-- "O que é aquilo?"
+**Ato 4:**
 - "Esse tronco... está vivo, como um coração pulsante!"
-- "Esse lugar parece ter vida própria!"
+- "A estufa e a floresta se tornaram uma só coisa."
 
-**Ao descobrir a passagem:**
-- "Onde será que essa passagem leva?"
+**Ato 6:**
+- *Consciência Verde:* "A floresta não abre passagem para quem não a entende."
 
-**No pântano:**
-- "Esses galhos são fortes... mas não posso vacilar."
+**Ato 7:**
+- *Prof. Corujão:* "Selamos este domo como uma arca, esperando alguém que entendesse."
+- *Narrador:* "E você... o que faria, com a última semente nas mãos?"
+
+---
+
+## Pendências conhecidas
+
+- O Prof. Corujão dá dicas desde o Ato 1, mas só é apresentado no Ato 6
+  (apresentação formal ainda não escrita — decisão em aberto).
+- Epílogo do despertar no ônibus (fechando a moldura do sonho): planejado,
+  ainda não implementado.

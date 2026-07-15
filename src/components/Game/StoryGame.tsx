@@ -635,79 +635,6 @@ function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// ATO 7 — Árvore da Vida: SVG que cresce por estágios (0 semente → 4 florida)
-// ─────────────────────────────────────────────────────────
-function GrowingTree({ stage }: { stage: number }) {
-  const show = (s: number) => stage >= s;
-  return (
-    <svg viewBox="0 0 200 240" width="270" height="324" style={{ overflow: 'visible', filter: show(3) ? 'drop-shadow(0 0 26px rgba(60,255,150,0.55))' : 'none', transition: 'filter .8s' }}>
-      <defs>
-        <radialGradient id="tl-leaf" cx="50%" cy="38%" r="65%">
-          <stop offset="0%" stopColor="#c8ffb6" /><stop offset="55%" stopColor="#42d156" /><stop offset="100%" stopColor="#1d8a34" />
-        </radialGradient>
-        <linearGradient id="tl-bark" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#5a3a1f" /><stop offset="50%" stopColor="#8a5a30" /><stop offset="100%" stopColor="#4f3219" />
-        </linearGradient>
-      </defs>
-      {/* solo */}
-      <ellipse cx="100" cy="228" rx="64" ry="12" fill="#241708" opacity="0.85" />
-      {/* semente */}
-      <ellipse cx="100" cy="214" rx="9" ry="12" fill="#d2a85e"
-        style={{ opacity: stage === 0 ? 1 : 0, transition: 'opacity .4s' }} />
-      {/* tronco — cresce em altura */}
-      <g style={{ transform: `scaleY(${show(1) ? 1 : 0})`, transformOrigin: '100px 226px', transition: 'transform .8s cubic-bezier(.2,.8,.3,1)' }}>
-        <path d="M93,226 Q96,150 100,118 Q104,150 107,226 Z" fill="url(#tl-bark)" />
-        {/* galhos */}
-        <g style={{ opacity: show(2) ? 1 : 0, transition: 'opacity .6s .25s' }}>
-          <path d="M100,152 Q80,136 64,120" stroke="url(#tl-bark)" strokeWidth="6" fill="none" strokeLinecap="round" />
-          <path d="M100,142 Q120,128 138,114" stroke="url(#tl-bark)" strokeWidth="6" fill="none" strokeLinecap="round" />
-          <path d="M100,126 Q93,108 93,92" stroke="url(#tl-bark)" strokeWidth="5" fill="none" strokeLinecap="round" />
-        </g>
-      </g>
-      {/* copa */}
-      <g style={{ opacity: show(3) ? 1 : 0, transform: show(3) ? 'scale(1)' : 'scale(0.15)', transformOrigin: '100px 96px', transition: 'all .7s cubic-bezier(.2,.9,.3,1.2)' }}>
-        <circle cx="100" cy="86" r="36" fill="url(#tl-leaf)" />
-        <circle cx="66" cy="108" r="25" fill="url(#tl-leaf)" />
-        <circle cx="136" cy="106" r="25" fill="url(#tl-leaf)" />
-        <circle cx="82" cy="72" r="21" fill="url(#tl-leaf)" />
-        <circle cx="120" cy="74" r="21" fill="url(#tl-leaf)" />
-      </g>
-      {/* flores / frutos brilhantes */}
-      <g style={{ opacity: show(4) ? 1 : 0, transition: 'opacity .6s' }}>
-        {[[100, 74], [76, 96], [126, 94], [90, 62], [118, 64], [58, 106], [142, 104], [100, 100]].map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="4.2" fill={i % 2 ? '#ffd9ec' : '#fff39a'} style={{ filter: 'drop-shadow(0 0 4px #fff)' }} />
-        ))}
-      </g>
-    </svg>
-  );
-}
-
-// explosão de pétalas/luz quando a árvore floresce
-function BloomBurst() {
-  const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
-  const cols = ['#fff39a', '#ffd9ec', '#c8ffb6', '#bff0ff', '#fff'];
-  return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 44, pointerEvents: 'none', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 52%, rgba(255,247,200,0.85), transparent 60%)', animation: 'flash-bloom 1.4s ease-out forwards' }} />
-      {Array.from({ length: 34 }, (_, i) => {
-        const ang = (i / 34) * Math.PI * 2 + s(i) * 0.6;
-        const dist = 120 + s(i * 3) * 260;
-        const size = 4 + s(i * 5) * 7;
-        return (
-          <div key={i} style={{
-            position: 'absolute', left: '50%', top: '52%', width: size, height: size, borderRadius: '50%',
-            background: cols[i % cols.length], boxShadow: `0 0 8px ${cols[i % cols.length]}`,
-            animation: `burst ${1.3 + s(i * 7) * 1.2}s ease-out ${s(i * 11) * 0.2}s forwards`,
-            ['--bx' as string]: `${Math.cos(ang) * dist}px`,
-            ['--by' as string]: `${Math.sin(ang) * dist}px`,
-          } as CSSProperties} />
-        );
-      })}
-    </div>
-  );
-}
-
 // fim sombrio: escurecimento + cinzas caindo + uma última brasa de esperança
 // dimStrength (0..1) atenua o escurecimento quando há uma ilustração por baixo
 function Withering({ showEmber, dimStrength = 1 }: { showEmber: boolean; dimStrength?: number }) {
@@ -739,114 +666,105 @@ function Withering({ showEmber, dimStrength = 1 }: { showEmber: boolean; dimStre
 // ATO 7 — A Escolha: decisão final com dois desfechos cinematográficos
 // ─────────────────────────────────────────────────────────
 function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; onSolved: () => void }) {
-  type Phase = 'intro' | 'deciding' | 'planting' | 'ending';
+  type Phase = 'intro' | 'deciding' | 'ending';
   const [phase, setPhase] = useState<Phase>(beat.intro ? 'intro' : 'deciding');
   const [chosen, setChosen] = useState<Extract<Beat, { t: 'choice' }>['options'][number] | null>(null);
   const [endIdx, setEndIdx] = useState(0);
-  const [stage, setStage] = useState(0);      // crescimento da árvore 0..4
-  const [started, setStarted] = useState(false);
-  const [bloom, setBloom] = useState(false);
 
-  if (phase === 'intro' && beat.intro)
-    return <DialogueBox who="narrador" text={beat.intro} onNext={() => { audioCtx(); setPhase('deciding'); }} />;
+  const sombra = chosen?.tone === 'sombra';
+
+  // Pilha de ilustrações no MESMO enquadramento (fullscreen cover):
+  // a base (ajoelhado diante da árvore) fica visível desde a pergunta;
+  // ao escolher, a arte do desfecho entra por cima com crossfade suave.
+  // As camadas dos desfechos já ficam montadas (opacity 0) para a
+  // transição não "piscar" carregando a imagem na hora.
+  const IMG_STYLE: CSSProperties = {
+    position: 'absolute', inset: 0,
+    backgroundSize: 'cover', backgroundPosition: 'center',
+    imageRendering: 'pixelated',
+  };
+  const artStack = (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 38, pointerEvents: 'none' }}>
+      {beat.img && <div style={{ ...IMG_STYLE, backgroundImage: `url('${beat.img}')` }} />}
+      {beat.options.map(opt => opt.img && (
+        <div key={opt.label} style={{
+          ...IMG_STYLE,
+          backgroundImage: `url('${opt.img}')`,
+          opacity: chosen === opt ? 1 : 0,
+          transition: 'opacity 2s ease',
+        }} />
+      ))}
+    </div>
+  );
+
+  if (phase === 'intro' && beat.intro) {
+    return (
+      <>
+        {artStack}
+        <DialogueBox who="narrador" text={beat.intro} onNext={() => { audioCtx(); setPhase('deciding'); }} />
+      </>
+    );
+  }
 
   if (phase === 'deciding') {
     return (
-      <div style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 120 }}>
-        {/* a última semente, flutuando */}
-        <div style={{ position: 'absolute', top: '26%', left: '50%', transform: 'translateX(-50%)', filter: 'drop-shadow(0 0 18px rgba(255,230,150,0.9))', animation: 'hint-bob 2.4s ease-in-out infinite' }}>
-          <PixelIcon kind="seed" size={52} />
+      <>
+        {artStack}
+        {/* gradiente inferior p/ legibilidade da pergunta e dos botões */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%', zIndex: 41,
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.8) 100%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 120 }}>
+          <p className="font-vt" style={{ color: '#fff', fontSize: 25, textAlign: 'center', textShadow: '0 2px 12px #000', marginBottom: 26, padding: '0 26px', lineHeight: 1.3 }}>{beat.prompt}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 340, padding: '0 24px' }}>
+            {beat.options.map(opt => (
+              <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); audioCtx(); recordEnding(opt.tone); setChosen(opt); setEndIdx(0); setPhase('ending'); if (opt.tone === 'sombra') playTone(110, 0.8, 'sawtooth', 0.1); else playChord([PENTA[0], PENTA[2], PENTA[4]], 2.0, 0.09); }}
+                className="font-pixel"
+                style={{
+                  fontSize: 12, padding: '17px 12px',  cursor: 'pointer', lineHeight: 1.4,
+                  color: opt.tone === 'luz' ? '#0a2010' : '#f0dee6',
+                  background: opt.tone === 'luz' ? 'linear-gradient(to bottom,#7be04a,#2f9410)' : 'linear-gradient(to bottom,#5a3a4a,#2a1820)',
+                  border: opt.tone === 'luz' ? '3px solid #d6ffe0' : '3px solid #6a4a5a',
+                  boxShadow: opt.tone === 'luz' ? '0 0 22px rgba(0,255,100,0.5)' : '0 4px 0 #1a0e14',
+                  touchAction: 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                } as CSSProperties}>
+                <PixelIcon kind={opt.tone === 'luz' ? 'sprout' : 'wilt'} size={20} />
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <p className="font-vt" style={{ color: '#fff', fontSize: 25, textAlign: 'center', textShadow: '0 2px 12px #000', marginBottom: 26, padding: '0 26px', lineHeight: 1.3 }}>{beat.prompt}</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 340, padding: '0 24px' }}>
-          {beat.options.map(opt => (
-            <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); audioCtx(); recordEnding(opt.tone); setChosen(opt); setEndIdx(0); setStage(0); setStarted(false); setBloom(false); setPhase(opt.tone === 'luz' ? 'planting' : 'ending'); if (opt.tone === 'sombra') playTone(110, 0.8, 'sawtooth', 0.1); }}
-              className="font-pixel"
-              style={{
-                fontSize: 12, padding: '17px 12px',  cursor: 'pointer', lineHeight: 1.4,
-                color: opt.tone === 'luz' ? '#0a2010' : '#f0dee6',
-                background: opt.tone === 'luz' ? 'linear-gradient(to bottom,#7be04a,#2f9410)' : 'linear-gradient(to bottom,#5a3a4a,#2a1820)',
-                border: opt.tone === 'luz' ? '3px solid #d6ffe0' : '3px solid #6a4a5a',
-                boxShadow: opt.tone === 'luz' ? '0 0 22px rgba(0,255,100,0.5)' : '0 4px 0 #1a0e14',
-                touchAction: 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              } as CSSProperties}>
-              <PixelIcon kind={opt.tone === 'luz' ? 'sprout' : 'wilt'} size={20} />
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      </>
     );
   }
 
-  if (phase === 'planting') {
-    const plant = () => {
-      if (started) return;
-      setStarted(true);
-      // crescimento cinemático com tons ascendentes
-      const stamps: Array<[number, number]> = [[1, 200], [2, 950], [3, 1750], [4, 2550]];
-      stamps.forEach(([st, ms]) => setTimeout(() => { setStage(st); playTone(PENTA[st - 1], 0.6, 'sine', 0.14); }, ms));
-      setTimeout(() => { setBloom(true); playChord([PENTA[0], PENTA[2], PENTA[4], PENTA[4] * 2], 2.2, 0.1); }, 2650);
-      setTimeout(() => { setEndIdx(0); setPhase('ending'); }, 5200);
-    };
-    return (
-      <div onPointerDown={(e) => { e.preventDefault(); plant(); }}
-        style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: started ? 'default' : 'pointer' }}>
-        {bloom && <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 50%, rgba(255,247,210,0.45), transparent 65%)', animation: 'sky-brighten 2.5s ease-out forwards', pointerEvents: 'none' }} />}
-        <GrowingTree stage={stage} />
-        {bloom && <BloomBurst />}
-        <p className="font-pixel" style={{ color: '#eaffe0', fontSize: 11, marginTop: 26, textShadow: '0 2px 6px #000', zIndex: 45, animation: 'hint-bob 1.1s ease-in-out infinite', opacity: started ? (bloom ? 1 : 0) : 1, transition: 'opacity .5s' }}>
-          {!started ? 'toque para plantar a última semente' : bloom ? '✦ A vida encontra um caminho ✦' : ''}
-        </p>
-      </div>
-    );
-  }
-
-  // ending
-  const sombra = chosen!.tone === 'sombra';
+  // ending — a arte do desfecho já entrou por crossfade no artStack
   const line = chosen!.ending[endIdx] ?? '';
   const last = endIdx >= chosen!.ending.length - 1;
-  const hasArt = !!chosen!.img;
   return (
     <>
-      {/* transição suave para a ilustração final assim que o epílogo começa */}
-      {hasArt && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 39, pointerEvents: 'none',
-          backgroundImage: `url('${chosen!.img}')`,
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          imageRendering: 'pixelated',
-          animation: 'sky-brighten 2.4s ease forwards',
-        }} />
-      )}
+      {artStack}
       {sombra
         ? (
           <>
-            <Withering showEmber={!hasArt} dimStrength={hasArt ? 0.5 : 1} />
+            <Withering showEmber={false} dimStrength={0.5} />
             {/* a última brasa da ilustração, tremeluzindo antes de esfriar */}
-            {hasArt && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
-                <FxGlow left="50%" top="88%" size={90} rgb="255,140,60" dur={2.2} maxOpacity={0.5} />
-              </div>
-            )}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
+              <FxGlow left="50%" top="88%" size={90} rgb="255,140,60" dur={2.2} maxOpacity={0.5} />
+            </div>
           </>
         )
         : (
           <>
             <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.22), transparent 70%)', pointerEvents: 'none', animation: 'light-pulse 5s ease-in-out infinite' }} />
             {/* pétalas e pólen subindo sobre a ilustração do renascimento */}
-            {hasArt && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
-                <FxMotes count={10} palette="petal" seed={3} />
-                <FxMotes count={10} palette="gold" seed={27} />
-              </div>
-            )}
-            {!hasArt && (
-              <div style={{ position: 'absolute', left: 0, right: 0, top: '34%', zIndex: 40, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-                <GrowingTree stage={4} />
-              </div>
-            )}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
+              <FxMotes count={10} palette="petal" seed={3} />
+              <FxMotes count={10} palette="gold" seed={27} />
+            </div>
           </>
         )}
       <DialogueBox who="narrador" text={line} last={last}

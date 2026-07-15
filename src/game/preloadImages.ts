@@ -33,6 +33,7 @@ export const CRITICAL_IMAGES: string[] = [
   'intro/onibus-1.png', 'intro/onibus-2.png', 'intro/onibus-3.png', 'intro/onibus-4.png',
   'intro/caindo-1.png',
   'intro/acordando-1.png', 'intro/acordando-2.png', 'intro/acordando-3.png', 'intro/acordando-4.png',
+  'intro/epilogo-1.jpg', 'intro/epilogo-2.jpg',
 
   // ── ilustrações de lore (cartões cinemáticos entre os atos) ──
   'lore/gate.png', 'lore/clareira.png', 'lore/apple-tree.png', 'lore/estufa.png',

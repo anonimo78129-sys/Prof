@@ -5,17 +5,17 @@ const beats: Beat[] = [
   // ── ATO 1 — O Portão (a intro ilustrada cobre o Ato 0) ──
   { t: 'scene', bg: 'floresta' },
   { t: 'say', who: 'estudante', lines: [
-    'O que é este lugar...?',
-    'Não lembro de como cheguei aqui.',
+    'Sonho ou não... preciso descobrir onde estou.',
+    'Talvez haja uma saída mais à frente.',
   ] },
   { t: 'walk', dist: 900, hint: 'Explore a floresta', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'O que é aquilo?',
     'Ué, um portão??',
   ] },
-  { t: 'lore', img: '/assets/lore/gate.png', fx: 'portao', caption: 'Um portão de cipós erguido no coração da floresta...' },
+  { t: 'lore', img: '/assets/lore/gate.png', fx: 'portao', caption: 'Um portão antigo coberto de cipós, erguido no coração da floresta...' },
   { t: 'question',
-    intro: 'Há uma inscrição antiga gravada no portão de cipós...',
+    intro: 'Há uma inscrição antiga gravada na madeira do portão...',
     q: {
       text: 'Qual parte da planta é responsável por absorver água e nutrientes do solo?',
       options: ['A raiz', 'A flor', 'O fruto', 'A folha'],
@@ -78,12 +78,13 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'O tronco parece pulsar — como se algo dentro dele estivesse acordando.',
   ] },
-  { t: 'lore', img: '/assets/lore/apple-tree.png', fx: 'macieira', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Essa macieira está bloqueando tudo!',
-    'Nunca vi uma árvore assim, ela parece viva...',
+    'De perto, ela parece ainda mais... viva.',
   ] },
+  // Chegou ao pé da árvore — a ilustração o mostra diante dela
+  { t: 'lore', img: '/assets/lore/apple-tree.png', fx: 'macieira', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
   { t: 'collect',
     intro: 'As maçãs da árvore começam a cair... algo nelas guarda um segredo.',
     instruction: 'Toque nas formas de dispersão de sementes',
@@ -105,7 +106,9 @@ const beats: Beat[] = [
   // Still in ato3 — player walks, estufa building enters from the right
   { t: 'walk', dist: 700, hint: 'Siga em frente', landmark: 'estufa-ext' },
   // Say before entering
-  { t: 'say', who: 'estudante', lines: ['Parece ser uma estufa.', 'O que é aquilo?'] },
+  { t: 'say', who: 'estudante', lines: ['O que é aquela construção, no meio das árvores?', 'Parece ser uma estufa.'] },
+  // Chegou à entrada — a ilustração o mostra diante das portas da estufa
+  { t: 'lore', img: '/assets/lore/estufa.png', fx: 'estufa', caption: 'A estufa-laboratório — um segredo esquecido entre as plantas.' },
   // Enter estufa
   { t: 'scene', bg: 'estufa' },
   // Inside estufa — find tronco pulsante
@@ -142,7 +145,6 @@ const beats: Beat[] = [
     'As raízes... invadem os equipamentos.',
     'A estufa e a floresta se tornaram uma só coisa.',
   ] },
-  { t: 'lore', img: '/assets/lore/estufa.png', fx: 'estufa', caption: 'A Amazônia Artificial — onde a máquina e a floresta viraram um só coração.' },
   { t: 'say', who: 'narrador', lines: [
     'Uma passagem se abre entre as raízes, levando para fora da estufa.',
   ] },
@@ -191,10 +193,11 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
   ] },
-  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Corredor de Luz — a floresta respira em azul ao seu redor.' },
   { t: 'say', who: 'estudante', lines: [
-    'A luz fica mais intensa a cada passo...',
+    'Essa luz... parece estar me chamando.',
   ] },
+  // Ele avança pelo caminho florido rumo à luz — como mostra a ilustração
+  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Caminho de Luz — borboletas dançam rumo ao coração do jardim.' },
   { t: 'walk', dist: 1100, hint: 'Siga a luz', landmark: 'consciencia' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',
@@ -236,16 +239,18 @@ const beats: Beat[] = [
   { t: 'walk', dist: 200, hint: 'Entre no laboratório' },
   { t: 'say', who: 'narrador', lines: [
     'O céu se abre em ouro. Aqui termina — e começa — tudo.',
-    'Este é o Domo-Mãe: o último refúgio de vida da Terra.',
+    'Este é o coração do Domo-Mãe: o núcleo do último refúgio de vida da Terra.',
   ] },
-  { t: 'lore', img: '/assets/lore/dome.jpg', fx: 'domo', caption: 'O Domo-Mãe — a última arca de vida da Terra.' },
+  { t: 'lore', img: '/assets/lore/dome.jpg', fx: 'domo', caption: 'O coração do Domo-Mãe — o núcleo da última arca de vida da Terra.' },
   { t: 'say', who: 'corujao', lines: [
     'Lá fora, o mundo entrou em colapso: desmatamento, poluição, calor.',
     'Selamos este domo como uma arca, esperando alguém que entendesse.',
     'Você provou que entende a vida. Agora, a decisão é sua.',
   ] },
-  { t: 'lore', img: '/assets/lore/arvore-semente.jpg', fx: 'semente', caption: 'A Árvore Ancestral — guardiã da última semente da Terra.' },
   { t: 'choice',
+    // ilustração dele ajoelhado diante da Árvore Ancestral — fundo da pergunta;
+    // ao escolher, faz crossfade para a arte do desfecho (mesmo enquadramento)
+    img: '/assets/lore/arvore-semente.jpg',
     intro: 'O jardim coloca o futuro nas suas mãos...',
     prompt: 'O que você faz com a última semente da Terra?',
     options: [
@@ -277,6 +282,22 @@ const beats: Beat[] = [
     'Toda escolha sobre a natureza é, também, uma escolha sobre o nosso futuro.',
     'E você... o que faria, com a última semente nas mãos?',
   ] },
+
+  // ── EPÍLOGO — o despertar (fecha a moldura do sonho aberta na intro) ──
+  { t: 'say', who: 'narrador', lines: [
+    'O ônibus dá um solavanco.',
+    'O mundo ao seu redor começa a voltar.',
+  ] },
+  { t: 'lore', img: '/assets/intro/onibus-4.png', caption: 'Ainda adormecido, embalado pelo movimento do ônibus...' },
+  { t: 'lore', img: '/assets/intro/onibus-3.png', caption: 'Um sobressalto. Você começa a acordar.' },
+  { t: 'lore', img: '/assets/intro/onibus-2.png', caption: 'Você abre os olhos. Estava tudo ali, o tempo todo.' },
+  { t: 'say', who: 'estudante', lines: [
+    'Que sonho estranho...',
+    'Uma floresta, um jardim, uma escolha...',
+  ] },
+  { t: 'lore', img: '/assets/intro/epilogo-1.jpg', caption: 'A vida segue, como sempre seguiu.' },
+  { t: 'lore', img: '/assets/intro/epilogo-2.jpg', caption: 'Mas talvez, agora, ele preste mais atenção ao mundo lá fora.' },
+
   { t: 'fade', text: 'Fim.' },
 
 ];

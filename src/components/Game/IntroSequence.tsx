@@ -95,7 +95,7 @@ const SLIDES: Slide[] = [
       { type: 'narrador',     text: 'Você abre os olhos lentamente.' },
       { type: 'narrador',     text: 'O assento do ônibus... desapareceu.' },
       { type: 'protagonista', text: 'Onde... onde eu estou?' },
-      { type: 'narrador',     text: 'Uma floresta encantada se ergue ao seu redor, viva e brilhante.' },
+      { type: 'narrador',     text: 'Um imenso jardim selvagem se ergue ao seu redor — uma floresta encantada, viva e brilhante.' },
       { type: 'protagonista', text: 'Eu estava no ônibus... Como vim parar aqui?' },
       { type: 'protagonista', text: 'Estou sonhando?' },
     ],
