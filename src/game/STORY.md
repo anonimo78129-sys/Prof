@@ -63,8 +63,8 @@ Cada marco tem uma ilustração que aparece **na chegada** ao local
 6. `corredor.png` — caminhando rumo à luz
 7. `consciencia.png` — frente a frente com a Consciência Verde
 8. `dome.jpg` — chegando ao coração do Domo-Mãe
-9. `arvore-semente.jpg` — ajoelhado diante da Árvore Ancestral
-10. `ending-light.jpg` / `ending-dark.jpg` — desfechos (mesma árvore, florida ou seca)
+9. `arvore-semente.jpg` — fundo da própria pergunta final (ajoelhado diante da Árvore Ancestral)
+10. `ending-light.jpg` / `ending-dark.jpg` — ao escolher, crossfade suave da #9 para o desfecho (mesmo enquadramento: árvore florida ou seca)
 
 ---
 

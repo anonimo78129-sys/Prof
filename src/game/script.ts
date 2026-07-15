@@ -247,8 +247,10 @@ const beats: Beat[] = [
     'Selamos este domo como uma arca, esperando alguém que entendesse.',
     'Você provou que entende a vida. Agora, a decisão é sua.',
   ] },
-  { t: 'lore', img: '/assets/lore/arvore-semente.jpg', fx: 'semente', caption: 'A Árvore Ancestral — guardiã da última semente da Terra.' },
   { t: 'choice',
+    // ilustração dele ajoelhado diante da Árvore Ancestral — fundo da pergunta;
+    // ao escolher, faz crossfade para a arte do desfecho (mesmo enquadramento)
+    img: '/assets/lore/arvore-semente.jpg',
     intro: 'O jardim coloca o futuro nas suas mãos...',
     prompt: 'O que você faz com a última semente da Terra?',
     options: [

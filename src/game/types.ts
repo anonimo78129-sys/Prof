@@ -65,11 +65,12 @@ export type Beat =
       t: 'choice';
       intro?: string;
       prompt: string;
+      img?: string;           // ilustração de fundo exibida junto com a pergunta
       options: Array<{
         label: string;
         tone: 'luz' | 'sombra';
         ending: string[];     // epílogo mostrado após a escolha
-        img?: string;         // ilustração do desfecho (aparece durante o epílogo)
+        img?: string;         // ilustração do desfecho (crossfade suave ao escolher)
       }>;
     }
   // Ilustração de lore: imagem cinemática em tela cheia, toque para continuar
