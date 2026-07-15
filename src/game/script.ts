@@ -252,7 +252,7 @@ const beats: Beat[] = [
       {
         label: 'Plantar o recomeço',
         tone: 'luz',
-        img: '/assets/lore/ending-light.svg',
+        img: '/assets/lore/ending-light.jpg',
         ending: [
           'Você abre a mão e deposita a semente na terra fértil.',
           'Uma raiz desce, um broto sobe — e a floresta explode em verde.',
@@ -263,7 +263,7 @@ const beats: Beat[] = [
       {
         label: 'Deixar tudo terminar',
         tone: 'sombra',
-        img: '/assets/lore/ending-dark.svg',
+        img: '/assets/lore/ending-dark.jpg',
         ending: [
           'Você fecha a mão. A semente esfria entre seus dedos.',
           'As luzes do domo se apagam, uma a uma.',

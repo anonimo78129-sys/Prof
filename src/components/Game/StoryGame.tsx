@@ -803,26 +803,29 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
   const sombra = chosen!.tone === 'sombra';
   const line = chosen!.ending[endIdx] ?? '';
   const last = endIdx >= chosen!.ending.length - 1;
-  // na última fala do epílogo, a ilustração do desfecho surge como imagem final
-  const showArt = last && !!chosen!.img;
+  const hasArt = !!chosen!.img;
   return (
     <>
-      {showArt ? (
+      {/* transição suave para a ilustração final assim que o epílogo começa */}
+      {hasArt && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 39, pointerEvents: 'none',
           backgroundImage: `url('${chosen!.img}')`,
           backgroundSize: 'cover', backgroundPosition: 'center',
           imageRendering: 'pixelated',
-          animation: 'sky-brighten 1.4s ease forwards',
+          animation: 'sky-brighten 2.4s ease forwards',
         }} />
-      ) : sombra
-        ? <Withering showEmber={false} />
+      )}
+      {sombra
+        ? <Withering showEmber={!hasArt} />
         : (
           <>
-            <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.28), transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', left: 0, right: 0, top: '34%', zIndex: 40, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-              <GrowingTree stage={4} />
-            </div>
+            <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.22), transparent 70%)', pointerEvents: 'none' }} />
+            {!hasArt && (
+              <div style={{ position: 'absolute', left: 0, right: 0, top: '34%', zIndex: 40, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+                <GrowingTree stage={4} />
+              </div>
+            )}
           </>
         )}
       <DialogueBox who="narrador" text={line} last={last}

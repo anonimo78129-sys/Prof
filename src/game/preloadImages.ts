@@ -37,7 +37,7 @@ export const CRITICAL_IMAGES: string[] = [
   // ── ilustrações de lore (cartões cinemáticos entre os atos) ──
   'lore/gate.png', 'lore/clareira.png', 'lore/apple-tree.png', 'lore/estufa.png',
   'lore/swamp.png', 'lore/corredor.png', 'lore/consciencia.png', 'lore/dome.jpg',
-  'lore/arvore-semente.jpg',
+  'lore/arvore-semente.jpg', 'lore/ending-light.jpg', 'lore/ending-dark.jpg',
 
   // ── floresta / clareira ──
   ...FOREST, ...FLORA,
