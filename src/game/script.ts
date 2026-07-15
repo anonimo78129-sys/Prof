@@ -78,12 +78,13 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'O tronco parece pulsar — como se algo dentro dele estivesse acordando.',
   ] },
-  { t: 'lore', img: '/assets/lore/apple-tree.png', fx: 'macieira', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Essa macieira está bloqueando tudo!',
     'Nunca vi uma árvore assim, ela parece viva...',
   ] },
+  // Chegou ao pé da árvore — a ilustração o mostra diante dela
+  { t: 'lore', img: '/assets/lore/apple-tree.png', fx: 'macieira', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
   { t: 'collect',
     intro: 'As maçãs da árvore começam a cair... algo nelas guarda um segredo.',
     instruction: 'Toque nas formas de dispersão de sementes',
@@ -106,6 +107,8 @@ const beats: Beat[] = [
   { t: 'walk', dist: 700, hint: 'Siga em frente', landmark: 'estufa-ext' },
   // Say before entering
   { t: 'say', who: 'estudante', lines: ['Parece ser uma estufa.', 'O que é aquilo?'] },
+  // Chegou à entrada — a ilustração o mostra diante das portas da estufa
+  { t: 'lore', img: '/assets/lore/estufa.png', fx: 'estufa', caption: 'A estufa-laboratório — um segredo esquecido entre as plantas.' },
   // Enter estufa
   { t: 'scene', bg: 'estufa' },
   // Inside estufa — find tronco pulsante
@@ -142,7 +145,6 @@ const beats: Beat[] = [
     'As raízes... invadem os equipamentos.',
     'A estufa e a floresta se tornaram uma só coisa.',
   ] },
-  { t: 'lore', img: '/assets/lore/estufa.png', fx: 'estufa', caption: 'A Amazônia Artificial — onde a máquina e a floresta viraram um só coração.' },
   { t: 'say', who: 'narrador', lines: [
     'Uma passagem se abre entre as raízes, levando para fora da estufa.',
   ] },
@@ -191,10 +193,11 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
   ] },
-  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Corredor de Luz — a floresta respira em azul ao seu redor.' },
   { t: 'say', who: 'estudante', lines: [
     'A luz fica mais intensa a cada passo...',
   ] },
+  // Ele avança pelo caminho florido rumo à luz — como mostra a ilustração
+  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Caminho de Luz — borboletas dançam rumo ao coração do jardim.' },
   { t: 'walk', dist: 1100, hint: 'Siga a luz', landmark: 'consciencia' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',
