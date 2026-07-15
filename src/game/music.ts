@@ -18,6 +18,11 @@ const MUSIC_FILE = '/assets/audio/music/explore.mp3';
 const MUSIC_GAIN = 0.32;         // volume-base da trilha (bem abaixo dos SFX)
 const FILE_GAIN = 0.5;
 
+// ── Tema da tela inicial (faixa própria, sempre que existir o arquivo) ──
+const HOME_FILE = '/assets/audio/music/home-theme.mp3';
+const HOME_GAIN = 0.55;
+const HOME_FADE_MS = 700;
+
 const BPM = 96;
 const STEP = 60 / BPM / 2;       // colcheia
 const STEPS = 64;                // 8 compassos de 8 colcheias
@@ -196,8 +201,59 @@ export function stopMusic() {
   if (ctx && master) master.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.25);
 }
 
-// mudo/volume globais afetam a trilha em tempo real
+// ─────────────────────────────────────────────────────────
+// Tema da tela inicial — faixa própria (home-theme.mp3), com fade in/out.
+// Chamado a partir de um clique/toque (ou de um listener de "primeiro
+// gesto"), já que autoplay puro é bloqueado pelos navegadores.
+// ─────────────────────────────────────────────────────────
+let homeEl: HTMLAudioElement | null = null;
+let homeFade: ReturnType<typeof setInterval> | null = null;
+
+function clearHomeFade() {
+  if (homeFade) { clearInterval(homeFade); homeFade = null; }
+}
+
+export function startHomeTheme() {
+  if (typeof Audio === 'undefined') return;
+  if (!homeEl) {
+    homeEl = new Audio(HOME_FILE);
+    homeEl.loop = true;
+    homeEl.preload = 'auto';
+    homeEl.volume = 0;
+  }
+  if (!homeEl.paused) return;
+  clearHomeFade();
+  const target = audioGain(HOME_GAIN);
+  void homeEl.play().then(() => {
+    if (!homeEl) return;
+    const steps = 20;
+    let i = 0;
+    homeFade = setInterval(() => {
+      i++;
+      if (!homeEl) { clearHomeFade(); return; }
+      homeEl.volume = Math.min(target, (target * i) / steps);
+      if (i >= steps) clearHomeFade();
+    }, HOME_FADE_MS / steps);
+  }).catch(() => {/* bloqueado — tenta de novo no próximo gesto */});
+}
+
+export function stopHomeTheme() {
+  if (!homeEl || homeEl.paused) return;
+  clearHomeFade();
+  const el = homeEl;
+  const startVol = el.volume;
+  const steps = 14;
+  let i = 0;
+  homeFade = setInterval(() => {
+    i++;
+    el.volume = Math.max(0, startVol * (1 - i / steps));
+    if (i >= steps) { clearHomeFade(); el.pause(); }
+  }, HOME_FADE_MS / 2 / steps);
+}
+
+// mudo/volume globais afetam as trilhas em tempo real
 subscribeAudio(() => {
   if (ctx && master && running) master.gain.setTargetAtTime(audioGain(MUSIC_GAIN), ctx.currentTime, 0.1);
   if (fileEl) fileEl.volume = audioGain(FILE_GAIN);
+  if (homeEl && !homeEl.paused && !homeFade) homeEl.volume = audioGain(HOME_GAIN);
 });

@@ -7,7 +7,7 @@ import IntroSequence from './components/Game/IntroSequence';
 import LoadingScreen from './components/Game/LoadingScreen';
 import ScenePreview from './components/ScenePreview';
 import { getSave, clearSave, resetStats } from './game/progress';
-import { startMusic, stopMusic } from './game/music';
+import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 
 // Índices sincronizados com src/game/script.ts (incluem os beats de lore)
 const DEV_ACTS = [
@@ -97,6 +97,17 @@ export default function App() {
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
+
+  // Tema da tela inicial: toca em loop enquanto view === 'home'.
+  // Autoplay puro costuma ser bloqueado, então tentamos direto e também
+  // reforçamos no primeiro toque/clique na tela (gesto do usuário).
+  useEffect(() => {
+    if (view !== 'home') { stopHomeTheme(); return; }
+    startHomeTheme();
+    const onFirstGesture = () => startHomeTheme();
+    window.addEventListener('pointerdown', onFirstGesture, { once: true });
+    return () => window.removeEventListener('pointerdown', onFirstGesture);
+  }, [view]);
 
   const goHome = () => { stopMusic(); window.location.hash = ''; setView('home'); };
 
