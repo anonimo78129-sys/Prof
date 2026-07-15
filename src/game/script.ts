@@ -13,7 +13,7 @@ const beats: Beat[] = [
     'O que é aquilo?',
     'Ué, um portão??',
   ] },
-  { t: 'lore', img: '/assets/lore/gate.svg', caption: 'Um portão de cipós erguido no coração da floresta...' },
+  { t: 'lore', img: '/assets/lore/gate.png', caption: 'Um portão de cipós erguido no coração da floresta...' },
   { t: 'question',
     intro: 'Há uma inscrição antiga gravada no portão de cipós...',
     q: {
@@ -42,7 +42,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'A clareira pulsa suavemente, como se respirasse.',
   ] },
-  { t: 'lore', img: '/assets/lore/clareira.svg', caption: 'A Clareira Viva — o jardim respira ao seu redor.' },
+  { t: 'lore', img: '/assets/lore/clareira.png', caption: 'A Clareira Viva — o jardim respira ao seu redor.' },
   { t: 'walk', dist: 850, hint: 'Atravesse a clareira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Uma pedra gigante bloqueia o caminho!',
@@ -78,7 +78,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'O tronco parece pulsar — como se algo dentro dele estivesse acordando.',
   ] },
-  { t: 'lore', img: '/assets/lore/apple-tree.svg', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
+  { t: 'lore', img: '/assets/lore/apple-tree.png', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Essa macieira está bloqueando tudo!',
@@ -142,7 +142,7 @@ const beats: Beat[] = [
     'As raízes... invadem os equipamentos.',
     'A estufa e a floresta se tornaram uma só coisa.',
   ] },
-  { t: 'lore', img: '/assets/lore/estufa.svg', caption: 'A Amazônia Artificial — onde a máquina e a floresta viraram um só coração.' },
+  { t: 'lore', img: '/assets/lore/estufa.png', caption: 'A Amazônia Artificial — onde a máquina e a floresta viraram um só coração.' },
   { t: 'say', who: 'narrador', lines: [
     'Uma passagem se abre entre as raízes, levando para fora da estufa.',
   ] },
@@ -157,7 +157,7 @@ const beats: Beat[] = [
     'O ar aqui é pesado... cheira a terra molhada.',
     'Um pântano! E a água parece... viva.',
   ] },
-  { t: 'lore', img: '/assets/lore/swamp.svg', caption: 'O Pântano Encantado — onde a vida e o mistério se encontram.' },
+  { t: 'lore', img: '/assets/lore/swamp.png', caption: 'O Pântano Encantado — onde a vida e o mistério se encontram.' },
   { t: 'walk', dist: 166, hint: 'Avance pelo pântano' },
   { t: 'say', who: 'estudante', lines: [
     'A água tóxica bloqueia a passagem.',
@@ -191,7 +191,7 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
   ] },
-  { t: 'lore', img: '/assets/lore/corredor.svg', caption: 'O Corredor de Luz — a floresta respira em azul ao seu redor.' },
+  { t: 'lore', img: '/assets/lore/corredor.png', caption: 'O Corredor de Luz — a floresta respira em azul ao seu redor.' },
   { t: 'say', who: 'estudante', lines: [
     'A luz fica mais intensa a cada passo...',
   ] },
@@ -207,7 +207,7 @@ const beats: Beat[] = [
     'Você pisa onde poucos ousam. Prove que merece continuar.',
     'A floresta não abre passagem para quem não a entende.',
   ] },
-  { t: 'lore', img: '/assets/lore/consciencia.svg', caption: 'A Consciência Verde — a mente da floresta, desperta.' },
+  { t: 'lore', img: '/assets/lore/consciencia.png', caption: 'A Consciência Verde — a mente da floresta, desperta.' },
   { t: 'battle',
     intro: 'A Consciência Verde bloqueia o caminho com pulsos de energia...',
     success: [
@@ -238,7 +238,7 @@ const beats: Beat[] = [
     'O céu se abre em ouro. Aqui termina — e começa — tudo.',
     'Este é o Domo-Mãe: o último refúgio de vida da Terra.',
   ] },
-  { t: 'lore', img: '/assets/lore/dome.svg', caption: 'O Domo-Mãe — a última arca de vida da Terra.' },
+  { t: 'lore', img: '/assets/lore/dome.jpg', caption: 'O Domo-Mãe — a última arca de vida da Terra.' },
   { t: 'say', who: 'corujao', lines: [
     'Lá fora, o mundo entrou em colapso: desmatamento, poluição, calor.',
     'Selamos este domo como uma arca, esperando alguém que entendesse.',
