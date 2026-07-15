@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 import { audioGain, playSfx, preloadSfx } from '../../game/audio';
+import LoreFx, { FxGlow, FxMotes } from './LoreFx';
 import { saveCheckpoint, clearSave, recordError, recordSolved, recordEnding, getStats, medalFor } from '../../game/progress';
 
 const FLOOR = 300;           // faixa reservada no rodapé p/ a caixa de texto e botões
@@ -708,11 +709,14 @@ function BloomBurst() {
 }
 
 // fim sombrio: escurecimento + cinzas caindo + uma última brasa de esperança
-function Withering({ showEmber }: { showEmber: boolean }) {
+// dimStrength (0..1) atenua o escurecimento quando há uma ilustração por baixo
+function Withering({ showEmber, dimStrength = 1 }: { showEmber: boolean; dimStrength?: number }) {
   const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 39, pointerEvents: 'none', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', inset: 0, background: '#05060a', animation: 'fade-in-dark 4s ease forwards' }} />
+      <div style={{ position: 'absolute', inset: 0, opacity: dimStrength }}>
+        <div style={{ position: 'absolute', inset: 0, background: '#05060a', animation: 'fade-in-dark 4s ease forwards' }} />
+      </div>
       {Array.from({ length: 26 }, (_, i) => {
         const size = 2 + s(i * 3) * 4;
         return (
@@ -817,10 +821,27 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
         }} />
       )}
       {sombra
-        ? <Withering showEmber={!hasArt} />
+        ? (
+          <>
+            <Withering showEmber={!hasArt} dimStrength={hasArt ? 0.5 : 1} />
+            {/* a última brasa da ilustração, tremeluzindo antes de esfriar */}
+            {hasArt && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
+                <FxGlow left="50%" top="88%" size={90} rgb="255,140,60" dur={2.2} maxOpacity={0.5} />
+              </div>
+            )}
+          </>
+        )
         : (
           <>
-            <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.22), transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.22), transparent 70%)', pointerEvents: 'none', animation: 'light-pulse 5s ease-in-out infinite' }} />
+            {/* pétalas e pólen subindo sobre a ilustração do renascimento */}
+            {hasArt && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
+                <FxMotes count={10} palette="petal" seed={3} />
+                <FxMotes count={10} palette="gold" seed={27} />
+              </div>
+            )}
             {!hasArt && (
               <div style={{ position: 'absolute', left: 0, right: 0, top: '34%', zIndex: 40, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
                 <GrowingTree stage={4} />
@@ -1246,16 +1267,20 @@ function LoreBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'lore' }>; onSo
         transition: 'opacity 0.45s',
         filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.95))',
       }}>
-        <img
-          src={beat.img}
-          alt=""
-          style={{
-            maxWidth: '100%', maxHeight: '60vh',
-            imageRendering: 'pixelated',
-            display: 'block',
-            animation: 'lore-kenburns 14s ease-out forwards',
-          }}
-        />
+        <div style={{ position: 'relative' }}>
+          <img
+            src={beat.img}
+            alt=""
+            style={{
+              maxWidth: '100%', maxHeight: '60vh',
+              imageRendering: 'pixelated',
+              display: 'block',
+              animation: 'lore-kenburns 14s ease-out forwards',
+            }}
+          />
+          {/* camada de animação ambiental (partículas, brilhos, névoa) */}
+          {beat.fx && <LoreFx kind={beat.fx} />}
+        </div>
       </div>
       {beat.caption && (
         <div

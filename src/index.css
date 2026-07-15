@@ -170,6 +170,16 @@
     0%   { transform: scale(1); }
     100% { transform: scale(1.07) translateY(-1.2%); }
   }
+  /* Lore FX — anel de ondulação na água (pântano) */
+  @keyframes lore-ripple {
+    0%   { transform: translate(-50%,-50%) scale(0.25); opacity: 0.75; }
+    100% { transform: translate(-50%,-50%) scale(1.7);  opacity: 0; }
+  }
+  /* Lore FX — faixa de névoa deslizando lentamente */
+  @keyframes mist-drift {
+    0%, 100% { transform: translateX(-10%); }
+    50%      { transform: translateX(8%); }
+  }
   @keyframes battle-shake {
     0%, 100% { transform: translateX(0); }
     20%       { transform: translateX(-3px); }
