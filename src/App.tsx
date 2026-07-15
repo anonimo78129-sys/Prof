@@ -4,6 +4,7 @@ import type { SceneBg } from './game/types';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import StoryGame from './components/Game/StoryGame';
 import IntroSequence from './components/Game/IntroSequence';
+import LoadingScreen from './components/Game/LoadingScreen';
 import ScenePreview from './components/ScenePreview';
 import { getSave, clearSave, resetStats } from './game/progress';
 
@@ -69,12 +70,14 @@ function Fireflies() {
   );
 }
 
-type View = 'home' | 'intro' | 'setup' | 'jogar' | 'preview';
+type View = 'home' | 'loading' | 'intro' | 'setup' | 'jogar' | 'preview';
 
 const isTestMode = typeof window !== 'undefined' && window.location.search.includes('test');
 
 export default function App() {
   const [view, setView] = useState<View>('home');
+  // para onde ir depois da tela de carregamento
+  const [loadTarget, setLoadTarget] = useState<'intro' | 'jogar'>('intro');
   const [devStart, setDevStart] = useState<{ beat: number; bg?: SceneBg } | null>(null);
   const [showDevMenu, setShowDevMenu] = useState(false);
   // remonta o StoryGame do zero em "JOGAR DE NOVO"
@@ -108,6 +111,11 @@ export default function App() {
   // ── PREVIEW — galeria de cenários ──
   if (view === 'preview') {
     return <ScenePreview onBack={() => setView('home')} />;
+  }
+
+  // ── LOADING — pré-carrega as imagens antes de começar ──
+  if (view === 'loading') {
+    return <LoadingScreen onDone={() => setView(loadTarget)} />;
   }
 
   // ── INTRO — sequência ilustrada antes do jogo ──
@@ -175,7 +183,7 @@ export default function App() {
       }}>
         {save && (
           <button
-            onClick={() => { setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setView('jogar'); }}
+            onClick={() => { setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
             className="btn-game font-pixel w-full"
             style={{ fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
           >
@@ -183,7 +191,7 @@ export default function App() {
           </button>
         )}
         <button
-          onClick={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setView('intro'); }}
+          onClick={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
           className="btn-game font-pixel w-full"
           style={save ? {
             fontSize: 13, padding: '17px 8px', maxWidth: 320,

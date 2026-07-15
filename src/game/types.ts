@@ -75,9 +75,22 @@ export type Beat =
   // Ilustração de lore: imagem cinemática em tela cheia, toque para continuar
   | {
       t: 'lore';
-      img: string;       // caminho relativo a /public (ex: /assets/lore/gate.svg)
+      img: string;       // caminho relativo a /public (ex: /assets/lore/gate.png)
       caption?: string;  // legenda opcional no estilo caixa de diálogo
+      fx?: LoreFxKind;   // camada de animação ambiental sobre a ilustração
     };
+
+// Conjuntos de efeitos animados sobrepostos às ilustrações de lore
+export type LoreFxKind =
+  | 'portao'       // cogumelos pulsando + vaga-lumes
+  | 'clareira'     // raios de luz + bioluminescência
+  | 'macieira'     // folhas caindo + pólen dourado
+  | 'estufa'       // brilho varrendo o vidro + motes
+  | 'pantano'      // névoa + ondulações na água + vaga-lumes verdes
+  | 'corredor'     // borboletas + pólen dourado
+  | 'consciencia'  // cristal pulsando + esporos
+  | 'domo'         // borboletas + brilho no vidro
+  | 'semente';     // feixe de luz + pólen subindo
 
 export interface StoryScript {
   beats: Beat[];
