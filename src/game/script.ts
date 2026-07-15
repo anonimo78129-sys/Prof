@@ -279,6 +279,8 @@ const beats: Beat[] = [
       },
     ],
   },
+  // a partir daqui o sonho se dissolve — troca o laboratório por tela preta
+  { t: 'scene', bg: 'preto' },
   { t: 'say', who: 'narrador', lines: [
     'Toda escolha sobre a natureza é, também, uma escolha sobre o nosso futuro.',
     'E você... o que faria, com a última semente nas mãos?',

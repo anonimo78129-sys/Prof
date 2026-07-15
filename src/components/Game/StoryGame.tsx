@@ -1751,6 +1751,12 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 }
 
 function ParallaxWorld({ bg, worldX, gateOpen, gateFrame, landmarkAnchor, nearby, boulderState, landmarkKind, appleTreeAnchor, trunkAnchor, conscienciaAnchor, computerOn, logsVisible, conscienciaDefeated }: { bg: SceneBg; worldX: number; gateOpen: boolean; gateFrame: number; landmarkAnchor: number | null; nearby: boolean; boulderState: BoulderState; landmarkKind: 'gate' | 'estufa-ext' | 'trunk' | 'computer' | 'consciencia' | 'lab'; appleTreeAnchor: number | null; trunkAnchor: number | null; conscienciaAnchor: number | null; computerOn: boolean; logsVisible: boolean; conscienciaDefeated?: boolean }) {
+  if (bg === 'preto') {
+    // tela preta lisa — usada no epílogo (ele já acordou no mundo real,
+    // então o cenário do laboratório não deve mais aparecer atrás das falas)
+    return <div style={{ position: 'absolute', inset: 0, background: '#000' }} />;
+  }
+
   if (bg === 'noite') {
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0a1024 0%, #131a38 60%, #1c2440 100%)' }}>

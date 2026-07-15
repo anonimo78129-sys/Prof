@@ -4,7 +4,7 @@ import type { MCQuestion } from '../types/game';
 export type Speaker = 'narrador' | 'estudante' | 'corujao' | 'consciencia';
 
 // Cenário/tema visual de fundo
-export type SceneBg = 'noite' | 'floresta' | 'clareira' | 'ato3' | 'estufa' | 'pantano' | 'corredor' | 'final';
+export type SceneBg = 'noite' | 'preto' | 'floresta' | 'clareira' | 'ato3' | 'estufa' | 'pantano' | 'corredor' | 'final';
 
 // Cada "beat" é um passo do roteiro, executado em sequência
 export type Beat =
