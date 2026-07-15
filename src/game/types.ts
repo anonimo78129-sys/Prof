@@ -73,12 +73,13 @@ export type Beat =
         img?: string;         // ilustração do desfecho (crossfade suave ao escolher)
       }>;
     }
-  // Ilustração de lore: imagem cinemática em tela cheia, toque para continuar
+  // Ilustração de lore: cartão cinemático, toque para continuar
   | {
       t: 'lore';
       img: string;       // caminho relativo a /public (ex: /assets/lore/gate.png)
       caption?: string;  // legenda opcional no estilo caixa de diálogo
       fx?: LoreFxKind;   // camada de animação ambiental sobre a ilustração
+      full?: boolean;    // se true: ocupa a tela inteira (cover), escondendo o cenário
     };
 
 // Conjuntos de efeitos animados sobrepostos às ilustrações de lore
