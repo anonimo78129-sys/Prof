@@ -233,6 +233,8 @@ const beats: Beat[] = [
     'Um prédio... aqui no meio da floresta?',
     'Parece um laboratório. Preciso entrar.',
   ] },
+  // Ainda do lado de fora — a ilustração o mostra diante dos domos, antes de entrar
+  { t: 'lore', img: '/assets/lore/dome.jpg', fx: 'domo', caption: 'O coração do Domo-Mãe — o núcleo da última arca de vida da Terra.' },
 
   // ── ATO 7 — O Laboratório Final / A Escolha ──
   { t: 'scene', bg: 'final' },
@@ -241,7 +243,6 @@ const beats: Beat[] = [
     'O céu se abre em ouro. Aqui termina — e começa — tudo.',
     'Este é o coração do Domo-Mãe: o núcleo do último refúgio de vida da Terra.',
   ] },
-  { t: 'lore', img: '/assets/lore/dome.jpg', fx: 'domo', caption: 'O coração do Domo-Mãe — o núcleo da última arca de vida da Terra.' },
   { t: 'say', who: 'corujao', lines: [
     'Lá fora, o mundo entrou em colapso: desmatamento, poluição, calor.',
     'Selamos este domo como uma arca, esperando alguém que entendesse.',

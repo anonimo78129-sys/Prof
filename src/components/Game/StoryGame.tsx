@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 import { audioGain, playSfx, preloadSfx } from '../../game/audio';
+import { startBattleMusic, stopBattleMusic } from '../../game/music';
 import LoreFx from './LoreFx';
 import { saveCheckpoint, clearSave, recordError, recordSolved, recordEnding, getStats, medalFor } from '../../game/progress';
 
@@ -1287,6 +1288,11 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     const t = setInterval(() => setRageFrame(f => f >= 3 ? 1 : f + 1), 180);
     return () => clearInterval(t);
   }, [enemyRage]);
+  // Tema de batalha: entra ao montar o combate, sai (e a exploração volta) ao desmontar
+  useEffect(() => {
+    startBattleMusic();
+    return () => stopBattleMusic();
+  }, []);
 
   // Projétil de energia + anel de impacto
   const enemyAnchor  = { x: 64, y: 36 };

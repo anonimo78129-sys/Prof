@@ -12,20 +12,25 @@ em código.
 | Arquivo                 | Quando toca                                     |
 |-------------------------|--------------------------------------------------|
 | `music/home-theme.mp3`  | Em loop na **tela inicial** (com fade in/out)   |
-| `music/explore.mp3`     | Em loop durante toda a aventura (intro + jogo)  |
+| `music/explore.mp3`     | Em loop durante a intro e a exploração do jogo  |
+| `music/battle.mp3`      | Em loop durante o **combate** (Consciência Verde) |
 
-`home-theme.mp3` e `explore.mp3` já estão presentes. `home-theme.mp3` toca
-assim que a tela inicial abre — ou no primeiro toque, se o navegador
-bloquear o autoplay — e some com fade ao sair para o jogo. `explore.mp3`
-toca em loop pela intro e pela aventura. Sem esses arquivos, o jogo cai
-de volta no **tema de exploração chiptune** sintetizado (Dó maior
-pentatônica, 96 BPM, 8 compassos em loop). Ambas as trilhas respeitam o
-mudo/volume do jogo.
+`home-theme.mp3`, `explore.mp3` e `battle.mp3` já estão presentes.
+`home-theme.mp3` toca assim que a tela inicial abre — ou no primeiro
+toque, se o navegador bloquear o autoplay — e some com fade ao sair
+para o jogo. `explore.mp3` toca em loop pela intro e pela aventura;
+ao entrar em combate, ela pausa suavemente e `battle.mp3` assume,
+retomando de onde parou assim que a luta termina. Sem esses arquivos,
+o jogo cai de volta no **tema de exploração chiptune** sintetizado
+(Dó maior pentatônica, 96 BPM, 8 compassos em loop) — inclusive
+durante o combate, se faltar só o `battle.mp3`. Todas as trilhas
+respeitam o mudo/volume do jogo.
 
-⚠️ **Licença:** `explore.mp3` foi fornecido pelo usuário a partir de um
-arquivo com metadados de uma faixa comercial (artista "Beau Buckley",
-gênero "Soundtrack"). Confirme que há licença de uso antes de publicar
-o jogo publicamente.
+⚠️ **Licença:** `explore.mp3` traz metadados de uma faixa comercial
+(artista "Beau Buckley", gênero "Soundtrack"); `battle.mp3` também
+(artista "Trevor Lentz", gênero "Chiptune", título "Pixel River").
+Confirme que há licença de uso para ambas antes de publicar o jogo
+publicamente.
 
 Formato recomendado: **.mp3** (compatível com todos os navegadores).
 Também aceita `.ogg`/`.wav` se você trocar a extensão no mapa `SFX_FILES` do `audio.ts`.
