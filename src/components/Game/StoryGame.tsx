@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import type { Beat, SceneBg, Speaker } from '../../game/types';
 import { ACT1 } from '../../game/script';
 import { audioGain, playSfx, preloadSfx } from '../../game/audio';
-import LoreFx, { FxGlow, FxMotes } from './LoreFx';
+import { startBattleMusic, stopBattleMusic } from '../../game/music';
+import LoreFx from './LoreFx';
 import { saveCheckpoint, clearSave, recordError, recordSolved, recordEnding, getStats, medalFor } from '../../game/progress';
 
 const FLOOR = 300;           // faixa reservada no rodapé p/ a caixa de texto e botões
@@ -635,33 +636,6 @@ function SequenceBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 
   );
 }
 
-// fim sombrio: escurecimento + cinzas caindo + uma última brasa de esperança
-// dimStrength (0..1) atenua o escurecimento quando há uma ilustração por baixo
-function Withering({ showEmber, dimStrength = 1 }: { showEmber: boolean; dimStrength?: number }) {
-  const s = (n: number) => { const x = Math.sin(n + 1) * 10000; return x - Math.floor(x); };
-  return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 39, pointerEvents: 'none', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', inset: 0, opacity: dimStrength }}>
-        <div style={{ position: 'absolute', inset: 0, background: '#05060a', animation: 'fade-in-dark 4s ease forwards' }} />
-      </div>
-      {Array.from({ length: 26 }, (_, i) => {
-        const size = 2 + s(i * 3) * 4;
-        return (
-          <div key={i} style={{
-            position: 'absolute', left: `${s(i * 7) * 100}%`, top: '-6%',
-            width: size, height: size, borderRadius: '50%', background: 'rgba(150,150,150,0.5)',
-            animation: `ash-fall ${6 + s(i * 11) * 6}s linear ${-s(i * 17) * 8}s infinite`,
-            ['--ax' as string]: `${(s(i * 13) - 0.5) * 80}px`,
-          } as CSSProperties} />
-        );
-      })}
-      {showEmber && (
-        <div style={{ position: 'absolute', left: '50%', bottom: '34%', transform: 'translateX(-50%)', width: 8, height: 8, borderRadius: '50%', background: 'radial-gradient(circle,#ffd9a0,#ff7a18)', boxShadow: '0 0 16px rgba(255,140,40,0.9)', animation: 'breathe-glow 2.4s ease-in-out infinite' }} />
-      )}
-    </div>
-  );
-}
-
 // ─────────────────────────────────────────────────────────
 // ATO 7 — A Escolha: decisão final com dois desfechos cinematográficos
 // ─────────────────────────────────────────────────────────
@@ -671,36 +645,44 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
   const [chosen, setChosen] = useState<Extract<Beat, { t: 'choice' }>['options'][number] | null>(null);
   const [endIdx, setEndIdx] = useState(0);
 
-  const sombra = chosen?.tone === 'sombra';
-
-  // Pilha de ilustrações no MESMO enquadramento (fullscreen cover):
-  // a base (ajoelhado diante da árvore) fica visível desde a pergunta;
-  // ao escolher, a arte do desfecho entra por cima com crossfade suave.
-  // As camadas dos desfechos já ficam montadas (opacity 0) para a
-  // transição não "piscar" carregando a imagem na hora.
-  const IMG_STYLE: CSSProperties = {
-    position: 'absolute', inset: 0,
-    backgroundSize: 'cover', backgroundPosition: 'center',
-    imageRendering: 'pixelated',
-  };
-  const artStack = (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 38, pointerEvents: 'none' }}>
-      {beat.img && <div style={{ ...IMG_STYLE, backgroundImage: `url('${beat.img}')` }} />}
+  // Cartão de ilustração emoldurado — igual aos outros cartões de lore.
+  // A base (ajoelhado diante da árvore) estabelece o tamanho; as artes de
+  // desfecho ficam sobrepostas no mesmo enquadramento (opacity 0) e entram
+  // por crossfade suave ao escolher. Todas no MESMO tamanho.
+  const artCard = (maxH: string) => (
+    <div style={{
+      position: 'relative', maxWidth: '86%',
+      filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.95))',
+      imageRendering: 'pixelated',
+    }}>
+      {/* base — define a caixa */}
+      <img src={beat.img} alt="" style={{
+        display: 'block', maxWidth: '100%', maxHeight: maxH,
+        imageRendering: 'pixelated',
+      }} />
+      {/* desfechos sobrepostos, mesmo enquadramento */}
       {beat.options.map(opt => opt.img && (
-        <div key={opt.label} style={{
-          ...IMG_STYLE,
-          backgroundImage: `url('${opt.img}')`,
-          opacity: chosen === opt ? 1 : 0,
-          transition: 'opacity 2s ease',
+        <img key={opt.label} src={opt.img} alt="" style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', imageRendering: 'pixelated',
+          opacity: chosen === opt ? 1 : 0, transition: 'opacity 2s ease',
         }} />
       ))}
     </div>
   );
 
+  // fundo escuro atrás do cartão (mesmo clima dos outros cartões de lore)
+  const darkBg = (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 38, background: 'rgba(0,0,0,0.92)', pointerEvents: 'none' }} />
+  );
+
   if (phase === 'intro' && beat.intro) {
     return (
       <>
-        {artStack}
+        {darkBg}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 220, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {artCard('52vh')}
+        </div>
         <DialogueBox who="narrador" text={beat.intro} onNext={() => { audioCtx(); setPhase('deciding'); }} />
       </>
     );
@@ -709,21 +691,16 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
   if (phase === 'deciding') {
     return (
       <>
-        {artStack}
-        {/* gradiente inferior p/ legibilidade da pergunta e dos botões */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0, height: '46%', zIndex: 41,
-          background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.8) 100%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 120 }}>
-          <p className="font-vt" style={{ color: '#fff', fontSize: 25, textAlign: 'center', textShadow: '0 2px 12px #000', marginBottom: 26, padding: '0 26px', lineHeight: 1.3 }}>{beat.prompt}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 340, padding: '0 24px' }}>
+        {darkBg}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 42, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18, padding: '16px 20px' }}>
+          {artCard('40vh')}
+          <p className="font-vt" style={{ color: '#fff', fontSize: 23, textAlign: 'center', textShadow: '0 2px 12px #000', padding: '0 8px', lineHeight: 1.3 }}>{beat.prompt}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 340 }}>
             {beat.options.map(opt => (
               <button key={opt.label} onPointerDown={(e) => { e.preventDefault(); audioCtx(); recordEnding(opt.tone); setChosen(opt); setEndIdx(0); setPhase('ending'); if (opt.tone === 'sombra') playTone(110, 0.8, 'sawtooth', 0.1); else playChord([PENTA[0], PENTA[2], PENTA[4]], 2.0, 0.09); }}
                 className="font-pixel"
                 style={{
-                  fontSize: 12, padding: '17px 12px',  cursor: 'pointer', lineHeight: 1.4,
+                  fontSize: 12, padding: '16px 12px',  cursor: 'pointer', lineHeight: 1.4,
                   color: opt.tone === 'luz' ? '#0a2010' : '#f0dee6',
                   background: opt.tone === 'luz' ? 'linear-gradient(to bottom,#7be04a,#2f9410)' : 'linear-gradient(to bottom,#5a3a4a,#2a1820)',
                   border: opt.tone === 'luz' ? '3px solid #d6ffe0' : '3px solid #6a4a5a',
@@ -741,32 +718,15 @@ function ChoiceBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'choice' }>; 
     );
   }
 
-  // ending — a arte do desfecho já entrou por crossfade no artStack
+  // ending — a arte do desfecho já entrou por crossfade dentro do cartão
   const line = chosen!.ending[endIdx] ?? '';
   const last = endIdx >= chosen!.ending.length - 1;
   return (
     <>
-      {artStack}
-      {sombra
-        ? (
-          <>
-            <Withering showEmber={false} dimStrength={0.5} />
-            {/* a última brasa da ilustração, tremeluzindo antes de esfriar */}
-            <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
-              <FxGlow left="50%" top="88%" size={90} rgb="255,140,60" dur={2.2} maxOpacity={0.5} />
-            </div>
-          </>
-        )
-        : (
-          <>
-            <div style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'radial-gradient(circle at 50% 45%, rgba(255,247,210,0.22), transparent 70%)', pointerEvents: 'none', animation: 'light-pulse 5s ease-in-out infinite' }} />
-            {/* pétalas e pólen subindo sobre a ilustração do renascimento */}
-            <div style={{ position: 'absolute', inset: 0, zIndex: 40, pointerEvents: 'none' }}>
-              <FxMotes count={10} palette="petal" seed={3} />
-              <FxMotes count={10} palette="gold" seed={27} />
-            </div>
-          </>
-        )}
+      {darkBg}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 220, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {artCard('52vh')}
+      </div>
       <DialogueBox who="narrador" text={line} last={last}
         onNext={() => { if (last) onSolved(); else setEndIdx(i => i + 1); }} />
     </>
@@ -1168,44 +1128,71 @@ function LoreBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'lore' }>; onSo
     setTimeout(onSolved, 400);
   };
 
+  const full = !!beat.full;
+
   return (
     <div
       onPointerDown={(e) => { e.preventDefault(); dismiss(); }}
       style={{
         position: 'absolute', inset: 0, zIndex: 60,
-        background: `rgba(0,0,0,${vis && !out ? 0.92 : 0})`,
+        // no modo full o fundo é preto sólido (esconde o cenário por completo);
+        // no cartão normal fica quase preto, deixando o cenário levemente à mostra
+        background: `rgba(0,0,0,${vis && !out ? (full ? 1 : 0.92) : 0})`,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.45s',
         cursor: 'pointer', touchAction: 'none',
       }}
     >
-      <div style={{
-        maxWidth: '92%', overflow: 'hidden',
-        opacity: vis && !out ? 1 : 0,
-        transition: 'opacity 0.45s',
-        filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.95))',
-      }}>
-        <div style={{ position: 'relative' }}>
+      {full ? (
+        // ── TELA CHEIA — a imagem cobre tudo (cover), sem moldura ──
+        <div style={{
+          position: 'absolute', inset: 0, overflow: 'hidden',
+          opacity: vis && !out ? 1 : 0, transition: 'opacity 0.45s',
+        }}>
           <img
             src={beat.img}
             alt=""
             style={{
-              maxWidth: '100%', maxHeight: '60vh',
-              imageRendering: 'pixelated',
-              display: 'block',
+              width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center',
+              imageRendering: 'pixelated', display: 'block',
               animation: 'lore-kenburns 14s ease-out forwards',
             }}
           />
-          {/* camada de animação ambiental (partículas, brilhos, névoa) */}
           {beat.fx && <LoreFx kind={beat.fx} />}
         </div>
-      </div>
+      ) : (
+        // ── CARTÃO — imagem centralizada com moldura ──
+        <div style={{
+          maxWidth: '92%', overflow: 'hidden',
+          opacity: vis && !out ? 1 : 0,
+          transition: 'opacity 0.45s',
+          filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.95))',
+        }}>
+          <div style={{ position: 'relative' }}>
+            <img
+              src={beat.img}
+              alt=""
+              style={{
+                maxWidth: '100%', maxHeight: '60vh',
+                imageRendering: 'pixelated',
+                display: 'block',
+                animation: 'lore-kenburns 14s ease-out forwards',
+              }}
+            />
+            {beat.fx && <LoreFx kind={beat.fx} />}
+          </div>
+        </div>
+      )}
+
       {beat.caption && (
         <div
           className="font-pixel"
           style={{
-            marginTop: 16,
-            maxWidth: '84%',
+            // no modo full a legenda flutua perto do rodapé, sobre a imagem
+            ...(full
+              ? { position: 'absolute' as const, bottom: 70, left: '8%', right: '8%', maxWidth: 'none' }
+              : { marginTop: 16, maxWidth: '84%' }),
             padding: '12px 18px',
             background: '#1a0e06',
             border: '4px solid #8b5e2e',
@@ -1225,8 +1212,9 @@ function LoreBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'lore' }>; onSo
         className="font-pixel"
         style={{
           position: 'absolute', bottom: 28,
-          color: 'rgba(255,255,255,0.4)',
+          color: 'rgba(255,255,255,0.55)',
           fontSize: 9,
+          textShadow: full ? '0 2px 6px rgba(0,0,0,0.9)' : 'none',
           opacity: vis && !out ? 1 : 0,
           transition: 'opacity 0.6s 0.3s',
           animation: vis && !out ? 'hint-bob 1.4s ease-in-out infinite' : undefined,
@@ -1300,6 +1288,11 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     const t = setInterval(() => setRageFrame(f => f >= 3 ? 1 : f + 1), 180);
     return () => clearInterval(t);
   }, [enemyRage]);
+  // Tema de batalha: entra ao montar o combate, sai (e a exploração volta) ao desmontar
+  useEffect(() => {
+    startBattleMusic();
+    return () => stopBattleMusic();
+  }, []);
 
   // Projétil de energia + anel de impacto
   const enemyAnchor  = { x: 64, y: 36 };
