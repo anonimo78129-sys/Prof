@@ -7,6 +7,7 @@ import IntroSequence from './components/Game/IntroSequence';
 import LoadingScreen from './components/Game/LoadingScreen';
 import ScenePreview from './components/ScenePreview';
 import { getSave, clearSave, resetStats } from './game/progress';
+import { startMusic, stopMusic } from './game/music';
 
 // Índices sincronizados com src/game/script.ts (incluem os beats de lore)
 const DEV_ACTS = [
@@ -97,7 +98,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
-  const goHome = () => { window.location.hash = ''; setView('home'); };
+  const goHome = () => { stopMusic(); window.location.hash = ''; setView('home'); };
 
   // ── TELA DO PROFESSOR (criador de perguntas/jornada) ──
   if (view === 'setup') {
@@ -183,7 +184,7 @@ export default function App() {
       }}>
         {save && (
           <button
-            onClick={() => { setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
+            onClick={() => { startMusic(); setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
             className="btn-game font-pixel w-full"
             style={{ fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
           >
@@ -191,7 +192,7 @@ export default function App() {
           </button>
         )}
         <button
-          onClick={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
+          onClick={() => { startMusic(); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
           className="btn-game font-pixel w-full"
           style={save ? {
             fontSize: 13, padding: '17px 8px', maxWidth: 320,
@@ -247,7 +248,7 @@ export default function App() {
               </button>
               {DEV_ACTS.map(act => (
                 <button key={act.beat}
-                  onClick={() => { setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
+                  onClick={() => { startMusic(); setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
                   style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#cfe8c8', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
                   {act.label}
                 </button>
