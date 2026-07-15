@@ -27,89 +27,77 @@ const CUE_CFG: Record<CueType, {
 const SPEED: Record<CueType, number> = { narrador: 28, protagonista: 28, voz: 55, evento: 32 };
 
 const SLIDES: Slide[] = [
-  // 01 — Ponto de ônibus
-  {
-    frames: ['/assets/intro/01-ponto-onibus.png'],
-    cues: [
-      { type: 'narrador',     text: 'O dia foi longo.' },
-      { type: 'narrador',     text: 'Provas, trabalhos e horas de estudo consumiram quase toda a sua energia.' },
-      { type: 'protagonista', text: 'Faltam apenas 3 dias para a prova final...' },
-      { type: 'protagonista', text: 'Preciso revisar mais algumas coisas quando chegar em casa.' },
-    ],
-  },
-  // 02 — Ônibus chegando
-  {
-    frames: ['/assets/intro/02-onibus-chegando.png'],
-    cues: [
-      { type: 'evento', text: 'O ônibus chega ao ponto.' },
-      { type: 'evento', text: 'As portas se abrem.' },
-      { type: 'evento', text: 'O protagonista embarca.' },
-    ],
-  },
-  // 03 — Janela do ônibus (3 frames: acordado → sonolento → dormindo)
+  // 01 — Parada de ônibus (4 frames: geral → espera cansada)
   {
     frames: [
-      '/assets/intro/03-janela-f1.png',
-      '/assets/intro/03-janela-f2.png',
-      '/assets/intro/03-janela-f3.png',
+      '/assets/intro/parada-1.png',
+      '/assets/intro/parada-2.png',
+      '/assets/intro/parada-3.png',
+      '/assets/intro/parada-4.png',
     ],
-    frameForCue: [0, 1, 2],
+    frameForCue: [0, 1, 2, 3],
     cues: [
-      { type: 'narrador',     text: 'O balanço constante do ônibus torna cada vez mais difícil manter os olhos abertos.' },
-      { type: 'protagonista', text: 'Talvez eu possa descansar por alguns minutos...' },
+      { type: 'narrador',     text: 'O dia foi longo.' },
+      { type: 'narrador',     text: 'Semanas de provas e trabalhos drenaram quase toda a sua energia.' },
+      { type: 'protagonista', text: 'Faltam só 3 dias para a prova final... e eu mal dormi essa semana.' },
+      { type: 'protagonista', text: 'Preciso revisar tudo quando chegar em casa.' },
+    ],
+  },
+  // 02 — O ônibus chega e o protagonista embarca (2 frames)
+  {
+    frames: [
+      '/assets/intro/parada-5.png',
+      '/assets/intro/parada-6.jpg',
+    ],
+    frameForCue: [0, 0, 1],
+    cues: [
+      { type: 'evento', text: 'Um ônibus se aproxima do ponto.' },
+      { type: 'evento', text: 'As portas se abrem.' },
+      { type: 'evento', text: 'Você embarca.' },
+    ],
+  },
+  // 03 — Dentro do ônibus (4 frames: em pé → sentado → sonolento → dormindo)
+  {
+    frames: [
+      '/assets/intro/onibus-1.png',
+      '/assets/intro/onibus-2.png',
+      '/assets/intro/onibus-3.png',
+      '/assets/intro/onibus-4.png',
+    ],
+    frameForCue: [0, 1, 2, 3],
+    cues: [
+      { type: 'narrador',     text: 'O ônibus segue pela avenida. Você encontra um lugar.' },
+      { type: 'narrador',     text: 'O balanço constante torna cada vez mais difícil manter os olhos abertos.' },
+      { type: 'protagonista', text: 'Talvez eu possa descansar só um pouco...' },
       { type: 'protagonista', text: 'Só um cochilo rápido...' },
     ],
   },
-  // 04 — Dormindo no ônibus → neblina (2 frames)
+  // 04 — Caindo pelo céu (transição do sonho + voz misteriosa)
   {
-    frames: ['/assets/intro/04-dormindo-f1.png', '/assets/intro/04-neblina.png'],
-    frameForCue: [0, 0, 1],
+    frames: ['/assets/intro/caindo-1.png'],
     cues: [
-      { type: 'evento', text: 'O som do motor fica distante.' },
-      { type: 'evento', text: 'As luzes da cidade desaparecem.' },
-      { type: 'evento', text: 'Tudo fica branco.' },
+      { type: 'evento', text: 'O som do motor se dissolve no silêncio.' },
+      { type: 'evento', text: 'O chão desaparece — e você cai por um céu sem fim.' },
+      { type: 'voz',    text: 'Acorde, jovem.' },
+      { type: 'voz',    text: 'Plante o seu amanhã...' },
     ],
   },
-  // 05 — Acordando na grama (frame 0 = dormindo, frame 1 = acordando)
+  // 05 — Acordando na floresta encantada (4 frames: caído → apoiando → de quatro → em pé)
   {
     frames: [
-      '/assets/intro/05-grama-f1.png',
-      '/assets/intro/05-grama-f2.png',
+      '/assets/intro/acordando-1.png',
+      '/assets/intro/acordando-2.png',
+      '/assets/intro/acordando-3.png',
+      '/assets/intro/acordando-4.png',
     ],
-    frameForCue: [0, 0, 1, 1, 1],
+    frameForCue: [0, 1, 2, 3, 3, 3],
     cues: [
-      { type: 'voz',      text: 'Acorde...' },
-      { type: 'voz',      text: 'Plante seu amanhã...' },
-      { type: 'narrador', text: 'Você abre os olhos lentamente.' },
-      { type: 'narrador', text: 'O assento do ônibus desapareceu.' },
-      { type: 'narrador', text: 'O som do trânsito não existe mais.' },
-    ],
-  },
-  // 06 — Protagonista confuso
-  {
-    frames: ['/assets/intro/06-confuso.png'],
-    cues: [
-      { type: 'narrador',     text: 'Um vasto jardim botânico se estende diante de você.' },
-      { type: 'narrador',     text: 'Folhas gigantes filtram a luz do céu.' },
-      { type: 'narrador',     text: 'O ar é úmido e silencioso.' },
-      { type: 'protagonista', text: 'O quê...?' },
-      { type: 'protagonista', text: 'Eu estava no ônibus...' },
-      { type: 'protagonista', text: 'Como vim parar aqui?' },
+      { type: 'narrador',     text: 'Você abre os olhos lentamente.' },
+      { type: 'narrador',     text: 'O assento do ônibus... desapareceu.' },
+      { type: 'protagonista', text: 'Onde... onde eu estou?' },
+      { type: 'narrador',     text: 'Uma floresta encantada se ergue ao seu redor, viva e brilhante.' },
+      { type: 'protagonista', text: 'Eu estava no ônibus... Como vim parar aqui?' },
       { type: 'protagonista', text: 'Estou sonhando?' },
-    ],
-  },
-  // 06b — Visão geral (auto-avança, sem texto)
-  {
-    frames: ['/assets/intro/06b-visao-geral.png'],
-    cues: [],
-    autoDuration: 2800,
-  },
-  // 07 — Explorando o jardim
-  {
-    frames: ['/assets/intro/07-explorando.png'],
-    cues: [
-      { type: 'narrador', text: 'Sem encontrar respostas, você decide explorar.' },
-      { type: 'narrador', text: 'Cada passo leva você para mais longe da realidade que conhecia.' },
     ],
   },
 ];
