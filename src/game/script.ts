@@ -282,6 +282,22 @@ const beats: Beat[] = [
     'Toda escolha sobre a natureza é, também, uma escolha sobre o nosso futuro.',
     'E você... o que faria, com a última semente nas mãos?',
   ] },
+
+  // ── EPÍLOGO — o despertar (fecha a moldura do sonho aberta na intro) ──
+  { t: 'say', who: 'narrador', lines: [
+    'O ônibus dá um solavanco.',
+    'O mundo ao seu redor começa a voltar.',
+  ] },
+  { t: 'lore', img: '/assets/intro/onibus-4.png', caption: 'Ainda adormecido, embalado pelo movimento do ônibus...' },
+  { t: 'lore', img: '/assets/intro/onibus-3.png', caption: 'Um sobressalto. Você começa a acordar.' },
+  { t: 'lore', img: '/assets/intro/onibus-2.png', caption: 'Você abre os olhos. Estava tudo ali, o tempo todo.' },
+  { t: 'say', who: 'estudante', lines: [
+    'Que sonho estranho...',
+    'Uma floresta, um jardim, uma escolha...',
+  ] },
+  { t: 'lore', img: '/assets/intro/epilogo-1.jpg', caption: 'A vida segue, como sempre seguiu.' },
+  { t: 'lore', img: '/assets/intro/epilogo-2.jpg', caption: 'Mas talvez, agora, ele preste mais atenção ao mundo lá fora.' },
+
   { t: 'fade', text: 'Fim.' },
 
 ];
