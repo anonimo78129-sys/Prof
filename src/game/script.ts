@@ -32,6 +32,8 @@ const beats: Beat[] = [
     'Não vejo ninguém aqui.',
     'Uma clareira sem saída!?',
   ] },
+  // ilustração da clareira ANTES de entrar nela
+  { t: 'lore', img: '/assets/lore/clareira.png', fx: 'clareira', caption: 'A Clareira Viva — o jardim respira ao seu redor.' },
 
   // ── ATO 2 — A Clareira ──
   { t: 'scene', bg: 'clareira' },
@@ -42,7 +44,6 @@ const beats: Beat[] = [
   { t: 'say', who: 'narrador', lines: [
     'A clareira pulsa suavemente, como se respirasse.',
   ] },
-  { t: 'lore', img: '/assets/lore/clareira.png', fx: 'clareira', caption: 'A Clareira Viva — o jardim respira ao seu redor.' },
   { t: 'walk', dist: 850, hint: 'Atravesse a clareira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
     'Uma pedra gigante bloqueia o caminho!',
@@ -152,6 +153,8 @@ const beats: Beat[] = [
   { t: 'say', who: 'estudante', lines: [
     'Que lugar estranho... o ar é completamente diferente aqui.',
   ] },
+  // ilustração do pântano ANTES de entrar nele
+  { t: 'lore', img: '/assets/lore/swamp.png', fx: 'pantano', caption: 'O Pântano Encantado — onde a vida e o mistério se encontram.' },
 
   // ── ATO 5 — O Pântano Encantado ──
   { t: 'scene', bg: 'pantano' },
@@ -159,7 +162,6 @@ const beats: Beat[] = [
     'O ar aqui é pesado... cheira a terra molhada.',
     'Um pântano! E a água parece... viva.',
   ] },
-  { t: 'lore', img: '/assets/lore/swamp.png', fx: 'pantano', caption: 'O Pântano Encantado — onde a vida e o mistério se encontram.' },
   { t: 'walk', dist: 166, hint: 'Avance pelo pântano' },
   { t: 'say', who: 'estudante', lines: [
     'A água tóxica bloqueia a passagem.',
@@ -186,18 +188,16 @@ const beats: Beat[] = [
   { t: 'walk', dist: 850, hint: 'Siga a luz ao fundo' },
   { t: 'say', who: 'estudante', lines: [
     'A luz fica mais intensa a cada passo...',
+    'Essa luz... parece estar me chamando.',
   ] },
+  // ilustração do corredor ANTES de entrar nele
+  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Caminho de Luz — borboletas dançam rumo ao coração do jardim.' },
 
   // ── ATO 6 — O Corredor de Luz ──
   { t: 'scene', bg: 'corredor' },
   { t: 'say', who: 'narrador', lines: [
     'Os troncos brilham em azul. A floresta inteira parece respirar luz.',
   ] },
-  { t: 'say', who: 'estudante', lines: [
-    'Essa luz... parece estar me chamando.',
-  ] },
-  // Ele avança pelo caminho florido rumo à luz — como mostra a ilustração
-  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Caminho de Luz — borboletas dançam rumo ao coração do jardim.' },
   { t: 'walk', dist: 1100, hint: 'Siga a luz', landmark: 'consciencia' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',

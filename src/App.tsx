@@ -12,7 +12,7 @@ import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/mus
 // Índices sincronizados com src/game/script.ts (incluem os beats de lore)
 const DEV_ACTS = [
   { label: 'Ato 1 — Floresta (portão)',       beat: 0,  bg: undefined            },
-  { label: 'Ato 2 — Clareira (pedra)',         beat: 8,  bg: undefined            },
+  { label: 'Ato 2 — Clareira (pedra)',         beat: 9,  bg: undefined            },
   { label: 'Ato 3 — Macieira (scene)',         beat: 17, bg: undefined            },
   { label: 'Ato 3 — Coleta de maçãs',         beat: 22, bg: 'ato3' as SceneBg   },
   { label: 'Ato 4 — Estufa (avistando)',       beat: 25, bg: 'ato3' as SceneBg   },
@@ -21,7 +21,7 @@ const DEV_ACTS = [
   { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 33, bg: 'estufa' as SceneBg },
   { label: 'Ato 5 — Pântano (sequência)',      beat: 40, bg: 'pantano' as SceneBg },
   { label: 'Ato 6 — Corredor (luz)',           beat: 50, bg: 'corredor' as SceneBg },
-  { label: 'Ato 7 — Final (a escolha)',        beat: 65, bg: 'final' as SceneBg },
+  { label: 'Ato 7 — Final (a escolha)',        beat: 64, bg: 'final' as SceneBg },
 ] as const;
 
 function seeded(seed: number) {
@@ -99,14 +99,19 @@ export default function App() {
   }, []);
 
   // Tema da tela inicial: toca em loop enquanto view === 'home'.
-  // Autoplay puro costuma ser bloqueado, então tentamos direto e também
-  // reforçamos no primeiro toque/clique na tela (gesto do usuário).
+  // Os navegadores bloqueiam autoplay sem interação, então tentamos tocar
+  // direto (funciona se o navegador permitir) e, se falhar, disparamos na
+  // PRIMEIRA interação de qualquer tipo — mover o mouse, rolar, tocar a
+  // tela ou apertar uma tecla — não só ao clicar num botão. Assim a música
+  // começa o quanto antes, sem depender de o usuário clicar em JOGAR.
   useEffect(() => {
     if (view !== 'home') { stopHomeTheme(); return; }
     startHomeTheme();
-    const onFirstGesture = () => startHomeTheme();
-    window.addEventListener('pointerdown', onFirstGesture, { once: true });
-    return () => window.removeEventListener('pointerdown', onFirstGesture);
+    const EVENTS = ['pointerdown', 'pointermove', 'touchstart', 'keydown', 'scroll', 'wheel', 'click'] as const;
+    const kick = () => { startHomeTheme(); cleanup(); };
+    const cleanup = () => EVENTS.forEach(ev => window.removeEventListener(ev, kick, true));
+    EVENTS.forEach(ev => window.addEventListener(ev, kick, { capture: true, passive: true }));
+    return cleanup;
   }, [view]);
 
   const goHome = () => { stopMusic(); window.location.hash = ''; setView('home'); };
