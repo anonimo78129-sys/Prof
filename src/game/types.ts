@@ -14,6 +14,18 @@ export type Beat =
   | { t: 'scene'; bg: SceneBg }
   // Transição em fade (com texto opcional centralizado)
   | { t: 'fade'; text?: string }
+  // Sequência final ilustrada (epílogo): imagens em tela cheia que fazem
+  // crossfade DIRETO de uma para a outra, sem passar pelo preto — como a
+  // intro. Cada passo mostra um texto; se `img` for omitido, mantém a
+  // imagem do passo anterior (útil para uma fala sobre a mesma imagem).
+  | {
+      t: 'outro';
+      steps: Array<{
+        img?: string;       // imagem em tela cheia (mantém a anterior se ausente)
+        who?: Speaker;      // se presente: fala de personagem (com retrato)
+        text: string;       // texto do passo (narração ou fala)
+      }>;
+    }
   // O jogador caminha livremente (← →) dentro do segmento de `dist` px.
   // Se houver `landmark`, ao chegar ao fim aparece o indicador + botão OK
   // para entrar na fase; sem landmark, o OK apenas segue o roteiro.
