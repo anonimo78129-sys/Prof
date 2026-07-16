@@ -1227,6 +1227,117 @@ function LoreBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'lore' }>; onSo
 }
 
 // ─────────────────────────────────────────────────────────
+// EPÍLOGO — sequência final ilustrada em tela cheia.
+// As imagens fazem crossfade DIRETO de uma para a outra (sem passar pelo
+// preto), como a intro. Cada passo mostra um texto; passos sem `img`
+// mantêm a imagem anterior (fala sobre a mesma cena).
+// ─────────────────────────────────────────────────────────
+function EpilogueBeat({ beat, onSolved }: { beat: Extract<Beat, { t: 'outro' }>; onSolved: () => void }) {
+  const [idx, setIdx] = useState(0);
+  const [shown, setShown] = useState('');
+  const [done, setDone] = useState(false);
+  const [out, setOut] = useState(false);
+  const [vis, setVis] = useState(false);
+
+  useEffect(() => { const t = setTimeout(() => setVis(true), 40); return () => clearTimeout(t); }, []);
+
+  const step = beat.steps[idx];
+  const text = step.text;
+
+  // camadas de imagem únicas, empilhadas — só a ativa fica em opacity 1
+  const images = useMemo(
+    () => [...new Set(beat.steps.map(s => s.img).filter((s): s is string => !!s))],
+    [beat.steps],
+  );
+  // imagem ativa = último passo (até idx) que define uma img
+  const activeImg = useMemo(() => {
+    for (let i = idx; i >= 0; i--) { const im = beat.steps[i].img; if (im) return im; }
+    return undefined;
+  }, [idx, beat.steps]);
+
+  // máquina de escrever
+  useEffect(() => {
+    setShown(''); setDone(false);
+    let i = 0;
+    const id = setInterval(() => {
+      i++; setShown(text.slice(0, i));
+      if (i >= text.length) { clearInterval(id); setDone(true); }
+    }, 30);
+    return () => clearInterval(id);
+  }, [idx, text]);
+
+  const tap = () => {
+    if (out) return;
+    if (!done) { setShown(text); setDone(true); return; }
+    playSfx('tap');
+    if (idx >= beat.steps.length - 1) { setOut(true); setTimeout(onSolved, 550); return; }
+    setIdx(i => i + 1);
+  };
+
+  const isDialogue = !!step.who && step.who !== 'narrador';
+  const name = step.who ? SPEAKER_NAME[step.who] : '';
+  const portrait = step.who === 'corujao' ? '/assets/portraits/owl.png'
+    : step.who === 'estudante' ? '/assets/portraits/hero.png'
+    : step.who === 'consciencia' ? '/assets/portraits/consciencia.png' : null;
+
+  return (
+    <div
+      onPointerDown={(e) => { e.preventDefault(); tap(); }}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        position: 'absolute', inset: 0, zIndex: 60, background: '#000',
+        opacity: out ? 0 : 1, transition: 'opacity 0.5s',
+        cursor: 'pointer', touchAction: 'none', overflow: 'hidden',
+      }}
+    >
+      {/* camadas de imagem — crossfade direto entre elas */}
+      {images.map(src => (
+        <img key={src} src={src} alt="" style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center', imageRendering: 'pixelated',
+          opacity: (vis && activeImg === src) ? 1 : 0,
+          transition: 'opacity 0.9s ease',
+        }} />
+      ))}
+
+      {/* gradiente inferior p/ legibilidade do texto */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: '48%',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* caixa de texto (moldura de madeira) — narração ou fala com retrato */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 40, padding: '0 16px', opacity: vis && !out ? 1 : 0, transition: 'opacity 0.4s' }}>
+        <div style={{
+          margin: '0 auto', maxWidth: 760, padding: '14px 18px',
+          background: '#1a0e06', border: '4px solid #8b5e2e',
+          boxShadow: 'inset 0 0 0 2px #c4874c, inset 0 0 0 4px #7a4f22, 0 0 0 2px #3a1f08',
+          position: 'relative',
+        }}>
+          {portrait && isDialogue && (
+            <div style={{ position: 'absolute', top: -60, left: 8, width: 68, height: 68, background: '#1a0e06', border: '3px solid #8b5e2e', boxShadow: 'inset 0 0 0 1px #c4874c, 0 0 0 1px #3a1f08', imageRendering: 'pixelated' }}>
+              <img src={portrait} alt="" style={{ width: '100%', height: '100%', imageRendering: 'pixelated', display: 'block' }} />
+            </div>
+          )}
+          {isDialogue && name && (
+            <p className="font-pixel" style={{ color: '#88ff66', fontSize: 9, marginBottom: 8 }}>{name}</p>
+          )}
+          <p className="font-vt" style={{ color: '#eaf6e0', fontSize: 22, lineHeight: 1.35, fontStyle: isDialogue ? 'normal' : 'italic', minHeight: 30 }}>
+            {shown}
+          </p>
+          {done && (
+            <p className="font-pixel" style={{ color: '#7fae7a', fontSize: 8, textAlign: 'right', marginTop: 6 }}>
+              {idx >= beat.steps.length - 1 ? '✦' : '▶'} toque
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // ATO 6 — Combate: Consciência Verde (estilo Pokémon GBA)
 // ─────────────────────────────────────────────────────────
 function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'battle' }>; onSolved: () => void; onCorrect: () => void }) {
@@ -3190,6 +3301,11 @@ export default function StoryGame({ onExit, onRestart, startBeat = 0, startBg }:
       {/* lore — ilustração cinemática em tela cheia */}
       {beat?.t === 'lore' && (
         <LoreBeat key={beatIndex} beat={beat} onSolved={advance} />
+      )}
+
+      {/* outro — epílogo ilustrado com crossfade contínuo */}
+      {beat?.t === 'outro' && (
+        <EpilogueBeat key={beatIndex} beat={beat} onSolved={advance} />
       )}
 
       {/* D-pad de caminhada — lado esquerdo */}

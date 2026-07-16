@@ -287,19 +287,16 @@ const beats: Beat[] = [
   ] },
 
   // ── EPÍLOGO — o despertar (fecha a moldura do sonho aberta na intro) ──
-  { t: 'say', who: 'narrador', lines: [
-    'O ônibus dá um solavanco.',
-    'O mundo ao seu redor começa a voltar.',
+  // Sequência ilustrada com crossfade contínuo entre as imagens (sem preto).
+  { t: 'outro', steps: [
+    { img: '/assets/intro/onibus-4.png', text: 'O ônibus dá um solavanco. Ainda adormecido, você é embalado pelo movimento...' },
+    { img: '/assets/intro/onibus-3.png', text: 'Um sobressalto. O mundo ao seu redor começa a voltar.' },
+    { img: '/assets/intro/onibus-2.png', text: 'Você abre os olhos. Estava tudo ali, o tempo todo.' },
+    { who: 'estudante', text: 'Que sonho estranho...' },
+    { who: 'estudante', text: 'Uma floresta, um jardim, uma escolha...' },
+    { img: '/assets/intro/epilogo-1.jpg', text: 'A vida segue, como sempre seguiu.' },
+    { img: '/assets/intro/epilogo-2.jpg', text: 'Mas talvez, agora, ele preste mais atenção ao mundo lá fora.' },
   ] },
-  { t: 'lore', img: '/assets/intro/onibus-4.png', full: true, caption: 'Ainda adormecido, embalado pelo movimento do ônibus...' },
-  { t: 'lore', img: '/assets/intro/onibus-3.png', full: true, caption: 'Um sobressalto. Você começa a acordar.' },
-  { t: 'lore', img: '/assets/intro/onibus-2.png', full: true, caption: 'Você abre os olhos. Estava tudo ali, o tempo todo.' },
-  { t: 'say', who: 'estudante', lines: [
-    'Que sonho estranho...',
-    'Uma floresta, um jardim, uma escolha...',
-  ] },
-  { t: 'lore', img: '/assets/intro/epilogo-1.jpg', full: true, caption: 'A vida segue, como sempre seguiu.' },
-  { t: 'lore', img: '/assets/intro/epilogo-2.jpg', full: true, caption: 'Mas talvez, agora, ele preste mais atenção ao mundo lá fora.' },
 
   { t: 'fade', text: 'Fim.' },
 
