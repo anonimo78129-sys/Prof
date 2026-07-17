@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { GameConfig, GameStory, MCQuestion, MatchPair } from '../../types/game';
 import { DEFAULT_NARRATIVE_CHOICES } from '../../data/narrative';
 import { hasApiKey, saveApiKey, resolveApiKey } from '../../ai/gemini';
+import { shareUrl, type SharedQuiz } from '../../game/quizShare';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
@@ -9,7 +11,7 @@ interface Props {
   onGameCreated: (config: GameConfig) => void;
 }
 
-type Mode = 'input' | 'generating' | 'review';
+type Mode = 'input' | 'generating' | 'review' | 'share';
 
 function uid() {
   return Math.random().toString(36).slice(2, 9).toUpperCase();
@@ -53,6 +55,8 @@ export default function SetupWizard({ onGameCreated }: Props) {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [shareLink, setShareLink] = useState('');   // link/QR do jogo compartilhado
+  const [copied, setCopied] = useState(false);
   const [regenTarget, setRegenTarget] = useState<{ bank: 'forest' | 'caves' | 'tower'; idx: number } | null>(null);
   const [regenPairIdx, setRegenPairIdx] = useState<number | null>(null);
 
@@ -100,32 +104,57 @@ export default function SetupWizard({ onGameCreated }: Props) {
     setMode('review');
   };
 
+  // Monta o quiz que vai no link/QR (só perguntas + pareamento preenchidos)
+  const buildQuiz = (): SharedQuiz => ({
+    subject: subject.trim(),
+    level,
+    questions: [...forestQs, ...cavesQs, ...towerQs].filter(q => q.text.trim()),
+    pairs: cityPairs.filter(p => p.concept.trim() && p.definition.trim()),
+  });
+
+  // GameConfig completo (para o salvamento e o callback de conclusão)
+  const buildConfig = (): GameConfig => ({
+    id: uid(),
+    subject: subject.trim(),
+    level,
+    createdAt: Date.now(),
+    story,
+    scenes: {
+      forest: { questions: forestQs, narrative: narratives.forest },
+      city: { pairs: cityPairs, narrative: narratives.city },
+      caves: { questions: cavesQs, narrative: narratives.caves },
+      tower: { questions: towerQs },
+    },
+    assets: {},
+  });
+
   const handleSave = async () => {
     if (!subject.trim()) { setError('Informe o conteúdo da aula.'); return; }
+    const quiz = buildQuiz();
+    if (quiz.questions.length === 0 && quiz.pairs.length === 0) {
+      setError('Adicione ao menos uma pergunta ou um par antes de gerar o jogo.');
+      return;
+    }
     setSaving(true);
     setError('');
-    const id = uid();
-    const config: GameConfig = {
-      id,
-      subject: subject.trim(),
-      level,
-      createdAt: Date.now(),
-      story,
-      scenes: {
-        forest: { questions: forestQs, narrative: narratives.forest },
-        city: { pairs: cityPairs, narrative: narratives.city },
-        caves: { questions: cavesQs, narrative: narratives.caves },
-        tower: { questions: towerQs },
-      },
-      assets: {},
-    };
+    // gera o link de compartilhamento — funciona 100% sem backend
+    setShareLink(shareUrl(quiz));
+
+    // salva uma cópia no Firestore como best-effort (não bloqueia nada)
+    const config = buildConfig();
+    try { await setDoc(doc(db, 'games', config.id), config); } catch { /* ignora — o link já é autossuficiente */ }
+
+    setSaving(false);
+    setCopied(false);
+    setMode('share');
+  };
+
+  const copyLink = async () => {
     try {
-      await setDoc(doc(db, 'games', id), config);
-      onGameCreated(config);
-    } catch {
-      setError('Erro ao salvar. Verifique a conexão.');
-      setSaving(false);
-    }
+      await navigator.clipboard.writeText(shareLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard indisponível — o link fica visível para copiar manualmente */ }
   };
 
   const updateQ = (
@@ -365,6 +394,78 @@ export default function SetupWizard({ onGameCreated }: Props) {
           <p className="font-pixel text-center" style={{ color: '#3a1a00', fontSize: 8, lineHeight: 2 }}>GERANDO JORNADA</p>
           <p className="font-vt text-center" style={{ color: '#7a4f2d', fontSize: 18, minHeight: 26 }}>{genMsg}</p>
           <p className="font-vt text-center" style={{ color: '#a88060', fontSize: 14 }}>Pode levar alguns segundos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ───────────────── COMPARTILHAR ─────────────────
+  if (mode === 'share') {
+    const nQ = buildQuiz().questions.length;
+    const nP = buildQuiz().pairs.length;
+    return (
+      <div className="fixed inset-0 overflow-y-auto no-scrollbar flex flex-col items-center px-5 py-8 gap-5" style={sceneStyle}>
+        <div className="panel-parchment px-6 py-6 flex flex-col items-center gap-4 w-full" style={{ maxWidth: 380 }}>
+          <p className="font-pixel text-center" style={{ color: '#1a5c1a', fontSize: 11, lineHeight: 1.8 }}>✅ JOGO PRONTO!</p>
+          <p className="font-vt text-center" style={{ color: '#5a3a1a', fontSize: 18, lineHeight: 1.3 }}>
+            {subject.trim()}
+          </p>
+          <p className="font-vt text-center" style={{ color: '#7a5a3a', fontSize: 15 }}>
+            {nQ} pergunta{nQ === 1 ? '' : 's'} · {nP} par{nP === 1 ? '' : 'es'} de conexão
+          </p>
+
+          {/* QR CODE — o aluno escaneia para jogar */}
+          <div style={{ background: '#fff', padding: 14, borderRadius: 8, boxShadow: '0 3px 0 rgba(0,0,0,0.25)' }}>
+            <QRCodeSVG value={shareLink} size={208} level="M" marginSize={1} />
+          </div>
+          <p className="font-vt text-center" style={{ color: '#7a5a3a', fontSize: 15, lineHeight: 1.3 }}>
+            Peça para os alunos <b>escanearem o QR code</b> com a câmera do celular.
+          </p>
+
+          {/* LINK — alternativa ao QR (WhatsApp, Classroom, etc.) */}
+          <div className="w-full flex flex-col gap-2">
+            <p className="font-pixel" style={{ color: '#7a4f2d', fontSize: 7 }}>OU COMPARTILHE O LINK</p>
+            <textarea
+              readOnly
+              value={shareLink}
+              onFocus={(e) => e.target.select()}
+              className="font-vt w-full px-3 py-2"
+              style={{ background: '#fff8e8', border: '2px solid #b8935a', color: '#5a3a1a', fontSize: 13, resize: 'none', height: 56, borderRadius: 4 }}
+            />
+            <button onClick={copyLink} className="btn-rpg w-full py-2 font-pixel" style={{ fontSize: 8 }}>
+              {copied ? '✅ LINK COPIADO!' : '📋 COPIAR LINK'}
+            </button>
+          </div>
+
+          {shareLink.length > 1900 && (
+            <p className="font-vt text-center" style={{ color: '#b05a1a', fontSize: 13, lineHeight: 1.3 }}>
+              ⚠️ Muitas perguntas deixaram o QR code denso. Se algum celular tiver dificuldade de ler, use o link.
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3 w-full" style={{ maxWidth: 380 }}>
+          <button
+            onClick={() => { window.location.hash = shareLink.slice(shareLink.indexOf('#')); }}
+            className="btn-rpg w-full py-3 font-pixel"
+            style={{ fontSize: 9 }}
+          >
+            🎮 TESTAR O JOGO
+          </button>
+          <button
+            onClick={() => { setMode('review'); }}
+            className="btn-rpg w-full py-3 font-pixel"
+            style={{ background: 'linear-gradient(to bottom, #a87830, #886020)', fontSize: 8 }}
+          >
+            ← EDITAR PERGUNTAS
+          </button>
+          <button
+            onClick={() => onGameCreated(buildConfig())}
+            className="btn-rpg w-full py-3 font-pixel"
+            style={{ background: 'linear-gradient(to bottom, #8a8a8a, #6a6a6a)', fontSize: 8 }}
+          >
+            CONCLUIR
+          </button>
         </div>
       </div>
     );
