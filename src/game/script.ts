@@ -33,7 +33,7 @@ const beats: Beat[] = [
     'Uma clareira sem saída!?',
   ] },
   // ilustração da clareira ANTES de entrar nela
-  { t: 'lore', img: '/assets/lore/clareira.png', fx: 'clareira', caption: 'A Clareira Viva — o jardim respira ao seu redor.' },
+  { t: 'lore', img: '/assets/lore/clareira.png', fx: 'clareira', caption: 'A Clareira Viva: o jardim respira ao seu redor.' },
 
   // ── ATO 2 — A Clareira ──
   { t: 'scene', bg: 'clareira' },
@@ -77,7 +77,7 @@ const beats: Beat[] = [
     'Nunca vi uma macieira assim.',
   ] },
   { t: 'say', who: 'narrador', lines: [
-    'O tronco parece pulsar — como se algo dentro dele estivesse acordando.',
+    'O tronco parece pulsar, como se algo dentro dele estivesse acordando.',
   ] },
   { t: 'walk', dist: 900, hint: 'Explore a macieira', landmark: 'gate' },
   { t: 'say', who: 'estudante', lines: [
@@ -85,7 +85,7 @@ const beats: Beat[] = [
     'De perto, ela parece ainda mais... viva.',
   ] },
   // Chegou ao pé da árvore — a ilustração o mostra diante dela
-  { t: 'lore', img: '/assets/lore/apple-tree.png', fx: 'macieira', caption: 'A Macieira Anciã — mais velha do que qualquer memória.' },
+  { t: 'lore', img: '/assets/lore/apple-tree.png', fx: 'macieira', caption: 'A Macieira Anciã: mais velha do que qualquer memória.' },
   { t: 'collect',
     intro: 'As maçãs da árvore começam a cair... algo nelas guarda um segredo.',
     instruction: 'Toque nas formas de dispersão de sementes',
@@ -109,7 +109,7 @@ const beats: Beat[] = [
   // Say before entering
   { t: 'say', who: 'estudante', lines: ['O que é aquela construção, no meio das árvores?', 'Parece ser uma estufa.'] },
   // Chegou à entrada — a ilustração o mostra diante das portas da estufa
-  { t: 'lore', img: '/assets/lore/estufa.png', fx: 'estufa', caption: 'A estufa-laboratório — um segredo esquecido entre as plantas.' },
+  { t: 'lore', img: '/assets/lore/estufa.png', fx: 'estufa', caption: 'A estufa-laboratório: um segredo esquecido entre as plantas.' },
   // Enter estufa
   { t: 'scene', bg: 'estufa' },
   // Inside estufa — find tronco pulsante
@@ -133,7 +133,7 @@ const beats: Beat[] = [
     },
     success: [
       'Acesso autorizado.',
-      'Projeto Amazônia II — desbloqueado.',
+      'Projeto Amazônia II desbloqueado.',
     ],
     hint: 'As plantas também "suam". Pense no que sai pelas folhas para o ar.',
   },
@@ -154,7 +154,7 @@ const beats: Beat[] = [
     'Que lugar estranho... o ar é completamente diferente aqui.',
   ] },
   // ilustração do pântano ANTES de entrar nele
-  { t: 'lore', img: '/assets/lore/swamp.png', fx: 'pantano', caption: 'O Pântano Encantado — onde a vida e o mistério se encontram.' },
+  { t: 'lore', img: '/assets/lore/swamp.png', fx: 'pantano', caption: 'O Pântano Encantado: onde a vida e o mistério se encontram.' },
 
   // ── ATO 5 — O Pântano Encantado ──
   { t: 'scene', bg: 'pantano' },
@@ -165,7 +165,7 @@ const beats: Beat[] = [
   { t: 'walk', dist: 166, hint: 'Avance pelo pântano' },
   { t: 'say', who: 'estudante', lines: [
     'A água tóxica bloqueia a passagem.',
-    'Há pedras afundando... só vão me sustentar na ordem certa.',
+    'Há troncos afundando... só vão me sustentar na ordem certa.',
   ] },
   { t: 'say', who: 'narrador', lines: [
     'Símbolos brilham nas vitórias-régias: o ciclo de vida de uma planta.',
@@ -175,8 +175,8 @@ const beats: Beat[] = [
     instruction: 'Toque nas etapas na ordem do ciclo de vida da planta',
     steps: ['Semente', 'Germinação', 'Plântula', 'Planta adulta', 'Flor e fruto'],
     success: [
-      'As pedras acenderam e formaram um caminho!',
-      'Cada etapa nasce da anterior — é um ciclo sem fim.',
+      'Os troncos acenderam e formaram um caminho!',
+      'Cada etapa nasce da anterior. É um ciclo sem fim.',
       'A vida sempre recomeça pela semente.',
     ],
     hint: 'Tudo começa pequeno e escondido na terra. Pense em como uma planta cresce, do zero até dar frutos.',
@@ -191,7 +191,7 @@ const beats: Beat[] = [
     'Essa luz... parece estar me chamando.',
   ] },
   // ilustração do corredor ANTES de entrar nele
-  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Caminho de Luz — borboletas dançam rumo ao coração do jardim.' },
+  { t: 'lore', img: '/assets/lore/corredor.png', fx: 'corredor', caption: 'O Caminho de Luz: borboletas dançam rumo ao coração do jardim.' },
 
   // ── ATO 6 — O Corredor de Luz ──
   { t: 'scene', bg: 'corredor' },
@@ -201,7 +201,7 @@ const beats: Beat[] = [
   { t: 'walk', dist: 1100, hint: 'Siga a luz', landmark: 'consciencia' },
   { t: 'say', who: 'corujao', lines: [
     'Então você chegou até aqui, jovem.',
-    'Esta é a Consciência Verde — a mente da floresta.',
+    'Esta é a Consciência Verde, a mente da floresta.',
     'Ela se comunica por pulsos de luz e pela rede de fungos sob a terra.',
     'Ela vai te testar. Não a decepcione.',
   ] },
@@ -210,7 +210,7 @@ const beats: Beat[] = [
     'Você pisa onde poucos ousam. Prove que merece continuar.',
     'A floresta não abre passagem para quem não a entende.',
   ] },
-  { t: 'lore', img: '/assets/lore/consciencia.png', fx: 'consciencia', caption: 'A Consciência Verde — a mente da floresta, desperta.' },
+  { t: 'lore', img: '/assets/lore/consciencia.png', fx: 'consciencia', caption: 'A Consciência Verde: a mente da floresta, desperta.' },
   { t: 'battle',
     intro: 'A Consciência Verde bloqueia o caminho com pulsos de energia...',
     success: [
@@ -234,13 +234,13 @@ const beats: Beat[] = [
     'Parece um laboratório. Preciso entrar.',
   ] },
   // Ainda do lado de fora — a ilustração o mostra diante dos domos, antes de entrar
-  { t: 'lore', img: '/assets/lore/dome.jpg', fx: 'domo', caption: 'O coração do Domo-Mãe — o núcleo da última arca de vida da Terra.' },
+  { t: 'lore', img: '/assets/lore/dome.jpg', fx: 'domo', caption: 'O coração do Domo-Mãe: o núcleo da última arca de vida da Terra.' },
 
   // ── ATO 7 — O Laboratório Final / A Escolha ──
   { t: 'scene', bg: 'final' },
   { t: 'walk', dist: 200, hint: 'Entre no laboratório' },
   { t: 'say', who: 'narrador', lines: [
-    'O céu se abre em ouro. Aqui termina — e começa — tudo.',
+    'O céu se abre em ouro. Aqui tudo termina e começa.',
     'Este é o coração do Domo-Mãe: o núcleo do último refúgio de vida da Terra.',
   ] },
   { t: 'say', who: 'corujao', lines: [
@@ -261,7 +261,7 @@ const beats: Beat[] = [
         img: '/assets/lore/ending-light.jpg',
         ending: [
           'Você abre a mão e deposita a semente na terra fértil.',
-          'Uma raiz desce, um broto sobe — e a floresta explode em verde.',
+          'Uma raiz desce, um broto sobe, e a floresta explode em verde.',
           'O domo se abre. A vida transborda para o mundo lá fora.',
           'A Terra terá uma segunda chance. E tudo começou com você.',
         ],
