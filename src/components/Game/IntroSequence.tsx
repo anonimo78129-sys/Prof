@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { playSfx } from '../../game/audio';
 
 type CueType = 'narrador' | 'protagonista' | 'voz' | 'evento';
@@ -102,6 +102,9 @@ const SLIDES: Slide[] = [
   },
 ];
 
+// Todos os frames únicos, empilhados como camadas para o crossfade suave.
+const ALL_FRAMES = [...new Set(SLIDES.flatMap(s => s.frames))];
+
 export default function IntroSequence({ onDone }: { onDone: () => void }) {
   const [slideIdx, setSlideIdx]   = useState(0);
   const [cueIdx,   setCueIdx]     = useState(0);
@@ -114,16 +117,9 @@ export default function IntroSequence({ onDone }: { onDone: () => void }) {
   const frameIdx = slide.frameForCue ? (slide.frameForCue[cueIdx] ?? 0) : 0;
   const frameSrc = slide.frames[Math.min(frameIdx, slide.frames.length - 1)];
 
-  const prevFrame = useRef(frameSrc);
-  const [imgOpacity, setImgOpacity] = useState(1);
-
-  useEffect(() => {
-    if (prevFrame.current !== frameSrc) {
-      setImgOpacity(0);
-      const t = setTimeout(() => { setImgOpacity(1); prevFrame.current = frameSrc; }, 80);
-      return () => clearTimeout(t);
-    }
-  }, [frameSrc]);
+  // habilita o crossfade só após montar (para o 1º frame entrar suave, não instantâneo)
+  const [vis, setVis] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setVis(true), 40); return () => clearTimeout(t); }, []);
 
   // Typewriter
   useEffect(() => {
@@ -141,12 +137,12 @@ export default function IntroSequence({ onDone }: { onDone: () => void }) {
   const goNextSlide = useCallback(() => {
     const next = slideIdx + 1;
     if (next >= SLIDES.length) { onDone(); return; }
+    // só o texto/gradiente some rápido; a IMAGEM faz crossfade contínuo
+    // para o frame do próximo slide (sem passar pelo preto)
     setOpacity(0);
     setTimeout(() => {
       setSlideIdx(next);
       setCueIdx(0);
-      prevFrame.current = SLIDES[next].frames[0];
-      setImgOpacity(1);
       setTimeout(() => setOpacity(1), 40);
     }, 380);
   }, [slideIdx, onDone]);
@@ -177,15 +173,18 @@ export default function IntroSequence({ onDone }: { onDone: () => void }) {
       onPointerDown={(e) => { e.preventDefault(); if (slide.cues.length > 0) { playSfx('tap'); advance(); } }}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {/* ilustração */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: `url('${frameSrc}')`,
-        backgroundSize: 'cover', backgroundPosition: 'center top',
-        imageRendering: 'pixelated',
-        opacity: opacity * imgOpacity,
-        transition: 'opacity 0.38s ease',
-      }} />
+      {/* ilustração — camadas empilhadas: só a ativa fica visível e a troca
+          é um crossfade suave de 0.9s (imagem → imagem, sem passar pelo preto) */}
+      {ALL_FRAMES.map(f => (
+        <div key={f} style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url('${f}')`,
+          backgroundSize: 'cover', backgroundPosition: 'center top',
+          imageRendering: 'pixelated',
+          opacity: (vis && f === frameSrc) ? 1 : 0,
+          transition: 'opacity 0.9s ease',
+        }} />
+      ))}
 
       {/* gradiente embaixo para legibilidade do texto */}
       {cue && (
