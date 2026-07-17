@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { Beat, SceneBg, Speaker } from '../../game/types';
-import { ACT1 } from '../../game/script';
+import { buildBeats } from '../../game/buildBeats';
+import type { SharedQuiz } from '../../game/quizShare';
 import { audioGain, playSfx, preloadSfx } from '../../game/audio';
 import { startBattleMusic, stopBattleMusic } from '../../game/music';
 import LoreFx from './LoreFx';
@@ -1347,7 +1348,9 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
   const WRONG_HIT = 9;   // dano que o jogador LEVA ao ERRAR (forte)
   const ENEMY_HIT = 4;   // ataque do inimigo no turno dele (fraco)
 
-  const POOL = useMemo(() => [
+  // banco de perguntas do combate: usa o do professor (beat.pool) se houver;
+  // senão, o banco padrão de botânica
+  const POOL = useMemo(() => beat.pool && beat.pool.length > 0 ? beat.pool : [
     { text: 'Qual parte da planta absorve água e nutrientes do solo?',     options: ['A raiz', 'A flor', 'O fruto', 'A folha'], correct: 0 },
     { text: 'Que processo produz energia a partir da luz do sol?',         options: ['Fotossíntese', 'Digestão', 'Respiração', 'Germinação'], correct: 0 },
     { text: 'O que sai pelas folhas durante a transpiração?',              options: ['Vapor de água', 'Sementes', 'Areia', 'Pólen'], correct: 0 },
@@ -1356,7 +1359,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
     { text: 'Qual estrutura da planta atrai os polinizadores?',           options: ['A flor', 'A raiz', 'O caule', 'A casca'], correct: 0 },
     { text: 'O que transporta a seiva por toda a planta?',                 options: ['O caule', 'A flor', 'O fruto', 'A raiz'], correct: 0 },
     { text: 'Como as sementes se espalham para longe da planta-mãe?',      options: ['Vento e animais', 'Por fotossíntese', 'Pela transpiração', 'Por absorção'], correct: 0 },
-  ], []);
+  ], [beat.pool]);
 
   type Q = { text: string; options: string[]; correctIdx: number };
   const lastQ = useRef(-1);
@@ -2900,8 +2903,9 @@ function TerrainEditorPanel({ worldX, zones, onAdd, onRemove }: {
 // ─────────────────────────────────────────────────────────
 // Motor principal
 // ─────────────────────────────────────────────────────────
-export default function StoryGame({ onExit, onRestart, startBeat = 0, startBg }: { onExit: () => void; onRestart?: () => void; startBeat?: number; startBg?: SceneBg }) {
-  const beats = ACT1.beats;
+export default function StoryGame({ onExit, onRestart, startBeat = 0, startBg, quiz }: { onExit: () => void; onRestart?: () => void; startBeat?: number; startBg?: SceneBg; quiz?: SharedQuiz | null }) {
+  // com um quiz do professor, o roteiro usa as perguntas dele; senão, o padrão
+  const beats = useMemo(() => buildBeats(quiz), [quiz]);
   const [beatIndex, setBeatIndex] = useState(startBeat);
   const [bg, setBg] = useState<SceneBg>(startBg ?? 'noite');
   const [worldX, setWorldX] = useState(0);

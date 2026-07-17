@@ -8,6 +8,7 @@ import LoadingScreen from './components/Game/LoadingScreen';
 import ScenePreview from './components/ScenePreview';
 import { getSave, clearSave, resetStats } from './game/progress';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
+import { decodeQuiz, type SharedQuiz } from './game/quizShare';
 
 // Índices sincronizados com src/game/script.ts (incluem os beats de lore)
 const DEV_ACTS = [
@@ -86,10 +87,25 @@ export default function App() {
   // checkpoint salvo (para o botão CONTINUAR); relido ao voltar à home
   const [save, setSave] = useState(() => getSave());
   useEffect(() => { if (view === 'home') setSave(getSave()); }, [view]);
+  // quiz do professor (quando o aluno abre um link/QR compartilhado)
+  const [quiz, setQuiz] = useState<SharedQuiz | null>(null);
 
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash;
+      // link/QR compartilhado pelo professor: #jogo=<quiz codificado>
+      if (hash.startsWith('#jogo=')) {
+        const q = decodeQuiz(hash.slice('#jogo='.length));
+        if (q && (q.questions.length > 0 || q.pairs.length > 0)) {
+          setQuiz(q);
+          resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1);
+          setLoadTarget('intro'); setView('loading');
+          startMusic();
+          return;
+        }
+        // link inválido: cai na home
+        window.location.hash = '';
+      }
       if (hash === '#setup') setView('setup');
       else setView('home');
     };
@@ -114,7 +130,7 @@ export default function App() {
     return cleanup;
   }, [view]);
 
-  const goHome = () => { stopMusic(); window.location.hash = ''; setView('home'); };
+  const goHome = () => { stopMusic(); setQuiz(null); window.location.hash = ''; setView('home'); };
 
   // ── TELA DO PROFESSOR (criador de perguntas/jornada) ──
   if (view === 'setup') {
@@ -145,7 +161,7 @@ export default function App() {
     return <StoryGame key={gameKey}
       onExit={() => { setDevStart(null); goHome(); }}
       onRestart={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); }}
-      startBeat={devStart?.beat} startBg={devStart?.bg} />;
+      startBeat={devStart?.beat} startBg={devStart?.bg} quiz={quiz} />;
   }
 
   // ── TELA INICIAL ──────────────────────────────────────
@@ -200,7 +216,7 @@ export default function App() {
       }}>
         {save && (
           <button
-            onClick={() => { startMusic(); setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
+            onClick={() => { startMusic(); setQuiz(null); setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
             className="btn-game font-pixel w-full"
             style={{ fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
           >
@@ -208,7 +224,7 @@ export default function App() {
           </button>
         )}
         <button
-          onClick={() => { startMusic(); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
+          onClick={() => { startMusic(); setQuiz(null); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
           className="btn-game font-pixel w-full"
           style={save ? {
             fontSize: 13, padding: '17px 8px', maxWidth: 320,
@@ -264,7 +280,7 @@ export default function App() {
               </button>
               {DEV_ACTS.map(act => (
                 <button key={act.beat}
-                  onClick={() => { startMusic(); setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
+                  onClick={() => { startMusic(); setQuiz(null); setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
                   style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#cfe8c8', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
                   {act.label}
                 </button>

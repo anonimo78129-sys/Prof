@@ -71,6 +71,7 @@ export type Beat =
       intro?: string;
       success: string[];
       hint?: string;
+      pool?: MCQuestion[];    // perguntas do combate (do GameConfig; senão usa o banco padrão)
     }
   // Escolha final: decisão com dois desfechos distintos
   | {
