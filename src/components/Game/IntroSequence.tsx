@@ -77,7 +77,7 @@ const SLIDES: Slide[] = [
     frames: ['/assets/intro/caindo-1.png'],
     cues: [
       { type: 'evento', text: 'O som do motor se dissolve no silêncio.' },
-      { type: 'evento', text: 'O chão desaparece — e você cai por um céu sem fim.' },
+      { type: 'evento', text: 'O chão desaparece, e você cai por um céu sem fim.' },
       { type: 'voz',    text: 'Acorde, jovem.' },
       { type: 'voz',    text: 'Plante o seu amanhã...' },
     ],
@@ -95,7 +95,7 @@ const SLIDES: Slide[] = [
       { type: 'narrador',     text: 'Você abre os olhos lentamente.' },
       { type: 'narrador',     text: 'O assento do ônibus... desapareceu.' },
       { type: 'protagonista', text: 'Onde... onde eu estou?' },
-      { type: 'narrador',     text: 'Um imenso jardim selvagem se ergue ao seu redor — uma floresta encantada, viva e brilhante.' },
+      { type: 'narrador',     text: 'Um imenso jardim selvagem se ergue ao seu redor: uma floresta encantada, viva e brilhante.' },
       { type: 'protagonista', text: 'Eu estava no ônibus... Como vim parar aqui?' },
       { type: 'protagonista', text: 'Estou sonhando?' },
     ],

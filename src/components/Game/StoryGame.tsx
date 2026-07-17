@@ -1426,7 +1426,7 @@ function BattleBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: 'b
 
   // Frases de flavour para os ataques (reforçam o conteúdo botânico)
   const PLAYER_FLAVOR = useMemo(() => [
-    'FOTOSSÍNTESE! A luz do sol vira energia pura — super eficaz!',
+    'FOTOSSÍNTESE! A luz do sol vira energia pura, super eficaz!',
     'REDE DE FUNGOS! As raízes atacam por baixo da terra!',
     'TRANSPIRAÇÃO! Um jato de vapor atinge em cheio!',
     'ESPORA! Uma nuvem de esporos envolve o alvo!',
