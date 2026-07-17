@@ -447,17 +447,22 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
 
   const correctCount = beat.items.filter(i => i.correct).length;
 
-  // Posições espalhadas na tela; ox/oy = deslocamento da pos. final até a árvore (~60% left, ~28% top)
+  // Cada maçã é uma COLUNA centrada no ponto `left` (ancorada com translateX(-50%)
+  // via marginLeft), então o rótulo nunca escapa da tela. `left` fica numa faixa
+  // segura (16%–84%) e os cantos superiores ficam abaixo do botão SAIR (topo-dir.).
+  // ox/oy = de onde a maçã emerge (atrás da árvore, ~55% left).
   const appleData = useMemo(() => {
     const SLOTS = [
-      { left: '9%',  top: '22%', ox: '50vw',  oy: '6vh',  floatDur: '3.8s', floatPhase: '-0.5s',  delay: '0.05s' },
-      { left: '28%', top: '10%', ox: '32vw',  oy: '18vh', floatDur: '4.3s', floatPhase: '-1.8s',  delay: '0.22s' },
-      { left: '50%', top: '6%',  ox: '10vw',  oy: '22vh', floatDur: '3.5s', floatPhase: '-0.9s',  delay: '0.38s' },
-      { left: '72%', top: '13%', ox: '-12vw', oy: '15vh', floatDur: '4.1s', floatPhase: '-2.4s',  delay: '0.14s' },
-      { left: '87%', top: '25%', ox: '-28vw', oy: '3vh',  floatDur: '3.9s', floatPhase: '-1.3s',  delay: '0.29s' },
+      { left: '18%', top: '32%', ox: '34vw',  oy: '2vh',  floatDur: '3.8s', floatPhase: '-0.5s', delay: '0.05s' },
+      { left: '34%', top: '18%', ox: '22vw',  oy: '16vh', floatDur: '4.3s', floatPhase: '-1.8s', delay: '0.22s' },
+      { left: '50%', top: '12%', ox: '6vw',   oy: '20vh', floatDur: '3.5s', floatPhase: '-0.9s', delay: '0.38s' },
+      { left: '66%', top: '18%', ox: '-10vw', oy: '16vh', floatDur: '4.1s', floatPhase: '-2.4s', delay: '0.14s' },
+      { left: '82%', top: '32%', ox: '-24vw', oy: '2vh',  floatDur: '3.9s', floatPhase: '-1.3s', delay: '0.29s' },
     ];
     return beat.items.slice(0, 5).map((item, i) => ({ ...item, id: i, ...SLOTS[i] }));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const COLW = 104; // largura da coluna maçã+rótulo (centrada no ponto `left`)
 
   if (phase === 'intro' && beat.intro)
     return <DialogueBox who="narrador" text={beat.intro} onNext={() => setPhase('collecting')} />;
@@ -497,17 +502,36 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
 
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 30, pointerEvents: 'none' }}>
-      {/* instrução na base, acima do FLOOR; texto pode quebrar em telas pequenas */}
+      {/* instrução na base, acima do FLOOR; com progresso em "pips" de maçã */}
       <div className="font-pixel" style={{
         ...WOOD_PANEL,
         position: 'absolute', bottom: 112, left: '50%', transform: 'translateX(-50%)',
-        padding: '7px 14px',  color: '#eaf6e0',
-        fontSize: 9, letterSpacing: 1, textAlign: 'center', maxWidth: 320, zIndex: 35,
+        padding: '8px 14px 10px', color: '#eaf6e0',
+        fontSize: 9, letterSpacing: 1, textAlign: 'center',
+        maxWidth: 'min(320px, calc(100vw - 28px))', zIndex: 35,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7,
       }}>
-        {beat.instruction}<br />{collected.size}/{correctCount}
+        <span style={{ lineHeight: 1.4 }}>{beat.instruction}</span>
+        <span style={{ display: 'flex', gap: 6 }}>
+          {Array.from({ length: correctCount }).map((_, i) => {
+            const filled = i < collected.size;
+            return (
+              <span key={i} style={{
+                width: 12, height: 12, borderRadius: 3,
+                border: '1px solid #2f6b34',
+                background: filled ? '#e2412f' : 'rgba(0,0,0,0.35)',
+                boxShadow: filled ? '0 0 6px rgba(226,65,47,0.7)' : 'none',
+                transformOrigin: 'center',
+                animation: filled ? 'pip-fill 0.35s ease-out' : undefined,
+              }} />
+            );
+          })}
+        </span>
       </div>
 
-      {/* 5 maçãs: div externo faz o emerge da árvore; div interno flutua levemente */}
+      {/* 5 maçãs: cada uma é uma COLUNA centrada em `left` (marginLeft = -COLW/2),
+          então o rótulo pode quebrar sem escapar da tela. div externo faz o emerge;
+          div interno flutua. */}
       {appleData.map(apple => {
         const done = collected.has(apple.id);
         const popping = popped.has(apple.id) && !done;
@@ -523,6 +547,7 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
             onContextMenu={(e) => e.preventDefault()}
             style={{
               position: 'absolute', left: apple.left, top: apple.top,
+              width: COLW, marginLeft: -COLW / 2,
               ['--ox' as string]: apple.ox, ['--oy' as string]: apple.oy,
               animation: popping
                 ? 'apple-pop 0.4s ease-out forwards'
@@ -531,16 +556,27 @@ function CollectBeat({ beat, onSolved, onCorrect }: { beat: Extract<Beat, { t: '
             }}>
             {/* filho: flutuação independente do emerge */}
             <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
               animation: popping ? undefined : `apple-float ${apple.floatDur} ease-in-out ${floatStart} infinite`,
             }}>
-              <img src="/assets/ato3/apple.png" alt={apple.label}
-                style={{ height: 56, width: 'auto', imageRendering: 'pixelated',
-                  filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.6))' }} />
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                {/* halo pulsante que convida ao toque */}
+                <span aria-hidden style={{
+                  position: 'absolute', left: '50%', top: '50%', width: 74, height: 74,
+                  borderRadius: '50%', pointerEvents: 'none',
+                  background: 'radial-gradient(circle, rgba(255,224,120,0.55) 0%, rgba(255,180,60,0.15) 55%, rgba(0,0,0,0) 72%)',
+                  animation: popping ? undefined : `apple-glow ${apple.floatDur} ease-in-out infinite`,
+                }} />
+                <img src="/assets/ato3/apple.png" alt={apple.label}
+                  style={{ height: 56, width: 'auto', imageRendering: 'pixelated', position: 'relative',
+                    filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.6))' }} />
+              </div>
               <div className="font-pixel" style={{
-                background: 'rgba(8,24,12,0.88)', color: '#eaf6e0',
-                fontSize: 8, padding: '3px 8px', 
-                border: '1px solid #2f6b34', whiteSpace: 'nowrap',
+                background: 'rgba(8,24,12,0.9)', color: '#eaf6e0',
+                fontSize: 8, lineHeight: 1.35, padding: '4px 8px', borderRadius: 5,
+                border: '1px solid #2f6b34', textAlign: 'center',
+                maxWidth: COLW, whiteSpace: 'normal', wordBreak: 'break-word',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
               }}>
                 {apple.label}
               </div>

@@ -539,6 +539,19 @@
     50%       { transform: translateY(-11px) rotate(4deg); }
   }
 
+  /* Halo pulsante atrás da maçã, convida ao toque */
+  @keyframes apple-glow {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.35; }
+    50%       { transform: translate(-50%, -50%) scale(1.15); opacity: 0.7; }
+  }
+
+  /* Pip do progresso enche com um leve pop ao coletar */
+  @keyframes pip-fill {
+    0%   { transform: scale(0.2); }
+    60%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+
   /* ── Tree sway (subtle) ── */
   @keyframes tree-sway {
     0%, 100% { transform: skewX(0deg); }
