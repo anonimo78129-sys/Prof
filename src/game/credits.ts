@@ -1,9 +1,19 @@
 // ─────────────────────────────────────────────────────────
 // Créditos do jogo (Projeto Amazônia / Prof. Corujão).
-// Atribuições reunidas a partir dos arquivos CREDITS.txt dos packs,
-// do README de áudio e do histórico do projeto. Packs sob CC0 não
-// exigem crédito, mas são citados por cortesia; os demais exigem
-// atribuição pela licença.
+//
+// Lista revisada em conferência completa dos assets em uso no jogo
+// publicado (não inclui packs avaliados só na galeria de dev/preview,
+// que nunca chegam ao jogador). Atribuições reunidas a partir dos
+// arquivos CREDITS.txt embutidos nos próprios packs, do README de
+// áudio e da árvore de assets do projeto.
+//
+// Itens marcados com ⚠️ não têm comprovação de licença no repositório
+// (nenhum CREDITS.txt/README anexado, ou metadados do arquivo sugerem
+// origem comercial) — usados sob a responsabilidade e autorização da
+// equipe do Projeto Amazônia, que forneceu os arquivos. Recomenda-se
+// confirmar a licença original antes de distribuição pública/comercial
+// em maior escala; o jogo funciona normalmente sem eles (cai para o
+// áudio sintetizado equivalente).
 // ─────────────────────────────────────────────────────────
 
 export interface CreditItem {
@@ -33,7 +43,7 @@ export const CREDITS: CreditSection[] = [
       {
         title: 'Free Pixel Art Forest',
         author: 'Eder Muniz',
-        license: 'Uso pessoal e comercial com crédito',
+        license: 'Uso pessoal e comercial, com crédito',
         note: 'Camadas de parallax da floresta.',
         url: 'https://edermunizz.itch.io/free-pixel-art-forest',
       },
@@ -47,56 +57,73 @@ export const CREDITS: CreditSection[] = [
       {
         title: 'Free Swamp 2D Tileset',
         author: 'Craftpix.net',
-        license: 'Gratuito com crédito',
+        license: 'Gratuito, com crédito',
         note: 'Cenário do pântano (camadas + troncos e salgueiros).',
         url: 'https://craftpix.net/file-licenses/',
       },
       {
         title: 'Tall Forest pack',
-        author: 'Pack gratuito (itch.io)',
-        license: 'Confirmar autoria e licença antes de publicar',
-        note: 'Floresta e portão do Ato 1.',
+        author: 'Autoria não documentada no pack',
+        license: '⚠️ Pack gratuito — licença não verificada',
+        note: 'Floresta e portão do Ato 1. Fornecido pela equipe do projeto; sem CREDITS/README anexado.',
       },
       {
         title: 'Jungle Asset pack',
-        author: 'Pack gratuito (itch.io)',
-        license: 'Confirmar autoria e licença antes de publicar',
-        note: 'Camadas de fundo dos Atos 1 e 2.',
+        author: 'Autoria não documentada no pack',
+        license: '⚠️ Pack gratuito — licença não verificada',
+        note: 'Camadas de parallax da Clareira e do Pântano. Fornecido pela equipe do projeto; sem CREDITS/README anexado.',
       },
       {
         title: 'Ilustrações originais',
         author: 'Equipe do Projeto Amazônia',
         license: 'Criadas para este jogo',
-        note: 'Cenas de lore, intro (parada e ônibus), despertar, epílogos, retratos, a Consciência Verde, a árvore mágica e as maçãs.',
+        note: 'Cenas de lore, intro (parada e ônibus), despertar, epílogos, retratos, a Consciência Verde, o Domo-Mãe, a árvore mágica e as maçãs, a Estufa e o Corredor de Luz.',
       },
     ],
   },
   {
-    heading: 'Áudio — música e efeitos',
+    heading: 'Áudio — efeitos sonoros',
     items: [
       {
-        title: 'Efeitos sonoros — Pixel Dungeon SFX',
+        title: 'Pixel Dungeon Sound Effects',
         author: 'watabou',
-        license: 'Confirmar termos de uso antes de publicar',
-        note: 'Toques de diálogo, acerto/erro, portão, combate e vitória.',
+        license: '⚠️ Licença dos sons não confirmada',
+        note: 'Toques de diálogo, acerto/erro, portão, ataque, dano e vitória. O LICENSE.txt do pack cobre o código-fonte do jogo Pixel Dungeon (GPLv3); não há declaração separada para os sons em si.',
       },
       {
-        title: 'Música de exploração',
-        author: 'Beau Buckley',
-        license: 'Confirmar licença de uso antes de publicar',
-        note: 'Trilha em loop da intro e da aventura.',
+        title: 'Sintetizador 8-bit (fallback)',
+        author: 'Gerado por código no próprio jogo',
+        license: 'Original do projeto',
+        note: 'Toca automaticamente no lugar de qualquer efeito cujo arquivo esteja ausente.',
+      },
+    ],
+  },
+  {
+    heading: 'Áudio — música',
+    items: [
+      {
+        title: 'Tema da tela inicial',
+        author: 'Não documentado',
+        license: '⚠️ Licença não verificada',
+        note: 'Toca em loop na tela inicial, com fade.',
       },
       {
-        title: '"Pixel River" — música de combate',
-        author: 'Trevor Lentz',
-        license: 'Confirmar licença de uso antes de publicar',
-        note: 'Trilha do combate com a Consciência Verde.',
+        title: 'Tema de exploração',
+        author: 'Metadados do arquivo indicam "Beau Buckley"',
+        license: '⚠️ Licença não verificada — possível faixa comercial',
+        note: 'Toca em loop durante a intro e a aventura.',
       },
       {
-        title: 'Trilha chiptune 8-bit sintetizada',
+        title: '"Pixel River" — tema de combate',
+        author: 'Metadados do arquivo indicam "Trevor Lentz"',
+        license: '⚠️ Licença não verificada — possível faixa comercial',
+        note: 'Toca durante o combate com a Consciência Verde.',
+      },
+      {
+        title: 'Trilha chiptune sintetizada (fallback)',
         author: 'Gerada por código no próprio jogo',
         license: 'Original do projeto',
-        note: 'Toca como alternativa quando um arquivo de áudio está ausente.',
+        note: 'Melodia pentatônica em Dó maior, 96 BPM, 8 compassos em loop — toca automaticamente quando um arquivo de música está ausente.',
       },
     ],
   },
@@ -114,7 +141,7 @@ export const CREDITS: CreditSection[] = [
         title: 'VT323',
         author: 'Peter Hull',
         license: 'SIL Open Font License 1.1',
-        note: 'Fonte secundária, estilo terminal.',
+        note: 'Fonte secundária, estilo terminal, usada nos diálogos.',
         url: 'https://fonts.google.com/specimen/VT323',
       },
     ],
@@ -143,6 +170,10 @@ export const CREDITS: CreditSection[] = [
 
 // Aviso de licenças mostrado ao final da página.
 export const CREDITS_NOTE =
-  'Alguns packs de arte e áudio são gratuitos apenas para determinados usos. ' +
-  'Antes de publicar o jogo comercialmente ou em larga escala, confirme os ' +
-  'termos de cada recurso marcado acima.';
+  'Recursos marcados com ⚠️ não têm comprovação de licença anexada ao pack e foram ' +
+  'incluídos sob autorização e responsabilidade da equipe do Projeto Amazônia, que ' +
+  'os forneceu. O jogo funciona normalmente sem eles — cada um cai automaticamente ' +
+  'para uma versão sintetizada equivalente. Antes de uma distribuição pública ou ' +
+  'comercial em maior escala, recomenda-se confirmar a licença original de cada ' +
+  'item marcado, em especial o pack de efeitos sonoros (possível GPLv3) e as duas ' +
+  'faixas de música com metadados de artista comercial.';
