@@ -4,16 +4,9 @@
 // Lista revisada em conferência completa dos assets em uso no jogo
 // publicado (não inclui packs avaliados só na galeria de dev/preview,
 // que nunca chegam ao jogador). Atribuições reunidas a partir dos
-// arquivos CREDITS.txt embutidos nos próprios packs, do README de
-// áudio e da árvore de assets do projeto.
-//
-// Itens marcados com ⚠️ não têm comprovação de licença no repositório
-// (nenhum CREDITS.txt/README anexado, ou metadados do arquivo sugerem
-// origem comercial) — usados sob a responsabilidade e autorização da
-// equipe do Projeto Amazônia, que forneceu os arquivos. Recomenda-se
-// confirmar a licença original antes de distribuição pública/comercial
-// em maior escala; o jogo funciona normalmente sem eles (cai para o
-// áudio sintetizado equivalente).
+// arquivos CREDITS.txt/License.txt embutidos nos próprios packs, do
+// README de áudio, de pesquisa na internet (quando o arquivo de
+// licença não estava embutido) e da árvore de assets do projeto.
 // ─────────────────────────────────────────────────────────
 
 export interface CreditItem {
@@ -62,22 +55,24 @@ export const CREDITS: CreditSection[] = [
         url: 'https://craftpix.net/file-licenses/',
       },
       {
-        title: 'Tall Forest pack',
-        author: 'Autoria não documentada no pack',
-        license: '⚠️ Pack gratuito — licença não verificada',
-        note: 'Floresta e portão do Ato 1. Fornecido pela equipe do projeto; sem CREDITS/README anexado.',
+        title: 'SunnyLand Tall Forest Environment',
+        author: 'Ansimuz',
+        license: 'CC0 (domínio público)',
+        note: 'Camadas de parallax e props do Ato 1 (fundo, meio, plantas, pedra, musgo). Identificado por pesquisa: nome do pack, autor e as camadas de 240px de altura batem exatamente com os arquivos usados (itch.io e OpenGameArt.org ficaram inacessíveis para conferência direta da página, então a confirmação vem de resultados de busca consistentes, não de um arquivo de licença embutido).',
+        url: 'https://ansimuz.itch.io/sunnyland-tall-forest',
       },
       {
-        title: 'Jungle Asset pack',
-        author: 'Autoria não documentada no pack',
-        license: '⚠️ Pack gratuito — licença não verificada',
-        note: 'Camadas de parallax da Clareira e do Pântano. Fornecido pela equipe do projeto; sem CREDITS/README anexado.',
+        title: 'Jungle Asset Pack',
+        author: 'Jesse Munguia',
+        license: 'Gratuito — uso pessoal e comercial, sem redistribuição do pack',
+        note: 'Camadas de parallax da Clareira e do Pântano. Licença confirmada pelo autor nos comentários da página; identificação por pesquisa, sem CREDITS/README anexado ao arquivo.',
+        url: 'https://jesse-m.itch.io/jungle-pack',
       },
       {
         title: 'Ilustrações originais',
         author: 'Equipe do Projeto Amazônia',
         license: 'Criadas para este jogo',
-        note: 'Cenas de lore, intro (parada e ônibus), despertar, epílogos, retratos, a Consciência Verde, o Domo-Mãe, a árvore mágica e as maçãs, a Estufa e o Corredor de Luz.',
+        note: 'Cenas de lore, intro (parada e ônibus), despertar, epílogos, retratos, a Consciência Verde, o Domo-Mãe, a árvore mágica e as maçãs, a Estufa, o Corredor de Luz, e os arbustos/portão em alta resolução do Ato 1 (bush1-4, gate-closed/open, far-custom, layer8-custom — não fazem parte do pack Tall Forest, apesar de estarem na mesma pasta).',
       },
     ],
   },
@@ -174,10 +169,10 @@ export const CREDITS: CreditSection[] = [
 
 // Aviso de licenças mostrado ao final da página.
 export const CREDITS_NOTE =
-  'Todo o áudio do jogo (efeitos sonoros e as três músicas) tem licença ' +
-  'confirmada — Kenney (CC0) e Pixabay Music. Os dois itens ainda marcados ' +
-  'com ⚠️ são packs de arte gratuitos (Tall Forest, Jungle Asset) sem ' +
-  'CREDITS/README anexado; foram incluídos sob autorização e responsabilidade ' +
-  'da equipe do Projeto Amazônia, que os forneceu. Recomenda-se confirmar a ' +
-  'licença original de cada um antes de uma distribuição pública ou comercial ' +
-  'em maior escala.';
+  'Todos os recursos listados acima têm licença identificada — a maioria ' +
+  'confirmada por um arquivo de licença embutido no próprio pack; o ' +
+  'SunnyLand Tall Forest Environment e o Jungle Asset Pack foram ' +
+  'identificados por pesquisa (nome do pack, autor e detalhes técnicos ' +
+  'conferidos, mas sem acesso direto à página de origem para citar o texto ' +
+  'literal da licença). Antes de uma distribuição pública ou comercial em ' +
+  'maior escala, vale conferir a página oficial de cada um desses dois.';
