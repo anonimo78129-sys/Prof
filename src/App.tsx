@@ -6,6 +6,7 @@ import StoryGame from './components/Game/StoryGame';
 import IntroSequence from './components/Game/IntroSequence';
 import LoadingScreen from './components/Game/LoadingScreen';
 import ScenePreview from './components/ScenePreview';
+import Credits from './components/Game/Credits';
 import { getSave, clearSave, resetStats } from './game/progress';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { decodeQuiz, type SharedQuiz } from './game/quizShare';
@@ -72,7 +73,7 @@ function Fireflies() {
   );
 }
 
-type View = 'home' | 'loading' | 'intro' | 'setup' | 'jogar' | 'preview';
+type View = 'home' | 'loading' | 'intro' | 'setup' | 'jogar' | 'preview' | 'creditos';
 
 const isTestMode = typeof window !== 'undefined' && window.location.search.includes('test');
 
@@ -144,6 +145,11 @@ export default function App() {
   // ── PREVIEW — galeria de cenários ──
   if (view === 'preview') {
     return <ScenePreview onBack={() => setView('home')} />;
+  }
+
+  // ── CRÉDITOS — atribuições de arte, áudio, fontes e tecnologia ──
+  if (view === 'creditos') {
+    return <Credits onBack={() => setView('home')} />;
   }
 
   // ── LOADING — pré-carrega as imagens antes de começar ──
@@ -244,6 +250,19 @@ export default function App() {
           }}
         >
           CRIAR
+        </button>
+
+        {/* link discreto de créditos — não compete com os botões principais */}
+        <button
+          onClick={() => setView('creditos')}
+          className="font-pixel"
+          style={{
+            marginTop: 2, background: 'transparent', border: 'none',
+            color: 'rgba(207,232,192,0.7)', fontSize: 9, letterSpacing: 1,
+            padding: '6px 10px', cursor: 'pointer', textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+          }}
+        >
+          CRÉDITOS
         </button>
       </div>
 
