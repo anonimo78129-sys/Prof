@@ -85,10 +85,17 @@ export const CREDITS: CreditSection[] = [
     heading: 'Áudio — efeitos sonoros',
     items: [
       {
-        title: 'Efeitos sonoros sintetizados',
+        title: 'Interface Sounds · RPG Audio · Impact Sounds · Digital Audio · Music Jingles',
+        author: 'Kenney Vleugels (kenney.nl)',
+        license: 'CC0 1.0 Universal',
+        note: 'Toque de diálogo, seleção, acerto, erro, portão, passo, ataque, dano e vitória. Licença confirmada no License.txt de cada pack; ver public/assets/audio/sfx/CREDITS.txt para a fonte exata de cada arquivo.',
+        url: 'https://kenney.nl',
+      },
+      {
+        title: 'Efeitos sonoros sintetizados (fallback)',
         author: 'Gerados por código no próprio jogo',
         license: 'Original do projeto',
-        note: 'Toques de diálogo, acerto/erro, portão, passo, ataque, dano e vitória. Compostos em WebAudio (osciladores + ruído filtrado), sem depender de nenhum arquivo de terceiros.',
+        note: 'Toca automaticamente no lugar de qualquer efeito cujo arquivo esteja ausente — o jogo nunca fica sem som.',
       },
     ],
   },
@@ -170,5 +177,5 @@ export const CREDITS_NOTE =
   'para uma versão sintetizada equivalente. Antes de uma distribuição pública ou ' +
   'comercial em maior escala, recomenda-se confirmar a licença original de cada ' +
   'item marcado — atualmente, as duas faixas de música com metadados de artista ' +
-  'comercial. Os efeitos sonoros já foram substituídos por versões 100% originais, ' +
-  'sem esse risco.';
+  'comercial. Os efeitos sonoros foram substituídos por arquivos da Kenney com ' +
+  'licença CC0 confirmada individualmente, sem esse risco.';

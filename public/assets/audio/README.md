@@ -39,15 +39,11 @@ Também aceita `.ogg`/`.wav` se você trocar a extensão no mapa `SFX_FILES` do 
 
 ## 🔊 Efeitos sonoros  → `sfx/`
 
-**Esta pasta está vazia de propósito.** Os 9 arquivos que estavam aqui vinham
-do pack "Watabou Pixel Dungeon Sound Effects", cujo `LICENSE.txt` cobre só o
-código-fonte do jogo (GPLv3) — sem declaração separada sobre a licença dos
-*sons* em si. Para não carregar esse risco, eles foram removidos.
-
-No lugar deles, todo efeito sonoro do jogo agora é **sintetizado em código**
-(`SYNTH_SFX` em `src/game/audio.ts`) — camadas de osciladores e ruído filtrado
-compostas na hora, sem depender de nenhum arquivo. É 100% original do
-projeto, sem risco de licença, e já é o que toca por padrão.
+Os 9 arquivos que estavam aqui antes vinham do pack "Watabou Pixel Dungeon
+Sound Effects", cujo `LICENSE.txt` cobria só o código-fonte do jogo (GPLv3) —
+sem declaração separada sobre a licença dos *sons* em si. Foram substituídos
+por sons do Kenney (kenney.nl), **CC0 confirmado individualmente** em cada
+pack de origem — ver `sfx/CREDITS.txt` para a fonte exata de cada arquivo.
 
 Sons **curtos** (menos de ~2s).
 
@@ -63,15 +59,15 @@ Sons **curtos** (menos de ~2s).
 | `sfx/hurt.mp3`     | Jogador leva dano no combate        |
 | `sfx/victory.mp3`  | Vencer o combate                    |
 
-Se um dia você quiser trocar algum efeito por um arquivo gravado (de uma
-fonte com licença **CC0 confirmada**), é só colocar o `.mp3` com o nome acima
-nesta pasta — ele passa a tocar automaticamente no lugar do sintetizado, sem
-mexer em código.
+Se algum desses arquivos faltar (ou você apagar a pasta), o jogo cai
+automaticamente para uma versão **sintetizada em código** equivalente
+(`SYNTH_SFX` em `src/game/audio.ts`) — o jogo nunca fica sem som.
 
 ---
 
 ## Onde achar efeitos grátis (CC0 / domínio público)
 
+- https://kenney.nl/assets?q=audio
 - https://freesound.org
 - https://pixabay.com/sound-effects/
 - https://opengameart.org
