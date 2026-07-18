@@ -103,16 +103,18 @@ export const CREDITS: CreditSection[] = [
     heading: 'Áudio — música',
     items: [
       {
-        title: 'Tema da tela inicial',
-        author: 'Não documentado',
-        license: '⚠️ Licença não verificada',
+        title: '"That Game Arcade (Medium)" — tema da tela inicial',
+        author: 'moodmode',
+        license: 'Licença de Conteúdo Pixabay',
         note: 'Toca em loop na tela inicial, com fade.',
+        url: 'https://pixabay.com/music/',
       },
       {
-        title: 'Tema de exploração',
-        author: 'Metadados do arquivo indicam "Beau Buckley"',
-        license: '⚠️ Licença não verificada — possível faixa comercial',
+        title: '"Mystery Vintage Recordings" — tema de exploração',
+        author: 'EchoWaveMutawe',
+        license: 'Licença de Conteúdo Pixabay',
         note: 'Toca em loop durante a intro e a aventura.',
+        url: 'https://pixabay.com/music/',
       },
       {
         title: '"Pixel River" — tema de combate',
@@ -175,7 +177,7 @@ export const CREDITS_NOTE =
   'incluídos sob autorização e responsabilidade da equipe do Projeto Amazônia, que ' +
   'os forneceu. O jogo funciona normalmente sem eles — cada um cai automaticamente ' +
   'para uma versão sintetizada equivalente. Antes de uma distribuição pública ou ' +
-  'comercial em maior escala, recomenda-se confirmar a licença original de cada ' +
-  'item marcado — atualmente, as duas faixas de música com metadados de artista ' +
-  'comercial. Os efeitos sonoros foram substituídos por arquivos da Kenney com ' +
-  'licença CC0 confirmada individualmente, sem esse risco.';
+  'comercial em maior escala, recomenda-se confirmar a licença original do item ' +
+  'ainda marcado — atualmente, só a trilha de combate, com metadados de artista ' +
+  'comercial. Os efeitos sonoros e as músicas da tela inicial e de exploração já ' +
+  'foram substituídos por arquivos com licença confirmada (Kenney CC0 e Pixabay).';
