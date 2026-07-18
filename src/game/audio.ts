@@ -100,8 +100,9 @@ function synthCtx(): AudioContext | null {
   } catch { return null; }
 }
 
-// tom simples com envelope; delay/freqEnd opcionais p/ arpejos e sweeps
-function sTone(freq: number, dur: number, type: OscillatorType, gain: number, delay = 0, freqEnd?: number) {
+// tom com envelope; delay/freqEnd para arpejos e sweeps; detune (cents)
+// permite empilhar uma 2ª voz levemente desafinada (dá corpo ao som)
+function sTone(freq: number, dur: number, type: OscillatorType, gain: number, delay = 0, freqEnd?: number, detune = 0) {
   const g0 = audioGain(gain); if (g0 <= 0) return;
   const ctx = synthCtx(); if (!ctx) return;
   const t = ctx.currentTime + delay;
@@ -109,6 +110,7 @@ function sTone(freq: number, dur: number, type: OscillatorType, gain: number, de
   const g = ctx.createGain();
   osc.type = type;
   osc.frequency.setValueAtTime(freq, t);
+  osc.detune.setValueAtTime(detune, t);
   if (freqEnd) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), t + dur);
   g.gain.setValueAtTime(0.0001, t);
   g.gain.linearRampToValueAtTime(g0, t + 0.012);
@@ -117,8 +119,15 @@ function sTone(freq: number, dur: number, type: OscillatorType, gain: number, de
   osc.start(t); osc.stop(t + dur + 0.05);
 }
 
-// rajada de ruído filtrado (passos, impactos, pedra)
-function sNoise(dur: number, gain: number, filterFreq: number, delay = 0) {
+// duas vozes levemente destonadas tocando juntas — chorus simples, dá "corpo"
+function sToneDuo(freq: number, dur: number, type: OscillatorType, gain: number, delay = 0, freqEnd?: number) {
+  sTone(freq, dur, type, gain, delay, freqEnd, -6);
+  sTone(freq, dur, type, gain * 0.8, delay, freqEnd, 7);
+}
+
+// rajada de ruído filtrado (passos, impactos, texturas) — lowpass por padrão,
+// mas aceita bandpass/highpass p/ ticks e rangidos
+function sNoise(dur: number, gain: number, filterFreq: number, delay = 0, filterType: BiquadFilterType = 'lowpass') {
   const g0 = audioGain(gain); if (g0 <= 0) return;
   const ctx = synthCtx(); if (!ctx) return;
   const t = ctx.currentTime + delay;
@@ -129,7 +138,7 @@ function sNoise(dur: number, gain: number, filterFreq: number, delay = 0) {
   const src = ctx.createBufferSource();
   src.buffer = buf;
   const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass'; filter.frequency.value = filterFreq;
+  filter.type = filterType; filter.frequency.value = filterFreq;
   const g = ctx.createGain();
   g.gain.setValueAtTime(g0, t);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
@@ -137,17 +146,48 @@ function sNoise(dur: number, gain: number, filterFreq: number, delay = 0) {
   src.start(t); src.stop(t + dur + 0.02);
 }
 
-// Um som 8-bit para cada efeito (usado quando o arquivo .mp3 não existe)
+// Efeitos sonoros originais do jogo — compostos em camadas (tom + ruído +
+// segunda voz destonada) para soar mais rico que um bipe único, sem
+// depender de nenhum arquivo de terceiros.
 const SYNTH_SFX: Record<SfxName, (vol: number) => void> = {
-  tap:     v => sTone(660, 0.06, 'square', 0.10 * v),
-  select:  v => { sTone(520, 0.05, 'square', 0.10 * v); sTone(780, 0.06, 'square', 0.09 * v, 0.05); },
-  correct: v => [523.25, 659.25, 783.99].forEach((f, i) => sTone(f, 0.13, 'square', 0.11 * v, i * 0.085)),
-  wrong:   v => { sTone(220, 0.18, 'sawtooth', 0.09 * v); sTone(155, 0.24, 'sawtooth', 0.09 * v, 0.13); },
-  gate:    v => { sTone(90, 0.6, 'triangle', 0.14 * v, 0, 45); sNoise(0.55, 0.07 * v, 260); },
-  walk:    v => sNoise(0.05, 0.05 * v, 900),
-  attack:  v => sTone(700, 0.13, 'square', 0.11 * v, 0, 140),
-  hurt:    v => { sNoise(0.16, 0.08 * v, 650); sTone(110, 0.2, 'sawtooth', 0.08 * v); },
-  victory: v => [392, 523.25, 659.25, 783.99].forEach((f, i) => sTone(f, 0.17, 'square', 0.10 * v, i * 0.115)),
+  tap: v => {
+    sTone(880, 0.045, 'square', 0.085 * v);
+    sTone(660, 0.05, 'triangle', 0.05 * v, 0.01);
+  },
+  select: v => {
+    sNoise(0.012, 0.05 * v, 3500, 0, 'highpass');
+    sTone(660, 0.05, 'square', 0.09 * v);
+    sTone(990, 0.07, 'square', 0.08 * v, 0.05);
+  },
+  correct: v => {
+    [523.25, 659.25, 783.99].forEach((f, i) => sTone(f, 0.12, 'square', 0.10 * v, i * 0.075));
+    sToneDuo(1046.5, 0.22, 'triangle', 0.07 * v, 0.225);
+  },
+  wrong: v => {
+    sNoise(0.05, 0.05 * v, 1200);
+    sTone(233, 0.16, 'sawtooth', 0.09 * v);
+    sTone(196, 0.22, 'sawtooth', 0.08 * v, 0.11, 147);
+  },
+  gate: v => {
+    sNoise(0.5, 0.045 * v, 380, 0, 'bandpass');
+    sTone(85, 0.55, 'triangle', 0.13 * v, 0, 42);
+    sTone(52, 0.18, 'sine', 0.12 * v, 0.5);
+  },
+  walk: v => sNoise(0.055, 0.045 * v, 700 + Math.random() * 300),
+  attack: v => {
+    sTone(880, 0.03, 'square', 0.05 * v);
+    sTone(760, 0.14, 'square', 0.11 * v, 0, 130);
+    sTone(1200, 0.05, 'sine', 0.04 * v, 0.02);
+  },
+  hurt: v => {
+    sNoise(0.09, 0.09 * v, 500);
+    sTone(180, 0.18, 'sawtooth', 0.09 * v, 0, 70);
+    sTone(90, 0.22, 'sawtooth', 0.06 * v, 0.05);
+  },
+  victory: v => {
+    [392, 523.25, 659.25, 783.99].forEach((f, i) => sTone(f, 0.15, 'square', 0.09 * v, i * 0.105));
+    [523.25, 659.25, 783.99, 1046.5].forEach(f => sToneDuo(f, 0.5, 'triangle', 0.05 * v, 0.46));
+  },
 };
 
 // Cache de "disponibilidade": evita tentar recarregar arquivos que faltam.

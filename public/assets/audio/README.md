@@ -39,31 +39,34 @@ Também aceita `.ogg`/`.wav` se você trocar a extensão no mapa `SFX_FILES` do 
 
 ## 🔊 Efeitos sonoros  → `sfx/`
 
+**Esta pasta está vazia de propósito.** Os 9 arquivos que estavam aqui vinham
+do pack "Watabou Pixel Dungeon Sound Effects", cujo `LICENSE.txt` cobre só o
+código-fonte do jogo (GPLv3) — sem declaração separada sobre a licença dos
+*sons* em si. Para não carregar esse risco, eles foram removidos.
+
+No lugar deles, todo efeito sonoro do jogo agora é **sintetizado em código**
+(`SYNTH_SFX` em `src/game/audio.ts`) — camadas de osciladores e ruído filtrado
+compostas na hora, sem depender de nenhum arquivo. É 100% original do
+projeto, sem risco de licença, e já é o que toca por padrão.
+
 Sons **curtos** (menos de ~2s).
 
-| Arquivo            | Dispara quando                    | Origem (pack Watabou)  |
-|--------------------|------------------------------------|-------------------------|
-| `sfx/tap.mp3`      | Avançar uma fala de diálogo        | `snd_click.mp3`         |
-| `sfx/select.mp3`   | Clicar num botão/opção             | `snd_unlock.mp3`        |
-| `sfx/correct.mp3`  | Acertar uma pergunta                | `snd_gold.mp3`          |
-| `sfx/wrong.mp3`    | Errar uma pergunta                  | `snd_miss.mp3`          |
-| `sfx/gate.mp3`     | Portão abrindo / pedra afundando   | `snd_door_open.mp3`     |
-| `sfx/walk.mp3`     | Passo do personagem (opcional)     | `snd_step.mp3`          |
-| `sfx/attack.mp3`   | Ataque do jogador no combate        | `snd_zap.mp3`           |
-| `sfx/hurt.mp3`     | Jogador leva dano no combate        | `snd_hit.mp3`           |
-| `sfx/victory.mp3`  | Vencer o combate                    | `snd_levelup.mp3`       |
+| Arquivo            | Dispara quando                    |
+|--------------------|------------------------------------|
+| `sfx/tap.mp3`      | Avançar uma fala de diálogo        |
+| `sfx/select.mp3`   | Clicar num botão/opção             |
+| `sfx/correct.mp3`  | Acertar uma pergunta                |
+| `sfx/wrong.mp3`    | Errar uma pergunta                  |
+| `sfx/gate.mp3`     | Portão abrindo / pedra afundando   |
+| `sfx/walk.mp3`     | Passo do personagem (opcional)     |
+| `sfx/attack.mp3`   | Ataque do jogador no combate        |
+| `sfx/hurt.mp3`     | Jogador leva dano no combate        |
+| `sfx/victory.mp3`  | Vencer o combate                    |
 
-Você não precisa colocar todos — só os que tiver. Os que faltarem continuam
-usando o som sintetizado.
-
-⚠️ **Licença:** estes 9 arquivos vêm do pack "Watabou Pixel Dungeon Sound
-Effects" (efeitos do jogo *Pixel Dungeon*, de watabou). O `LICENSE.txt`
-incluído no pack é uma cópia da licença do **código-fonte** do jogo
-(GPLv3) — não há uma declaração explícita e separada sobre a licença
-dos *sons* em si. Confirme os termos de uso reais (ex. na fonte original
-de onde o pack foi baixado) antes de publicar o jogo publicamente; se o
-pacote for mesmo GPLv3, isso pode exigir que o projeto inteiro seja
-distribuído sob a mesma licença.
+Se um dia você quiser trocar algum efeito por um arquivo gravado (de uma
+fonte com licença **CC0 confirmada**), é só colocar o `.mp3` com o nome acima
+nesta pasta — ele passa a tocar automaticamente no lugar do sintetizado, sem
+mexer em código.
 
 ---
 

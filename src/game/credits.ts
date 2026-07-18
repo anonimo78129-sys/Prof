@@ -85,16 +85,10 @@ export const CREDITS: CreditSection[] = [
     heading: 'Áudio — efeitos sonoros',
     items: [
       {
-        title: 'Pixel Dungeon Sound Effects',
-        author: 'watabou',
-        license: '⚠️ Licença dos sons não confirmada',
-        note: 'Toques de diálogo, acerto/erro, portão, ataque, dano e vitória. O LICENSE.txt do pack cobre o código-fonte do jogo Pixel Dungeon (GPLv3); não há declaração separada para os sons em si.',
-      },
-      {
-        title: 'Sintetizador 8-bit (fallback)',
-        author: 'Gerado por código no próprio jogo',
+        title: 'Efeitos sonoros sintetizados',
+        author: 'Gerados por código no próprio jogo',
         license: 'Original do projeto',
-        note: 'Toca automaticamente no lugar de qualquer efeito cujo arquivo esteja ausente.',
+        note: 'Toques de diálogo, acerto/erro, portão, passo, ataque, dano e vitória. Compostos em WebAudio (osciladores + ruído filtrado), sem depender de nenhum arquivo de terceiros.',
       },
     ],
   },
@@ -175,5 +169,6 @@ export const CREDITS_NOTE =
   'os forneceu. O jogo funciona normalmente sem eles — cada um cai automaticamente ' +
   'para uma versão sintetizada equivalente. Antes de uma distribuição pública ou ' +
   'comercial em maior escala, recomenda-se confirmar a licença original de cada ' +
-  'item marcado, em especial o pack de efeitos sonoros (possível GPLv3) e as duas ' +
-  'faixas de música com metadados de artista comercial.';
+  'item marcado — atualmente, as duas faixas de música com metadados de artista ' +
+  'comercial. Os efeitos sonoros já foram substituídos por versões 100% originais, ' +
+  'sem esse risco.';
