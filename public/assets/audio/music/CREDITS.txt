@@ -21,4 +21,11 @@ home-theme.mp3
   Fornecida pela equipe do Projeto Amazônia (download direto do Pixabay).
 
 battle.mp3
-  Ainda sem comprovação de licença — ver README.md desta pasta.
+  Título: "Enemy 2"
+  Artista: Retro-BGM-Chan
+  Fonte: Pixabay Music (https://pixabay.com/music/)
+  ID da faixa: 534611
+  Licença: Licença de Conteúdo Pixabay — livre para uso pessoal e
+    comercial, atribuição não obrigatória (mas bem-vinda).
+    https://pixabay.com/service/license-summary/
+  Fornecida pela equipe do Projeto Amazônia (download direto do Pixabay).

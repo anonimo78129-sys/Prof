@@ -27,15 +27,10 @@ durante o combate, se faltar só o `battle.mp3`. Todas as trilhas
 respeitam o mudo/volume do jogo.
 
 `explore.mp3` é "Mystery Vintage Recordings", de EchoWaveMutawe; `home-theme.mp3`
-é "That Game Arcade (Medium)", de moodmode — ambas baixadas do Pixabay Music
-sob a Licença Pixabay (uso livre, atribuição não obrigatória; ver
-`music/CREDITS.txt` para os detalhes de cada uma).
-
-⚠️ **Licença:** `battle.mp3` ainda traz metadados de uma faixa comercial
-(artista "Trevor Lentz", gênero "Chiptune", título "Pixel River").
-Confirme que há licença de uso antes de publicar o jogo publicamente,
-ou substitua por uma faixa com licença confirmada (mesmo processo usado
-para `explore.mp3` e `home-theme.mp3`).
+é "That Game Arcade (Medium)", de moodmode; `battle.mp3` é "Enemy 2", de
+Retro-BGM-Chan — todas baixadas do Pixabay Music sob a Licença Pixabay (uso
+livre, atribuição não obrigatória; ver `music/CREDITS.txt` para os detalhes
+de cada uma).
 
 Formato recomendado: **.mp3** (compatível com todos os navegadores).
 Também aceita `.ogg`/`.wav` se você trocar a extensão no mapa `SFX_FILES` do `audio.ts`.

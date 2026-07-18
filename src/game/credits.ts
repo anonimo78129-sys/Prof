@@ -117,10 +117,11 @@ export const CREDITS: CreditSection[] = [
         url: 'https://pixabay.com/music/',
       },
       {
-        title: '"Pixel River" — tema de combate',
-        author: 'Metadados do arquivo indicam "Trevor Lentz"',
-        license: '⚠️ Licença não verificada — possível faixa comercial',
+        title: '"Enemy 2" — tema de combate',
+        author: 'Retro-BGM-Chan',
+        license: 'Licença de Conteúdo Pixabay',
         note: 'Toca durante o combate com a Consciência Verde.',
+        url: 'https://pixabay.com/music/',
       },
       {
         title: 'Trilha chiptune sintetizada (fallback)',
@@ -173,11 +174,10 @@ export const CREDITS: CreditSection[] = [
 
 // Aviso de licenças mostrado ao final da página.
 export const CREDITS_NOTE =
-  'Recursos marcados com ⚠️ não têm comprovação de licença anexada ao pack e foram ' +
-  'incluídos sob autorização e responsabilidade da equipe do Projeto Amazônia, que ' +
-  'os forneceu. O jogo funciona normalmente sem eles — cada um cai automaticamente ' +
-  'para uma versão sintetizada equivalente. Antes de uma distribuição pública ou ' +
-  'comercial em maior escala, recomenda-se confirmar a licença original do item ' +
-  'ainda marcado — atualmente, só a trilha de combate, com metadados de artista ' +
-  'comercial. Os efeitos sonoros e as músicas da tela inicial e de exploração já ' +
-  'foram substituídos por arquivos com licença confirmada (Kenney CC0 e Pixabay).';
+  'Todo o áudio do jogo (efeitos sonoros e as três músicas) tem licença ' +
+  'confirmada — Kenney (CC0) e Pixabay Music. Os dois itens ainda marcados ' +
+  'com ⚠️ são packs de arte gratuitos (Tall Forest, Jungle Asset) sem ' +
+  'CREDITS/README anexado; foram incluídos sob autorização e responsabilidade ' +
+  'da equipe do Projeto Amazônia, que os forneceu. Recomenda-se confirmar a ' +
+  'licença original de cada um antes de uma distribuição pública ou comercial ' +
+  'em maior escala.';
