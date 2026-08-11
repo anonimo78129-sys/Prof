@@ -1,21 +1,25 @@
 // ─────────────────────────────────────────────────────────
-// CINZAS — O Último Abrigo
+// CINZAS: O Último Abrigo
 //
-// Ficção interativa de sobrevivência pós-apocalíptica. O jogador guia
-// uma sobrevivente pelos dias após "a Queda" (um desastre nuclear/
-// radioativo), tomando decisões que afetam quatro recursos — ração,
-// água, saúde e confiança — até um dos seis desfechos possíveis.
+// Ficção interativa de sobrevivência. A protagonista é uma guardiã de
+// sementes que sai do Abrigo 7 três dias depois da Queda, com a mochila
+// cheia e um protocolo decorado: queimar qualquer crescimento perto da
+// porta.
 //
-// A biologia entra DENTRO das decisões: cada capítulo tem um desafio
-// (pergunta de múltipla escolha) sobre a ciência por trás da própria
-// sobrevivência — radiação e dano celular, purificação de água e
-// microbiologia, imunidade e contágio, fotossíntese e cultivo de
-// alimento em ambiente fechado. Acertar rende bônus nos recursos;
-// errar ainda ensina (o Prof. Corujão explica) e custa um pouco.
+// O protocolo está errado, e a biologia é o que revela isso. A crosta
+// preta-esverdeada que todos queimam (a Mancha) é um fungo que está
+// retirando contaminação do solo. Os cinco desafios não são prova: são
+// pistas em escalada, e a última entrega a virada. A escolha final vira
+// queimar ou semear.
 //
-// Quando um professor compartilha um quiz (link/QR — ver quizShare.ts),
-// as 5 perguntas padrão são substituídas pelas perguntas do professor,
-// mantendo a mesma narrativa (ver buildScenes.ts).
+// Referências assumidas: a Selva Tóxica de "Nausicaä do Vale do Vento"
+// (o que parece matar está purificando) e a ciência real da zona de
+// Chernobyl (fungos que acumulam césio-137 e estrôncio-90; girassóis
+// usados em fitorremediação porque césio e estrôncio imitam potássio e
+// cálcio).
+//
+// Com um quiz de professor (link/QR, ver quizShare.ts), as 5 perguntas
+// são trocadas pelas dele e a narrativa segue igual (ver buildScenes.ts).
 // ─────────────────────────────────────────────────────────
 import type { MCQuestion } from '../types/game';
 
@@ -45,15 +49,14 @@ export function applyEffect(stats: Stats, effect?: StatEffect): Stats {
   return next;
 }
 
-// Clima da cena — escolhe o tipo de partícula e a cor de destaque da UI
+// Clima da cena: escolhe o tipo de partícula e a cor de destaque da UI
 export type Mood = 'dawn' | 'ash' | 'danger' | 'dusk' | 'hope' | 'bleak' | 'settle';
 
 // Arte de fundo (PNG pixel art gerado por scripts/gen-art.mjs)
 export type Art =
   | 'bunker' | 'ruins' | 'toxic' | 'cistern' | 'station' | 'settlement'
-  | 'greenhouse' | 'wasteland' | 'dawn' | 'bleak' | 'lone';
+  | 'greenhouse' | 'wasteland' | 'dawn' | 'bleak' | 'lone' | 'mancha';
 
-// Ícones disponíveis (extraídos do protótipo — ver public/assets/cinzas/icons)
 export type CinzasIcon =
   | 'bread' | 'flask' | 'medkit' | 'bandage' | 'nametag' | 'poison' | 'ablaze'
   | 'gasmask' | 'lamp' | 'busstop' | 'silo' | 'windmill' | 'sprout';
@@ -69,9 +72,8 @@ interface SceneBase {
   day: number;
   chapter: string;
   mood: Mood;
-  art: Art;          // cenário pixel art de fundo
+  art: Art;
   icon?: CinzasIcon;
-  wide?: boolean;   // ícone maior (prédio/estrutura) em vez de item pequeno
   title: string;
 }
 
@@ -81,15 +83,15 @@ export interface NarrativeScene extends SceneBase {
   choices: Choice[];
 }
 
-// Desafio: uma pergunta de biologia ligada à decisão de sobrevivência.
-// `next` é fixo (linear) — o desafio não ramifica a história, só o resultado.
+// Desafio: pergunta de biologia que funciona como pista da trama.
+// `next` é fixo: o desafio não ramifica a história, só o resultado.
 export interface ChallengeScene extends SceneBase {
   kind: 'challenge';
-  intro: string;          // contexto antes da pergunta
+  intro: string;
   question: MCQuestion;
-  correctText: string;    // reação ao acertar
-  wrongText: string;      // reação ao errar (o Corujão ainda explica no hint)
-  hint: string;            // explicação mostrada junto com "errado"
+  correctText: string;
+  wrongText: string;
+  hint: string;            // a explicação, mostrada acertando ou errando
   effectCorrect: StatEffect;
   effectWrong: StatEffect;
   next: string;
@@ -100,9 +102,7 @@ export interface EndingScene extends SceneBase {
   text: string;
 }
 
-// Nó silencioso: decide o próximo id pelos recursos atuais, sem mostrar
-// nenhuma tela — usado para ramificar o desfecho final sem uma escolha
-// visível ao jogador (a decisão já foi tomada nos capítulos anteriores).
+// Nó silencioso: decide o próximo id pelos recursos, sem mostrar tela.
 export interface RouterScene extends SceneBase {
   kind: 'router';
   next: (s: Stats) => string;
@@ -111,232 +111,254 @@ export interface RouterScene extends SceneBase {
 export type Scene = NarrativeScene | ChallengeScene | EndingScene | RouterScene;
 
 // ─────────────────────────────────────────────────────────
-// As 5 perguntas padrão (sem quiz de professor) — biologia real,
-// ancorada na cena de sobrevivência que a motiva.
+// As 5 perguntas padrão. Cada uma entrega uma peça da virada.
 // ─────────────────────────────────────────────────────────
 const Q_RADIACAO: MCQuestion = {
-  text: 'O contador Geiger apita mais forte perto de metais expostos ao ar livre. Por que a radiação ionizante é perigosa para o corpo?',
+  text: 'Você calcula quanto tempo pode ficar lá fora. O que pesa nessa conta?',
   options: [
-    'Ela esfria demais as células, travando o metabolismo',
-    'Ela danifica o DNA dentro das células, podendo causar mutações e matar células saudáveis',
-    'Ela deixa a água ácida demais para beber',
-    'Ela só afeta objetos de metal, não seres vivos',
+    'O tempo somado de exposição, porque cada dose vai quebrando o DNA das células',
+    'Só o pico do aparelho agora: se não apitar forte, o dia inteiro é seguro',
+    'A temperatura do ar, porque a radiação age esfriando as células',
+    'Nada disso: radiação estraga metal, não tecido vivo',
   ],
-  correct: 1,
+  correct: 0,
 };
 
 const Q_AGUA: MCQuestion = {
-  text: 'A água da cisterna está turva. Fervê-la antes de beber resolve qual problema?',
+  text: 'Sobra pouco combustível. O que você faz com essa água?',
   options: [
-    'Remove a radiação dissolvida na água',
-    'Deixa a água mais gelada e gostosa',
-    'Mata bactérias, vírus e outros microrganismos que causam doenças',
-    'Evapora o sal, tornando a água mais leve',
+    'Coar num pano limpo: se sair transparente, está boa',
+    'Deixar descansando ao sol, porque o calor do dia dá conta',
+    'Ferver por alguns minutos antes de encher os cantis',
+    'Beber assim: água de caixa fechada não transmite doença',
   ],
   correct: 2,
 };
 
 const Q_IMUNIDADE: MCQuestion = {
-  text: 'O outro sobrevivente tem um corte infeccionado no braço. Por que um ferimento aberto piora tão rápido num ambiente como esse?',
+  text: 'O que você responde para ele?',
   options: [
-    'Bactérias entram pela pele rompida e o sistema imunológico precisa combatê-las antes que se espalhem',
-    'O sangue esfria e para de circular imediatamente',
-    'A pele fechada nunca pode ser infectada, só a aberta',
-    'Cortes não têm relação nenhuma com infecção, só com dor',
+    'Que não é ferida fechando: o calor e o inchaço são a defesa do corpo agindo, e a linha subindo é a infecção se espalhando',
+    'Que ele tem razão, porque toda ferida esquenta enquanto cicatriza',
+    'Que o problema é a radiação da região, e não bactéria nenhuma',
+    'Que é falta de circulação, e ele precisa apertar mais o pano',
   ],
   correct: 0,
 };
 
-const Q_ECOLOGIA: MCQuestion = {
-  text: 'No assentamento, uma estufa improvisada cultiva vegetais sob luz artificial. O que as plantas precisam da luz para produzir seu próprio alimento?',
+const Q_ESTUFA: MCQuestion = {
+  text: 'Ela pergunta o que você acha. Qual é a diferença entre os dois canteiros?',
   options: [
-    'Fazer a fotossíntese, convertendo luz, água e CO2 em glicose e liberando oxigênio',
-    'Aquecer as raízes para elas absorverem mais minerais',
-    'Espantar insetos que comeriam as folhas',
-    'Evaporar o excesso de água das folhas mais rápido',
+    'As lâmpadas esterilizam o ar e limpam a contaminação da terra',
+    'A luz das lâmpadas dá a energia da fotossíntese, e a terra daqui dentro veio de fora, sem a contaminação do solo do lado de lá',
+    'Sob luz artificial a planta não precisa tirar nada do solo',
+    'O plástico barra a radiação do céu, que é de onde vem toda a contaminação',
   ],
-  correct: 0,
+  correct: 1,
 };
 
-const Q_DECOMPOSICAO: MCQuestion = {
-  text: 'Ração antiga guardada no abrigo criou mofo. O que esse mofo é, biologicamente?',
+const Q_FUNGO: MCQuestion = {
+  text: 'Elias espera você dizer alguma coisa. O que está acontecendo naquela parede?',
   options: [
-    'Um mineral que se forma com a umidade do ar',
-    'Um fungo decompositor, que se alimenta da matéria orgânica e pode liberar toxinas',
-    'Uma reação puramente química, sem nenhum organismo vivo envolvido',
-    'Um tipo de bactéria que só existe em ambientes radioativos',
+    'O fungo solta oxigênio, e isso dilui a radiação do ar em volta',
+    'A crosta é um fungo, e fungo absorve o que está dissolvido em volta e acumula no próprio corpo, inclusive material radioativo',
+    'A crosta reflete a radiação de volta, como uma casca de metal',
+    'Esse fungo só nasce onde nunca houve contaminação, então ali sempre foi limpo',
   ],
   correct: 1,
 };
 
 // ─────────────────────────────────────────────────────────
-// Grafo de cenas — 4 capítulos narrativos + 5 desafios de biologia
-// intercalados + 6 desfechos, ramificados pelos 4 recursos.
+// Grafo de cenas: 4 capítulos + 5 desafios + a escolha + 6 desfechos
 // ─────────────────────────────────────────────────────────
 export function defaultScenes(): Record<string, Scene> {
   return {
+    // ── CAPÍTULO 1 ──────────────────────────────────────
     abrigo: {
-      id: 'abrigo', art: 'bunker', kind: 'narrative', day: 1, chapter: 'CAPÍTULO 1', mood: 'dawn',
-      icon: 'silo', wide: true, title: 'O Abrigo',
-      text: 'Você acorda no chão de concreto de um abrigo subterrâneo. As luzes de emergência piscam fracamente. Fazem três dias desde a Queda, e as provisões no armário de metal não vão durar muito. Lá fora, o contador Geiger na parede apita baixo, talvez seguro pra sair.',
+      id: 'abrigo', kind: 'narrative', art: 'bunker', day: 1, chapter: 'CAPÍTULO 1', mood: 'dawn',
+      icon: 'silo', title: 'Abrigo 7',
+      text: 'O Abrigo 7 guardava dezoito mil variedades de semente e uma pessoa: você. Fazem três dias desde a Queda e o rádio não repete nada além de estática. Na parede, o protocolo que você decorou aos onze anos: manter os potes selados, racionar a água e queimar qualquer crescimento a menos de cinquenta metros da porta.',
       choices: [
-        { label: 'Sair agora, enquanto ainda há luz do dia', effect: { agua: -5 }, next: () => 'desafio_radiacao' },
-        { label: 'Esperar mais um dia, economizando energia', effect: { racao: -10, saude: 5 }, next: () => 'desafio_radiacao' },
+        { label: 'Sair agora, enquanto ainda há luz', effect: { agua: -5 }, next: () => 'desafio_radiacao' },
+        { label: 'Esperar mais um dia e economizar energia', effect: { racao: -10, saude: 5 }, next: () => 'desafio_radiacao' },
       ],
     },
 
     desafio_radiacao: {
-      id: 'desafio_radiacao', art: 'bunker', kind: 'challenge', day: 1, chapter: 'CAPÍTULO 1', mood: 'dawn',
+      id: 'desafio_radiacao', kind: 'challenge', art: 'bunker', day: 1, chapter: 'CAPÍTULO 1', mood: 'dawn',
       icon: 'ablaze', title: 'O Contador Geiger',
-      intro: 'Antes de destrancar a escotilha, você para diante do contador Geiger, lembrando o que aprendeu na escola sobre por que esse aviso importa de verdade.',
+      intro: 'Antes de girar a trava da escotilha, você para diante do contador. O ponteiro treme baixo, e o treinamento volta inteiro: o perigo não é o barulho do aparelho num instante, é o que a dose faz por dentro ao longo dos dias.',
       question: Q_RADIACAO,
-      correctText: 'Você lembra certo: a radiação quebra ligações no DNA. Reconhecer os sinais de risco pode salvar sua vida lá fora.',
-      wrongText: 'Não é bem isso, mas entender o motivo real ajuda a se proteger melhor.',
-      hint: 'Radiação ionizante tem energia suficiente para romper as ligações químicas do DNA dentro das células. Isso pode causar mutações, matar células ou, em doses altas, causar a doença da radiação.',
+      correctText: 'Você anota a hora da saída no pulso, a caneta. Vai contar cada minuto lá fora.',
+      wrongText: 'Você sai sem marcar a hora. Só à noite, deitada, vai lembrar que o treinamento falava em dose somada, não em susto de um dia.',
+      hint: 'Radiação ionizante carrega energia suficiente para romper ligações químicas do DNA. A célula pode morrer, parar de se dividir ou se dividir errado, e o estrago se soma a cada exposição. Por isso quem trabalha com isso conta minutos, não sustos.',
       effectCorrect: { saude: 5 },
       effectWrong: { saude: -3 },
       next: 'ruinas',
     },
 
+    // ── CAPÍTULO 2 ──────────────────────────────────────
     ruinas: {
-      id: 'ruinas', art: 'ruins', kind: 'narrative', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
+      id: 'ruinas', kind: 'narrative', art: 'ruins', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
       icon: 'busstop', title: 'As Ruínas',
-      text: 'A cidade que você conhecia agora é um esqueleto de concreto e vidro quebrado. Dois caminhos se abrem: as portas arrombadas de um hospital abandonado, ou as prateleiras de um mercado já saqueado, mas talvez não completamente vazio.',
+      text: 'A cidade virou esqueleto de concreto. Você reconhece a padaria pela placa torta e não reconhece mais nada. Numa parede inteira de estacionamento cresce uma crosta preta e esverdeada, do tipo que o protocolo manda queimar. Você passa longe. O contador, que apitava firme na rua, fica mais quieto perto dela. Você anota e não pensa mais nisso.',
       choices: [
-        { label: 'Ir ao hospital, atrás de remédios', effect: { saude: 15, agua: -10 }, next: (s) => s.saude < 40 ? 'perigo' : 'desafio_agua' },
-        { label: 'Ir ao mercado, atrás de comida e água', effect: { racao: 15, confianca: -5 }, next: (s) => s.saude < 40 ? 'perigo' : 'desafio_agua' },
+        { label: 'Entrar no hospital atrás de remédios', effect: { saude: 15, agua: -10 }, next: (s) => s.saude < 40 ? 'perigo' : 'desafio_agua' },
+        { label: 'Vasculhar o mercado atrás de comida', effect: { racao: 15, confianca: -5 }, next: (s) => s.saude < 40 ? 'perigo' : 'desafio_agua' },
       ],
     },
 
     perigo: {
-      id: 'perigo', art: 'toxic', kind: 'narrative', day: 2, chapter: 'CAPÍTULO 2', mood: 'danger',
-      icon: 'gasmask', title: 'Zona Contaminada',
-      text: 'Fraca e exausta, você só percebe a poeira esverdeada suspensa no ar quando a garganta começa a arder. Radiação residual. É preciso decidir rápido.',
+      id: 'perigo', kind: 'narrative', art: 'toxic', day: 2, chapter: 'CAPÍTULO 2', mood: 'danger',
+      icon: 'gasmask', title: 'Zona Industrial',
+      text: 'A poeira esverdeada só aparece contra a luz, e quando você percebe já está respirando. Não é a Mancha: é pó de concreto misturado com o que sobrou do incêndio dos galpões. O contador dispara aqui, e não há parede coberta de crosta em lugar nenhum deste quarteirão.',
       choices: [
-        { label: 'Colocar a máscara improvisada e atravessar correndo', effect: { saude: -10, agua: -10 }, next: (s) => s.saude < 15 ? 'final_perdida' : 'desafio_agua' },
-        { label: 'Voltar e procurar um caminho mais longo, porém seguro', effect: { racao: -15, saude: 5 }, next: () => 'desafio_agua' },
+        { label: 'Amarrar o pano no rosto e atravessar correndo', effect: { saude: -10, agua: -10 }, next: (s) => s.saude < 15 ? 'final_perdida' : 'desafio_agua' },
+        { label: 'Voltar e fazer o contorno, mais longo e mais seguro', effect: { racao: -15, saude: 5 }, next: () => 'desafio_agua' },
       ],
     },
 
     desafio_agua: {
-      id: 'desafio_agua', art: 'cistern', kind: 'challenge', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
+      id: 'desafio_agua', kind: 'challenge', art: 'cistern', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
       icon: 'flask', title: 'A Cisterna',
-      intro: 'Você encontra uma cisterna com água turva. Está com sede, mas sabe que beber água contaminada pode ser tão perigoso quanto não beber nada.',
+      intro: 'A caixa d’água do prédio ficou de pé e ainda tem quase um palmo de água no fundo, turva e parada há três dias. Você está com sede o bastante para considerar beber assim.',
       question: Q_AGUA,
-      correctText: 'Você ferve a água antes de guardá-la. É mais trabalho, mas a garantia vale a pena.',
-      wrongText: 'Você guarda a água sem ferver, vai ter que arriscar, ou desperdiçar o pouco combustível que sobrou.',
-      hint: 'Ferver a água a 100°C por alguns minutos mata a maioria das bactérias, vírus e protozoários causadores de doenças. Isso não remove radiação nem metais pesados, só o risco microbiológico.',
+      correctText: 'Você junta madeira e ferve. Custa combustível que não estava sobrando, e é a escolha certa.',
+      wrongText: 'Você enche os cantis do jeito que estão. Passa a noite esperando para ver no que dá, e não dorme direito.',
+      hint: 'Ferver mata bactérias, vírus e protozoários, que é o risco imediato de uma água parada há dias. Coar tira a sujeira visível e não tira micro-organismo nenhum. E fervura não resolve o resto: contaminação química e radioativa continua ali depois.',
       effectCorrect: { agua: 10, saude: 5 },
       effectWrong: { saude: -8 },
       next: 'encontro',
     },
 
+    // ── CAPÍTULO 3 ──────────────────────────────────────
     encontro: {
-      id: 'encontro', art: 'station', kind: 'narrative', day: 3, chapter: 'CAPÍTULO 3', mood: 'dusk',
+      id: 'encontro', kind: 'narrative', art: 'station', day: 3, chapter: 'CAPÍTULO 3', mood: 'dusk',
       icon: 'lamp', title: 'Um Rosto na Poeira',
-      text: 'Perto de um posto de gasolina destruído, você avista outro sobrevivente, magro, carregando uma mochila cheia. Ele te encara, hesitante, a mão perto do cinto. Você repara num curativo mal feito no braço dele, com uma mancha vermelha se espalhando.',
+      text: 'Perto de um posto sem telhado, um homem magro põe a mochila no chão bem devagar, para você ver que está largando. Diz que se chama Elias. O braço direito está enfaixado com pano de cortina, e a mancha vermelha no pano é maior do que ele admite.',
       choices: [
-        { label: 'Oferecer parte das provisões em troca de informação', effect: { racao: -10, confianca: 25 }, next: () => 'desafio_imunidade' },
-        { label: 'Manter distância e seguir seu caminho sozinha', effect: { confianca: -10 }, next: (s) => s.confianca < 10 ? 'final_lobo' : 'desafio_imunidade' },
+        { label: 'Oferecer parte das provisões em troca de conversa', effect: { racao: -10, confianca: 25 }, next: () => 'desafio_imunidade' },
+        { label: 'Manter distância e seguir sozinha', effect: { confianca: -10 }, next: (s) => s.confianca < 10 ? 'final_lobo' : 'desafio_imunidade' },
       ],
     },
 
     desafio_imunidade: {
-      id: 'desafio_imunidade', art: 'station', kind: 'challenge', day: 3, chapter: 'CAPÍTULO 3', mood: 'dusk',
-      icon: 'bandage', title: 'O Curativo',
-      intro: 'Se você quer ajudar, ou pelo menos entender o risco de ficar perto dele, precisa saber o que está em jogo com aquele ferimento.',
+      id: 'desafio_imunidade', kind: 'challenge', art: 'station', day: 3, chapter: 'CAPÍTULO 3', mood: 'dusk',
+      icon: 'bandage', title: 'O Braço de Elias',
+      intro: 'Ele deixa você trocar o pano. Por baixo, a pele em volta do corte está quente ao toque, e o vermelho avança numa linha fina em direção ao cotovelo. Elias diz que é só a ferida fechando.',
       question: Q_IMUNIDADE,
-      correctText: 'Você troca o curativo dele com cuidado, explicando o que aprendeu. Ele relaxa um pouco, agradecido.',
-      wrongText: 'Você ajuda como pode, mesmo sem entender direito o motivo, mas a explicação certa teria ajudado os dois.',
-      hint: 'Quando a pele se rompe, ela deixa de ser uma barreira contra micro-organismos. Bactérias podem entrar e se multiplicar no tecido, e o sistema imunológico entra em ação para combatê-las. É isso que causa a vermelhidão, o calor e o inchaço de uma infecção.',
+      correctText: 'Ele para de brincar. Você lava com água fervida, amarra frouxo e diz que ele precisa de antibiótico em dias, não em semanas. Depois ele fica quieto um tempo e pergunta: se o corpo cerca o que envenena ele, por que o mundo não faria igual?',
+      wrongText: 'Ele aceita a explicação e agradece. Mais tarde, sozinha, você repara que a linha vermelha subiu mais um dedo desde a manhã.',
+      hint: 'Pele rompida deixa de ser barreira e bactéria entra. O corpo manda sangue e células de defesa para o local, e é isso que produz calor, vermelhidão e inchaço. A linha vermelha subindo pelo braço é sinal de que a infecção saiu do ponto do corte e está seguindo pelos vasos.',
       effectCorrect: { confianca: 10, saude: 3 },
       effectWrong: { confianca: -3 },
-      next: 'assentamento',
+      next: 'mancha',
     },
 
-    assentamento: {
-      id: 'assentamento', art: 'settlement', kind: 'narrative', day: 4, chapter: 'CAPÍTULO 4', mood: 'settle',
-      icon: 'windmill', wide: true, title: 'Luzes ao Longe',
-      text: 'No topo de uma colina de escombros, você avista luzes: um pequeno assentamento cercado por placas de metal reaproveitadas. Fumaça de uma fogueira comunitária sobe no ar frio, e ao lado dela, sob painéis de plástico translúcido, fileiras verdes crescem sob lâmpadas.',
+    mancha: {
+      id: 'mancha', kind: 'narrative', art: 'mancha', day: 3, chapter: 'CAPÍTULO 3', mood: 'bleak',
+      icon: 'poison', title: 'A Mancha',
+      text: 'Elias dorme mal e acorda antes do sol firmar. Leva você dois quarteirões e para diante de um muro tomado pela crosta, que de perto tem fios finos e cheiro de terra molhada. Ele diz que passou três semanas dormindo a vinte metros dali. Você olha o braço dele, uma infecção comum de quem se corta em metal enferrujado, e nenhum dos sinais que a radiação deixa. Então ele estende o contador na direção do muro, e o ponteiro cai.',
       choices: [
-        { label: 'Se aproximar e pedir abrigo', effect: { confianca: 10 }, next: () => 'desafio_ecologia' },
-        { label: 'Observar de longe e seguir sozinha', effect: { agua: -5, racao: -5 }, next: () => 'desafio_decomposicao' },
+        { label: 'Raspar uma amostra da crosta e guardar', effect: { confianca: 5 }, next: () => 'assentamento' },
+        { label: 'Anotar tudo no caderno e seguir para as luzes', next: () => 'assentamento' },
       ],
     },
 
-    desafio_ecologia: {
-      id: 'desafio_ecologia', art: 'greenhouse', kind: 'challenge', day: 4, chapter: 'CAPÍTULO 4', mood: 'settle',
+    // ── CAPÍTULO 4 ──────────────────────────────────────
+    assentamento: {
+      id: 'assentamento', kind: 'narrative', art: 'settlement', day: 4, chapter: 'CAPÍTULO 4', mood: 'settle',
+      icon: 'windmill', title: 'O Cercado',
+      text: 'O Cercado é uma muralha de chapas com fumaça saindo por cima. Dentro, sob plástico translúcido e lâmpadas puxadas de um moinho, fileiras de alface. Do lado de fora, o canteiro que eles abriram direto na terra deu um palmo de folha amarela e travou. Toda lua nova eles saem em turma, com tochas, e queimam a Mancha que chegou perto do muro.',
+      choices: [
+        { label: 'Se aproximar e pedir abrigo', effect: { confianca: 10 }, next: () => 'desafio_estufa' },
+        { label: 'Observar de longe antes de se entregar', effect: { agua: -5 }, next: () => 'desafio_estufa' },
+      ],
+    },
+
+    desafio_estufa: {
+      id: 'desafio_estufa', kind: 'challenge', art: 'greenhouse', day: 4, chapter: 'CAPÍTULO 4', mood: 'settle',
       icon: 'sprout', title: 'A Estufa',
-      intro: 'Antes de bater na porta, você observa a estufa improvisada: fileiras de plantas crescendo sob luzes, mesmo sem sol de verdade.',
-      question: Q_ECOLOGIA,
-      correctText: 'Você reconhece o princípio: luz artificial pode substituir o sol na fotossíntese, e é assim que aquele lugar consegue cultivar comida.',
-      wrongText: 'Você não sabe explicar por que aquilo funciona, mas funciona, e isso já é motivo de esperança.',
-      hint: 'A fotossíntese usa a energia da luz (solar ou artificial) para transformar água e gás carbônico em glicose (o "alimento" da planta), liberando oxigênio como subproduto. É por isso que estufas com iluminação artificial conseguem produzir comida mesmo em ambientes fechados.',
+      intro: 'Dona Neide cuida da estufa desde o primeiro mês e deixa você entrar. Ela quer encerrar uma discussão antiga do Cercado: a alface vinga sob as lâmpadas e morre no canteiro a dez metros dali, mesmo clima, mesma água, mesma semente.',
+      question: Q_ESTUFA,
+      correctText: 'Ela bate na quina do canteiro. A terra veio de caminhão, de um sítio a quarenta quilômetros. E é por isso, ela diz, que o Cercado nunca passou da estufa.',
+      wrongText: 'Ela corrige você sem constrangimento, porque quase todo mundo ali erra a mesma coisa.',
+      hint: 'A luz, do sol ou de lâmpada, entra na fotossíntese como energia: a planta transforma gás carbônico e água em glicose e solta oxigênio. Só que ela também tira água e sais minerais do solo, e aí está o problema do canteiro de fora. Césio e estrôncio se parecem quimicamente com potássio e cálcio, e a raiz absorve os dois sem distinguir.',
       effectCorrect: { confianca: 8, racao: 5 },
       effectWrong: {},
-      next: 'final_por_confianca',
+      next: 'desafio_fungo',
     },
 
-    desafio_decomposicao: {
-      id: 'desafio_decomposicao', art: 'wasteland', kind: 'challenge', day: 4, chapter: 'CAPÍTULO 4', mood: 'bleak',
-      icon: 'bread', title: 'A Última Ração',
-      intro: 'Sozinha, longe das luzes do assentamento, você abre a última embalagem de ração da mochila e encontra manchas esverdeadas crescendo por dentro.',
-      question: Q_DECOMPOSICAO,
-      correctText: 'Você reconhece o mofo e descarta a ração estragada, evitando adoecer por muito pouco.',
-      wrongText: 'Você quase come a ração mofada, mas por sorte o cheiro forte te faz desistir a tempo.',
-      hint: 'O mofo é formado por fungos decompositores. Eles se alimentam da matéria orgânica do alimento e, ao crescer, podem liberar micotoxinas, substâncias que causam intoxicação alimentar mesmo em pequenas quantidades.',
-      effectCorrect: { saude: 5 },
-      effectWrong: { saude: -10, racao: -10 },
-      next: 'final_por_recursos',
+    desafio_fungo: {
+      id: 'desafio_fungo', kind: 'challenge', art: 'mancha', day: 4, chapter: 'CAPÍTULO 4', mood: 'bleak',
+      icon: 'poison', title: 'O Que a Mancha Faz',
+      intro: 'Você volta ao muro com Elias e Dona Neide. Raspa a crosta com a faca, encosta o contador na parede descoberta e depois afasta dois passos. O número sobe quando você se afasta da Mancha.',
+      question: Q_FUNGO,
+      correctText: 'Você entende antes de conseguir explicar direito. A Mancha não está envenenando o terreno: está puxando o veneno de dentro dele e prendendo em si mesma. E o Cercado queima isso toda lua nova.',
+      wrongText: 'Não é bem assim, e Dona Neide chega ao fim do raciocínio antes de você. A conta que sobra é pior: alguma coisa naquela parede está tirando contaminação de onde ela estava, e eles queimam aquilo todo mês.',
+      hint: 'Fungos decompositores absorvem o que está dissolvido no substrato e acumulam no próprio corpo. Na zona de Chernobyl, espécies coletadas concentraram césio-137 e estrôncio-90 em níveis até mil vezes maiores que o ambiente em volta, e algumas usam melanina para lidar com a radiação, mais ou menos como a clorofila lida com a luz. Tirar o contaminante do solo e prender num organismo tem nome: biorremediação. Queimar devolve tudo para o ar.',
+      effectCorrect: { confianca: 12 },
+      effectWrong: { confianca: -5 },
+      next: 'escolha',
     },
 
-    final_por_confianca: {
-      id: 'final_por_confianca', art: 'dawn', kind: 'router', day: 5, chapter: 'EPÍLOGO', mood: 'hope', title: '',
+    // ── A ESCOLHA ───────────────────────────────────────
+    escolha: {
+      id: 'escolha', kind: 'narrative', art: 'mancha', day: 5, chapter: 'A ESCOLHA', mood: 'bleak',
+      icon: 'sprout', title: 'Lua Nova',
+      text: 'A turma das tochas sai amanhã. Queimar a crosta devolve para o ar e para a cinza tudo o que ela recolheu, e o terreno recomeça do zero, de novo, como vem acontecendo a cada lua nova. Deixar viver é apostar numa limpeza que leva anos, e ninguém ali chegou perto de ver o fim disso. Você tem dezoito mil variedades de semente na mochila e uma noite para decidir.',
+      choices: [
+        { label: 'Queimar com eles, como manda o protocolo', effect: { confianca: 5 }, next: () => 'rota_queima' },
+        { label: 'Semear girassol na borda e defender a Mancha', effect: { racao: -5 }, next: () => 'rota_semeia' },
+      ],
+    },
+
+    rota_queima: {
+      id: 'rota_queima', kind: 'router', art: 'settlement', day: 5, chapter: 'EPÍLOGO', mood: 'settle', title: '',
       next: (s) => {
         if (s.saude < 20) return 'final_perdida';
-        if (s.confianca >= 50 && s.racao >= 30 && s.agua >= 30) return 'final_novocomeco';
-        if (s.confianca >= 30) return 'final_resgatada';
-        return 'final_traida';
+        return s.confianca >= 35 ? 'final_fogueira' : 'final_lobo';
       },
     },
-    final_por_recursos: {
-      id: 'final_por_recursos', art: 'wasteland', kind: 'router', day: 5, chapter: 'EPÍLOGO', mood: 'hope', title: '',
+    rota_semeia: {
+      id: 'rota_semeia', kind: 'router', art: 'dawn', day: 5, chapter: 'EPÍLOGO', mood: 'hope', title: '',
       next: (s) => {
         if (s.saude < 20) return 'final_perdida';
-        if (s.racao >= 40 && s.agua >= 40 && s.saude >= 50) return 'final_guardia';
-        return 'final_lobo';
+        if (s.confianca >= 50 && s.racao >= 25 && s.agua >= 25) return 'final_colheita';
+        return s.confianca >= 30 ? 'final_lenta' : 'final_herege';
       },
     },
 
-    final_novocomeco: {
-      id: 'final_novocomeco', art: 'dawn', kind: 'ending', day: 5, chapter: 'EPÍLOGO', mood: 'hope', icon: 'sprout',
-      title: 'Novo Começo',
-      text: 'Você é recebida com cautela, mas logo prova seu valor. Semanas depois, já tem um lugar à mesa do assentamento, e um nome gravado na placa de metal da entrada: "sobrevivemos juntos". Não é o mundo de antes, mas é um começo.',
+    // ── DESFECHOS ───────────────────────────────────────
+    final_colheita: {
+      id: 'final_colheita', kind: 'ending', art: 'dawn', day: 5, chapter: 'EPÍLOGO', mood: 'hope', icon: 'sprout',
+      title: 'A Primeira Colheita',
+      text: 'Você gastou três noites convencendo o Cercado a adiar uma única queimada. Levou dois anos para o girassol da borda virar rotina e para a crosta avançar sem que ninguém corresse atrás de tocha. No terceiro inverno mediram o canteiro velho, e o número tinha caído o bastante para plantar direto na terra. A alface daquele ano foi a primeira que não veio de caminhão.',
     },
-    final_resgatada: {
-      id: 'final_resgatada', art: 'dawn', kind: 'ending', day: 5, chapter: 'EPÍLOGO', mood: 'hope', icon: 'medkit',
-      title: 'Resgatada',
-      text: 'Fraca e com poucos recursos, ainda assim você é levada para dentro. Os primeiros dias são difíceis, cuidada por estranhos que também perderam tudo. Aos poucos, a confiança cresce dos dois lados.',
+    final_lenta: {
+      id: 'final_lenta', kind: 'ending', art: 'lone', day: 5, chapter: 'EPÍLOGO', mood: 'settle', icon: 'sprout',
+      title: 'A Aposta Lenta',
+      text: 'O Cercado não mudou de ideia, mas três pessoas foram com você. Semearam a borda leste e marcaram cada ponto num mapa de papel, com a data e o número do contador. Você não viu o terreno abrir. Quem veio depois viu, e ainda usa o seu mapa.',
     },
-    final_traida: {
-      id: 'final_traida', art: 'bleak', kind: 'ending', day: 5, chapter: 'EPÍLOGO', mood: 'bleak', icon: 'nametag',
-      title: 'Traída',
-      text: 'Eles aceitam sua ajuda com um sorriso fácil demais. Na primeira noite, você acorda sozinha, sem metade do que carregava. A lição dói, mas você segue viva, e mais desconfiada do próximo rosto na poeira.',
+    final_herege: {
+      id: 'final_herege', kind: 'ending', art: 'wasteland', day: 5, chapter: 'EPÍLOGO', mood: 'bleak', icon: 'nametag',
+      title: 'Herege',
+      text: 'Chamaram você de louca, e um deles cuspiu no chão quando você falou em não queimar. Saiu do Cercado com menos comida do que tinha ao chegar. Semeou a borda sozinha, sem plateia, e seguiu marcando os muros a giz: a data, o número do contador, uma seta. Daqui a uma década alguém vai ler as marcas e entender o que elas eram.',
     },
-    final_guardia: {
-      id: 'final_guardia', art: 'lone', kind: 'ending', day: 5, chapter: 'EPÍLOGO', mood: 'settle', icon: 'silo',
-      title: 'Guardiã das Ruínas',
-      text: 'Você decide que confiar é um luxo que ainda não pode pagar. Constrói um abrigo próprio entre os escombros, aprende a racionar cada gota, cada grão. Sozinha, mas de pé: a guardiã silenciosa das ruínas.',
+    final_fogueira: {
+      id: 'final_fogueira', kind: 'ending', art: 'settlement', day: 5, chapter: 'EPÍLOGO', mood: 'settle', icon: 'ablaze',
+      title: 'A Fogueira',
+      text: 'Você entrou na fila com uma tocha e queimou junto. O Cercado te recebeu como uma dos seus e a comida daquela semana foi boa. Na primavera seguinte o canteiro de fora deu o mesmo palmo de folha amarela e travou no mesmo ponto. Ninguém ali achou aquilo estranho, e você não falou nada.',
     },
     final_lobo: {
-      id: 'final_lobo', art: 'wasteland', kind: 'ending', day: 5, chapter: 'EPÍLOGO', mood: 'bleak', icon: 'bread',
+      id: 'final_lobo', kind: 'ending', art: 'bleak', day: 5, chapter: 'EPÍLOGO', mood: 'bleak', icon: 'bread',
       title: 'Lobo Solitário',
-      text: 'Sem provisões suficientes e sem ninguém por perto, os dias ficam mais curtos e mais frios. Você sobrevive, mas por pouco: cada amanhecer é uma vitória pequena e solitária.',
+      text: 'Você queimou o que mandaram queimar e mesmo assim não confiaram em você. Saiu antes do amanhecer, com pouca água e sem explicação para ninguém. Sobrevive, e por enquanto é só isso que dá para dizer.',
     },
     final_perdida: {
-      id: 'final_perdida', art: 'bleak', kind: 'ending', day: 5, chapter: 'EPÍLOGO', mood: 'bleak', icon: 'poison',
+      id: 'final_perdida', kind: 'ending', art: 'bleak', day: 5, chapter: 'EPÍLOGO', mood: 'bleak', icon: 'poison',
       title: 'Perdida nas Ruínas',
-      text: 'O corpo cede antes da vontade. Em algum lugar entre os escombros, sua história para de ser contada por você, e vira só mais um nome riscado numa parede de placas esquecidas.',
+      text: 'O corpo desiste antes da vontade. Em algum ponto entre o Cercado e o muro tomado de crosta, sua história para de ser contada por você. A mochila com dezoito mil sementes fica encostada num poste, ainda fechada, esperando alguém que saiba o que fazer com ela.',
     },
   };
 }

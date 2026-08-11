@@ -325,6 +325,24 @@ function growLamp(c, x, y, { arm = '#4a5266', bulb = '#ffe7a8', beam = '#ffd36b'
   }
 }
 
+// crosta da Mancha: fungo preto-esverdeado subindo por superfícies,
+// com esporos claros salpicados e um brilho fraco na base
+function crust(c, r, { x, y, w, h, dark = '#122417', mid = '#1f4a2a', spore = '#7fe06a', density = 0.55 }) {
+  const D = hex(dark), M = hex(mid), S = hex(spore);
+  for (let i = 0; i < w; i++) {
+    const cx = x + i;
+    // altura irregular da crosta, mais alta na base
+    const hh = Math.max(0, Math.round(h * (0.45 + 0.55 * Math.abs(Math.sin(cx * 0.37 + r() * 0.4)))));
+    for (let j = 0; j < hh; j++) {
+      const cy = y - j;
+      const t = j / Math.max(1, hh);
+      if (r() > density + (1 - t) * 0.35) continue;
+      c.px(cx, cy, t > 0.72 ? M : D);
+      if (r() < 0.05) c.px(cx, cy, S, 0.85);
+    }
+  }
+}
+
 // ── protagonista (18x22) ─────────────────────────────────
 const SURVIVOR_PAL = {
   o: P_OUT, h: '#2f6b57', H: '#3f8a6d', c: '#3a7f66', C: '#4f9c7f',
@@ -385,12 +403,18 @@ SCENES.bunker = () => {
   c.rect(133, 24, 20, 56, hex('#3a4353'));
   for (let y = 28; y < 80; y += 7) c.hline(136, y, 14, hex('#6b7488'));
   c.vline(136, 24, 56, hex('#79839a')); c.vline(149, 24, 56, hex('#79839a'));
-  // armários
-  for (let i = 0; i < 3; i++) {
-    const x = 8 + i * 17;
-    c.rect(x, 52, 15, 32, hex('#4a5364')); c.outlineRect(x, 52, 15, 32, hex(P_OUT));
-    c.vline(x + 7, 54, 28, hex('#333b48'));
-    c.px(x + 5, 66, hex('#c9d2e0')); c.px(x + 9, 66, hex('#c9d2e0'));
+  // estante do banco de sementes: 3 prateleiras de potes etiquetados
+  const SEED = ['#e8b06a', '#7fe06a', '#e2612f', '#cfd8e6', '#f0c840', '#8fd8ee'];
+  c.rect(6, 44, 62, 40, hex('#3a4353')); c.outlineRect(6, 44, 62, 40, hex(P_OUT));
+  for (let row = 0; row < 3; row++) {
+    const sy = 48 + row * 13;
+    c.hline(7, sy + 10, 60, hex('#5c6577'));           // tábua da prateleira
+    for (let i = 0; i < 9; i++) {
+      const jx = 9 + i * 6.5;
+      c.rect(jx, sy + 3, 5, 7, hex('#6b7488'));        // vidro
+      c.rect(jx + 1, sy + 6, 3, 3, hex(SEED[(row * 3 + i) % SEED.length]));  // sementes
+      c.px(jx + 2, sy + 2, hex('#c9d2e0'));            // tampa
+    }
   }
   ground(c, r, { y: GROUND_Y, top: '#5a6274', body: '#464e5e', dark: '#333a48', debris: ['#333a48', '#6b7488'] });
   tint(c, 0, 0, W, GROUND_Y, '#ff3b30', 0.05);
@@ -598,6 +622,29 @@ SCENES.lone = () => {
   c.rect(68, 68, 10, 16, hex('#241f2c')); c.outlineRect(68, 68, 10, 16, hex(P_OUT));
   campfire(c, 120, GROUND_Y + 8);
   vignette(c, 0.5, '#0d0714');
+  return c;
+};
+
+// 12. A Mancha — o fungo tomando as ruínas (a virada da história)
+SCENES.mancha = () => {
+  const c = new Canvas(W, H), r = rng(1313);
+  sky(c, ['#241a2e', '#3d2c40', '#6b4a44', '#a8724a'], 0, GROUND_Y);
+  stars(c, r, 18, 26);
+  cityscape(c, rng(131), { baseY: GROUND_Y, color: '#2b2033', minH: 24, maxH: 46, minW: 12, maxW: 24, a: 0.7 });
+  cityscape(c, rng(132), { baseY: GROUND_Y, color: '#1a1422', minH: 14, maxH: 32, minW: 10, maxW: 20 });
+  // a crosta sobe pela base dos prédios
+  crust(c, rng(133), { x: 0, y: GROUND_Y, w: W, h: 26, density: 0.6 });
+  ground(c, r, { y: GROUND_Y, top: '#2a3a26', body: '#1d2a1c', dark: '#121a11', debris: ['#121a11', '#2f5c33'] });
+  // manchas no chão, como líquen
+  for (let i = 0; i < 26; i++) {
+    const x = ri(r, 0, W - 6), y = ri(r, GROUND_Y + 2, H - 2);
+    c.ellipse(x, y, ri(r, 2, 6), ri(r, 1, 2), hex('#1f4a2a'));
+    if (r() < 0.5) c.px(x, y, hex('#7fe06a'), 0.9);
+  }
+  // esporos subindo
+  for (let i = 0; i < 44; i++) c.px(ri(r, 0, W - 1), ri(r, 26, H - 1), hex('#9fffa0'), r() < 0.5 ? 0.45 : 0.9);
+  for (let i = 16; i > 0; i--) c.ellipse(90, GROUND_Y + 2, i * 4, i, hex('#4fe07a'), 0.012);
+  vignette(c, 0.5, '#050c07');
   return c;
 };
 

@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { buildScenes } from '../../game/buildScenes';
 import { applyEffect, freshStats, type Mood, type Scene, type StatEffect, type Stats } from '../../game/cinzas';
-import { saveCheckpoint, clearSave, recordSolved, recordError, recordEnding, getStats, medalFor } from '../../game/progress';
+import { saveCheckpoint, clearSave, recordSolved, recordError, recordEnding, getStats } from '../../game/progress';
 import { playSfx, isMuted, setMuted, getVolume, setVolume, subscribeAudio } from '../../game/audio';
-import { C, STAT_SKINS, ART, ICON, bevel } from '../../game/theme';
+import { C, ART, ICON, bevel } from '../../game/theme';
 import type { SharedQuiz } from '../../game/quizShare';
 
-const LETTERS = ['A', 'B', 'C', 'D'];
-
-// Partícula ambiente por clima: cinza cinzenta, brasa quente ou esporo tóxico
+// Partícula ambiente por clima: cinza, brasa ou esporo
 const PARTICLE: Record<Mood, { color: string; n: number }> = {
   dawn:   { color: '#e9dcc0', n: 12 },
   ash:    { color: '#d8ccae', n: 16 },
@@ -22,95 +20,83 @@ const PARTICLE: Record<Mood, { color: string; n: number }> = {
 // ─────────────────────────────────────────────────────────
 // Peças de interface
 // ─────────────────────────────────────────────────────────
-function PixelPanel({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+function Prose({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
     <div style={{
       background: C.paper, border: `2px solid ${C.paperEdge}`, boxShadow: bevel(3),
-      padding: 12, ...style,
+      padding: '13px 14px', ...style,
     }}>
       {children}
     </div>
   );
 }
 
-function Button({ children, onClick, tone = 'steel', letter, disabled }: {
-  children: ReactNode; onClick: () => void; tone?: 'steel' | 'rust' | 'green' | 'ghost';
-  letter?: string; disabled?: boolean;
-}) {
+// Escolha da história: cartão de papel, do mesmo material do painel de
+// narração, com um filete de ferrugem na lateral. Usa a MESMA fonte e o
+// mesmo corpo do texto narrado, porque são frases inteiras: fonte de
+// pixel serve para rótulo curto, não para texto corrido.
+//
+// Vale para decisão de enredo e para decisão de ciência, de propósito:
+// olhando, não dá para dizer qual é qual.
+function Choice({ children, onClick }: { children: ReactNode; onClick: () => void }) {
   const [down, setDown] = useState(false);
-  const bg = tone === 'rust' ? C.rust : tone === 'green' ? C.green : tone === 'ghost' ? C.shellHi : C.steel;
-  const dark = tone === 'rust' ? C.rustDark : tone === 'green' ? '#2f7a26' : tone === 'ghost' ? C.shellLo : C.steelDark;
+  const [over, setOver] = useState(false);
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
+      onPointerDown={() => setDown(true)}
+      onPointerUp={() => setDown(false)}
+      onPointerEnter={() => setOver(true)}
+      onPointerLeave={() => { setDown(false); setOver(false); }}
+      className="font-vt"
+      style={{
+        display: 'flex', alignItems: 'stretch', gap: 0, width: '100%', textAlign: 'left',
+        background: over ? C.paper : '#ece2cc',
+        border: `2px solid ${C.line}`,
+        boxShadow: down ? 'none' : bevel(3),
+        transform: down ? 'translate(3px, 3px)' : 'none',
+        padding: 0, cursor: 'pointer', overflow: 'hidden',
+        transition: 'transform 60ms, box-shadow 60ms, background 120ms',
+      }}
+    >
+      <span style={{ flex: 'none', width: 6, background: C.rust }} />
+      <span style={{
+        flex: 1, padding: '10px 12px', fontSize: 17, lineHeight: 1.35, color: C.paperInk,
+      }}>
+        {children}
+      </span>
+    </button>
+  );
+}
+
+// Ação de sistema (continuar, reiniciar, sair). Aqui sim cabe a fonte de
+// pixel: são rótulos curtos, e o contraste separa da voz da história.
+function Action({ children, onClick, tone = 'rust' }: {
+  children: ReactNode; onClick: () => void; tone?: 'rust' | 'ghost';
+}) {
+  const [down, setDown] = useState(false);
+  const bg = tone === 'rust' ? C.rust : C.shell;
+  const top = tone === 'rust' ? C.rustLite : C.shellHi;
+  return (
+    <button
+      onClick={onClick}
       onPointerDown={() => setDown(true)}
       onPointerUp={() => setDown(false)}
       onPointerLeave={() => setDown(false)}
       className="font-pixel"
       style={{
-        display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
-        fontSize: 9.5, lineHeight: 1.55, color: '#fff', background: bg,
-        border: `2px solid ${C.line}`, borderTop: `2px solid ${dark}`,
+        display: 'block', width: '100%', textAlign: 'center',
+        fontSize: 10, letterSpacing: 1, color: '#fff', background: bg,
+        border: `2px solid ${C.line}`, borderTop: `2px solid ${top}`,
         boxShadow: down ? 'none' : bevel(3),
         transform: down ? 'translate(3px, 3px)' : 'none',
-        padding: '11px 12px', cursor: disabled ? 'default' : 'pointer',
-        transition: 'transform 60ms, box-shadow 60ms, filter 120ms',
-        opacity: disabled ? 0.55 : 1,
+        padding: '13px 10px', cursor: 'pointer',
+        textShadow: '0 2px 0 rgba(0,0,0,0.4)',
+        transition: 'transform 60ms, box-shadow 60ms',
       }}
     >
-      {letter && (
-        <span style={{
-          flex: 'none', width: 18, height: 18, display: 'grid', placeItems: 'center',
-          background: dark, border: `2px solid ${C.line}`, fontSize: 8,
-        }}>{letter}</span>
-      )}
-      <span style={{ flex: 1 }}>{children}</span>
+      {children}
     </button>
-  );
-}
-
-function StatCard({ skin, value, delta }: {
-  skin: typeof STAT_SKINS[number]; value: number; delta?: number;
-}) {
-  const SEGMENTS = 8;
-  const filled = Math.round((value / 100) * SEGMENTS);
-  return (
-    <div style={{
-      position: 'relative', flex: 1, minWidth: 0,
-      background: skin.bg, border: `2px solid ${skin.border}`, boxShadow: bevel(2),
-      padding: '5px 5px 6px', display: 'flex', flexDirection: 'column', gap: 4,
-    }}>
-      <div className="font-pixel" style={{
-        fontSize: 5.5, color: skin.text, letterSpacing: 0.3, textAlign: 'center',
-        whiteSpace: 'nowrap', overflow: 'hidden',
-      }}>
-        {skin.label}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-        <img src={ICON(skin.icon)} alt="" style={{ width: 16, height: 16, imageRendering: 'pixelated', flex: 'none' }} />
-        <span className="font-pixel" style={{ fontSize: 9, color: skin.text }}>{value}</span>
-      </div>
-      <div style={{ display: 'flex', gap: 1 }}>
-        {Array.from({ length: SEGMENTS }).map((_, i) => (
-          <span key={i} style={{
-            flex: 1, height: 5,
-            background: i < filled ? skin.fill : 'rgba(0,0,0,0.13)',
-            transition: 'background 240ms ease',
-          }} />
-        ))}
-      </div>
-      {delta !== undefined && delta !== 0 && (
-        <span key={`${value}-${delta}`} className="font-pixel" style={{
-          position: 'absolute', top: -6, right: -2, fontSize: 8,
-          color: '#fff', background: delta > 0 ? C.green : C.red,
-          border: `2px solid ${C.line}`, padding: '2px 4px',
-          animation: 'delta-float 1.4s ease-out forwards', pointerEvents: 'none',
-        }}>
-          {delta > 0 ? `+${delta}` : delta}
-        </span>
-      )}
-    </div>
   );
 }
 
@@ -150,7 +136,6 @@ function ScenePanel({ art, mood, title, chapter, showHero }: {
         }} />
       ))}
 
-      {/* partículas ambientes */}
       {particles.map(pt => (
         <span key={pt.id} style={{
           position: 'absolute', top: '-4%', left: pt.left, width: 2, height: 2,
@@ -159,7 +144,6 @@ function ScenePanel({ art, mood, title, chapter, showHero }: {
         }} />
       ))}
 
-      {/* protagonista sobre a linha do chão (y=84 de 100) */}
       {showHero && (
         <img src={ART('survivor')} alt="" style={{
           position: 'absolute', left: '50%', bottom: '10%',
@@ -169,7 +153,6 @@ function ScenePanel({ art, mood, title, chapter, showHero }: {
         }} />
       )}
 
-      {/* faixa do capítulo */}
       <div className="font-pixel" style={{
         position: 'absolute', top: 0, left: 0, fontSize: 7, color: '#fff',
         background: C.rust, borderRight: `2px solid ${C.line}`, borderBottom: `2px solid ${C.line}`,
@@ -178,7 +161,6 @@ function ScenePanel({ art, mood, title, chapter, showHero }: {
         {chapter}
       </div>
 
-      {/* nome do local */}
       {title && (
         <div className="font-pixel" style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, fontSize: 7.5,
@@ -203,15 +185,14 @@ export interface SurvivalGameProps {
 export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: SurvivalGameProps) {
   const scenes = useMemo(() => buildScenes(quiz), [quiz]);
   const [sceneId, setSceneId] = useState(continueFrom?.sceneId ?? 'abrigo');
+  // Os recursos continuam existindo e decidem o desfecho, mas ficam
+  // ESCONDIDOS: quem joga sente a consequência na história, não numa barra.
   const [stats, setStats] = useState<Stats>(continueFrom?.stats ?? freshStats());
-  const [deltas, setDeltas] = useState<StatEffect>({});
   const [showSettings, setShowSettings] = useState(false);
   const [muted, setMutedUi] = useState(isMuted());
   const [volume, setVolumeUi] = useState(getVolume());
 
-  // desafio
   const [answered, setAnswered] = useState(false);
-  const [selected, setSelected] = useState<number | null>(null);
   const [wasCorrect, setWasCorrect] = useState(false);
 
   const statsRef = useRef(stats);
@@ -219,7 +200,6 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
 
   useEffect(() => subscribeAudio(() => { setMutedUi(isMuted()); setVolumeUi(getVolume()); }), []);
 
-  // atravessa nós 'router' (invisíveis) até a próxima cena de verdade
   const resolve = (id: string, s: Stats): string => {
     let guard = 0;
     let cur = scenes[id], next = id;
@@ -228,7 +208,7 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
   };
 
   const goTo = (id: string, s: Stats) => {
-    setAnswered(false); setSelected(null); setWasCorrect(false);
+    setAnswered(false); setWasCorrect(false);
     setSceneId(resolve(id, s));
   };
 
@@ -239,12 +219,9 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
     if (scene.kind === 'ending') { recordEnding(sceneId); clearSave(); }
   }, [sceneId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // aplica efeito nos recursos e mostra os "+5 / -3" flutuando nos cartões
-  const applyWithFeedback = (effect: StatEffect | undefined, base: Stats) => {
+  const apply = (effect: StatEffect | undefined, base: Stats) => {
     const next = applyEffect(base, effect);
     setStats(next);
-    setDeltas(effect ?? {});
-    window.setTimeout(() => setDeltas({}), 1500);
     return next;
   };
 
@@ -252,7 +229,7 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
     if (scene.kind !== 'narrative') return;
     playSfx('select');
     const choice = scene.choices[i];
-    const next = applyWithFeedback(choice.effect, stats);
+    const next = apply(choice.effect, stats);
     goTo(choice.next(next), next);
   };
 
@@ -261,20 +238,18 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
     const correct = i === scene.question.correct;
     playSfx(correct ? 'correct' : 'wrong');
     if (correct) recordSolved(); else recordError();
-    applyWithFeedback(correct ? scene.effectCorrect : scene.effectWrong, stats);
-    setSelected(i); setWasCorrect(correct); setAnswered(true);
+    apply(correct ? scene.effectCorrect : scene.effectWrong, stats);
+    setWasCorrect(correct);
+    setAnswered(true);
   };
 
   const restart = () => {
     clearSave();
     const fresh = freshStats();
     setStats(fresh);
-    setDeltas({});
     goTo('abrigo', fresh);
     onRestart?.();
   };
-
-  const showHero = scene.kind !== 'ending';
 
   return (
     <div style={{
@@ -283,7 +258,7 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
     }}>
       <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 8 }}>
 
-        {/* ── barra superior ── */}
+        {/* barra superior */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: C.shell, border: `2px solid ${C.line}`, boxShadow: bevel(3),
@@ -300,49 +275,70 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
           <IconBtn label="✕" onClick={onExit} title="Sair" />
         </div>
 
-        {/* ── recursos ── */}
-        <div style={{ display: 'flex', gap: 5 }}>
-          {STAT_SKINS.map(skin => (
-            <StatCard key={skin.key} skin={skin} value={stats[skin.key]} delta={deltas[skin.key]} />
-          ))}
-        </div>
-
-        {/* ── cenário ── */}
         <ScenePanel
           art={scene.art}
           mood={scene.mood}
           chapter={scene.chapter}
           title={scene.title}
-          showHero={showHero}
+          showHero={scene.kind !== 'ending'}
         />
 
-        {/* ── conteúdo ── */}
         {scene.kind === 'ending' ? (
-          <EndingCard scene={scene} stats={stats} onRestart={restart} onExit={onExit} />
+          <EndingCard scene={scene} onRestart={restart} onExit={onExit} />
         ) : scene.kind === 'challenge' ? (
-          <ChallengeCard
-            scene={scene} answered={answered} selected={selected} wasCorrect={wasCorrect}
-            onAnswer={handleAnswer}
-            onContinue={() => goTo(scene.next, statsRef.current)}
-          />
+          !answered ? (
+            <>
+              <Prose>
+                <p className="font-vt" style={{
+                  fontSize: 17, lineHeight: 1.35, color: C.paperSoft, margin: '0 0 9px',
+                }}>
+                  {scene.intro}
+                </p>
+                <p className="font-vt" style={{
+                  fontSize: 19, lineHeight: 1.35, color: C.paperInk, margin: 0,
+                  paddingTop: 9, borderTop: `2px solid ${C.paperEdge}`,
+                }}>
+                  {scene.question.text}
+                </p>
+              </Prose>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {scene.question.options.map((opt, i) => (
+                  <Choice key={i} onClick={() => handleAnswer(i)}>{opt}</Choice>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <Prose>
+                <p className="font-vt" style={{ fontSize: 19, lineHeight: 1.4, color: C.paperInk, margin: '0 0 10px' }}>
+                  {wasCorrect ? scene.correctText : scene.wrongText}
+                </p>
+                {/* a explicação entra como continuação da narração, sem
+                    rótulo de matéria nem cara de gabarito */}
+                <p className="font-vt" style={{
+                  fontSize: 18, lineHeight: 1.45, color: C.paperSoft, margin: 0,
+                  paddingLeft: 10, borderLeft: `3px solid ${wasCorrect ? C.green : C.rust}`,
+                }}>
+                  {scene.hint}
+                </p>
+              </Prose>
+              <Action onClick={() => goTo(scene.next, statsRef.current)}>CONTINUAR</Action>
+            </>
+          )
         ) : scene.kind === 'narrative' ? (
           <>
-            <PixelPanel>
+            <Prose>
               <p className="font-vt" style={{ fontSize: 19, lineHeight: 1.4, color: C.paperInk, margin: 0 }}>
                 {scene.text}
               </p>
-            </PixelPanel>
+            </Prose>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {scene.choices.map((c, i) => (
-                <Button key={i} onClick={() => handleChoice(i)} letter={LETTERS[i]}>{c.label}</Button>
+                <Choice key={i} onClick={() => handleChoice(i)}>{c.label}</Choice>
               ))}
             </div>
           </>
         ) : null}
-
-        <p className="font-pixel" style={{ fontSize: 6.5, color: C.boneDim, textAlign: 'center', lineHeight: 1.8, marginTop: 2 }}>
-          FICÇÃO INTERATIVA · BIOLOGIA
-        </p>
       </div>
 
       {showSettings && (
@@ -368,151 +364,43 @@ function IconBtn({ label, onClick, title }: { label: string; onClick: () => void
   );
 }
 
-// ── desafio de biologia ──────────────────────────────────
-function ChallengeCard({ scene, answered, selected, wasCorrect, onAnswer, onContinue }: {
-  scene: Extract<Scene, { kind: 'challenge' }>;
-  answered: boolean; selected: number | null; wasCorrect: boolean;
-  onAnswer: (i: number) => void; onContinue: () => void;
-}) {
-  return (
-    <>
-      {/* faixa do desafio */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        background: answered ? (wasCorrect ? C.green : C.red) : C.steel,
-        border: `2px solid ${C.line}`, boxShadow: bevel(3), padding: '7px 9px',
-      }}>
-        {scene.icon && <img src={ICON(scene.icon)} alt="" style={{ width: 16, height: 16, imageRendering: 'pixelated' }} />}
-        <span className="font-pixel" style={{ fontSize: 8, color: '#fff', letterSpacing: 0.5 }}>
-          {answered ? (wasCorrect ? 'RESPOSTA CORRETA' : 'NÃO FOI DESSA VEZ') : 'DESAFIO DE BIOLOGIA'}
-        </span>
-      </div>
-
-      {!answered ? (
-        <>
-          <PixelPanel>
-            <p className="font-vt" style={{ fontSize: 17, lineHeight: 1.35, color: C.paperSoft, margin: '0 0 9px', fontStyle: 'italic' }}>
-              {scene.intro}
-            </p>
-            <p className="font-vt" style={{ fontSize: 20, lineHeight: 1.35, color: C.paperInk, margin: 0, fontWeight: 'bold' }}>
-              {scene.question.text}
-            </p>
-          </PixelPanel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {scene.question.options.map((opt, i) => (
-              <Button key={i} onClick={() => onAnswer(i)} letter={LETTERS[i]}>{opt}</Button>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <PixelPanel>
-            <p className="font-vt" style={{ fontSize: 19, lineHeight: 1.4, color: C.paperInk, margin: '0 0 10px' }}>
-              {wasCorrect ? scene.correctText : scene.wrongText}
-            </p>
-            <div style={{ borderTop: `2px dashed ${C.paperEdge}`, paddingTop: 9 }}>
-              <span className="font-pixel" style={{ fontSize: 7, color: C.steelDark, letterSpacing: 0.5 }}>
-                POR QUE
-              </span>
-              <p className="font-vt" style={{ fontSize: 18, lineHeight: 1.4, color: C.paperSoft, margin: '6px 0 0' }}>
-                {scene.hint}
-              </p>
-            </div>
-          </PixelPanel>
-
-          {/* gabarito: mostra a certa e, se errou, a marcada */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            {scene.question.options.map((opt, i) => {
-              const isRight = i === scene.question.correct;
-              const isPicked = i === selected;
-              if (!isRight && !isPicked) return null;
-              return (
-                <div key={i} style={{
-                  display: 'flex', gap: 8, alignItems: 'flex-start',
-                  background: isRight ? 'rgba(74,168,58,0.16)' : 'rgba(212,63,96,0.16)',
-                  border: `2px solid ${isRight ? C.green : C.red}`, padding: '7px 8px',
-                }}>
-                  <span className="font-pixel" style={{
-                    flex: 'none', fontSize: 6, letterSpacing: 0.4, color: '#fff',
-                    background: isRight ? C.green : C.red, padding: '3px 5px',
-                  }}>
-                    {isRight ? 'CERTA' : 'SUA'}
-                  </span>
-                  <span className="font-vt" style={{
-                    fontSize: 16, lineHeight: 1.3, color: isRight ? '#bdf0b0' : '#ffb3c0',
-                  }}>{opt}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <Button onClick={onContinue} tone="rust">CONTINUAR</Button>
-        </>
-      )}
-    </>
-  );
-}
-
 // ── epílogo ──────────────────────────────────────────────
-function EndingCard({ scene, stats, onRestart, onExit }: {
-  scene: Extract<Scene, { kind: 'ending' }>; stats: Stats; onRestart: () => void; onExit: () => void;
+function EndingCard({ scene, onRestart, onExit }: {
+  scene: Extract<Scene, { kind: 'ending' }>; onRestart: () => void; onExit: () => void;
 }) {
   const g = getStats();
-  const medal = medalFor(g);
-  const medalColor = medal === 'ouro' ? '#f0c840' : medal === 'prata' ? '#cfd8e6' : '#c98a5a';
+  const total = g.solved + g.errors;
 
   return (
     <>
-      <PixelPanel style={{ textAlign: 'center' }}>
+      <Prose style={{ textAlign: 'center' }}>
         <div style={{
           width: 52, height: 52, margin: '0 auto 8px', display: 'grid', placeItems: 'center',
           background: C.rust, border: `2px solid ${C.line}`, boxShadow: bevel(3),
         }}>
           {scene.icon && <img src={ICON(scene.icon)} alt="" style={{ width: 32, height: 32, imageRendering: 'pixelated' }} />}
         </div>
-        <h2 className="font-pixel" style={{ fontSize: 13, color: C.paperInk, margin: '8px 0 10px', lineHeight: 1.6 }}>
+        <h2 className="font-pixel" style={{ fontSize: 13, color: C.paperInk, margin: '8px 0 12px', lineHeight: 1.6 }}>
           {scene.title}
         </h2>
-        <p className="font-vt" style={{ fontSize: 19, lineHeight: 1.4, color: C.paperInk, margin: 0 }}>
+        <p className="font-vt" style={{ fontSize: 19, lineHeight: 1.45, color: C.paperInk, margin: 0, textAlign: 'left' }}>
           {scene.text}
         </p>
-      </PixelPanel>
+      </Prose>
 
-      {/* balanço final */}
-      <div style={{ background: C.shell, border: `2px solid ${C.line}`, boxShadow: bevel(3), padding: '10px 11px' }}>
-        <div className="font-pixel" style={{ fontSize: 7, color: C.boneDim, letterSpacing: 0.5, marginBottom: 9 }}>
-          BALANÇO FINAL
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {STAT_SKINS.map(skin => (
-            <div key={skin.key} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <img src={ICON(skin.icon)} alt="" style={{ width: 16, height: 16, imageRendering: 'pixelated', flex: 'none' }} />
-              <span className="font-pixel" style={{ fontSize: 6, color: C.boneDim, width: 58, flex: 'none' }}>{skin.label}</span>
-              <span style={{ flex: 1, height: 7, background: 'rgba(0,0,0,0.35)', border: `1px solid ${C.line}` }}>
-                <span style={{ display: 'block', height: '100%', width: `${stats[skin.key]}%`, background: skin.fill }} />
-              </span>
-              <span className="font-pixel" style={{ fontSize: 8, color: C.bone, width: 20, textAlign: 'right', flex: 'none' }}>
-                {stats[skin.key]}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginTop: 11, paddingTop: 9, borderTop: `2px solid ${C.shellHi}`,
+      {/* único momento em que o jogo fala de acerto: a tela de resultado */}
+      {total > 0 && (
+        <div className="font-pixel" style={{
+          background: C.shell, border: `2px solid ${C.line}`, boxShadow: bevel(3),
+          padding: '10px 12px', fontSize: 7.5, color: C.boneDim, lineHeight: 1.9,
         }}>
-          <span className="font-pixel" style={{ fontSize: 7, color: C.boneDim }}>
-            BIOLOGIA {g.solved}/{g.solved + g.errors}
-          </span>
-          <span className="font-pixel" style={{ fontSize: 8, color: medalColor }}>
-            MEDALHA {medal.toUpperCase()}
-          </span>
+          VOCÊ LEU CERTO {g.solved} DE {total} SINAIS DO MUNDO
         </div>
-      </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-        <Button onClick={onRestart} tone="rust">JOGAR DE NOVO</Button>
-        <Button onClick={onExit} tone="ghost">VOLTAR AO INÍCIO</Button>
+        <Action onClick={onRestart}>JOGAR DE NOVO</Action>
+        <Action tone="ghost" onClick={onExit}>VOLTAR AO INÍCIO</Action>
       </div>
     </>
   );
@@ -551,8 +439,8 @@ function Settings({ muted, volume, onClose, onRestart }: {
         />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          <Button onClick={onRestart} tone="ghost">REINICIAR HISTÓRIA</Button>
-          <Button onClick={onClose} tone="rust">FECHAR</Button>
+          <Action tone="ghost" onClick={onRestart}>REINICIAR HISTÓRIA</Action>
+          <Action onClick={onClose}>FECHAR</Action>
         </div>
       </div>
     </div>
