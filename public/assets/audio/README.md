@@ -1,45 +1,43 @@
-# Efeitos sonoros e música do jogo
+# Áudio do jogo
 
-O sistema de áudio já está **pronto e ligado** no código (`src/game/audio.ts`
-para SFX e `src/game/music.ts` para a trilha). Por padrão, CINZAS toca tudo
-**sintetizado em 8-bit** (gerado por código, sem nenhum arquivo de áudio) —
-isso evita qualquer dúvida de licenciamento e já soa bem no clima do jogo.
+O sistema de áudio fica em `src/game/audio.ts` (efeitos) e
+`src/game/music.ts` (trilha). Os arquivos abaixo já estão no repositório,
+todos com licença livre verificada para uso comercial. A atribuição
+detalhada de cada arquivo está nos `CREDITS.txt` de cada pasta e aparece
+também na tela de créditos do jogo.
 
-Colocar arquivos reais aqui é **opcional**: se você adicionar um `.mp3` com
-o nome certo, ele passa a tocar automaticamente no lugar do som sintetizado.
+## Música: `music/`
 
-## 🎵 Música de fundo → `music/`
+| Arquivo                | Quando toca                          |
+|------------------------|--------------------------------------|
+| `music/home-theme.mp3` | Em loop na tela inicial, com fade     |
+| `music/explore.mp3`    | Em loop durante os capítulos          |
 
-| Arquivo                 | Quando toca                                     |
-|--------------------------|-------------------------------------------------|
-| `music/home-theme.mp3`  | Em loop na **tela inicial** (com fade in/out)   |
-| `music/explore.mp3`     | Em loop durante a jornada pelas ruínas          |
-| `music/battle.mp3`      | Reservado para uso futuro (tema de tensão)      |
+Ambas do Pixabay Music (Licença de Conteúdo Pixabay). Ver
+`music/CREDITS.txt`.
 
-Sem esses arquivos, toca a trilha sintetizada em modo menor, mais lenta e
-sombria — pensada para o clima pós-apocalíptico do jogo.
+## Efeitos: `sfx/`
 
-## 🔊 Efeitos sonoros → `sfx/`
+Efeitos da Kenney (kenney.nl), todos CC0. Ver `sfx/CREDITS.txt` para o
+pack de origem de cada arquivo.
 
-Sons **curtos** (menos de ~2s).
+CINZAS dispara três deles: `select.mp3` ao escolher, `correct.mp3` ao
+acertar um desafio e `wrong.mp3` ao errar. Os demais (`tap`, `gate`,
+`walk`, `attack`, `hurt`, `victory`) continuam disponíveis no mapa
+`SFX_FILES` de `audio.ts` para uso futuro.
 
-| Arquivo            | Dispara quando                    |
-|---------------------|------------------------------------|
-| `sfx/select.mp3`   | Escolher uma decisão               |
-| `sfx/correct.mp3`  | Acertar um desafio de biologia     |
-| `sfx/wrong.mp3`    | Errar um desafio de biologia       |
+## Sem arquivo, o jogo não fica mudo
 
-Você não precisa colocar todos — os que faltarem continuam usando o som
-sintetizado. Se optar por arquivos reais, use apenas material com licença
-clara para uso comercial (CC0, domínio público, ou licença própria) e
-mantenha a atribuição correta na página de créditos do jogo.
+Se algum arquivo estiver ausente ou o navegador bloquear a reprodução,
+`audio.ts` e `music.ts` caem automaticamente para sons e trilha
+sintetizados em 8-bit via WebAudio (Lá menor, 72 BPM). Por isso os
+arquivos são substituíveis: basta trocar o `.mp3` mantendo o nome.
 
-## Onde achar efeitos grátis (CC0 / domínio público)
+Se você trocar algum arquivo, use apenas material com licença clara para
+uso comercial e atualize o `CREDITS.txt` correspondente e a lista em
+`src/game/credits.ts`.
 
-- https://freesound.org
-- https://pixabay.com/sound-effects/
-- https://opengameart.org
+## Volume
 
-## Ajustes
-
-O volume dos efeitos é controlado por `_volume` em `src/game/audio.ts`.
+O volume dos efeitos e da trilha respeita o mudo e o controle de volume
+da tela de ajustes (`_volume` em `audio.ts`).

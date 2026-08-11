@@ -23,11 +23,6 @@ const HOME_FILE = '/assets/audio/music/home-theme.mp3';
 const HOME_GAIN = 0.5;
 const HOME_FADE_MS = 700;
 
-// ── Tema de tensão (faixa própria, reservado para uso futuro) ──
-const BATTLE_FILE = '/assets/audio/music/battle.mp3';
-const BATTLE_GAIN = 0.5;
-const BATTLE_FADE_MS = 500;
-
 const BPM = 72;
 const STEP = 60 / BPM / 2;       // colcheia
 const STEPS = 64;                // 8 compassos de 8 colcheias
@@ -256,73 +251,9 @@ export function stopHomeTheme() {
   }, HOME_FADE_MS / 2 / steps);
 }
 
-// ─────────────────────────────────────────────────────────
-// Tema de batalha — faixa própria (battle.mp3), toca durante o combate.
-// A trilha de exploração (arquivo ou chiptune) é pausada enquanto isso
-// e retomada de onde parou (ou reinicia o loop, no caso do chiptune)
-// assim que a batalha termina.
-// ─────────────────────────────────────────────────────────
-let battleEl: HTMLAudioElement | null = null;
-let battleFade: ReturnType<typeof setInterval> | null = null;
-let duckedMusic = false; // a trilha de exploração estava tocando e foi pausada pela batalha
-
-function clearBattleFade() {
-  if (battleFade) { clearInterval(battleFade); battleFade = null; }
-}
-
-export function startBattleMusic() {
-  const wasActive = running || !!(fileEl && !fileEl.paused);
-  if (wasActive) { stopMusic(); duckedMusic = true; }
-
-  if (typeof Audio === 'undefined') return;
-  if (!battleEl) {
-    battleEl = new Audio(BATTLE_FILE);
-    battleEl.loop = true;
-    battleEl.preload = 'auto';
-    battleEl.volume = 0;
-  }
-  if (!battleEl.paused) return;
-  clearBattleFade();
-  const target = audioGain(BATTLE_GAIN);
-  void battleEl.play().then(() => {
-    if (!battleEl) return;
-    const steps = 16;
-    let i = 0;
-    battleFade = setInterval(() => {
-      i++;
-      if (!battleEl) { clearBattleFade(); return; }
-      battleEl.volume = Math.min(target, (target * i) / steps);
-      if (i >= steps) clearBattleFade();
-    }, BATTLE_FADE_MS / steps);
-  }).catch(() => {/* bloqueado/arquivo ausente — o combate segue sem trilha própria */});
-}
-
-export function stopBattleMusic() {
-  if (battleEl && !battleEl.paused) {
-    clearBattleFade();
-    const el = battleEl;
-    const startVol = el.volume;
-    const steps = 12;
-    let i = 0;
-    battleFade = setInterval(() => {
-      i++;
-      el.volume = Math.max(0, startVol * (1 - i / steps));
-      if (i >= steps) { clearBattleFade(); el.pause(); }
-    }, BATTLE_FADE_MS / steps);
-  }
-  // retoma a trilha de exploração de onde parou
-  if (duckedMusic) {
-    duckedMusic = false;
-    if (mode === 'file' && fileEl) void fileEl.play().catch(() => {});
-    else if (mode === 'synth') startSynth();
-    else startMusic();
-  }
-}
-
 // mudo/volume globais afetam as trilhas em tempo real
 subscribeAudio(() => {
   if (ctx && master && running) master.gain.setTargetAtTime(audioGain(MUSIC_GAIN), ctx.currentTime, 0.1);
   if (fileEl) fileEl.volume = audioGain(FILE_GAIN);
   if (homeEl && !homeEl.paused && !homeFade) homeEl.volume = audioGain(HOME_GAIN);
-  if (battleEl && !battleEl.paused && !battleFade) battleEl.volume = audioGain(BATTLE_GAIN);
 });

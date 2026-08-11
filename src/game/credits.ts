@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────
 // Créditos de CINZAS: O Último Abrigo.
 //
-// Todo o conteúdo do jogo é autoral: a arte pixel é desenhada por código
-// (scripts/gen-art.mjs), a trilha e os efeitos são sintetizados em tempo
-// real, e o roteiro foi escrito para este projeto. As únicas dependências
-// externas são as duas fontes e as bibliotecas de código.
+// A arte pixel e o roteiro são autorais: a arte é desenhada por código
+// (scripts/gen-art.mjs). O áudio vem de fontes com licença livre já
+// verificada (efeitos CC0 da Kenney e música do Pixabay), com os detalhes
+// de cada arquivo em public/assets/audio/*/CREDITS.txt.
 // ─────────────────────────────────────────────────────────
 
 export interface CreditItem {
@@ -53,10 +53,31 @@ export const CREDITS: CreditSection[] = [
     heading: 'Áudio',
     items: [
       {
-        title: 'Trilha e efeitos sonoros 8-bit',
+        title: 'Efeitos sonoros',
+        author: 'Kenney Vleugels',
+        license: 'CC0 1.0 (domínio público)',
+        note: 'Toque de escolha, acerto e erro, dos packs Interface Sounds, RPG Audio, Impact Sounds, Digital Audio e Music Jingles. Ver public/assets/audio/sfx/CREDITS.txt para a origem de cada arquivo.',
+        url: 'https://kenney.nl',
+      },
+      {
+        title: '"That Game Arcade (Medium)", tema da tela inicial',
+        author: 'moodmode',
+        license: 'Licença de Conteúdo Pixabay',
+        note: 'Toca em loop na tela inicial, com fade ao entrar no jogo.',
+        url: 'https://pixabay.com/music/',
+      },
+      {
+        title: '"Mystery Vintage Recordings", tema da jornada',
+        author: 'EchoWaveMutawe',
+        license: 'Licença de Conteúdo Pixabay',
+        note: 'Toca em loop durante os capítulos.',
+        url: 'https://pixabay.com/music/',
+      },
+      {
+        title: 'Trilha e efeitos 8-bit sintetizados',
         author: 'Original do projeto',
         license: 'Sintetizado em tempo real',
-        note: 'A música e os efeitos são gerados via WebAudio enquanto o jogo roda, sem nenhum arquivo de áudio externo.',
+        note: 'Gerados via WebAudio e usados automaticamente caso algum arquivo de áudio esteja ausente, para o jogo nunca ficar mudo.',
       },
     ],
   },
@@ -91,6 +112,6 @@ export const CREDITS: CreditSection[] = [
 ];
 
 export const CREDITS_NOTE =
-  'Este jogo não usa nenhum pack de arte, música ou efeito sonoro de terceiros: ' +
-  'a arte é desenhada por código e o áudio é sintetizado durante a partida. ' +
-  'As únicas dependências externas são as duas fontes acima, ambas sob licença aberta.';
+  'Toda a arte deste jogo é desenhada por código, sem nenhum pack de terceiros. ' +
+  'O áudio e as fontes vêm de fontes com licença livre para uso comercial ' +
+  '(CC0, Licença de Conteúdo Pixabay e SIL Open Font License), verificadas antes do uso.';
