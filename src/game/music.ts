@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────
-// Música de fundo — tema de exploração estilo pixel art (chiptune)
+// Música de fundo — tema de sobrevivência pós-apocalíptica (chiptune)
 //
 // • Sequenciador WebAudio: melodia quadrada suave + baixo triangular +
-//   pad de acordes + "shaker" de ruído, em Dó maior pentatônica
-//   (a mesma escala dos tons da floresta no StoryGame).
-// • Loop de 8 compassos com eco (delay) para o clima de aventura/mistério.
+//   pad de acordes + "shaker" de ruído, em Lá menor natural — modo mais
+//   sombrio e lento que combina com o clima de CINZAS.
+// • Loop de 8 compassos com eco (delay) para o clima de tensão/solidão.
 // • Arquivo OPCIONAL tem prioridade: se existir
 //   public/assets/audio/music/explore.mp3, ele toca em loop no lugar.
 // • Respeita mudo/volume globais (subscribeAudio).
@@ -15,44 +15,39 @@
 import { audioGain, subscribeAudio } from './audio';
 
 const MUSIC_FILE = '/assets/audio/music/explore.mp3';
-const MUSIC_GAIN = 0.32;         // volume-base da trilha (bem abaixo dos SFX)
+const MUSIC_GAIN = 0.28;         // volume-base da trilha (bem abaixo dos SFX)
 const FILE_GAIN = 0.5;
 
 // ── Tema da tela inicial (faixa própria, sempre que existir o arquivo) ──
 const HOME_FILE = '/assets/audio/music/home-theme.mp3';
-const HOME_GAIN = 0.55;
+const HOME_GAIN = 0.5;
 const HOME_FADE_MS = 700;
 
-// ── Tema de batalha (faixa própria, toca durante o combate) ──
-const BATTLE_FILE = '/assets/audio/music/battle.mp3';
-const BATTLE_GAIN = 0.55;
-const BATTLE_FADE_MS = 500;
-
-const BPM = 96;
+const BPM = 72;
 const STEP = 60 / BPM / 2;       // colcheia
 const STEPS = 64;                // 8 compassos de 8 colcheias
 
-// ── Notas (Hz) — Dó maior pentatônica + baixos ──
-const C2 = 65.41, G2 = 98.0, A2 = 110.0, E2 = 82.41;
-const C3 = 130.81, D3 = 146.83, E3 = 164.81, G3 = 196.0, A3 = 220.0;
-const C4 = 261.63, D4 = 293.66, E4 = 329.63, G4 = 392.0, A4 = 440.0;
-const C5 = 523.25;
+// ── Notas (Hz) — Lá menor natural + baixos ──
+const A1 = 55.0, E2 = 82.41, F2 = 87.31, G2 = 98.0;
+const A2 = 110.0, C3 = 130.81, D3 = 146.83, E3 = 164.81, F3 = 174.61, G3 = 196.0;
+const A3 = 220.0, C4 = 261.63, D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.0;
+const A4 = 440.0;
 const _ = null;
 
 // ── Partitura (64 passos por trilha) ──
-// Melodia: frases curtas com respiros, terminando aberta para o loop.
+// Melodia: frases curtas e espaçadas, tom melancólico, aberta para o loop.
 const LEAD: Array<number | null> = [
   // c1            // c2            // c3            // c4
-  E4,_,G4,_,A4,_,_,_,  G4,_,E4,_,D4,_,C4,_,  E4,_,G4,_,A4,_,C5,_,  A4,_,G4,_,E4,_,_,_,
+  A3,_,C4,_,E4,_,_,_,  D4,_,C4,_,A3,_,_,_,  A3,_,C4,_,E4,_,G4,_,  F4,_,E4,_,D4,_,_,_,
   // c5            // c6            // c7            // c8
-  C5,_,A4,_,G4,_,E4,_,  D4,_,E4,_,G4,_,_,_,  E4,_,D4,_,C4,_,A3,_,  C4,_,_,_,_,_,_,_,
+  E4,_,D4,_,C4,_,A3,_,  G3,_,A3,_,C4,_,_,_,  A3,_,G3,_,F3,_,E3,_,  A3,_,_,_,_,_,_,_,
 ];
 
-// Baixo: fundamento no 1º e 5º passo de cada compasso (I–V–vi–V)
-const BASS_ROOTS = [C2, G2, A2, G2, C2, G2, A2, E2];
+// Baixo: fundamento no 1º e 5º passo de cada compasso (i–VII–VI–v)
+const BASS_ROOTS = [A1, G2, F2, E2, A1, G2, F2, E2];
 
 // Pad: um acorde suave a cada 2 compassos
-const PAD_CHORDS: number[][] = [[C3, G3], [A2, E3], [C3, G3], [G2, D3]];
+const PAD_CHORDS: number[][] = [[A2, E3], [G2, D3], [F2, C3], [E2, G3]];
 
 // ── Estado ──
 let ctx: AudioContext | null = null;
@@ -256,73 +251,9 @@ export function stopHomeTheme() {
   }, HOME_FADE_MS / 2 / steps);
 }
 
-// ─────────────────────────────────────────────────────────
-// Tema de batalha — faixa própria (battle.mp3), toca durante o combate.
-// A trilha de exploração (arquivo ou chiptune) é pausada enquanto isso
-// e retomada de onde parou (ou reinicia o loop, no caso do chiptune)
-// assim que a batalha termina.
-// ─────────────────────────────────────────────────────────
-let battleEl: HTMLAudioElement | null = null;
-let battleFade: ReturnType<typeof setInterval> | null = null;
-let duckedMusic = false; // a trilha de exploração estava tocando e foi pausada pela batalha
-
-function clearBattleFade() {
-  if (battleFade) { clearInterval(battleFade); battleFade = null; }
-}
-
-export function startBattleMusic() {
-  const wasActive = running || !!(fileEl && !fileEl.paused);
-  if (wasActive) { stopMusic(); duckedMusic = true; }
-
-  if (typeof Audio === 'undefined') return;
-  if (!battleEl) {
-    battleEl = new Audio(BATTLE_FILE);
-    battleEl.loop = true;
-    battleEl.preload = 'auto';
-    battleEl.volume = 0;
-  }
-  if (!battleEl.paused) return;
-  clearBattleFade();
-  const target = audioGain(BATTLE_GAIN);
-  void battleEl.play().then(() => {
-    if (!battleEl) return;
-    const steps = 16;
-    let i = 0;
-    battleFade = setInterval(() => {
-      i++;
-      if (!battleEl) { clearBattleFade(); return; }
-      battleEl.volume = Math.min(target, (target * i) / steps);
-      if (i >= steps) clearBattleFade();
-    }, BATTLE_FADE_MS / steps);
-  }).catch(() => {/* bloqueado/arquivo ausente — o combate segue sem trilha própria */});
-}
-
-export function stopBattleMusic() {
-  if (battleEl && !battleEl.paused) {
-    clearBattleFade();
-    const el = battleEl;
-    const startVol = el.volume;
-    const steps = 12;
-    let i = 0;
-    battleFade = setInterval(() => {
-      i++;
-      el.volume = Math.max(0, startVol * (1 - i / steps));
-      if (i >= steps) { clearBattleFade(); el.pause(); }
-    }, BATTLE_FADE_MS / steps);
-  }
-  // retoma a trilha de exploração de onde parou
-  if (duckedMusic) {
-    duckedMusic = false;
-    if (mode === 'file' && fileEl) void fileEl.play().catch(() => {});
-    else if (mode === 'synth') startSynth();
-    else startMusic();
-  }
-}
-
 // mudo/volume globais afetam as trilhas em tempo real
 subscribeAudio(() => {
   if (ctx && master && running) master.gain.setTargetAtTime(audioGain(MUSIC_GAIN), ctx.currentTime, 0.1);
   if (fileEl) fileEl.volume = audioGain(FILE_GAIN);
   if (homeEl && !homeEl.paused && !homeFade) homeEl.volume = audioGain(HOME_GAIN);
-  if (battleEl && !battleEl.paused && !battleFade) battleEl.volume = audioGain(BATTLE_GAIN);
 });
