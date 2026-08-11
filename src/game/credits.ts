@@ -45,7 +45,7 @@ export const CREDITS: CreditSection[] = [
         title: 'Roteiro e virada',
         author: 'Equipe do Prof. Corujão',
         license: 'Original do projeto',
-        note: 'Os 4 capítulos, a escolha final e os 9 desfechos, três deles por morte, foram escritos para este jogo. A biologia aparece como decisão da personagem, não como prova: radiação e DNA, fervura e micro-organismos, resposta imune, fotossíntese e contaminação do solo, e fungos que acumulam isótopos.',
+        note: 'Os 4 capítulos, a escolha final e os 9 desfechos, três deles por morte, foram escritos para este jogo. A botânica aparece como decisão da personagem, não como prova: dormência e viabilidade de sementes, transpiração, órgão de reserva e defesa química da batata, fotossíntese e contaminação do solo, e fitorremediação pela raiz.',
       },
     ],
   },
@@ -59,10 +59,10 @@ export const CREDITS: CreditSection[] = [
         note: 'A Selva Tóxica parece estar matando o mundo e na verdade o purifica. A Mancha de CINZAS parte da mesma ideia, e daí vem o erro do protocolo que a protagonista carrega.',
       },
       {
-        title: 'Fungos da zona de Chernobyl',
+        title: 'Fitorremediação na zona de Chernobyl',
         author: 'Pesquisa publicada',
         license: 'Base científica',
-        note: 'Espécies coletadas na zona concentram césio-137 e estrôncio-90 muito acima do ambiente em volta, e algumas usam melanina diante da radiação. É o que a Mancha faz no jogo.',
+        note: 'Plantas absorvem pela raiz o que está dissolvido no solo e acumulam no caule e nas folhas. É exatamente o que a Mancha faz no jogo.',
       },
       {
         title: 'Girassóis e fitorremediação',

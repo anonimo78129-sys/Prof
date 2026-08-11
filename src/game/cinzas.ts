@@ -6,17 +6,20 @@
 // cheia e um protocolo decorado: queimar qualquer crescimento perto da
 // porta.
 //
-// O protocolo está errado, e a biologia é o que revela isso. A crosta
-// preta-esverdeada que todos queimam (a Mancha) é um fungo que está
-// retirando contaminação do solo. Os cinco desafios não são prova: são
-// pistas em escalada, e a última entrega a virada. A escolha final vira
-// queimar ou semear.
+// O protocolo está errado, e a botânica é o que revela isso. O mato que
+// todos queimam (a Mancha) é uma vegetação que está tirando contaminação
+// do solo pela raiz e guardando nas folhas. As cinco decisões não são
+// prova: são pistas em escalada, e a última entrega a virada. A escolha
+// final vira queimar ou semear.
+//
+// As cinco lições, todas de botânica: dormência e viabilidade de
+// sementes, transpiração, órgão de reserva e defesa química (solanina),
+// fotossíntese e absorção pelo solo, e fitorremediação.
 //
 // Referências assumidas: a Selva Tóxica de "Nausicaä do Vale do Vento"
 // (o que parece matar está purificando) e a ciência real da zona de
-// Chernobyl (fungos que acumulam césio-137 e estrôncio-90; girassóis
-// usados em fitorremediação porque césio e estrôncio imitam potássio e
-// cálcio).
+// Chernobyl (girassóis usados em fitorremediação, porque césio imita
+// potássio e estrôncio imita cálcio e a raiz absorve sem distinguir).
 //
 // Com um quiz de professor (link/QR, ver quizShare.ts), as 5 perguntas
 // são trocadas pelas dele e a narrativa segue igual (ver buildScenes.ts).
@@ -122,31 +125,31 @@ export type Scene = NarrativeScene | ChallengeScene | EndingScene | RouterScene;
 // ─────────────────────────────────────────────────────────
 // As 5 perguntas padrão. Cada uma entrega uma peça da virada.
 // ─────────────────────────────────────────────────────────
-const Q_RADIACAO: Pergunta = {
-  text: 'Você calcula quanto tempo pode ficar lá fora. O que pesa nessa conta?',
+const Q_SEMENTES: Pergunta = {
+  text: 'O gerador morreu e o abrigo vai esquentar. O que você faz com as sementes antes de sair?',
   options: [
-    'O tempo somado lá fora, porque cada dose vai quebrando o DNA das células',
-    'Só o que o aparelho marca agora: se não apitar forte, o dia inteiro é seguro',
-  ],
-  correct: 0,
-};
-
-const Q_AGUA: Pergunta = {
-  text: 'Sobra pouco combustível. O que você faz com essa água?',
-  options: [
-    'Coar num pano limpo: se sair transparente, está boa',
-    'Ferver por alguns minutos antes de encher os cantis',
+    'Molhar tudo antes de fechar, para elas não ressecarem dentro da mochila',
+    'Levar as que couberem secas e no escuro, porque calor e umidade acordam a semente fora da terra',
   ],
   correct: 1,
 };
 
-const Q_IMUNIDADE: Pergunta = {
-  text: 'O que você responde para ele?',
+const Q_TRANSPIRACAO: Pergunta = {
+  text: 'Você amarra um saco plástico num galho cheio de folhas, ao sol. Por que isso daria água?',
   options: [
-    'Que não é ferida fechando: o inchaço é a defesa do corpo agindo, e a linha subindo é a infecção se espalhando',
-    'Que ele tem razão, porque toda ferida esquenta enquanto cicatriza',
+    'Porque a planta perde água pelas folhas o dia inteiro, e esse vapor condensa no plástico',
+    'Porque o plástico esquenta e derrete o orvalho que fica preso na casca do galho',
   ],
   correct: 0,
+};
+
+const Q_SOLANINA: Pergunta = {
+  text: 'Elias separou um punhado de batatas com a casca esverdeada. O que você diz para ele?',
+  options: [
+    'Que o verde é só clorofila, sinal de batata fresca, e é a parte mais nutritiva',
+    'Que o verde é sinal de que ela pegou luz, e junto com a clorofila vem solanina, que é tóxica',
+  ],
+  correct: 1,
 };
 
 const Q_ESTUFA: Pergunta = {
@@ -158,13 +161,13 @@ const Q_ESTUFA: Pergunta = {
   correct: 1,
 };
 
-const Q_FUNGO: Pergunta = {
-  text: 'Elias espera você dizer alguma coisa. O que está acontecendo naquela parede?',
+const Q_RAIZES: Pergunta = {
+  text: 'Elias espera você dizer alguma coisa. O que essas plantas estão fazendo com o terreno?',
   options: [
-    'A crosta é um fungo, e fungo acumula no corpo o que está dissolvido em volta, inclusive material radioativo',
-    'O fungo solta oxigênio, e isso dilui a radiação do ar em volta',
+    'A folhagem faz sombra, e a sombra segura a contaminação embaixo, impedindo que ela suba',
+    'A raiz absorve o que está dissolvido no solo e guarda no caule e nas folhas, inclusive o material radioativo',
   ],
-  correct: 0,
+  correct: 1,
 };
 
 // ─────────────────────────────────────────────────────────
@@ -178,19 +181,19 @@ export function defaultScenes(): Record<string, Scene> {
       icon: 'silo', title: 'Abrigo 7',
       text: 'O Abrigo 7 guardava dezoito mil variedades de semente e uma pessoa: você. Fazem três dias desde a Queda e o rádio não repete nada além de estática. Na parede, o protocolo que você decorou aos onze anos: manter os potes selados, racionar a água e queimar qualquer crescimento a menos de cinquenta metros da porta.',
       choices: [
-        { label: 'Sair agora, enquanto ainda há luz', effect: { agua: -5 }, next: () => 'desafio_radiacao' },
-        { label: 'Esperar mais um dia e economizar energia', effect: { racao: -10, saude: 5 }, next: () => 'desafio_radiacao' },
+        { label: 'Sair agora, enquanto ainda há luz', effect: { agua: -5 }, next: () => 'desafio_sementes' },
+        { label: 'Esperar mais um dia e economizar energia', effect: { racao: -10, saude: 5 }, next: () => 'desafio_sementes' },
       ],
     },
 
-    desafio_radiacao: {
-      id: 'desafio_radiacao', kind: 'challenge', art: 'bunker', day: 1, chapter: 'CAPÍTULO 1', mood: 'dawn',
-      icon: 'ablaze', title: 'O Contador Geiger',
-      intro: 'Antes de girar a trava da escotilha, você para diante do contador. O ponteiro treme baixo, e o treinamento volta inteiro: o perigo não é o barulho do aparelho num instante, é o que a dose faz por dentro ao longo dos dias.',
-      question: Q_RADIACAO,
-      correctText: 'Você anota a hora da saída no pulso, a caneta. Vai contar cada minuto lá fora.',
-      wrongText: 'Você sai sem marcar a hora. Só à noite, deitada, vai lembrar que o treinamento falava em dose somada, não em susto de um dia.',
-      hint: 'Radiação ionizante carrega energia suficiente para romper ligações químicas do DNA. A célula pode morrer, parar de se dividir ou se dividir errado, e o estrago se soma a cada exposição. Por isso quem trabalha com isso conta minutos, não sustos.',
+    desafio_sementes: {
+      id: 'desafio_sementes', kind: 'challenge', art: 'bunker', day: 1, chapter: 'CAPÍTULO 1', mood: 'dawn',
+      icon: 'sprout', title: 'O Banco de Sementes',
+      intro: 'O gerador parou de madrugada. Sem refrigeração, a temperatura do abrigo sobe todo dia, e você conhece de cor o que isso faz com um banco de sementes: o que está guardado ali só continua vivo porque está frio, seco e no escuro.',
+      question: Q_SEMENTES,
+      correctText: 'Você escolhe os envelopes menores, fecha com fita e enfia no fundo da mochila, longe do sol. Dezoito mil variedades não cabem. Setecentas cabem.',
+      wrongText: 'Você molha os envelopes achando que protege. Duas semanas depois, quase tudo que germinou dentro da mochila apodreceu antes de ver terra.',
+      hint: 'Semente guardada está em dormência: viva, mas com o metabolismo quase parado. Umidade e calor são justamente os sinais que quebram essa dormência e mandam germinar. Se ela germina dentro da mochila, gasta a reserva que tinha e morre sem solo. É por isso que banco de semente é frio, seco e escuro.',
       effectCorrect: { saude: 5, lucidez: 15 },
       effectWrong: { saude: -10 },
       next: 'ruinas',
@@ -200,9 +203,9 @@ export function defaultScenes(): Record<string, Scene> {
     ruinas: {
       id: 'ruinas', kind: 'narrative', art: 'ruins', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
       icon: 'busstop', title: 'As Ruínas',
-      text: 'A cidade virou esqueleto de concreto. Você reconhece a padaria pela placa torta e não reconhece mais nada. Numa parede inteira de estacionamento cresce uma crosta preta e esverdeada, do tipo que o protocolo manda queimar. Você passa longe. O contador, que apitava firme na rua, fica mais quieto perto dela. Você anota e não pensa mais nisso.',
+      text: 'A cidade virou esqueleto de concreto. Você reconhece a padaria pela placa torta e não reconhece mais nada. Num estacionamento inteiro cresceu um emaranhado baixo e escuro, folha grossa e caule roxo, do tipo que o protocolo manda queimar. Você passa longe. O contador, que apitava firme na rua, fica mais quieto perto do canteiro. Você anota e não pensa mais nisso.',
       choices: [
-        { label: 'Entrar no hospital atrás de remédios', effect: { saude: 15, agua: -10 }, next: () => 'desafio_agua' },
+        { label: 'Entrar no hospital atrás de remédios', effect: { saude: 15, agua: -10 }, next: () => 'desafio_transpiracao' },
         { label: 'Cortar pela zona industrial até o mercado', effect: { racao: 15 }, next: () => 'perigo' },
       ],
     },
@@ -210,30 +213,30 @@ export function defaultScenes(): Record<string, Scene> {
     perigo: {
       id: 'perigo', kind: 'narrative', art: 'toxic', day: 2, chapter: 'CAPÍTULO 2', mood: 'danger',
       icon: 'gasmask', title: 'Zona Industrial',
-      text: 'A poeira esverdeada só aparece contra a luz, e quando você percebe já está respirando. Não é a Mancha: é pó de concreto misturado com o que sobrou do incêndio dos galpões. O contador dispara aqui, e não há parede coberta de crosta em lugar nenhum deste quarteirão.',
+      text: 'A poeira esverdeada só aparece contra a luz, e quando você percebe já está respirando. Não é a Mancha: é pó de concreto misturado com o que sobrou do incêndio dos galpões. O contador dispara aqui, e não há um pé de mato vivo em lugar nenhum deste quarteirão.',
       choices: [
         { label: 'Amarrar o pano no rosto e atravessar correndo', effect: { saude: -22, agua: -10 }, next: () => 'rota_travessia' },
-        { label: 'Voltar e fazer o contorno, mais longo e mais seguro', effect: { racao: -15, agua: -5 }, next: () => 'desafio_agua' },
+        { label: 'Voltar e fazer o contorno, mais longo e mais seguro', effect: { racao: -15, agua: -5 }, next: () => 'desafio_transpiracao' },
       ],
     },
 
     rota_travessia: {
       id: 'rota_travessia', kind: 'router', art: 'toxic', day: 2, chapter: 'CAPÍTULO 2', mood: 'danger', title: '',
-      next: (s) => (s.saude <= 22 ? 'final_dose' : 'desafio_agua'),
+      next: (s) => (s.saude <= 22 ? 'final_dose' : 'desafio_transpiracao'),
     },
     rota_agua: {
       id: 'rota_agua', kind: 'router', art: 'cistern', day: 3, chapter: 'CAPÍTULO 3', mood: 'ash', title: '',
-      next: (s) => (s.saude <= 22 ? 'final_disenteria' : 'encontro'),
+      next: (s) => (s.saude <= 22 ? 'final_sede' : 'encontro'),
     },
 
-    desafio_agua: {
-      id: 'desafio_agua', kind: 'challenge', art: 'cistern', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
-      icon: 'flask', title: 'A Cisterna',
-      intro: 'A caixa d’água do prédio ficou de pé e ainda tem quase um palmo de água no fundo, turva e parada há três dias. Você está com sede o bastante para considerar beber assim.',
-      question: Q_AGUA,
-      correctText: 'Você junta madeira e ferve. Custa combustível que não estava sobrando, e é a escolha certa.',
-      wrongText: 'Você enche os cantis do jeito que estão. Passa a noite esperando para ver no que dá, e não dorme direito.',
-      hint: 'Ferver mata bactérias, vírus e protozoários, que é o risco imediato de uma água parada há dias. Coar tira a sujeira visível e não tira micro-organismo nenhum. E fervura não resolve o resto: contaminação química e radioativa continua ali depois.',
+    desafio_transpiracao: {
+      id: 'desafio_transpiracao', kind: 'challenge', art: 'cistern', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
+      icon: 'flask', title: 'Sede',
+      intro: 'A caixa d’água do prédio secou faz tempo. O que sobrou vivo no quarteirão é uma amendoeira teimosa rachando o asfalto, cheia de folha verde. Na mochila você tem sacos plásticos e barbante.',
+      question: Q_TRANSPIRACAO,
+      correctText: 'Você amarra três sacos nos galhos mais folhudos e volta ao fim da tarde. Não é muito, mas é água limpa, e saiu de dentro da árvore.',
+      wrongText: 'Você raspa a casca atrás de orvalho e junta quase nada. Segue com os cantis leves, e a boca já está seca antes do meio-dia.',
+      hint: 'A planta puxa água do solo pela raiz e perde quase toda ela como vapor pelas folhas, pelos estômatos. É a transpiração, e é ela que mantém a coluna de água subindo pelo caule. Fechando um galho com folhas dentro de um saco, esse vapor condensa no plástico e escorre. A água sai filtrada pela própria planta.',
       effectCorrect: { agua: 10, saude: 5, lucidez: 15 },
       effectWrong: { saude: -26 },
       next: 'rota_agua',
@@ -245,30 +248,35 @@ export function defaultScenes(): Record<string, Scene> {
       icon: 'lamp', title: 'Um Rosto na Poeira',
       text: 'Perto de um posto sem telhado, um homem magro põe a mochila no chão bem devagar, para você ver que está largando. Diz que se chama Elias. O braço direito está enfaixado com pano de cortina, e a mancha vermelha no pano é maior do que ele admite.',
       choices: [
-        { label: 'Oferecer parte das provisões em troca de conversa', effect: { racao: -10, confianca: 25 }, next: () => 'desafio_imunidade' },
-        { label: 'Manter distância e seguir sozinha', effect: { confianca: -10 }, next: (s) => s.confianca < 10 ? 'final_lobo' : 'desafio_imunidade' },
+        { label: 'Oferecer parte das provisões em troca de conversa', effect: { racao: -10, confianca: 25 }, next: () => 'desafio_solanina' },
+        { label: 'Manter distância e seguir sozinha', effect: { confianca: -10 }, next: (s) => s.confianca < 10 ? 'final_lobo' : 'desafio_solanina' },
       ],
     },
 
-    desafio_imunidade: {
-      id: 'desafio_imunidade', kind: 'challenge', art: 'station', day: 3, chapter: 'CAPÍTULO 3', mood: 'dusk',
-      icon: 'bandage', title: 'O Braço de Elias',
-      intro: 'Ele deixa você trocar o pano. Por baixo, a pele em volta do corte está quente ao toque, e o vermelho avança numa linha fina em direção ao cotovelo. Elias diz que é só a ferida fechando.',
-      question: Q_IMUNIDADE,
-      correctText: 'Ele para de brincar. Você lava com água fervida, amarra frouxo e diz que ele precisa de antibiótico em dias, não em semanas. Depois ele fica quieto um tempo e pergunta: se o corpo cerca o que envenena ele, por que o mundo não faria igual?',
-      wrongText: 'Ele aceita a explicação e agradece. Mais tarde, sozinha, você repara que a linha vermelha subiu mais um dedo desde a manhã.',
-      hint: 'Pele rompida deixa de ser barreira e bactéria entra. O corpo manda sangue e células de defesa para o local, e é isso que produz calor, vermelhidão e inchaço. A linha vermelha subindo pelo braço é sinal de que a infecção saiu do ponto do corte e está seguindo pelos vasos.',
+    desafio_solanina: {
+      id: 'desafio_solanina', kind: 'challenge', art: 'station', day: 3, chapter: 'CAPÍTULO 3', mood: 'dusk',
+      icon: 'bread', title: 'O Achado de Elias',
+      intro: 'Ele abre a mochila e mostra o motivo do bom humor: batatas, tiradas de um fundo de quintal. Metade está com a casca puxando para o verde, do tempo que passaram expostas na sacola dele.',
+      question: Q_SOLANINA,
+      correctText: 'Ele reclama do desperdício, mas descasca fundo e joga fora o que estava verde. Naquela noite vocês comem sem passar mal. Antes de dormir ele pergunta: então a planta se defende? E você diz que sim, quase toda planta se defende de algum jeito.',
+      wrongText: 'Vocês comem tudo, casca e verde. A queimação na garganta começa em uma hora, e a noite inteira é vômito e dor de cabeça, para os dois.',
+      hint: 'A batata é um caule subterrâneo modificado, um tubérculo, e serve de reserva de amido para a planta. Exposta à luz, ela produz clorofila e fica verde, e junto vem a solanina, uma substância de defesa contra quem quer comê-la. O verde não é o veneno: é o aviso de que o veneno subiu junto. Por isso se corta fundo a parte esverdeada, ou se descarta.',
       effectCorrect: { confianca: 10, saude: 3, lucidez: 15 },
-      effectWrong: { confianca: -8 },
-      next: 'mancha',
+      effectWrong: { confianca: -8, saude: -24 },
+      next: 'rota_batata',
+    },
+
+    rota_batata: {
+      id: 'rota_batata', kind: 'router', art: 'station', day: 3, chapter: 'CAPÍTULO 3', mood: 'dusk', title: '',
+      next: (s) => (s.saude <= 22 ? 'final_solanina' : 'mancha'),
     },
 
     mancha: {
       id: 'mancha', kind: 'narrative', art: 'mancha', day: 3, chapter: 'CAPÍTULO 3', mood: 'bleak',
       icon: 'poison', title: 'A Mancha',
-      text: 'Elias dorme mal e acorda antes do sol firmar. Leva você dois quarteirões e para diante de um muro tomado pela crosta, que de perto tem fios finos e cheiro de terra molhada. Ele diz que passou três semanas dormindo a vinte metros dali. Você olha o braço dele, uma infecção comum de quem se corta em metal enferrujado, e nenhum dos sinais que a radiação deixa. Então ele estende o contador na direção do muro, e o ponteiro cai.',
+      text: 'Elias dorme mal e acorda antes do sol firmar. Leva você dois quarteirões e para diante de um terreno tomado pelo mato, que de perto é uma vegetação só, folha larga e cheiro forte de verde. Ele diz que passou três semanas dormindo a vinte metros dali. Você procura nele os sinais que a radiação deixa e não acha nenhum. Então ele estende o contador na direção do chão do terreno, e o ponteiro cai.',
       choices: [
-        { label: 'Raspar uma amostra da crosta e guardar', effect: { confianca: 5 }, next: () => 'assentamento' },
+        { label: 'Arrancar uma planta inteira, com raiz, e guardar', effect: { confianca: 5 }, next: () => 'assentamento' },
         { label: 'Anotar tudo no caderno e seguir para as luzes', next: () => 'assentamento' },
       ],
     },
@@ -277,7 +285,7 @@ export function defaultScenes(): Record<string, Scene> {
     assentamento: {
       id: 'assentamento', kind: 'narrative', art: 'settlement', day: 4, chapter: 'CAPÍTULO 4', mood: 'settle',
       icon: 'windmill', title: 'O Cercado',
-      text: 'O Cercado é uma muralha de chapas com fumaça saindo por cima. Dentro, sob plástico translúcido e lâmpadas puxadas de um moinho, fileiras de alface. Do lado de fora, o canteiro que eles abriram direto na terra deu um palmo de folha amarela e travou. Toda lua nova eles saem em turma, com tochas, e queimam a Mancha que chegou perto do muro.',
+      text: 'O Cercado é uma muralha de chapas com fumaça saindo por cima. Dentro, sob plástico translúcido e lâmpadas puxadas de um moinho, fileiras de alface. Do lado de fora, o canteiro que eles abriram direto na terra deu um palmo de folha amarela e travou. Toda lua nova eles saem em turma, com tochas, e queimam o mato que chegou perto do muro.',
       choices: [
         { label: 'Se aproximar e pedir abrigo', effect: { confianca: 10 }, next: () => 'desafio_estufa' },
         { label: 'Observar de longe antes de se entregar', effect: { agua: -5 }, next: () => 'desafio_estufa' },
@@ -294,17 +302,17 @@ export function defaultScenes(): Record<string, Scene> {
       hint: 'A luz, do sol ou de lâmpada, entra na fotossíntese como energia: a planta transforma gás carbônico e água em glicose e solta oxigênio. Só que ela também tira água e sais minerais do solo, e aí está o problema do canteiro de fora. Césio e estrôncio se parecem quimicamente com potássio e cálcio, e a raiz absorve os dois sem distinguir.',
       effectCorrect: { confianca: 8, racao: 5, lucidez: 15 },
       effectWrong: { confianca: -4 },
-      next: 'desafio_fungo',
+      next: 'desafio_raizes',
     },
 
-    desafio_fungo: {
-      id: 'desafio_fungo', kind: 'challenge', art: 'mancha', day: 4, chapter: 'CAPÍTULO 4', mood: 'bleak',
-      icon: 'poison', title: 'O Que a Mancha Faz',
-      intro: 'Você volta ao muro com Elias e Dona Neide. Raspa a crosta com a faca, encosta o contador na parede descoberta e depois afasta dois passos. O número sobe quando você se afasta da Mancha.',
-      question: Q_FUNGO,
-      correctText: 'Você entende antes de conseguir explicar direito. A Mancha não está envenenando o terreno: está puxando o veneno de dentro dele e prendendo em si mesma. E o Cercado queima isso toda lua nova.',
-      wrongText: 'Não é bem assim, e Dona Neide chega ao fim do raciocínio antes de você. A conta que sobra é pior: alguma coisa naquela parede está tirando contaminação de onde ela estava, e eles queimam aquilo todo mês.',
-      hint: 'Fungos decompositores absorvem o que está dissolvido no substrato e acumulam no próprio corpo. Na zona de Chernobyl, espécies coletadas concentraram césio-137 e estrôncio-90 em níveis até mil vezes maiores que o ambiente em volta, e algumas usam melanina para lidar com a radiação, mais ou menos como a clorofila lida com a luz. Tirar o contaminante do solo e prender num organismo tem nome: biorremediação. Queimar devolve tudo para o ar.',
+    desafio_raizes: {
+      id: 'desafio_raizes', kind: 'challenge', art: 'mancha', day: 4, chapter: 'CAPÍTULO 4', mood: 'bleak',
+      icon: 'sprout', title: 'O Que a Mancha Faz',
+      intro: 'Você volta ao terreno com Elias e Dona Neide. Arranca uma das plantas inteira, com raiz e tudo, e passa o contador nela: o aparelho dispara na planta arrancada. Depois você mede o chão de onde ela saiu, e ali o número é baixo.',
+      question: Q_RAIZES,
+      correctText: 'Você entende antes de conseguir explicar direito. A Mancha não está envenenando o terreno: está puxando o veneno de dentro dele pela raiz e guardando nas folhas. E o Cercado queima isso toda lua nova.',
+      wrongText: 'Não é a sombra, e Dona Neide chega ao fim do raciocínio antes de você: se a planta arrancada mede alto e o chão mede baixo, a contaminação saiu do chão e está dentro dela. E eles queimam aquilo todo mês.',
+      hint: 'A raiz absorve água e sais minerais dissolvidos, e sobe tudo pelo xilema até folhas e caule. O problema é que ela não distingue: césio se parece quimicamente com potássio e estrôncio com cálcio, então entram pelo mesmo caminho e ficam acumulados na planta. Usar planta para tirar contaminante do solo tem nome, fitorremediação, e girassol foi plantado em Chernobyl exatamente para isso. Só que colher e retirar a planta limpa o terreno. Queimar devolve tudo para o ar.',
       effectCorrect: { confianca: 12, lucidez: 40 },
       effectWrong: { confianca: -8 },
       next: 'escolha',
@@ -314,7 +322,7 @@ export function defaultScenes(): Record<string, Scene> {
     escolha: {
       id: 'escolha', kind: 'narrative', art: 'mancha', day: 5, chapter: 'A ESCOLHA', mood: 'bleak',
       icon: 'sprout', title: 'Lua Nova',
-      text: 'A turma das tochas sai amanhã. Queimar a crosta devolve para o ar e para a cinza tudo o que ela recolheu, e o terreno recomeça do zero, de novo, como vem acontecendo a cada lua nova. Deixar viver é apostar numa limpeza que leva anos, e ninguém ali chegou perto de ver o fim disso. Você tem dezoito mil variedades de semente na mochila e uma noite para decidir.',
+      text: 'A turma das tochas sai amanhã. Queimar devolve para o ar e para a cinza tudo o que aquelas plantas tiraram do chão, e o terreno recomeça do zero, de novo, como vem acontecendo a cada lua nova. Deixar viver é apostar numa limpeza que leva anos, e ninguém ali chegou perto de ver o fim disso. Você tem dezoito mil variedades de semente na mochila e uma noite para decidir.',
       choices: [
         { label: 'Queimar com eles, como manda o protocolo', effect: { confianca: 5 }, next: () => 'rota_queima' },
         { label: 'Semear girassol na borda e defender a Mancha', effect: { racao: -5 }, next: () => 'rota_semeia' },
@@ -325,7 +333,7 @@ export function defaultScenes(): Record<string, Scene> {
       id: 'rota_queima', kind: 'router', art: 'settlement', day: 5, chapter: 'EPÍLOGO', mood: 'settle', title: '',
       next: (s) => {
         if (s.saude <= 22) return 'final_perdida';
-        // quem não entendeu o que a crosta guardava fica na fumaça
+        // quem não entendeu o que as folhas guardavam fica na fumaça
         if (s.lucidez < 70) return 'final_fumaca';
         return s.confianca >= 35 ? 'final_fogueira' : 'final_lobo';
       },
@@ -343,7 +351,7 @@ export function defaultScenes(): Record<string, Scene> {
     final_colheita: {
       id: 'final_colheita', kind: 'ending', art: 'dawn', day: 5, chapter: 'EPÍLOGO', mood: 'hope', icon: 'sprout',
       title: 'A Primeira Colheita',
-      text: 'Você gastou três noites convencendo o Cercado a adiar uma única queimada. Levou dois anos para o girassol da borda virar rotina e para a crosta avançar sem que ninguém corresse atrás de tocha. No terceiro inverno mediram o canteiro velho, e o número tinha caído o bastante para plantar direto na terra. A alface daquele ano foi a primeira que não veio de caminhão.',
+      text: 'Você gastou três noites convencendo o Cercado a adiar uma única queimada. Levou dois anos para o girassol da borda virar rotina, e para a colheita da Mancha, cortada e levada para longe em vez de queimada, virar trabalho de todo mês. No terceiro inverno mediram o canteiro velho, e o número tinha caído o bastante para plantar direto na terra. A alface daquele ano foi a primeira que não veio de caminhão.',
     },
     final_lenta: {
       id: 'final_lenta', kind: 'ending', art: 'lone', day: 5, chapter: 'EPÍLOGO', mood: 'settle', icon: 'sprout',
@@ -370,20 +378,25 @@ export function defaultScenes(): Record<string, Scene> {
       title: 'Dose Demais', morte: true,
       text: 'Um pano no rosto segura poeira, e o que havia naquele quarteirão não era só poeira. O enjoo começa antes de você sair da zona. À noite vem a febre, e depois o resto. Você atravessou correndo para poupar duas horas de caminhada, e a conta que o contador estava fazendo não era sobre pressa: era sobre quanto do estrago se soma.',
     },
-    final_disenteria: {
-      id: 'final_disenteria', kind: 'ending', art: 'bleak', day: 3, chapter: 'FIM', mood: 'bleak', icon: 'flask',
-      title: 'A Água da Caixa', morte: true,
-      text: 'A água estava limpa aos olhos e nenhum olho enxerga bactéria. A cólica chega de madrugada, e o resto vem rápido demais para uma pessoa sozinha, sem soro e sem ninguém para buscar ajuda. Ferver custaria um galho de madeira e vinte minutos.',
+    final_solanina: {
+      id: 'final_solanina', kind: 'ending', art: 'station', day: 3, chapter: 'FIM', mood: 'dusk', icon: 'poison',
+      title: 'O Verde da Batata', morte: true,
+      text: 'A queimação virou vômito, o vômito virou desidratação, e nenhum dos dois tinha soro. Elias aguenta melhor porque comeu menos. Você não. A planta avisou com a cor, e o aviso estava do lado de fora da casca, onde dava para ver.',
+    },
+    final_sede: {
+      id: 'final_sede', kind: 'ending', art: 'bleak', day: 3, chapter: 'FIM', mood: 'bleak', icon: 'flask',
+      title: 'Sede', morte: true,
+      text: 'Você andou o dia inteiro raspando casca atrás de umidade, e passou por dezenas de árvores carregadas de folha sem entender que cada uma delas estava soltando água no ar o tempo todo. No segundo dia a cabeça já não fecha uma conta simples. Um saco plástico e um galho custariam uma tarde de espera.',
     },
     final_fumaca: {
       id: 'final_fumaca', kind: 'ending', art: 'toxic', day: 5, chapter: 'FIM', mood: 'danger', icon: 'ablaze',
       title: 'O Que Subiu com a Fumaça', morte: true,
-      text: 'Você entrou na fila com a tocha sem entender o que estava queimando. Anos de contaminação que a crosta tinha puxado do solo voltaram ao ar em uma noite, e o Cercado inteiro respirou aquilo de perto. Os primeiros sintomas aparecem na semana seguinte, em você e em mais gente. Ninguém liga uma coisa à outra, porque ninguém ali sabia o que a Mancha guardava.',
+      text: 'Você entrou na fila com a tocha sem entender o que estava queimando. Anos de contaminação que aquelas plantas tinham puxado do solo voltaram ao ar em uma noite, e o Cercado inteiro respirou aquilo de perto. Os primeiros sintomas aparecem na semana seguinte, em você e em mais gente. Ninguém liga uma coisa à outra, porque ninguém ali sabia o que a Mancha guardava nas folhas.',
     },
     final_perdida: {
       id: 'final_perdida', kind: 'ending', art: 'bleak', day: 5, chapter: 'FIM', mood: 'bleak', icon: 'poison',
       title: 'Perdida nas Ruínas', morte: true,
-      text: 'O corpo desiste antes da vontade. Em algum ponto entre o Cercado e o muro tomado de crosta, sua história para de ser contada por você. A mochila com dezoito mil sementes fica encostada num poste, ainda fechada, esperando alguém que saiba o que fazer com ela.',
+      text: 'O corpo desiste antes da vontade. Em algum ponto entre o Cercado e o terreno tomado de mato, sua história para de ser contada por você. A mochila com dezoito mil sementes fica encostada num poste, ainda fechada, esperando alguém que saiba o que fazer com ela.',
     },
   };
 }

@@ -635,11 +635,20 @@ SCENES.mancha = () => {
   // a crosta sobe pela base dos prédios
   crust(c, rng(133), { x: 0, y: GROUND_Y, w: W, h: 26, density: 0.6 });
   ground(c, r, { y: GROUND_Y, top: '#2a3a26', body: '#1d2a1c', dark: '#121a11', debris: ['#121a11', '#2f5c33'] });
-  // manchas no chão, como líquen
+  // touceiras: caule com folhas largas, para ler como planta e não como
+  // crosta de fungo
   for (let i = 0; i < 26; i++) {
-    const x = ri(r, 0, W - 6), y = ri(r, GROUND_Y + 2, H - 2);
-    c.ellipse(x, y, ri(r, 2, 6), ri(r, 1, 2), hex('#1f4a2a'));
-    if (r() < 0.5) c.px(x, y, hex('#7fe06a'), 0.9);
+    const x = ri(r, 4, W - 5), base = ri(r, GROUND_Y + 1, GROUND_Y + 9);
+    const alt = ri(r, 5, 13);
+    const caule = r() < 0.5 ? hex('#2f6b34') : hex('#1f4a2a');
+    for (let j = 0; j < alt; j++) c.px(x + Math.round(Math.sin(j * 0.5) * 0.8), base - j, caule);
+    // pares de folhas ao longo do caule
+    for (let f = 2; f < alt; f += 3) {
+      const y = base - f, lado = f % 6 === 2 ? 1 : -1;
+      const folha = r() < 0.4 ? hex('#7fe06a') : hex('#3f8a43');
+      for (let k = 1; k <= ri(r, 2, 4); k++) c.px(x + lado * k, y - Math.round(k * 0.4), folha);
+    }
+    c.px(x, base - alt, hex('#9fffa0'), 0.9);
   }
   // esporos subindo
   for (let i = 0; i < 44; i++) c.px(ri(r, 0, W - 1), ri(r, 26, H - 1), hex('#9fffa0'), r() < 0.5 ? 0.45 : 0.9);
