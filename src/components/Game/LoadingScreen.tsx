@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { preloadImages } from '../../game/preloadImages';
+import { C, ART, bevel } from '../../game/theme';
 
 // Tempo mínimo em tela para o carregamento não "piscar" quando as imagens
 // já estão em cache (evita um flash desconfortável).
@@ -47,59 +48,45 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, overflow: 'hidden',
+      position: 'fixed', inset: 0, overflow: 'hidden', background: C.ink,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       touchAction: 'none', userSelect: 'none',
     }}>
-      {/* fundo — mesma floresta da tela inicial */}
-      <img src="/assets/landing-forest.png" alt="" style={{
+      {/* mesma arte da tela inicial, escurecida */}
+      <img src={ART('hero')} alt="" style={{
         position: 'absolute', inset: 0, width: '100%', height: '100%',
-        objectFit: 'cover', objectPosition: 'center top', pointerEvents: 'none',
-        animation: 'bg-breathe 7s ease-in-out infinite',
+        objectFit: 'cover', objectPosition: 'center 38%',
+        imageRendering: 'pixelated', pointerEvents: 'none', filter: 'brightness(0.45) saturate(0.9)',
       }} />
-      {/* escurecimento para legibilidade */}
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(4,14,7,0.62)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,5,14,0.55)' }} />
 
-      {/* conteúdo central */}
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26, padding: '0 32px', width: '100%', maxWidth: 420 }}>
-        {/* coruja girando/pulsando — mascote do jogo */}
-        <img src="/assets/portraits/owl.png" alt="" style={{
-          width: 76, height: 76, imageRendering: 'pixelated',
-          filter: 'drop-shadow(0 0 12px rgba(64,224,208,0.6))',
-          animation: 'logo-float 2.4s ease-in-out infinite',
-        }} />
-
+      <div style={{
+        position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', gap: 18, padding: '0 28px', width: '100%', maxWidth: 340,
+      }}>
         <p className="font-pixel" style={{
-          color: '#eaf6e0', fontSize: 13, letterSpacing: 2, textAlign: 'center',
-          textShadow: '0 2px 8px rgba(0,0,0,0.9)',
+          color: C.bone, fontSize: 15, letterSpacing: 5, textAlign: 'center',
+          textShadow: `0 3px 0 ${C.line}`, margin: 0,
         }}>
-          CARREGANDO
+          CINZAS
         </p>
 
-        {/* barra de progresso — moldura de madeira pixel */}
+        {/* barra segmentada, combinando com os cartões de recurso */}
         <div style={{
-          width: '100%',
-          background: '#1a0e06',
-          border: '4px solid #8b5e2e',
-          boxShadow: 'inset 0 0 0 2px #c4874c, inset 0 0 0 4px #7a4f22, 0 0 0 2px #3a1f08',
-          imageRendering: 'pixelated',
-          padding: 5,
+          width: '100%', background: C.shell, border: `2px solid ${C.line}`,
+          boxShadow: bevel(3), padding: 4, display: 'flex', gap: 2,
         }}>
-          <div style={{
-            height: 20,
-            width: `${pct}%`,
-            background: 'linear-gradient(to bottom, #7be04a 0%, #3fae2a 55%, #2f7e1c 100%)',
-            boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.35)',
-            transition: 'width 0.12s linear',
-          }} />
+          {Array.from({ length: 16 }).map((_, i) => (
+            <span key={i} style={{
+              flex: 1, height: 12,
+              background: i < Math.round((pct / 100) * 16) ? C.rust : 'rgba(0,0,0,0.4)',
+              transition: 'background 160ms linear',
+            }} />
+          ))}
         </div>
 
-        <p className="font-pixel" style={{ color: '#9fd89a', fontSize: 10, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-          {pct}%
-        </p>
-
-        <p className="font-vt" style={{ color: '#cfe8c8', fontSize: 18, textAlign: 'center', opacity: 0.85, marginTop: -6 }}>
-          Preparando o jardim...
+        <p className="font-pixel" style={{ color: C.boneDim, fontSize: 8, letterSpacing: 1, margin: 0 }}>
+          {pct}%  ·  LIGANDO OS SISTEMAS DO ABRIGO
         </p>
       </div>
     </div>

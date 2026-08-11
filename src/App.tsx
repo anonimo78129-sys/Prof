@@ -1,29 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { GameConfig } from './types/game';
-import type { SceneBg } from './game/types';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
-import StoryGame from './components/Game/StoryGame';
-import IntroSequence from './components/Game/IntroSequence';
+import SurvivalGame from './components/Game/SurvivalGame';
 import LoadingScreen from './components/Game/LoadingScreen';
-import ScenePreview from './components/ScenePreview';
 import Credits from './components/Game/Credits';
 import { getSave, clearSave, resetStats } from './game/progress';
+import { freshStats } from './game/cinzas';
+import { C, ART, bevel } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { decodeQuiz, type SharedQuiz } from './game/quizShare';
 
-// Índices sincronizados com src/game/script.ts (incluem os beats de lore)
-const DEV_ACTS = [
-  { label: 'Ato 1 — Floresta (portão)',       beat: 0,  bg: undefined            },
-  { label: 'Ato 2 — Clareira (pedra)',         beat: 9,  bg: undefined            },
-  { label: 'Ato 3 — Macieira (scene)',         beat: 17, bg: undefined            },
-  { label: 'Ato 3 — Coleta de maçãs',         beat: 22, bg: 'ato3' as SceneBg   },
-  { label: 'Ato 4 — Estufa (avistando)',       beat: 25, bg: 'ato3' as SceneBg   },
-  { label: 'Ato 4 — Estufa (dentro)',          beat: 28, bg: undefined           },
-  { label: 'Ato 4 — Computador',               beat: 31, bg: 'estufa' as SceneBg },
-  { label: 'Ato 4 — Pergunta (Transpiração)',  beat: 33, bg: 'estufa' as SceneBg },
-  { label: 'Ato 5 — Pântano (sequência)',      beat: 40, bg: 'pantano' as SceneBg },
-  { label: 'Ato 6 — Corredor (luz)',           beat: 50, bg: 'corredor' as SceneBg },
-  { label: 'Ato 7 — Final (a escolha)',        beat: 64, bg: 'final' as SceneBg },
+// Atalhos de DEV — pulam direto para um capítulo/desafio/desfecho
+const DEV_SCENES = [
+  { label: 'Cap. 1 — O Abrigo', id: 'abrigo' },
+  { label: 'Cap. 1 — Desafio: Radiação', id: 'desafio_radiacao' },
+  { label: 'Cap. 2 — As Ruínas', id: 'ruinas' },
+  { label: 'Cap. 2 — Zona Contaminada', id: 'perigo' },
+  { label: 'Cap. 2 — Desafio: Água', id: 'desafio_agua' },
+  { label: 'Cap. 3 — Um Rosto na Poeira', id: 'encontro' },
+  { label: 'Cap. 3 — Desafio: Imunidade', id: 'desafio_imunidade' },
+  { label: 'Cap. 4 — Luzes ao Longe', id: 'assentamento' },
+  { label: 'Epílogo — Novo Começo', id: 'final_novocomeco' },
+  { label: 'Epílogo — Perdida nas Ruínas', id: 'final_perdida' },
 ] as const;
 
 function seeded(seed: number) {
@@ -31,25 +29,23 @@ function seeded(seed: number) {
   return x - Math.floor(x);
 }
 
-// Vaga-lumes turquesa fluorescentes: tamanhos 1–5 px, movimento errante orgânico
-function Fireflies() {
-  const flies = useMemo(() => Array.from({ length: 38 }, (_, i) => {
-    const size = 1 + seeded(i * 3) * 4;          // 1–5 px
-    const bright = 0.7 + seeded(i * 29) * 0.3;   // brilho variado
+// Brasas/cinzas cor de ferrugem, deriva errática — versão da tela inicial
+function Embers() {
+  const flies = useMemo(() => Array.from({ length: 32 }, (_, i) => {
+    const size = 1 + seeded(i * 3) * 4;
+    const bright = 0.6 + seeded(i * 29) * 0.4;
     return {
       id: i,
       left:     `${seeded(i * 7) * 100}%`,
-      top:      `${seeded(i * 13) * 85}%`,        // não vai no rodapé dos botões
+      top:      `${seeded(i * 13) * 85}%`,
       size,
-      // pulsar suave: alterna opacidade
       pulseDur: `${1.4 + seeded(i * 41) * 2.6}s`,
       pulseDelay: `-${seeded(i * 17) * 3}s`,
-      // deriva pelo espaço
       driftDur:  `${9 + seeded(i * 5) * 14}s`,
       driftDelay: `-${seeded(i * 11) * 12}s`,
       driftX:    `${(seeded(i * 19) > 0.5 ? 1 : -1) * (18 + seeded(i * 23) * 55)}px`,
       driftY:    `${(seeded(i * 31) > 0.5 ? 1 : -1) * (10 + seeded(i * 37) * 35)}px`,
-      glow: `0 0 ${Math.round(size * 2)}px rgba(64,224,208,${(bright * 0.9).toFixed(2)}), 0 0 ${Math.round(size * 5)}px rgba(64,224,208,${(bright * 0.55).toFixed(2)}), 0 0 ${Math.round(size * 10)}px rgba(32,200,200,${(bright * 0.3).toFixed(2)})`,
+      glow: `0 0 ${Math.round(size * 2)}px rgba(217,122,62,${(bright * 0.9).toFixed(2)}), 0 0 ${Math.round(size * 5)}px rgba(181,85,30,${(bright * 0.55).toFixed(2)})`,
     };
   }), []);
 
@@ -61,10 +57,10 @@ function Fireflies() {
           left: f.left, top: f.top,
           width: f.size, height: f.size,
           borderRadius: '50%',
-          background: `radial-gradient(circle, #e0fffa, #40e0d0)`,
+          background: `radial-gradient(circle, #F2C464, #B5551E)`,
           boxShadow: f.glow,
           pointerEvents: 'none',
-          animation: `firefly-drift ${f.driftDur} ease-in-out ${f.driftDelay} infinite, firefly-pulse ${f.pulseDur} ease-in-out ${f.pulseDelay} infinite`,
+          animation: `ember-drift ${f.driftDur} ease-in-out ${f.driftDelay} infinite, ember-pulse ${f.pulseDur} ease-in-out ${f.pulseDelay} infinite`,
           '--dx': f.driftX,
           '--dy': f.driftY,
         } as React.CSSProperties} />
@@ -73,17 +69,44 @@ function Fireflies() {
   );
 }
 
-type View = 'home' | 'loading' | 'intro' | 'setup' | 'jogar' | 'preview' | 'creditos';
+// Botão da tela inicial: bisel pixel, sem gradiente, com press físico
+function HomeButton({ label, tone, onClick }: {
+  label: string; tone: 'rust' | 'steel' | 'ghost'; onClick: () => void;
+}) {
+  const [down, setDown] = useState(false);
+  const bg = tone === 'rust' ? C.rust : tone === 'steel' ? C.steel : C.shell;
+  const top = tone === 'rust' ? C.rustLite : tone === 'steel' ? '#5fa9cc' : C.shellHi;
+  return (
+    <button
+      onClick={onClick}
+      onPointerDown={() => setDown(true)}
+      onPointerUp={() => setDown(false)}
+      onPointerLeave={() => setDown(false)}
+      className="font-pixel"
+      style={{
+        width: '100%', maxWidth: 300, fontSize: 12, letterSpacing: 1, color: '#fff',
+        background: bg, border: `3px solid ${C.line}`, borderTop: `3px solid ${top}`,
+        boxShadow: down ? 'none' : bevel(4),
+        transform: down ? 'translate(4px, 4px)' : 'none',
+        padding: '15px 8px', cursor: 'pointer',
+        transition: 'transform 70ms, box-shadow 70ms',
+        textShadow: `0 2px 0 rgba(0,0,0,0.45)`,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+type View = 'home' | 'loading' | 'setup' | 'jogar' | 'creditos';
 
 const isTestMode = typeof window !== 'undefined' && window.location.search.includes('test');
 
 export default function App() {
   const [view, setView] = useState<View>('home');
-  // para onde ir depois da tela de carregamento
-  const [loadTarget, setLoadTarget] = useState<'intro' | 'jogar'>('intro');
-  const [devStart, setDevStart] = useState<{ beat: number; bg?: SceneBg } | null>(null);
+  const [devStart, setDevStart] = useState<{ sceneId: string; stats: ReturnType<typeof freshStats> } | null>(null);
   const [showDevMenu, setShowDevMenu] = useState(false);
-  // remonta o StoryGame do zero em "JOGAR DE NOVO"
+  // remonta o SurvivalGame do zero em "JOGAR DE NOVO"
   const [gameKey, setGameKey] = useState(0);
   // checkpoint salvo (para o botão CONTINUAR); relido ao voltar à home
   const [save, setSave] = useState(() => getSave());
@@ -100,7 +123,7 @@ export default function App() {
         if (q && (q.questions.length > 0 || q.pairs.length > 0)) {
           setQuiz(q);
           resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1);
-          setLoadTarget('intro'); setView('loading');
+          setView('loading');
           startMusic();
           return;
         }
@@ -142,128 +165,100 @@ export default function App() {
     );
   }
 
-  // ── PREVIEW — galeria de cenários ──
-  if (view === 'preview') {
-    return <ScenePreview onBack={() => setView('home')} />;
-  }
-
   // ── CRÉDITOS — atribuições de arte, áudio, fontes e tecnologia ──
   if (view === 'creditos') {
     return <Credits onBack={() => setView('home')} />;
   }
 
-  // ── LOADING — pré-carrega as imagens antes de começar ──
+  // ── LOADING — pré-carrega os ícones antes de começar ──
   if (view === 'loading') {
-    return <LoadingScreen onDone={() => setView(loadTarget)} />;
+    return <LoadingScreen onDone={() => setView('jogar')} />;
   }
 
-  // ── INTRO — sequência ilustrada antes do jogo ──
-  if (view === 'intro') {
-    return <IntroSequence onDone={() => setView('jogar')} />;
-  }
-
-  // ── JOGAR — aventura narrativa (visual novel + caminhada) ──
+  // ── JOGAR — ficção interativa de sobrevivência ──
   if (view === 'jogar') {
-    return <StoryGame key={gameKey}
+    return <SurvivalGame key={gameKey}
       onExit={() => { setDevStart(null); goHome(); }}
       onRestart={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); }}
-      startBeat={devStart?.beat} startBg={devStart?.bg} quiz={quiz} />;
+      continueFrom={devStart}
+      quiz={quiz} />;
   }
 
   // ── TELA INICIAL ──────────────────────────────────────
   return (
-    <div className="fixed inset-0 overflow-hidden scene-fade-in" style={{ touchAction: 'none' }}>
-
-      {/* ── ARTE DE FUNDO — floresta ── */}
-      <img src="/assets/landing-forest.png" alt="" style={{
-        position: 'absolute', inset: 0,
-        width: '100%', height: '100%',
-        objectFit: 'cover', objectPosition: 'center top',
-        pointerEvents: 'none',
-        animation: 'bg-breathe 7s ease-in-out infinite',
-        transformOrigin: 'center center',
+    <div className="scene-fade-in" style={{
+      position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
+      display: 'flex', justifyContent: 'center', padding: '18px 12px 24px',
+    }}>
+      {/* arte borrada ao fundo, só para não deixar as bordas mortas */}
+      <img src={ART('hero')} alt="" aria-hidden style={{
+        position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+        filter: 'brightness(0.35) saturate(1.1) blur(3px)', pointerEvents: 'none',
       }} />
 
-      {/* ── LOGO — sobre a floresta ── */}
-      <img src="/assets/landing-logo.png" alt="logo" style={{
-        position: 'absolute', inset: 0,
-        width: '100%', height: '100%',
-        objectFit: 'cover', objectPosition: 'center top',
-        pointerEvents: 'none',
-        animation: 'logo-float 3.8s ease-in-out infinite',
-      }} />
-
-      {/* ── PERSONAGEM — topo ── */}
-      <img src="/assets/landing-char.png" alt="" style={{
-        position: 'absolute', inset: 0,
-        width: '100%', height: '100%',
-        objectFit: 'cover', objectPosition: 'center top',
-        pointerEvents: 'none',
-      }} />
-
-      {/* ── SHIMMER TELA TODA ── */}
-      <div className="screen-shimmer" />
-
-      {/* ── VAGA-LUMES ── */}
-      <Fireflies />
-
-      {/* Gradiente escuro só na faixa dos botões (não cobre o personagem) */}
       <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: 180,
-        background: 'linear-gradient(to bottom, transparent 0%, rgba(4,18,6,0.82) 55%, rgba(2,10,3,0.95) 100%)',
-        pointerEvents: 'none',
-      }} />
-
-      {/* ── BOTÕES — fixos no rodapé ── */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: 14, padding: '0 32px 127px',
+        position: 'relative', width: '100%', maxWidth: 400,
+        display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'center',
       }}>
-        {save && (
+        {/* ── TÍTULO ── */}
+        <div style={{ textAlign: 'center' }}>
+          <h1 className="font-pixel" style={{
+            fontSize: 'clamp(24px, 8.5vw, 34px)', color: C.bone, letterSpacing: 6, margin: 0,
+            textShadow: `0 4px 0 ${C.line}, 0 0 26px rgba(226,97,47,0.5)`,
+          }}>
+            CINZAS
+          </h1>
+          <div style={{
+            display: 'inline-block', marginTop: 9, padding: '5px 10px',
+            background: C.rust, border: `2px solid ${C.line}`, boxShadow: bevel(3),
+          }}>
+            <span className="font-pixel" style={{ fontSize: 8, color: '#fff', letterSpacing: 1 }}>
+              O ÚLTIMO ABRIGO
+            </span>
+          </div>
+        </div>
+
+        {/* ── ARTE EMOLDURADA — mesma proporção nativa, sem corte ── */}
+        <div style={{
+          position: 'relative', width: '100%', aspectRatio: '180 / 150', flex: 'none',
+          border: `3px solid ${C.line}`, boxShadow: bevel(4), overflow: 'hidden', background: C.shellLo,
+        }}>
+          <img src={ART('hero')} alt="Ruínas de uma cidade ao amanhecer" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            imageRendering: 'pixelated', objectFit: 'cover',
+          }} />
+          <div className="screen-shimmer" />
+          <Embers />
+        </div>
+
+        {/* ── BOTÕES ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
+          {save && (
+            <HomeButton
+              label="CONTINUAR"
+              tone="rust"
+              onClick={() => { startMusic(); setQuiz(null); setDevStart({ sceneId: save.sceneId, stats: save.stats }); setGameKey(k => k + 1); setView('loading'); }}
+            />
+          )}
+          <HomeButton
+            label={save ? 'NOVO JOGO' : 'JOGAR'}
+            tone={save ? 'ghost' : 'rust'}
+            onClick={() => { startMusic(); setQuiz(null); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setView('loading'); }}
+          />
+          <HomeButton label="CRIAR QUIZ" tone="steel" onClick={() => { window.location.hash = '#setup'; }} />
+
           <button
-            onClick={() => { startMusic(); setQuiz(null); setDevStart({ beat: save.checkpoint }); setGameKey(k => k + 1); setLoadTarget('jogar'); setView('loading'); }}
-            className="btn-game font-pixel w-full"
-            style={{ fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
+            onClick={() => setView('creditos')}
+            className="font-pixel"
+            style={{
+              marginTop: 2, background: 'transparent', border: 'none',
+              color: C.boneDim, fontSize: 8, letterSpacing: 1,
+              padding: '6px 10px', cursor: 'pointer', textShadow: '0 1px 2px rgba(0,0,0,0.9)',
+            }}
           >
-            CONTINUAR
+            CRÉDITOS
           </button>
-        )}
-        <button
-          onClick={() => { startMusic(); setQuiz(null); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setLoadTarget('intro'); setView('loading'); }}
-          className="btn-game font-pixel w-full"
-          style={save ? {
-            fontSize: 13, padding: '17px 8px', maxWidth: 320,
-            filter: 'saturate(0.75) brightness(0.9)',
-          } : { fontSize: 13, padding: '17px 8px', maxWidth: 320 }}
-        >
-          {save ? 'NOVO JOGO' : 'JOGAR'}
-        </button>
-
-        <button
-          onClick={() => { window.location.hash = '#setup'; }}
-          className="btn-game font-pixel w-full"
-          style={{
-            background: 'linear-gradient(to bottom, #b06010 0% 12.5%, #f0a010 12.5% 87.5%, #f0c840 87.5% 100%)',
-            boxShadow: 'inset 4px 0 0 #b06010, inset -4px 0 0 #f0c840, 0 6px 0 #0d2a0d, 0 8px 0 rgba(0,0,0,0.35)',
-            fontSize: 13, padding: '17px 8px', maxWidth: 320,
-          }}
-        >
-          CRIAR
-        </button>
-
-        {/* link discreto de créditos — não compete com os botões principais */}
-        <button
-          onClick={() => setView('creditos')}
-          className="font-pixel"
-          style={{
-            marginTop: 2, background: 'transparent', border: 'none',
-            color: 'rgba(207,232,192,0.7)', fontSize: 9, letterSpacing: 1,
-            padding: '6px 10px', cursor: 'pointer', textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-          }}
-        >
-          CRÉDITOS
-        </button>
+        </div>
       </div>
 
       {/* ── PAINEL DEV — visível em dev local OU com ?test na URL ── */}
@@ -271,11 +266,11 @@ export default function App() {
         <>
           <button
             onClick={() => setShowDevMenu(m => !m)}
-            style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 90, background: 'rgba(0,0,0,0.7)', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 11, padding: '8px 14px', borderRadius: 4, cursor: 'pointer' }}>
+            style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 90, background: 'rgba(0,0,0,0.7)', border: '1px solid #4C7A8C', color: '#4C7A8C', fontFamily: 'monospace', fontSize: 11, padding: '8px 14px', borderRadius: 4, cursor: 'pointer' }}>
             DEV
           </button>
           {showDevMenu && (
-            <div style={{ position: 'absolute', bottom: 48, right: 12, zIndex: 90, background: 'rgba(6,14,7,0.97)', border: '1px solid #40e0d0', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 260 }}>
+            <div style={{ position: 'absolute', bottom: 48, right: 12, zIndex: 90, background: 'rgba(10,8,12,0.97)', border: '1px solid #4C7A8C', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 260 }}>
               <button
                 onClick={async () => {
                   if ('serviceWorker' in navigator) {
@@ -291,17 +286,12 @@ export default function App() {
                 style={{ background: '#1a0a00', border: '1px solid #ff6020', color: '#ff9060', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left', fontWeight: 'bold' }}>
                 ♻ Forçar atualização
               </button>
-              <div style={{ color: '#40e0d0', fontFamily: 'monospace', fontSize: 10, letterSpacing: 2, marginTop: 4, marginBottom: 0 }}>PULAR PARA</div>
-              <button
-                onClick={() => { setShowDevMenu(false); setView('preview'); }}
-                style={{ background: '#101a20', border: '1px solid #40e0d0', color: '#40e0d0', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
-                🖼 Preview Cenários (5 packs)
-              </button>
-              {DEV_ACTS.map(act => (
-                <button key={act.beat}
-                  onClick={() => { startMusic(); setQuiz(null); setDevStart({ beat: act.beat, bg: act.bg }); setShowDevMenu(false); setView('jogar'); }}
-                  style={{ background: '#0d1f10', border: '1px solid #2a4a2e', color: '#cfe8c8', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
-                  {act.label}
+              <div style={{ color: '#4C7A8C', fontFamily: 'monospace', fontSize: 10, letterSpacing: 2, marginTop: 4, marginBottom: 0 }}>PULAR PARA</div>
+              {DEV_SCENES.map(s => (
+                <button key={s.id}
+                  onClick={() => { startMusic(); setQuiz(null); setDevStart({ sceneId: s.id, stats: freshStats() }); setShowDevMenu(false); setView('jogar'); }}
+                  style={{ background: '#14121a', border: '1px solid #332A3B', color: '#C7B990', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
+                  {s.label}
                 </button>
               ))}
             </div>
