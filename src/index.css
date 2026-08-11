@@ -185,6 +185,9 @@
     object-fit: cover; object-position: center 88%;
     image-rendering: pixelated;
   }
+  /* arte de tom contínuo (estudos de estilo que não são pixel art): ampliar
+     com "pixelated" serrilharia a borda que foi desenhada lisa de propósito */
+  .plx-track.plx-suave > img { image-rendering: auto; }
   @keyframes plx-scroll {
     from { transform: translate3d(0, 0, 0); }
     to   { transform: translate3d(-50%, 0, 0); }

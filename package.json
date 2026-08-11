@@ -8,7 +8,9 @@
     "build": "vite build",
     "start": "node server.ts",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "art": "node scripts/gen-art.mjs",
+    "art:estudos": "node scripts/gen-styles.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.50.1",

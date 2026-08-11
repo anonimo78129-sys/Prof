@@ -20,8 +20,11 @@ type Manifesto = Record<string, Camada[]>;
 const MANIFESTO = manifesto as Manifesto;
 export const CENAS = Object.keys(MANIFESTO);
 
-export const camadaSrc = (cena: string, nome: string) => `/assets/cinzas/art/${cena}/${nome}.png`;
-export const cenaFlat = (cena: string) => `/assets/cinzas/art/${cena}/flat.png`;
+/** Onde mora a arte do jogo. Os estudos de estilo do painel DEV usam outra base. */
+export const BASE_ARTE = '/assets/cinzas/art';
+
+export const camadaSrc = (cena: string, nome: string, base = BASE_ARTE) => `${base}/${cena}/${nome}.png`;
+export const cenaFlat = (cena: string, base = BASE_ARTE) => `${base}/${cena}/flat.png`;
 
 /** Todos os arquivos de arte, para a tela de carregamento pré-carregar. */
 export function todasAsImagens(): string[] {
@@ -36,8 +39,10 @@ export function todasAsImagens(): string[] {
 const fxClass = (fx: string | null) =>
   fx === 'sway' ? 'fx-sway' : fx === 'glow' ? 'fx-glow' : fx === 'flicker' ? 'fx-flicker' : undefined;
 
-function Cena({ cena, visivel }: { cena: string; visivel: boolean }) {
-  const camadas = MANIFESTO[cena] ?? [];
+function Cena({ cena, visivel, camadas: dadas, base, suave }: {
+  cena: string; visivel: boolean; camadas?: Camada[]; base?: string; suave?: boolean;
+}) {
+  const camadas = dadas ?? MANIFESTO[cena] ?? [];
   return (
     <div style={{
       position: 'absolute', inset: 0,
@@ -45,21 +50,22 @@ function Cena({ cena, visivel }: { cena: string; visivel: boolean }) {
     }}>
       {camadas.map(cam => {
         const cls = fxClass(cam.fx);
-        const src = camadaSrc(cena, cam.n);
+        const src = camadaSrc(cena, cam.n, base);
         if (cam.v <= 0) {
           // camada parada: uma imagem só
           return (
             <div key={cam.n} className={cls} style={{ position: 'absolute', inset: 0 }}>
               <img src={src} alt="" style={{
                 position: 'absolute', inset: 0, width: '100%', height: '100%',
-                objectFit: 'cover', objectPosition: 'center 88%', imageRendering: 'pixelated',
+                objectFit: 'cover', objectPosition: 'center 88%',
+                imageRendering: suave ? 'auto' : 'pixelated',
               }} />
             </div>
           );
         }
         return (
           <div key={cam.n} className={cls} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-            <div className="plx-track" style={{ animationDuration: `${cam.v}s` }}>
+            <div className={`plx-track${suave ? ' plx-suave' : ''}`} style={{ animationDuration: `${cam.v}s` }}>
               <img src={src} alt="" />
               <img src={src} alt="" aria-hidden />
             </div>
@@ -76,11 +82,17 @@ export interface ParallaxSceneProps {
   aspect?: string;
   /** encolhe o quadro sem cortar a composição (usado na hora de decidir) */
   compact?: boolean;
+  /** camadas avulsas, fora do manifesto do jogo (galeria de estudos do DEV) */
+  camadas?: Camada[];
+  /** prefixo dos arquivos; padrão é a arte do jogo */
+  base?: string;
+  /** amplia com interpolação em vez de "pixelated", para arte de tom contínuo */
+  suave?: boolean;
   children?: React.ReactNode;
   style?: CSSProperties;
 }
 
-export default function ParallaxScene({ cena, aspect = '180 / 100', compact, children, style }: ParallaxSceneProps) {
+export default function ParallaxScene({ cena, aspect = '180 / 100', compact, camadas, base, suave, children, style }: ParallaxSceneProps) {
   // mantém a cena anterior montada durante o crossfade
   const [pilha, setPilha] = useState<string[]>([cena]);
   const [ativa, setAtiva] = useState(cena);
@@ -105,7 +117,9 @@ export default function ParallaxScene({ cena, aspect = '180 / 100', compact, chi
       aspectRatio: proporcao, transition: 'aspect-ratio 320ms ease',
       border: `2px solid ${C.line}`, background: C.shellLo, ...style,
     }}>
-      {pilha.map(nome => <Cena key={nome} cena={nome} visivel={nome === ativa} />)}
+      {pilha.map(nome => (
+        <Cena key={nome} cena={nome} visivel={nome === ativa} camadas={camadas} base={base} suave={suave} />
+      ))}
 
       {/* vinheta por cima de tudo, parada: dá profundidade sem rolar junto */}
       <div aria-hidden style={{

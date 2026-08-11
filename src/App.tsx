@@ -8,6 +8,8 @@ import { getSave, clearSave, resetStats } from './game/progress';
 import { freshStats } from './game/cinzas';
 import { C, ART, CENA_FLAT, bevel } from './game/theme';
 import ParallaxScene from './components/Game/ParallaxScene';
+import DevPanel from './components/Dev/DevPanel';
+import StyleGallery from './components/Dev/StyleGallery';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { decodeQuiz, type SharedQuiz } from './game/quizShare';
 
@@ -107,14 +109,11 @@ function HomeButton({ label, tone, onClick }: {
   );
 }
 
-type View = 'home' | 'loading' | 'setup' | 'jogar' | 'creditos';
-
-const isTestMode = typeof window !== 'undefined' && window.location.search.includes('test');
+type View = 'home' | 'loading' | 'setup' | 'jogar' | 'creditos' | 'galeria';
 
 export default function App() {
   const [view, setView] = useState<View>('home');
   const [devStart, setDevStart] = useState<{ sceneId: string; stats: ReturnType<typeof freshStats> } | null>(null);
-  const [showDevMenu, setShowDevMenu] = useState(false);
   // remonta o SurvivalGame do zero em "JOGAR DE NOVO"
   const [gameKey, setGameKey] = useState(0);
   // checkpoint salvo (para o botão CONTINUAR); relido ao voltar à home
@@ -175,6 +174,10 @@ export default function App() {
   }
 
   // ── CRÉDITOS — atribuições de arte, áudio, fontes e tecnologia ──
+  if (view === 'galeria') {
+    return <StyleGallery onFechar={() => setView('home')} />;
+  }
+
   if (view === 'creditos') {
     return <Credits onBack={() => setView('home')} />;
   }
@@ -292,43 +295,16 @@ export default function App() {
         </div>
       </div>
 
-      {/* ── PAINEL DEV — visível em dev local OU com ?test na URL ── */}
-      {(import.meta.env.DEV || isTestMode) && (
-        <>
-          <button
-            onClick={() => setShowDevMenu(m => !m)}
-            style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 90, background: 'rgba(0,0,0,0.7)', border: '1px solid #4C7A8C', color: '#4C7A8C', fontFamily: 'monospace', fontSize: 11, padding: '8px 14px', borderRadius: 4, cursor: 'pointer' }}>
-            DEV
-          </button>
-          {showDevMenu && (
-            <div style={{ position: 'absolute', bottom: 48, right: 12, zIndex: 90, background: 'rgba(10,8,12,0.97)', border: '1px solid #4C7A8C', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 260 }}>
-              <button
-                onClick={async () => {
-                  if ('serviceWorker' in navigator) {
-                    const regs = await navigator.serviceWorker.getRegistrations();
-                    await Promise.all(regs.map(r => r.unregister()));
-                  }
-                  if ('caches' in window) {
-                    const keys = await caches.keys();
-                    await Promise.all(keys.map(k => caches.delete(k)));
-                  }
-                  window.location.reload();
-                }}
-                style={{ background: '#1a0a00', border: '1px solid #ff6020', color: '#ff9060', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left', fontWeight: 'bold' }}>
-                ♻ Forçar atualização
-              </button>
-              <div style={{ color: '#4C7A8C', fontFamily: 'monospace', fontSize: 10, letterSpacing: 2, marginTop: 4, marginBottom: 0 }}>PULAR PARA</div>
-              {DEV_SCENES.map(s => (
-                <button key={s.id}
-                  onClick={() => { startMusic(); setQuiz(null); setDevStart({ sceneId: s.id, stats: freshStats() }); setShowDevMenu(false); setView('jogar'); }}
-                  style={{ background: '#14121a', border: '1px solid #332A3B', color: '#C7B990', fontFamily: 'monospace', fontSize: 11, padding: '10px 12px', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+      {/* ── PAINEL DEV — sempre visível, inclusive na versão publicada ── */}
+      <DevPanel
+        cenas={DEV_SCENES}
+        onPular={id => {
+          startMusic(); setQuiz(null);
+          setDevStart({ sceneId: id, stats: freshStats() });
+          setView('jogar');
+        }}
+        onGaleria={() => setView('galeria')}
+      />
 
     </div>
   );
