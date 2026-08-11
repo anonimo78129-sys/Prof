@@ -122,7 +122,7 @@ function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
   })), [mood]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <ParallaxScene cena={art} compact={compact}>
+    <ParallaxScene cena={art} compact={compact} aspect="100 / 100">
       {particles.map(pt => (
         <span key={pt.id} style={{
           position: 'absolute', top: '-4%', left: pt.left, width: 2, height: 2,
