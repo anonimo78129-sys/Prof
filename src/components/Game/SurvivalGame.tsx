@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { buildScenes } from '../../game/buildScenes';
 import { applyEffect, freshStats, type Mood, type Scene, type StatEffect, type Stats } from '../../game/cinzas';
-import { saveCheckpoint, clearSave, recordSolved, recordError, recordEnding, getStats, recordDiscovery, getDiscoveries } from '../../game/progress';
+import { saveCheckpoint, clearSave, recordSolved, recordError, recordEnding, getStats, recordDiscovery, getDiscoveries, getSave } from '../../game/progress';
 import { playSfx, isMuted, setMuted, getVolume, setVolume, subscribeAudio } from '../../game/audio';
 import { C, ART, ICON, bevel } from '../../game/theme';
 import type { SharedQuiz } from '../../game/quizShare';
@@ -184,6 +184,14 @@ function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
   );
 }
 
+// O jogo pode matar, então precisa avisar. Como não há barra de vida, o
+// aviso vem em texto, junto da cena, e fica mais grave conforme piora.
+function condicao(saude: number): { texto: string; grave: boolean } | null {
+  if (saude <= 30) return { texto: 'A febre não baixa, sua mão treme e você perde o fio do que estava fazendo. Você não aguenta outro erro.', grave: true };
+  if (saude <= 48) return { texto: 'A tosse não passa desde ontem, e você cansa rápido demais para a distância que andou.', grave: false };
+  return null;
+}
+
 // Caderno de campo: guarda cada descoberta assim que ela acontece, para
 // o jogador reler quando quiser. As que ainda não vieram aparecem como
 // páginas em branco, o que mostra quanto falta sem entregar nada.
@@ -328,7 +336,9 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
 
   useEffect(() => {
     if (scene.kind === 'narrative') saveCheckpoint(sceneId, statsRef.current);
-    if (scene.kind === 'ending') { recordEnding(sceneId); clearSave(); }
+    // Numa morte o checkpoint fica de pé, para ela poder retomar o
+    // capítulo em vez de recomeçar tudo.
+    if (scene.kind === 'ending') { recordEnding(sceneId); if (!scene.morte) clearSave(); }
   }, [sceneId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const apply = (effect: StatEffect | undefined, base: Stats) => {
@@ -356,6 +366,14 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
     setAnswered(true);
   };
 
+  // Retomar do último ponto seguro depois de uma morte.
+  const resume = () => {
+    const sv = getSave();
+    if (!sv) { restart(); return; }
+    setStats(sv.stats);
+    goTo(sv.sceneId, sv.stats);
+  };
+
   const restart = () => {
     clearSave();
     const fresh = freshStats();
@@ -369,7 +387,10 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
   return (
     <div ref={scrollRef} style={{
       position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
-      display: 'flex', justifyContent: 'center', padding: '10px 10px 28px',
+      display: 'flex', justifyContent: 'center',
+      // com o indicador na tela, o conteúdo precisa de espaço para não
+      // ficar embaixo dele
+      padding: `10px 10px ${temMais ? 62 : 28}px`,
     }}>
       <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 8 }}>
 
@@ -414,8 +435,22 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
           compact={scene.kind === 'narrative' || (scene.kind === 'challenge' && !answered)}
         />
 
+        {scene.kind !== 'ending' && (() => {
+          const c = condicao(stats.saude);
+          return c ? (
+            <div className="font-vt" style={{
+              background: c.grave ? 'rgba(212,63,96,0.16)' : 'rgba(240,147,43,0.14)',
+              border: `2px solid ${c.grave ? C.red : C.amber}`,
+              padding: '8px 11px', fontSize: 16, lineHeight: 1.35,
+              color: c.grave ? '#ffc0cc' : '#f4d6a8',
+            }}>
+              {c.texto}
+            </div>
+          ) : null;
+        })()}
+
         {scene.kind === 'ending' ? (
-          <EndingCard scene={scene} onRestart={restart} onExit={onExit} />
+          <EndingCard scene={scene} onRestart={restart} onExit={onExit} onResume={resume} />
         ) : scene.kind === 'challenge' ? (
           !answered ? (
             <>
@@ -517,18 +552,28 @@ function IconBtn({ label, onClick, title }: { label: string; onClick: () => void
 }
 
 // ── epílogo ──────────────────────────────────────────────
-function EndingCard({ scene, onRestart, onExit }: {
-  scene: Extract<Scene, { kind: 'ending' }>; onRestart: () => void; onExit: () => void;
+function EndingCard({ scene, onRestart, onExit, onResume }: {
+  scene: Extract<Scene, { kind: 'ending' }>; onRestart: () => void; onExit: () => void; onResume: () => void;
 }) {
   const g = getStats();
   const total = g.solved + g.errors;
+  const morte = !!scene.morte;
+  const temCheckpoint = !!getSave();
 
   return (
     <>
+      {morte && (
+        <div className="font-pixel" style={{
+          background: C.red, border: `2px solid ${C.line}`, boxShadow: bevel(3),
+          padding: '9px 11px', fontSize: 9, color: '#fff', letterSpacing: 1, textAlign: 'center',
+        }}>
+          VOCÊ NÃO SOBREVIVEU
+        </div>
+      )}
       <Prose style={{ textAlign: 'center' }}>
         <div style={{
           width: 52, height: 52, margin: '0 auto 8px', display: 'grid', placeItems: 'center',
-          background: C.rust, border: `2px solid ${C.line}`, boxShadow: bevel(3),
+          background: morte ? C.red : C.rust, border: `2px solid ${C.line}`, boxShadow: bevel(3),
         }}>
           {scene.icon && <img src={ICON(scene.icon)} alt="" style={{ width: 32, height: 32, imageRendering: 'pixelated' }} />}
         </div>
@@ -551,7 +596,10 @@ function EndingCard({ scene, onRestart, onExit }: {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-        <Action onClick={onRestart}>JOGAR DE NOVO</Action>
+        {morte && temCheckpoint && <Action onClick={onResume}>VOLTAR AO ÚLTIMO CAPÍTULO</Action>}
+        <Action tone={morte ? 'ghost' : 'rust'} onClick={onRestart}>
+          {morte ? 'RECOMEÇAR DO ABRIGO' : 'JOGAR DE NOVO'}
+        </Action>
         <Action tone="ghost" onClick={onExit}>VOLTAR AO INÍCIO</Action>
       </div>
     </>
