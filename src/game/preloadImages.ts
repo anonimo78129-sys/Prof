@@ -14,7 +14,7 @@ export const CRITICAL_IMAGES: string[] = [
     'gasmask', 'lamp', 'busstop', 'silo', 'windmill', 'sprout'].map(ICON),
   // cenários pixel art + protagonista
   ...['bunker', 'ruins', 'toxic', 'cistern', 'station', 'settlement', 'greenhouse',
-    'wasteland', 'dawn', 'bleak', 'lone', 'hero', 'survivor'].map(ART),
+    'wasteland', 'dawn', 'bleak', 'lone', 'mancha', 'hero', 'survivor'].map(ART),
 ];
 
 /**

@@ -12,16 +12,20 @@ import { decodeQuiz, type SharedQuiz } from './game/quizShare';
 
 // Atalhos de DEV — pulam direto para um capítulo/desafio/desfecho
 const DEV_SCENES = [
-  { label: 'Cap. 1 — O Abrigo', id: 'abrigo' },
-  { label: 'Cap. 1 — Desafio: Radiação', id: 'desafio_radiacao' },
+  { label: 'Cap. 1 — Abrigo 7', id: 'abrigo' },
+  { label: 'Cap. 1 — O contador', id: 'desafio_radiacao' },
   { label: 'Cap. 2 — As Ruínas', id: 'ruinas' },
-  { label: 'Cap. 2 — Zona Contaminada', id: 'perigo' },
-  { label: 'Cap. 2 — Desafio: Água', id: 'desafio_agua' },
-  { label: 'Cap. 3 — Um Rosto na Poeira', id: 'encontro' },
-  { label: 'Cap. 3 — Desafio: Imunidade', id: 'desafio_imunidade' },
-  { label: 'Cap. 4 — Luzes ao Longe', id: 'assentamento' },
-  { label: 'Epílogo — Novo Começo', id: 'final_novocomeco' },
-  { label: 'Epílogo — Perdida nas Ruínas', id: 'final_perdida' },
+  { label: 'Cap. 2 — Zona industrial', id: 'perigo' },
+  { label: 'Cap. 2 — A cisterna', id: 'desafio_agua' },
+  { label: 'Cap. 3 — Elias', id: 'encontro' },
+  { label: 'Cap. 3 — O braço de Elias', id: 'desafio_imunidade' },
+  { label: 'Cap. 3 — A Mancha', id: 'mancha' },
+  { label: 'Cap. 4 — O Cercado', id: 'assentamento' },
+  { label: 'Cap. 4 — A estufa', id: 'desafio_estufa' },
+  { label: 'Cap. 4 — A virada', id: 'desafio_fungo' },
+  { label: 'A escolha (lua nova)', id: 'escolha' },
+  { label: 'Epílogo — A Primeira Colheita', id: 'final_colheita' },
+  { label: 'Epílogo — A Fogueira', id: 'final_fogueira' },
 ] as const;
 
 function seeded(seed: number) {

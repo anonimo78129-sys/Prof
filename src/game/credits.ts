@@ -42,10 +42,33 @@ export const CREDITS: CreditSection[] = [
     heading: 'Narrativa e conteúdo',
     items: [
       {
-        title: 'Roteiro e desafios de biologia',
+        title: 'Roteiro e virada',
         author: 'Equipe do Prof. Corujão',
         license: 'Original do projeto',
-        note: 'Os 4 capítulos, os 6 desfechos e os 5 desafios de biologia (radiação e DNA, purificação de água, imunidade, fotossíntese e decomposição) foram escritos para este jogo.',
+        note: 'Os 4 capítulos, a escolha final e os 6 desfechos foram escritos para este jogo. A biologia aparece como decisão da personagem, não como prova: radiação e DNA, fervura e micro-organismos, resposta imune, fotossíntese e contaminação do solo, e fungos que acumulam isótopos.',
+      },
+    ],
+  },
+  {
+    heading: 'Referências da história',
+    items: [
+      {
+        title: 'Nausicaä do Vale do Vento',
+        author: 'Hayao Miyazaki, 1984',
+        license: 'Referência criativa',
+        note: 'A Selva Tóxica parece estar matando o mundo e na verdade o purifica. A Mancha de CINZAS parte da mesma ideia, e daí vem o erro do protocolo que a protagonista carrega.',
+      },
+      {
+        title: 'Fungos da zona de Chernobyl',
+        author: 'Pesquisa publicada',
+        license: 'Base científica',
+        note: 'Espécies coletadas na zona concentram césio-137 e estrôncio-90 muito acima do ambiente em volta, e algumas usam melanina diante da radiação. É o que a Mancha faz no jogo.',
+      },
+      {
+        title: 'Girassóis e fitorremediação',
+        author: 'Chernobyl e Fukushima',
+        license: 'Base científica',
+        note: 'Césio e estrôncio imitam potássio e cálcio, então a raiz absorve os dois sem distinguir. Funcionou na água em Chernobyl e falhou no solo de Fukushima, onde o césio ficou preso na argila. Daí sai o problema do canteiro do Cercado.',
       },
     ],
   },
