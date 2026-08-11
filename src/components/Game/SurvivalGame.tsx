@@ -31,14 +31,52 @@ function Prose({ children, style }: { children: ReactNode; style?: CSSProperties
   );
 }
 
-// Um único estilo de botão para TODA escolha, seja de enredo ou de
-// ciência. O jogador não deve conseguir dizer, olhando, qual das duas é.
-function Choice({ children, onClick, tone = 'steel' }: {
-  children: ReactNode; onClick: () => void; tone?: 'steel' | 'rust';
+// Escolha da história: cartão de papel, do mesmo material do painel de
+// narração, com um filete de ferrugem na lateral. Usa a MESMA fonte e o
+// mesmo corpo do texto narrado, porque são frases inteiras: fonte de
+// pixel serve para rótulo curto, não para texto corrido.
+//
+// Vale para decisão de enredo e para decisão de ciência, de propósito:
+// olhando, não dá para dizer qual é qual.
+function Choice({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  const [down, setDown] = useState(false);
+  const [over, setOver] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onPointerDown={() => setDown(true)}
+      onPointerUp={() => setDown(false)}
+      onPointerEnter={() => setOver(true)}
+      onPointerLeave={() => { setDown(false); setOver(false); }}
+      className="font-vt"
+      style={{
+        display: 'flex', alignItems: 'stretch', gap: 0, width: '100%', textAlign: 'left',
+        background: over ? C.paper : '#ece2cc',
+        border: `2px solid ${C.line}`,
+        boxShadow: down ? 'none' : bevel(3),
+        transform: down ? 'translate(3px, 3px)' : 'none',
+        padding: 0, cursor: 'pointer', overflow: 'hidden',
+        transition: 'transform 60ms, box-shadow 60ms, background 120ms',
+      }}
+    >
+      <span style={{ flex: 'none', width: 6, background: C.rust }} />
+      <span style={{
+        flex: 1, padding: '10px 12px', fontSize: 17, lineHeight: 1.35, color: C.paperInk,
+      }}>
+        {children}
+      </span>
+    </button>
+  );
+}
+
+// Ação de sistema (continuar, reiniciar, sair). Aqui sim cabe a fonte de
+// pixel: são rótulos curtos, e o contraste separa da voz da história.
+function Action({ children, onClick, tone = 'rust' }: {
+  children: ReactNode; onClick: () => void; tone?: 'rust' | 'ghost';
 }) {
   const [down, setDown] = useState(false);
-  const bg = tone === 'rust' ? C.rust : C.steel;
-  const dark = tone === 'rust' ? C.rustDark : C.steelDark;
+  const bg = tone === 'rust' ? C.rust : C.shell;
+  const top = tone === 'rust' ? C.rustLite : C.shellHi;
   return (
     <button
       onClick={onClick}
@@ -47,12 +85,13 @@ function Choice({ children, onClick, tone = 'steel' }: {
       onPointerLeave={() => setDown(false)}
       className="font-pixel"
       style={{
-        display: 'block', width: '100%', textAlign: 'left',
-        fontSize: 9.5, lineHeight: 1.6, color: '#fff', background: bg,
-        border: `2px solid ${C.line}`, borderTop: `2px solid ${dark}`,
+        display: 'block', width: '100%', textAlign: 'center',
+        fontSize: 10, letterSpacing: 1, color: '#fff', background: bg,
+        border: `2px solid ${C.line}`, borderTop: `2px solid ${top}`,
         boxShadow: down ? 'none' : bevel(3),
         transform: down ? 'translate(3px, 3px)' : 'none',
-        padding: '12px 13px', cursor: 'pointer',
+        padding: '13px 10px', cursor: 'pointer',
+        textShadow: '0 2px 0 rgba(0,0,0,0.4)',
         transition: 'transform 60ms, box-shadow 60ms',
       }}
     >
@@ -250,10 +289,15 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
           !answered ? (
             <>
               <Prose>
-                <p className="font-vt" style={{ fontSize: 19, lineHeight: 1.4, color: C.paperInk, margin: '0 0 10px' }}>
+                <p className="font-vt" style={{
+                  fontSize: 17, lineHeight: 1.35, color: C.paperSoft, margin: '0 0 9px',
+                }}>
                   {scene.intro}
                 </p>
-                <p className="font-vt" style={{ fontSize: 19, lineHeight: 1.4, color: C.paperInk, margin: 0 }}>
+                <p className="font-vt" style={{
+                  fontSize: 19, lineHeight: 1.35, color: C.paperInk, margin: 0,
+                  paddingTop: 9, borderTop: `2px solid ${C.paperEdge}`,
+                }}>
                   {scene.question.text}
                 </p>
               </Prose>
@@ -278,7 +322,7 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
                   {scene.hint}
                 </p>
               </Prose>
-              <Choice tone="rust" onClick={() => goTo(scene.next, statsRef.current)}>CONTINUAR</Choice>
+              <Action onClick={() => goTo(scene.next, statsRef.current)}>CONTINUAR</Action>
             </>
           )
         ) : scene.kind === 'narrative' ? (
@@ -355,8 +399,8 @@ function EndingCard({ scene, onRestart, onExit }: {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-        <Choice tone="rust" onClick={onRestart}>JOGAR DE NOVO</Choice>
-        <Choice onClick={onExit}>VOLTAR AO INÍCIO</Choice>
+        <Action onClick={onRestart}>JOGAR DE NOVO</Action>
+        <Action tone="ghost" onClick={onExit}>VOLTAR AO INÍCIO</Action>
       </div>
     </>
   );
@@ -395,8 +439,8 @@ function Settings({ muted, volume, onClose, onRestart }: {
         />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          <Choice onClick={onRestart}>REINICIAR HISTÓRIA</Choice>
-          <Choice tone="rust" onClick={onClose}>FECHAR</Choice>
+          <Action tone="ghost" onClick={onRestart}>REINICIAR HISTÓRIA</Action>
+          <Action onClick={onClose}>FECHAR</Action>
         </div>
       </div>
     </div>
