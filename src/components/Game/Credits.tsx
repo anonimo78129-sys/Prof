@@ -1,5 +1,5 @@
 import { CREDITS, CREDITS_NOTE } from '../../game/credits';
-import { C, ART } from '../../game/theme';
+import { C, CENA_FLAT } from '../../game/theme';
 
 // ─────────────────────────────────────────────────────────
 // Tela de créditos — cartão rolável sobre o céu de cinzas, no estilo
@@ -9,7 +9,7 @@ export default function Credits({ onBack }: { onBack: () => void }) {
   return (
     <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: C.ink }}>
       {/* fundo — arte das ruínas, bem escurecida para o texto respirar */}
-      <img src={ART('ruins')} alt="" style={{
+      <img src={CENA_FLAT('ruins')} alt="" style={{
         position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
         pointerEvents: 'none', filter: 'brightness(0.42) saturate(1.05) blur(5px)',
       }} />

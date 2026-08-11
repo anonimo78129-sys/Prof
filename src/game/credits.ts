@@ -25,10 +25,10 @@ export const CREDITS: CreditSection[] = [
     heading: 'Arte pixel',
     items: [
       {
-        title: 'Cenários',
+        title: 'Cenários em camadas',
         author: 'Original do projeto',
         license: 'Desenhado por código',
-        note: 'Os 12 cenários (abrigo, ruínas, zona contaminada, cisterna, posto, assentamento, estufa, ermo, amanhecer e desfechos) são desenhados pixel a pixel por scripts/gen-art.mjs, com céus pontilhados, silhuetas em camadas e iluminação própria.',
+        note: 'As 14 cenas são desenhadas pixel a pixel por scripts/gen-art.mjs, cada uma separada em camadas (céu, fundo distante, plano médio e chão) que rolam em velocidades diferentes para dar profundidade. As camadas que rolam são desenhadas em cilindro, então emendam nelas mesmas sem costura.',
       },
       {
         title: 'Ícones e protagonista',

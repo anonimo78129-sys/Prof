@@ -66,7 +66,7 @@ export type Mood = 'dawn' | 'ash' | 'danger' | 'dusk' | 'hope' | 'bleak' | 'sett
 // Arte de fundo (PNG pixel art gerado por scripts/gen-art.mjs)
 export type Art =
   | 'bunker' | 'ruins' | 'toxic' | 'cistern' | 'station' | 'settlement'
-  | 'greenhouse' | 'wasteland' | 'dawn' | 'bleak' | 'lone' | 'mancha';
+  | 'greenhouse' | 'wasteland' | 'dawn' | 'bleak' | 'lone' | 'mancha' | 'arvore' | 'campo';
 
 export type CinzasIcon =
   | 'bread' | 'flask' | 'medkit' | 'bandage' | 'nametag' | 'poison' | 'ablaze'
@@ -225,12 +225,12 @@ export function defaultScenes(): Record<string, Scene> {
       next: (s) => (s.saude <= 22 ? 'final_dose' : 'desafio_transpiracao'),
     },
     rota_agua: {
-      id: 'rota_agua', kind: 'router', art: 'cistern', day: 3, chapter: 'CAPÍTULO 3', mood: 'ash', title: '',
+      id: 'rota_agua', kind: 'router', art: 'arvore', day: 3, chapter: 'CAPÍTULO 3', mood: 'ash', title: '',
       next: (s) => (s.saude <= 22 ? 'final_sede' : 'encontro'),
     },
 
     desafio_transpiracao: {
-      id: 'desafio_transpiracao', kind: 'challenge', art: 'cistern', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
+      id: 'desafio_transpiracao', kind: 'challenge', art: 'arvore', day: 2, chapter: 'CAPÍTULO 2', mood: 'ash',
       icon: 'flask', title: 'Sede',
       intro: 'A caixa d’água do prédio secou faz tempo. O que sobrou vivo no quarteirão é uma amendoeira teimosa rachando o asfalto, cheia de folha verde. Na mochila você tem sacos plásticos e barbante.',
       question: Q_TRANSPIRACAO,
@@ -349,7 +349,7 @@ export function defaultScenes(): Record<string, Scene> {
 
     // ── DESFECHOS ───────────────────────────────────────
     final_colheita: {
-      id: 'final_colheita', kind: 'ending', art: 'dawn', day: 5, chapter: 'EPÍLOGO', mood: 'hope', icon: 'sprout',
+      id: 'final_colheita', kind: 'ending', art: 'campo', day: 5, chapter: 'EPÍLOGO', mood: 'hope', icon: 'sprout',
       title: 'A Primeira Colheita',
       text: 'Você gastou três noites convencendo o Cercado a adiar uma única queimada. Levou dois anos para o girassol da borda virar rotina, e para a colheita da Mancha, cortada e levada para longe em vez de queimada, virar trabalho de todo mês. No terceiro inverno mediram o canteiro velho, e o número tinha caído o bastante para plantar direto na terra. A alface daquele ano foi a primeira que não veio de caminhão.',
     },

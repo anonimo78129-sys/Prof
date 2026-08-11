@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { preloadImages } from '../../game/preloadImages';
-import { C, ART, bevel } from '../../game/theme';
+import { C, CENA_FLAT, bevel } from '../../game/theme';
 
 // Tempo mínimo em tela para o carregamento não "piscar" quando as imagens
 // já estão em cache (evita um flash desconfortável).
@@ -53,7 +53,7 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
       touchAction: 'none', userSelect: 'none',
     }}>
       {/* mesma arte da tela inicial, escurecida */}
-      <img src={ART('hero')} alt="" style={{
+      <img src={CENA_FLAT('hero')} alt="" style={{
         position: 'absolute', inset: 0, width: '100%', height: '100%',
         objectFit: 'cover', objectPosition: 'center 38%',
         imageRendering: 'pixelated', pointerEvents: 'none', filter: 'brightness(0.45) saturate(0.9)',

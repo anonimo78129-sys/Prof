@@ -6,7 +6,8 @@ import LoadingScreen from './components/Game/LoadingScreen';
 import Credits from './components/Game/Credits';
 import { getSave, clearSave, resetStats } from './game/progress';
 import { freshStats } from './game/cinzas';
-import { C, ART, bevel } from './game/theme';
+import { C, ART, CENA_FLAT, bevel } from './game/theme';
+import ParallaxScene from './components/Game/ParallaxScene';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { decodeQuiz, type SharedQuiz } from './game/quizShare';
 
@@ -199,7 +200,7 @@ export default function App() {
       display: 'flex', justifyContent: 'center', padding: '18px 12px 24px',
     }}>
       {/* arte borrada ao fundo, só para não deixar as bordas mortas */}
-      <img src={ART('hero')} alt="" aria-hidden style={{
+      <img src={CENA_FLAT('hero')} alt="" aria-hidden style={{
         position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
         filter: 'brightness(0.35) saturate(1.1) blur(3px)', pointerEvents: 'none',
       }} />
@@ -235,17 +236,22 @@ export default function App() {
         </div>
 
         {/* ── ARTE EMOLDURADA — mesma proporção nativa, sem corte ── */}
-        <div style={{
-          position: 'relative', width: '100%', aspectRatio: '180 / 150', flex: 'none',
-          border: `3px solid ${C.line}`, boxShadow: bevel(4), overflow: 'hidden', background: C.shellLo,
-        }}>
-          <img src={ART('hero')} alt="Ruínas de uma cidade ao amanhecer" style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-            imageRendering: 'pixelated', objectFit: 'cover',
+        <ParallaxScene
+          cena="hero"
+          aspect="180 / 150"
+          style={{ border: `3px solid ${C.line}`, boxShadow: bevel(4) }}
+        >
+          {/* a protagonista fica fora das camadas que rolam: dentro delas
+              ela apareceria duas vezes quando a tira dá a volta */}
+          <img src={ART('survivor-1')} alt="" style={{
+            position: 'absolute', left: '44%', bottom: '13%', width: '7%',
+            imageRendering: 'pixelated', transform: 'translateX(-50%)',
+            animation: 'hero-bob 2.6s steps(2) infinite',
+            filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.5))',
           }} />
           <div className="screen-shimmer" />
           <Embers />
-        </div>
+        </ParallaxScene>
 
         {/* ── BOTÕES ── */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>

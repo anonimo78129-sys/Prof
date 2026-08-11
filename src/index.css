@@ -168,6 +168,50 @@
     100% { translate: 0 0; }
   }
 
+  /* ── PARALLAX ──
+     Cada camada que rola é uma tira com a mesma imagem duas vezes lado a
+     lado; a tira anda metade da própria largura e recomeça. Como a arte é
+     desenhada em cilindro, a emenda não aparece. Velocidades diferentes
+     por camada é o que dá profundidade. */
+  .plx-track {
+    position: absolute; inset: 0; display: flex; width: 200%;
+    will-change: transform;
+    animation-name: plx-scroll;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  .plx-track > img {
+    flex: none; width: 50%; height: 100%;
+    object-fit: cover; object-position: center 88%;
+    image-rendering: pixelated;
+  }
+  @keyframes plx-scroll {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+  }
+
+  /* folhagem balançando: aplicado no contêiner, para não brigar com a
+     transformação da tira que rola */
+  .fx-sway { animation: fx-sway 7s ease-in-out infinite; transform-origin: 50% 100%; }
+  @keyframes fx-sway {
+    0%, 100% { transform: skewX(0deg); }
+    50%       { transform: skewX(1.1deg); }
+  }
+
+  /* lâmpada, fogueira e janela acesa respirando */
+  .fx-glow { animation: fx-glow 3.4s ease-in-out infinite; }
+  @keyframes fx-glow {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 1; }
+  }
+
+  /* luz de emergência do abrigo, com falha */
+  .fx-flicker { animation: fx-flicker 4.2s steps(1, end) infinite; }
+  @keyframes fx-flicker {
+    0%, 41%, 45%, 71%, 75%, 100% { opacity: 1; }
+    43%, 73% { opacity: 0.3; }
+  }
+
   /* Partículas do cenário (cinza/brasa/esporo) atravessando o painel de arte */
   @keyframes scene-drift {
     0%   { transform: translate(0, 0);        opacity: 0; }
