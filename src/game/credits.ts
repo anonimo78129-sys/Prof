@@ -31,6 +31,12 @@ export const CREDITS: CreditSection[] = [
         note: 'As 14 cenas são desenhadas pixel a pixel por scripts/gen-art.mjs, cada uma separada em camadas (céu, fundo distante, plano médio e chão) que rolam em velocidades diferentes para dar profundidade. As camadas que rolam são desenhadas em cilindro, então emendam nelas mesmas sem costura.',
       },
       {
+        title: 'Estilo 16-bit e paleta fechada',
+        author: 'Original do projeto',
+        license: 'Desenhado por código',
+        note: 'Paleta única de 61 cores organizada em rampas de 4 a 5 tons, no espírito dos consoles de 16 bits. Todo objeto sai com contorno escuro e luz vindo de cima e da esquerda, e o único degradê permitido é o dithering ordenado 4x4. A gravação passa por uma quantização que prende cada pixel à paleta, então nenhuma cor escapa dela.',
+      },
+      {
         title: 'Ícones e protagonista',
         author: 'Original do projeto',
         license: 'Desenhado por código',

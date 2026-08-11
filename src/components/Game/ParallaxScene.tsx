@@ -72,7 +72,7 @@ function Cena({ cena, visivel }: { cena: string; visivel: boolean }) {
 
 export interface ParallaxSceneProps {
   cena: string;
-  /** proporção do quadro; a arte nativa é 180x100 (a da capa, 180x150) */
+  /** proporção do quadro; a arte nativa é 540x300 (a da capa, 540x450) */
   aspect?: string;
   /** encolhe o quadro sem cortar a composição (usado na hora de decidir) */
   compact?: boolean;
