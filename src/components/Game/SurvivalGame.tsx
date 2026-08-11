@@ -134,7 +134,7 @@ function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
       {showHero && (
         <img src={ART('survivor-1')} alt="" style={{
           position: 'absolute', left: '50%', bottom: '10%',
-          width: '8.9%', imageRendering: 'pixelated',
+          width: '7.8%', imageRendering: 'pixelated',
           transform: 'translateX(-50%)', animation: 'hero-bob 2.6s steps(2) infinite',
           filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.45))',
         }} />

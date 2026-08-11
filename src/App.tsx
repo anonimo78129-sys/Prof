@@ -244,7 +244,7 @@ export default function App() {
           {/* a protagonista fica fora das camadas que rolam: dentro delas
               ela apareceria duas vezes quando a tira dá a volta */}
           <img src={ART('survivor-1')} alt="" style={{
-            position: 'absolute', left: '44%', bottom: '13%', width: '7%',
+            position: 'absolute', left: '44%', bottom: '13%', width: '7.8%',
             imageRendering: 'pixelated', transform: 'translateX(-50%)',
             animation: 'hero-bob 2.6s steps(2) infinite',
             filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.5))',
