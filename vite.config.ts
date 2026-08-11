@@ -22,6 +22,10 @@ export default defineConfig(({ mode }) => {
         manifest: false,
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          // Os estudos de estilo são ferramenta do painel DEV, não arte do
+          // jogo. Fora do precache eles não entram no download de instalação
+          // de quem só vai jogar; a galeria busca sob demanda.
+          globIgnores: ['**/assets/cinzas/estudos/**'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         },
       }),

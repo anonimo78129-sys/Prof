@@ -1,0 +1,290 @@
+{
+ "pixel": {
+  "nome": "Pixel art 16-bit",
+  "ref": "Chrono Trigger, Secret of Mana",
+  "desc": "O estilo atual do jogo. Paleta fechada de 61 cores em rampas curtas, contorno escuro em todo objeto, luz sempre de cima e da esquerda, e o único degradê permitido é o dithering ordenado 4x4. Densidade alta de detalhe por área.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "silhueta": {
+  "nome": "Silhueta e luz",
+  "ref": "Limbo, Inside, Badland",
+  "desc": "Tudo vira recorte quase preto contra um céu forte. Não existe detalhe dentro das formas: a profundidade vem só da névoa que se acumula na base de cada plano e do quanto cada silhueta puxa para a cor do céu. Dramático e barato de produzir, mas o cenário não consegue contar detalhe nenhum.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "cartaz": {
+  "nome": "Campos de cor chapada",
+  "ref": "Firewatch, cartazes do WPA",
+  "desc": "Formas grandes em cor lisa, sem contorno e sem textura nenhuma. A profundidade é só perspectiva atmosférica: cada plano mais claro e mais quente que o de trás. Lê perfeito em tela pequena e envelhece bem, mas exige decisão de composição, porque não há detalhe para esconder forma fraca.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "vetor": {
+  "nome": "Vetor geométrico",
+  "ref": "Monument Valley, ilustração editorial",
+  "desc": "Formas limpas, cor saturada, duas faces por volume (uma iluminada e uma na sombra) e sombra longa projetada sempre na mesma direção. Sem textura e sem ruído. O plano do chão sobe para a camada média para as sombras andarem junto com os prédios que as projetam.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "aquarela": {
+  "nome": "Aquarela",
+  "ref": "Gris, Child of Light",
+  "desc": "Manchas de tinta com a borda irregular e o pigmento acumulando na beirada, granulação do papel por baixo de tudo e cor sangrando de um plano para o outro. É o estilo mais orgânico e o mais caro de manter consistente: cada cena precisa da mesma mão.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "xilogravura": {
+  "nome": "Xilogravura",
+  "ref": "Gravura em linóleo, cartaz de propaganda",
+  "desc": "Duas tintas só: preto sobre creme. O volume não vem de tom, vem de hachura — linhas mais grossas e mais juntas onde é escuro, mais finas e espaçadas onde é claro. Altíssimo contraste e leitura instantânea, mas nenhuma cor para carregar a emoção da cena.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "cel": {
+  "nome": "Cel, fundo de anime",
+  "ref": "Ghibli, Makoto Shinkai",
+  "desc": "Céu pintado em degradê contínuo e macio, nuvens com volume, e todo o resto com sombra de borda dura em dois valores — o corte limpo entre luz e sombra que define a técnica de acetato. Bonito e legível, e o que mais depende de bom desenho de nuvem e de luz.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "riso": {
+  "nome": "Risografia",
+  "ref": "Impressão riso, fanzine",
+  "desc": "Três tintas impressas uma sobre a outra em retícula de pontos, cada chapa num ângulo diferente e com um desregistro de um ou dois pixels — o defeito da impressora é a graça da técnica. Textura viva e cor forte, mas o ponto sempre aparece e come o detalhe fino.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ },
+ "lowpoly": {
+  "nome": "Low poly",
+  "ref": "Ilustração facetada, Superbrothers",
+  "desc": "A cena inteira é triangulada e cada faceta recebe uma cor chapada tirada de um degradê base, com pequena variação por face. Dá um acabamento moderno e uniforme e é o mais fácil de manter consistente entre 14 cenas, mas apaga qualquer detalhe pequeno.",
+  "camadas": [
+   {
+    "n": "sky",
+    "v": 0,
+    "fx": null
+   },
+   {
+    "n": "far",
+    "v": 340,
+    "fx": null
+   },
+   {
+    "n": "mid",
+    "v": 170,
+    "fx": null
+   },
+   {
+    "n": "near",
+    "v": 85,
+    "fx": null
+   },
+   {
+    "n": "frente",
+    "v": 0,
+    "fx": null
+   }
+  ]
+ }
+}
