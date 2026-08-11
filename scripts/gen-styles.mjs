@@ -536,12 +536,31 @@ ESTILOS.silhueta = {
       t.px(x, t.s(GY) - t.s(20) + k, CEU, 0.16 * (1 - k / t.s(20)));
   },
   near(t, g) {
-    t.rect(0, t.s(g.chao.y), t.w, t.h, hex('#080610'));
-    for (const p of g.postes) {
-      t.rect(t.s(p.x), t.s(GY) - t.s(p.alt), t.s(2), t.s(p.alt), hex('#050408'));
-      t.rect(t.s(p.x) - t.s(5), t.s(GY) - t.s(p.alt), t.s(12), t.s(2), hex('#050408'));
+    const PRETO = hex('#050408');
+    // Montes de entulho recortando a linha do chão. Sem eles o terço de
+    // baixo do quadro fica uma faixa preta vazia, que é o que mais
+    // denuncia silhueta feita com pressa.
+    for (let x = 0; x < t.w; x++) {
+      const m = ruido1(x, t.s(52)) + ruido1(x + 900, t.s(15)) * 0.45;
+      const y = t.s(g.chao.y) - Math.round(m * t.s(9));
+      for (let yy = y; yy < t.h; yy++) t.px(x, yy, hex('#080610'));
     }
-    for (const s of g.chao.pedras) t.ellipse(t.s(s.x), t.s(s.y), t.s(s.rx), t.s(s.ry), hex('#050408'));
+    for (const p of g.postes) {
+      const alto = t.s(GY) - t.s(p.alt);
+      t.rect(t.s(p.x), alto, t.s(2), t.s(p.alt), PRETO);
+      t.rect(t.s(p.x) - t.s(5), alto, t.s(12), t.s(2), PRETO);
+      // fio pendurado entre um poste e o próximo, em catenária
+      const prox = g.postes[(g.postes.indexOf(p) + 1) % g.postes.length];
+      if (prox.x > p.x) {
+        const dx = prox.x - p.x, y1 = t.s(GY) - t.s(prox.alt);
+        for (let i = 0; i <= t.s(dx); i++) {
+          const u = i / t.s(dx);
+          const y = alto + (y1 - alto) * u + Math.sin(u * Math.PI) * t.s(11);
+          t.px(t.s(p.x) + i, Math.round(y), PRETO);
+        }
+      }
+    }
+    for (const s of g.chao.pedras) t.ellipse(t.s(s.x), t.s(s.y), t.s(s.rx + 1), t.s(s.ry), PRETO);
   },
   frente(t, g) { figura(t, g.figura, hex('#050408')); },
 };
@@ -651,9 +670,16 @@ ESTILOS.aquarela = {
     grao(t, 0.05);
   },
   mid(t, g) {
-    lavagemVulto(t, g.predios.meio, hex('#5c5478'), 0.72);
-    for (const p of g.predios.meio) for (const j of p.janelas)
-      t.ellipse(t.s(j.x + 2), t.s(j.y + 3), t.s(3), t.s(4), hex(j.aceso ? '#f0c27a' : '#3f3a57'), 0.55);
+    lavagemVulto(t, g.predios.meio, hex('#5c5478'), 0.74);
+    // Janela irregular e desigual. Elipse do mesmo tamanho em toda janela
+    // virava bolinha de poá, que não parece pincel nenhum.
+    for (const p of g.predios.meio) for (const j of p.janelas) {
+      const n = h2(j.x, j.y);
+      if (!j.aceso && n > 0.42) continue;
+      const lw = t.s(j.w + n * 2.2), lh = t.s(j.h - 1 + n * 1.6);
+      const cor = j.aceso ? hex('#f0c27a') : hex('#3b3552');
+      t.rect(t.s(j.x) - Math.round(n * t.S), t.s(j.y), lw, lh, cor, j.aceso ? 0.7 : 0.45);
+    }
     grao(t, 0.05);
   },
   near(t, g) {
@@ -665,27 +691,54 @@ ESTILOS.aquarela = {
   frente(t, g) { figura(t, g.figura, hex('#2b2440'), 0.92); },
 };
 
-/** Mancha de aquarela sobre um perfil: borda trêmula e pigmento na beira. */
+/**
+ * Mancha de aquarela sobre um perfil: borda trêmula e pigmento acumulando
+ * na beirada. A beirada escura é a assinatura da técnica — sem ela a
+ * mancha vira campo de cor chapada com a borda torta.
+ */
 function lavagem(t, perfil, cor, alfa, tremor) {
-  const escuro = mix(cor, [0, 0, 0], 0.30);
+  const escuro = mix(cor, [0, 0, 0], 0.42);
   for (let x = 0; x < t.w; x++) {
     const base = t.s(perfil(Math.floor(x / t.S)));
     const y = base + Math.round((ruido1(x, t.s(14)) - 0.5) * t.s(tremor));
     for (let yy = y; yy < t.h; yy++) t.px(x, yy, cor, alfa);
-    // pigmento acumulando na borda, a assinatura da técnica
-    for (let k = 0; k < t.s(3); k++) t.px(x, y + k, escuro, alfa * 0.5 * (1 - k / t.s(3)));
+    const beira = t.s(4);
+    for (let k = 0; k < beira; k++) t.px(x, y + k, escuro, alfa * 0.9 * (1 - k / beira));
   }
 }
 
 function lavagemVulto(t, predios, cor, alfa) {
-  const escuro = mix(cor, [0, 0, 0], 0.30);
-  for (const p of predios) for (let i = 0; i < p.w; i++) {
-    const bx = t.s(p.x + i);
-    const y = t.s(p.perfilTopo[i]) + Math.round((ruido1(bx, t.s(10)) - 0.5) * t.s(5));
-    for (let k = 0; k < t.S; k++) {
-      for (let yy = y; yy < t.h; yy++) t.px(bx + k, yy, cor, alfa);
-      for (let d = 0; d < t.s(2); d++) t.px(bx + k, y + d, escuro, alfa * 0.45);
+  const escuro = mix(cor, [0, 0, 0], 0.42);
+  for (const p of predios) {
+    for (let i = 0; i < p.w; i++) {
+      const bx = t.s(p.x + i);
+      const y = t.s(p.perfilTopo[i]) + Math.round((ruido1(bx, t.s(10)) - 0.5) * t.s(5));
+      for (let k = 0; k < t.S; k++) {
+        for (let yy = y; yy < t.h; yy++) t.px(bx + k, yy, cor, alfa);
+        for (let d = 0; d < t.s(3); d++) t.px(bx + k, y + d, escuro, alfa * 0.75 * (1 - d / t.s(3)));
+      }
     }
+    // beirada nas laterais também, senão o prédio corta reto demais
+    for (const lado of [0, p.w - 1]) for (let k = 0; k < t.s(2); k++)
+      for (let yy = t.s(p.perfilTopo[lado]); yy < t.h; yy++)
+        t.px(t.s(p.x + lado) + k, yy, escuro, alfa * 0.5);
+    poca(t, p.x + p.w * 0.4, (p.perfilTopo[0] + GY) / 2, p.w * 0.5, (GY - p.perfilTopo[0]) * 0.3, escuro, alfa * 0.3);
+  }
+}
+
+/**
+ * Poça de água: uma zona onde o pigmento secou mais concentrado. Borda
+ * irregular e sem contorno, só uma segunda demão por cima.
+ */
+function poca(t, cx, cy, rx, ry, cor, alfa) {
+  const RX = t.s(rx), RY = t.s(ry), CX = t.s(cx), CY = t.s(cy);
+  if (RX < 2 || RY < 2) return;
+  for (let y = -RY; y <= RY; y++) for (let x = -RX; x <= RX; x++) {
+    const ang = Math.atan2(y / RY, x / RX);
+    const raio = 0.72 + ruido1(ang * 40 + CX, 5) * 0.34;
+    if ((x * x) / (RX * RX) + (y * y) / (RY * RY) > raio * raio) continue;
+    if (t.a(CX + x, CY + y) <= 0) continue;
+    t.px(CX + x, CY + y, cor, alfa);
   }
 }
 
@@ -715,11 +768,17 @@ ESTILOS.xilogravura = {
       t.linha(cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0,
               cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1, TINTA, Math.max(1, t.s(1.2 - h1(i * 3) * 0.7)));
     }
-    // hachura do céu adensando na direção do horizonte
-    for (let y = 0; y < t.s(GY); y += t.s(5)) {
+    // Hachura do céu: linhas paralelas CONTÍNUAS, engrossando conforme
+    // descem e afinando perto do sol. Traço curto sorteado vira ruído; o
+    // que faz a gravura ler é a linha inteira mudando de peso.
+    for (let y = t.s(7); y < t.s(GY); y += t.s(7)) {
       const dens = y / t.s(GY);
-      for (let x = 0; x < t.w; x += t.s(3))
-        if (h2(x, y) < dens * 0.55) t.linha(x, y, x + t.s(2), y, TINTA, Math.max(1, t.s(dens * 1.6)));
+      for (let x = 0; x < t.w; x++) {
+        const d = Math.min(1, Math.hypot(x - cx, y - cy) / t.s(190));
+        const peso = dens * d * 2.6;
+        if (peso < 0.3) continue;
+        for (let k = 0; k < Math.max(1, Math.round(t.s(peso * 0.62))); k++) t.px(x, y + k, TINTA);
+      }
     }
     t.ellipse(cx, cy, t.s(g.sol.r), t.s(g.sol.r), PAPEL);
     for (let i = 0; i < 60; i++) {
@@ -730,36 +789,55 @@ ESTILOS.xilogravura = {
   far(t, g) {
     pintaPerfil(t, g.colinas, TINTA);
     pintaVulto(t, g.predios.longe, TINTA);
-    // goivas brancas: é o corte da madeira que faz o meio-tom
-    for (let x = 0; x < t.w; x += t.s(2)) {
-      const y0 = t.s(g.colinas[Math.floor(x / t.S) % W]);
-      for (let y = y0 + t.s(3); y < t.h; y += t.s(6))
-        if (h2(x, y) < 0.6) t.linha(x, y, x + t.s(1), y, PAPEL, Math.max(1, t.s(1)));
+    // Goivas: linhas brancas paralelas acompanhando o contorno da colina,
+    // abrindo conforme descem. É o corte da madeira que faz o meio-tom.
+    for (let n = 1; n <= 7; n++) {
+      const desce = t.s(n * n * 0.9 + 2);
+      for (let x = 0; x < t.w; x++) {
+        const y = t.s(g.colinas[Math.floor(x / t.S) % W]) + desce;
+        if (t.a(x, y) === 0) continue;
+        for (let k = 0; k < Math.max(1, Math.round(t.s(1.4 - n * 0.14))); k++) t.px(x, y + k, PAPEL);
+      }
     }
   },
   mid(t, g) {
     pintaVulto(t, g.predios.meio, TINTA);
     for (const p of g.predios.meio) {
-      // hachura vertical na face, mais aberta perto da borda iluminada
+      // Hachura vertical em rampa: traço largo na quina que pega luz,
+      // afinando até sumir na face em sombra. É a rampa de tom inteira
+      // feita só com espessura de linha, que é o truque da técnica.
       for (let i = 0; i < p.w; i += 3) {
-        const claro = i < p.w * 0.35;
-        if (!claro) continue;
-        for (let k = 0; k < t.S; k++)
-          t.linha(t.s(p.x + i) + k, t.s(p.perfilTopo[i]) + t.s(2), t.s(p.x + i) + k, t.h, PAPEL, 1, 0.9);
+        const claro = Math.max(0, 1 - (i / p.w) / 0.55);
+        const esp = Math.round(t.s(claro * 2.1));
+        if (esp < 1) continue;
+        for (let k = 0; k < esp; k++)
+          for (let yy = t.s(p.perfilTopo[i]) + t.s(2); yy < t.h; yy++) t.px(t.s(p.x + i) + k, yy, PAPEL);
       }
-      for (const j of p.janelas) if (j.aceso) t.rect(t.s(j.x), t.s(j.y), t.s(j.w), t.s(j.h), PAPEL);
+      for (const j of p.janelas)
+        if (j.aceso) t.rect(t.s(j.x), t.s(j.y), t.s(j.w), t.s(j.h), PAPEL);
+        else t.rect(t.s(j.x), t.s(j.y), t.s(j.w), t.s(j.h), TINTA);
     }
   },
   near(t, g) {
     t.rect(0, t.s(g.chao.y), t.w, t.h, TINTA);
-    for (let y = t.s(g.chao.y) + t.s(3); y < t.h; y += t.s(4)) {
-      const dens = 1 - (y - t.s(g.chao.y)) / (t.h - t.s(g.chao.y));
-      for (let x = 0; x < t.w; x += t.s(4))
-        if (h2(x, y) < 0.35 + dens * 0.4) t.linha(x, y, x + t.s(1 + Math.floor(h2(y, x) * 3)), y, PAPEL, 1);
+    // Goivas do chão: paralelas, abrindo com a distância. O espaçamento
+    // crescente é o que dá a perspectiva sem precisar de tom.
+    // Linha fina com vão crescente: o chão continua lendo escuro e a
+    // perspectiva vem do espaçamento. Engrossar junto com o vão estourava
+    // o terço de baixo para branco e ele competia com o céu.
+    let y = t.s(g.chao.y) + t.s(3), passo = t.s(2.4);
+    while (y < t.h) {
+      for (let x = 0; x < t.w; x++) for (let k = 0; k < Math.max(1, t.s(0.7)); k++) t.px(x, y + k, PAPEL);
+      y += passo; passo *= 1.24;
     }
+    // Pedra: massa preta com uma goiva de luz só no topo. Elipse branca
+    // inteira virava um borrão claro solto no chão.
     for (const s of g.chao.pedras) {
-      t.ellipse(t.s(s.x), t.s(s.y), t.s(s.rx), t.s(s.ry), PAPEL);
-      t.ellipse(t.s(s.x + 1), t.s(s.y + 1), t.s(Math.max(1, s.rx - 2)), t.s(Math.max(1, s.ry - 1)), TINTA);
+      t.ellipse(t.s(s.x), t.s(s.y), t.s(s.rx), t.s(s.ry), TINTA);
+      for (let x = -s.rx; x <= 0; x++) {
+        const dy = Math.round(Math.sqrt(Math.max(0, 1 - (x * x) / (s.rx * s.rx))) * s.ry);
+        for (let k = 0; k < t.S; k++) t.px(t.s(s.x + x) + k, t.s(s.y - dy) + t.s(1), PAPEL);
+      }
     }
   },
   frente(t, g) { figura(t, g.figura, TINTA); },
