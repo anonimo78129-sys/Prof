@@ -49,9 +49,12 @@ const dither = (t, x, y) => t > (BAYER[y & 3][x & 3] + 0.5) / 16;
 
 // ── tela ─────────────────────────────────────────────────
 class Canvas {
-  constructor(w, h) { this.w = w; this.h = h; this.d = new Uint8Array(w * h * 4); }
+  // wrap: desenha em cilindro. O que sai por uma borda entra pela outra,
+  // então a imagem encosta nela mesma sem emenda e pode rolar em loop.
+  constructor(w, h, wrap = false) { this.w = w; this.h = h; this.wrap = wrap; this.d = new Uint8Array(w * h * 4); }
   px(x, y, c, a = 1) {
     x |= 0; y |= 0;
+    if (this.wrap) x = ((x % this.w) + this.w) % this.w;
     if (x < 0 || y < 0 || x >= this.w || y >= this.h || a <= 0) return;
     const i = (y * this.w + x) * 4;
     if (a >= 1) { this.d[i] = c[0]; this.d[i + 1] = c[1]; this.d[i + 2] = c[2]; this.d[i + 3] = 255; return; }
@@ -377,304 +380,361 @@ function survivor(c, x, y, { shadow = true } = {}) {
 }
 
 // ═════════════════════════════════════════════════════════
-// CENÁRIOS
+// CENÁRIOS EM CAMADAS
+//
+// Cada cena vira várias PNG com transparência. Camadas com `vel` > 0
+// rolam em loop (o número é o tempo em segundos para dar uma volta), e é
+// a diferença entre essas velocidades que produz o parallax: o fundo
+// distante quase parado, o chão passando rápido. Essas camadas são
+// desenhadas em cilindro (wrap) para emendarem nelas mesmas sem costura.
+//
+// `fx` liga uma animação por CSS na camada: balanço de folhagem, brilho
+// pulsante de lâmpada, tremeluzir de luz de emergência.
 // ═════════════════════════════════════════════════════════
 const SCENES = {};
 
-// 1. Abrigo subterrâneo (interior) — luz de emergência
-SCENES.bunker = () => {
-  const c = new Canvas(W, H), r = rng(101);
-  c.rect(0, 0, W, H, hex('#2b2f3d'));
-  // parede de concreto com blocos
-  for (let y = 0; y < GROUND_Y; y += 8)
-    for (let x = (y / 8) % 2 ? -6 : 0; x < W; x += 24) {
-      c.rect(x, y, 23, 7, hex('#39404f'));
-      c.outlineRect(x, y, 23, 7, hex('#2a303c'));
+// [nome, velocidade em segundos (0 = parada), efeito, desenho]
+function cena(seed, defs) {
+  return defs.map(([nome, vel, fx, desenha], i) => {
+    const c = new Canvas(W, H, vel > 0);
+    desenha(c, rng(seed + i * 131));
+    return { nome, vel, fx, canvas: c };
+  });
+}
+
+// 1. Abrigo 7 — banco de sementes (interior, sem rolagem)
+SCENES.bunker = () => cena(101, [
+  ['bg', 0, null, (c, r) => {
+    c.rect(0, 0, W, H, hex('#2b2f3d'));
+    for (let y = 0; y < GROUND_Y; y += 8)
+      for (let x = (y / 8) % 2 ? -6 : 0; x < W; x += 24) {
+        c.rect(x, y, 23, 7, hex('#39404f'));
+        c.outlineRect(x, y, 23, 7, hex('#2a303c'));
+      }
+    for (let i = 0; i < 220; i++) c.px(ri(r, 0, W - 1), ri(r, 0, GROUND_Y - 1), hex('#454d5e'), 0.5);
+    c.rect(0, 5, W, 3, hex('#5c6577')); c.hline(0, 5, W, hex('#79839a'));
+    for (let x = 8; x < W; x += 26) c.rect(x, 4, 3, 5, hex('#454d5e'));
+    ground(c, r, { y: GROUND_Y, top: '#5a6274', body: '#464e5e', dark: '#333a48', debris: ['#333a48', '#6b7488'] });
+  }],
+  ['mid', 0, null, (c, r) => {
+    // escotilha com escada
+    c.rect(128, 20, 30, 64, hex('#2a303c')); c.outlineRect(128, 20, 30, 64, hex('#1c212b'));
+    c.rect(133, 24, 20, 56, hex('#3a4353'));
+    for (let y = 28; y < 80; y += 7) c.hline(136, y, 14, hex('#6b7488'));
+    c.vline(136, 24, 56, hex('#79839a')); c.vline(149, 24, 56, hex('#79839a'));
+    // estante do banco de sementes
+    const SEED = ['#e8b06a', '#7fe06a', '#e2612f', '#cfd8e6', '#f0c840', '#8fd8ee'];
+    c.rect(6, 44, 62, 40, hex('#3a4353')); c.outlineRect(6, 44, 62, 40, hex(P_OUT));
+    for (let row = 0; row < 3; row++) {
+      const sy = 48 + row * 13;
+      c.hline(7, sy + 10, 60, hex('#5c6577'));
+      for (let i = 0; i < 9; i++) {
+        const jx = 9 + i * 6.5;
+        c.rect(jx, sy + 3, 5, 7, hex('#6b7488'));
+        c.rect(jx + 1, sy + 6, 3, 3, hex(SEED[(row * 3 + i) % SEED.length]));
+        c.px(jx + 2, sy + 2, hex('#c9d2e0'));
+      }
     }
-  for (let i = 0; i < 220; i++) c.px(ri(r, 0, W - 1), ri(r, 0, GROUND_Y - 1), hex('#454d5e'), 0.5);
-  // canos no teto
-  c.rect(0, 5, W, 3, hex('#5c6577')); c.hline(0, 5, W, hex('#79839a'));
-  for (let x = 8; x < W; x += 26) c.rect(x, 4, 3, 5, hex('#454d5e'));
-  // luz de emergência vermelha
-  for (let i = 22; i > 0; i--) c.ellipse(30, 16, i, i, hex('#ff3b30'), 0.022);
-  c.rect(28, 12, 5, 4, hex('#ff6b5e')); c.outlineRect(28, 12, 5, 4, hex(P_OUT));
-  // escotilha com escada
-  c.rect(128, 20, 30, 64, hex('#2a303c')); c.outlineRect(128, 20, 30, 64, hex('#1c212b'));
-  c.rect(133, 24, 20, 56, hex('#3a4353'));
-  for (let y = 28; y < 80; y += 7) c.hline(136, y, 14, hex('#6b7488'));
-  c.vline(136, 24, 56, hex('#79839a')); c.vline(149, 24, 56, hex('#79839a'));
-  // estante do banco de sementes: 3 prateleiras de potes etiquetados
-  const SEED = ['#e8b06a', '#7fe06a', '#e2612f', '#cfd8e6', '#f0c840', '#8fd8ee'];
-  c.rect(6, 44, 62, 40, hex('#3a4353')); c.outlineRect(6, 44, 62, 40, hex(P_OUT));
-  for (let row = 0; row < 3; row++) {
-    const sy = 48 + row * 13;
-    c.hline(7, sy + 10, 60, hex('#5c6577'));           // tábua da prateleira
+  }],
+  ['fx', 0, 'flicker', (c) => {
+    // luz de emergência: camada própria para poder piscar
+    for (let i = 24; i > 0; i--) c.ellipse(30, 16, i, i, hex('#ff3b30'), 0.024);
+    c.rect(28, 12, 5, 4, hex('#ff6b5e')); c.outlineRect(28, 12, 5, 4, hex(P_OUT));
+  }],
+]);
+
+// 2. Ruínas da cidade
+SCENES.ruins = () => cena(202, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#6f6a5e', '#8f8874', '#b3a98c', '#cdbf9d'], 0, H);
+    sunDisc(c, 148, 22, 5, '#f0dcae', '#e8cf96');
+    clouds(c, r, { n: 5, yMin: 8, yMax: 30, base: '#c4b99e', dark: '#a2977c', a: 0.75 });
+  }],
+  ['far', 300, null, (c, r) => cityscape(c, r, { baseY: GROUND_Y - 4, color: '#6a6455', minH: 26, maxH: 46, minW: 12, maxW: 24, a: 0.55 })],
+  ['mid', 150, null, (c, r) => {
+    cityscape(c, r, { baseY: GROUND_Y, color: '#463f38', minH: 16, maxH: 38, minW: 10, maxW: 22 });
+    fogBands(c, r, { y0: 58, y1: 80, color: '#d8ccae', a: 0.14, n: 7 });
+  }],
+  ['near', 72, null, (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#8d8168', body: '#6d6352', dark: '#4e463a', debris: ['#4e463a', '#a2977c', '#3a342c'] });
     for (let i = 0; i < 9; i++) {
-      const jx = 9 + i * 6.5;
-      c.rect(jx, sy + 3, 5, 7, hex('#6b7488'));        // vidro
-      c.rect(jx + 1, sy + 6, 3, 3, hex(SEED[(row * 3 + i) % SEED.length]));  // sementes
-      c.px(jx + 2, sy + 2, hex('#c9d2e0'));            // tampa
+      const x = ri(r, 0, W - 8), y = ri(r, GROUND_Y + 2, H - 4);
+      c.rect(x, y, ri(r, 3, 7), ri(r, 2, 3), hex('#565042'));
     }
-  }
-  ground(c, r, { y: GROUND_Y, top: '#5a6274', body: '#464e5e', dark: '#333a48', debris: ['#333a48', '#6b7488'] });
-  tint(c, 0, 0, W, GROUND_Y, '#ff3b30', 0.05);
-  vignette(c, 0.5);
-  return c;
-};
+    carWreck(c, 12, GROUND_Y + 8, { body: '#6b4a3a', dark: '#33221c', glass: '#77837f' });
+  }],
+]);
 
-// 2. Ruínas da cidade — céu de cinzas
-SCENES.ruins = () => {
-  const c = new Canvas(W, H), r = rng(202);
-  sky(c, ['#6f6a5e', '#8f8874', '#b3a98c', '#cdbf9d'], 0, GROUND_Y);
-  clouds(c, r, { n: 5, yMin: 8, yMax: 30, base: '#c4b99e', dark: '#a2977c', a: 0.75 });
-  sunDisc(c, 148, 22, 5, '#f0dcae', '#e8cf96');
-  cityscape(c, rng(11), { baseY: GROUND_Y, color: '#6a6455', minH: 26, maxH: 46, minW: 12, maxW: 24, a: 0.55 });
-  cityscape(c, rng(12), { baseY: GROUND_Y, color: '#463f38', minH: 16, maxH: 38, minW: 10, maxW: 22, windows: { color: '#2b2622', litChance: 0 } });
-  fogBands(c, r, { y0: 58, y1: 80, color: '#d8ccae', a: 0.14, n: 7 });
-  ground(c, r, { y: GROUND_Y, top: '#8d8168', body: '#6d6352', dark: '#4e463a', debris: ['#4e463a', '#a2977c', '#3a342c'] });
-  // entulho em primeiro plano
-  for (let i = 0; i < 9; i++) {
-    const x = ri(r, 0, W - 8), y = ri(r, GROUND_Y + 2, H - 4);
-    c.rect(x, y, ri(r, 3, 7), ri(r, 2, 3), hex('#565042'));
-    c.outlineRect(x, y, 5, 3, hex('#3a342c'));
-  }
-  carWreck(c, 12, GROUND_Y + 8, { body: '#6b4a3a', dark: '#33221c', glass: '#77837f' });
-  vignette(c, 0.4);
-  return c;
-};
+// 3. Zona industrial contaminada
+SCENES.toxic = () => cena(303, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#12190a', '#25330e', '#4a6216', '#8fae28', '#cfe85a'], 0, H);
+    fogBands(c, r, { y0: 42, y1: 66, color: '#e8ff8a', a: 0.12, n: 9 });
+  }],
+  ['far', 320, null, (c, r) => hills(c, r, { baseY: GROUND_Y - 8, amp: 14, color: '#1c2a0d', a: 0.9 })],
+  ['mid', 160, null, (c, r) => {
+    hills(c, r, { baseY: GROUND_Y - 1, amp: 7, color: '#101a07' });
+    for (let i = 0; i < 7; i++) deadTree(c, 12 + i * 26 + ri(r, -6, 6), GROUND_Y, ri(r, 16, 30), '#0b1205');
+  }],
+  ['near', 80, null, (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#3f5416', body: '#22300c', dark: '#131b06', debris: ['#131b06', '#5d7a1e'] });
+    barrel(c, 22, GROUND_Y + 10); barrel(c, 140, GROUND_Y + 12);
+  }],
+]);
 
-// 3. Zona contaminada — névoa esverdeada
-SCENES.toxic = () => {
-  const c = new Canvas(W, H), r = rng(303);
-  // céu escuro em cima, clarão tóxico no horizonte (contraste forte)
-  sky(c, ['#12190a', '#25330e', '#4a6216', '#8fae28', '#cfe85a'], 0, GROUND_Y);
-  fogBands(c, r, { y0: 42, y1: 66, color: '#e8ff8a', a: 0.12, n: 9 });
-  // duas camadas de morro, bem mais escuras que o céu
-  hills(c, rng(31), { baseY: GROUND_Y - 8, amp: 14, color: '#1c2a0d', a: 0.9 });
-  hills(c, rng(33), { baseY: GROUND_Y - 1, amp: 7, color: '#101a07' });
-  for (let i = 0; i < 7; i++) deadTree(c, 12 + i * 26 + ri(r, -6, 6), GROUND_Y, ri(r, 16, 30), '#0b1205');
-  ground(c, r, { y: GROUND_Y, top: '#3f5416', body: '#22300c', dark: '#131b06', debris: ['#131b06', '#5d7a1e'] });
-  barrel(c, 22, GROUND_Y + 10); barrel(c, 140, GROUND_Y + 12);
-  // esporos brilhando
-  for (let i = 0; i < 46; i++) c.px(ri(r, 0, W - 1), ri(r, 20, H - 1), hex('#e8ff7a'), r() < 0.5 ? 0.55 : 1);
-  vignette(c, 0.6, '#080f03');
-  return c;
-};
-
-// 4. Cisterna — água turva
-SCENES.cistern = () => {
-  const c = new Canvas(W, H), r = rng(404);
-  sky(c, ['#5d6f8a', '#8ea3b8', '#bfcbd4', '#d9d3c0'], 0, GROUND_Y);
-  clouds(c, r, { n: 4, yMin: 10, yMax: 28, base: '#dfe6ea', dark: '#b3bfc9', a: 0.8 });
-  cityscape(c, rng(41), { baseY: GROUND_Y - 4, color: '#5a6472', minH: 18, maxH: 34, minW: 14, maxW: 26, a: 0.5 });
-  ground(c, r, { y: GROUND_Y, top: '#7b7362', body: '#5e5749', dark: '#433d33', debris: ['#433d33', '#8b8270'] });
-  // tanque grande
-  tank(c, 96, 44, 52, 40);
-  c.rect(88, 70, 10, 4, hex('#5b6478')); c.outlineRect(88, 70, 10, 4, hex(P_OUT));
-  // poça d'água refletindo
-  c.ellipse(46, GROUND_Y + 9, 30, 6, hex('#3f6b78'));
-  c.ellipse(46, GROUND_Y + 8, 28, 5, hex('#59899a'));
-  for (let i = 0; i < 16; i++) c.hline(ri(r, 22, 62), ri(r, GROUND_Y + 5, GROUND_Y + 12), ri(r, 2, 6), hex('#8fc0cc'), 0.55);
-  vignette(c, 0.35);
-  return c;
-};
+// 4. A amendoeira (transpiração)
+SCENES.arvore = () => cena(404, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#5d6f8a', '#8ea3b8', '#bfcbd4', '#dcd6c2'], 0, H);
+    sunDisc(c, 32, 20, 6, '#fff2c8', '#ffe08a');
+    clouds(c, r, { n: 4, yMin: 10, yMax: 30, base: '#dfe6ea', dark: '#b3bfc9', a: 0.8 });
+  }],
+  ['far', 300, null, (c, r) => cityscape(c, r, { baseY: GROUND_Y - 3, color: '#5a6472', minH: 16, maxH: 32, minW: 14, maxW: 26, a: 0.45 })],
+  ['mid', 0, 'sway', (c, r) => {
+    // a árvore fica parada: é o assunto da cena
+    const tx = 118;
+    c.rect(tx - 2, GROUND_Y - 30, 5, 30, hex('#4a3524'));
+    for (let b = 0; b < 4; b++) {
+      const by = GROUND_Y - 16 - b * 5, dir = b % 2 ? 1 : -1;
+      for (let i = 0; i < 9; i++) c.px(tx + dir * i, by - Math.round(i * 0.6), hex('#4a3524'));
+    }
+    bush(c, tx, GROUND_Y - 36, 20, 11, { light: '#8fd86a', mid: '#4f9c42', dark: '#2c6b2c' });
+    bush(c, tx - 15, GROUND_Y - 30, 12, 7, { light: '#8fd86a', mid: '#4f9c42', dark: '#2c6b2c' });
+    bush(c, tx + 15, GROUND_Y - 28, 11, 7, { light: '#8fd86a', mid: '#4f9c42', dark: '#2c6b2c' });
+    // saco plástico amarrado num galho
+    c.rect(tx + 9, GROUND_Y - 26, 8, 9, hex('#cfe8f0'), 0.55);
+    c.outlineRect(tx + 9, GROUND_Y - 26, 8, 9, hex('#eaf6fa'));
+    for (let i = 0; i < 5; i++) c.px(tx + 10 + ri(r, 0, 5), GROUND_Y - 20 + ri(r, 0, 2), hex('#8fd8ee'));
+  }],
+  ['near', 80, null, (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#8b8270', body: '#68604f', dark: '#484236', debris: ['#484236', '#9b917c'] });
+    for (let i = 0; i < 5; i++) c.rect(ri(r, 0, W - 6), ri(r, GROUND_Y + 3, H - 3), ri(r, 3, 6), 2, hex('#55503f'));
+  }],
+]);
 
 // 5. Posto de gasolina ao entardecer
-SCENES.station = () => {
-  const c = new Canvas(W, H), r = rng(505);
-  sky(c, ['#2b2438', '#5a3a55', '#a8524d', '#e0894f'], 0, GROUND_Y);
-  stars(c, r, 26, 26);
-  sunDisc(c, 26, 54, 7, '#ffd27a', '#ff9a4a');
-  cityscape(c, rng(51), { baseY: GROUND_Y, color: '#241d2e', minH: 14, maxH: 34, minW: 12, maxW: 24 });
-  ground(c, r, { y: GROUND_Y, top: '#3d3444', body: '#2c2634', dark: '#1d1926', debris: ['#1d1926', '#4d4358'] });
-  // cobertura do posto
-  c.rect(92, 40, 62, 6, hex('#4a4358')); c.outlineRect(92, 40, 62, 6, hex(P_OUT));
-  c.hline(92, 40, 62, hex('#6e6480'));
-  c.rect(98, 46, 4, 38, hex('#3b3548')); c.rect(144, 46, 4, 38, hex('#3b3548'));
-  c.rect(112, 66, 10, 18, hex('#5c5470')); c.outlineRect(112, 66, 10, 18, hex(P_OUT));
-  c.rect(114, 69, 6, 4, hex('#ffcf6b'));
-  lamp(c, 62, GROUND_Y, 34);
-  carWreck(c, 18, GROUND_Y + 9, { body: '#5a3550', dark: '#2a1728', glass: '#6b6a86' });
-  fogBands(c, r, { y0: 70, y1: 82, color: '#d09a6a', a: 0.1, n: 4 });
-  vignette(c, 0.45, '#100a18');
-  return c;
-};
+SCENES.station = () => cena(505, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#2b2438', '#5a3a55', '#a8524d', '#e0894f'], 0, H);
+    stars(c, r, 26, 26);
+    sunDisc(c, 26, 54, 7, '#ffd27a', '#ff9a4a');
+  }],
+  ['far', 300, null, (c, r) => cityscape(c, r, { baseY: GROUND_Y, color: '#241d2e', minH: 14, maxH: 34, minW: 12, maxW: 24 })],
+  ['mid', 0, null, (c) => {
+    c.rect(92, 40, 62, 6, hex('#4a4358')); c.outlineRect(92, 40, 62, 6, hex(P_OUT));
+    c.hline(92, 40, 62, hex('#6e6480'));
+    c.rect(98, 46, 4, 38, hex('#3b3548')); c.rect(144, 46, 4, 38, hex('#3b3548'));
+    c.rect(112, 66, 10, 18, hex('#5c5470')); c.outlineRect(112, 66, 10, 18, hex(P_OUT));
+    c.rect(114, 69, 6, 4, hex('#ffcf6b'));
+  }],
+  ['fx', 0, 'glow', (c) => lamp(c, 62, GROUND_Y, 34)],
+  ['near', 80, null, (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#3d3444', body: '#2c2634', dark: '#1d1926', debris: ['#1d1926', '#4d4358'] });
+    carWreck(c, 18, GROUND_Y + 9, { body: '#5a3550', dark: '#2a1728', glass: '#6b6a86' });
+  }],
+]);
 
-// 6. Assentamento à noite — luzes e moinho
-SCENES.settlement = () => {
-  const c = new Canvas(W, H), r = rng(606);
-  sky(c, ['#1b1730', '#33284a', '#5c3f52', '#a05a44'], 0, GROUND_Y);
-  stars(c, r, 40, 40);
-  hills(c, rng(61), { baseY: GROUND_Y - 2, amp: 10, color: '#241f38' });
-  // muro de sucata
-  c.rect(0, 60, W, 24, hex('#3c3348'));
-  for (let x = 0; x < W; x += 7) {
-    c.vline(x, 58 + (x % 3), 26, hex('#4b4058'));
-    c.px(x + 3, 62, hex('#6a5c78'));
-  }
-  c.outlineRect(-1, 60, W + 2, 24, hex(P_OUT));
-  shack(c, 20, 52, 26, 20, { on: true });
-  shack(c, 116, 56, 22, 16, { wall: '#7a5c44', roof: '#8f4a2a', on: true });
-  windmill(c, 82, 30, 30);
-  // estufa iluminada
-  c.rect(146, 58, 28, 14, hex('#2e4a52'));
-  c.outlineRect(146, 58, 28, 14, hex(P_OUT));
-  for (let x = 148; x < 173; x += 5) c.vline(x, 59, 12, hex('#7fd8c0'), 0.5);
-  for (let i = 18; i > 0; i--) c.ellipse(160, 64, i, Math.round(i * 0.6), hex('#7fe0c0'), 0.02);
-  campfire(c, 66, GROUND_Y + 8);
-  ground(c, r, { y: GROUND_Y, top: '#4a3f52', body: '#352d3e', dark: '#241f2c', debris: ['#241f2c', '#5c5070'] });
-  vignette(c, 0.5, '#0b0818');
-  return c;
-};
+// 6. O Cercado à noite
+SCENES.settlement = () => cena(606, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#1b1730', '#33284a', '#5c3f52', '#a05a44'], 0, H);
+    stars(c, r, 40, 40);
+  }],
+  ['far', 320, null, (c, r) => hills(c, r, { baseY: GROUND_Y - 2, amp: 10, color: '#241f38' })],
+  ['mid', 0, null, (c, r) => {
+    c.rect(0, 60, W, 24, hex('#3c3348'));
+    for (let x = 0; x < W; x += 7) { c.vline(x, 58 + (x % 3), 26, hex('#4b4058')); c.px(x + 3, 62, hex('#6a5c78')); }
+    shack(c, 20, 52, 26, 20, { on: false });
+    shack(c, 116, 56, 22, 16, { wall: '#7a5c44', roof: '#8f4a2a', on: false });
+    windmill(c, 82, 30, 30);
+    c.rect(146, 58, 28, 14, hex('#2e4a52')); c.outlineRect(146, 58, 28, 14, hex(P_OUT));
+    for (let x = 148; x < 173; x += 5) c.vline(x, 59, 12, hex('#7fd8c0'), 0.5);
+    if (r) return;
+  }],
+  ['fx', 0, 'glow', (c) => {
+    // janelas e estufa acesas, numa camada que pulsa
+    c.rect(31, 60, 5, 4, hex('#ffd98a')); c.rect(125, 63, 5, 4, hex('#ffd98a'));
+    for (let i = 18; i > 0; i--) c.ellipse(160, 64, i, Math.round(i * 0.6), hex('#7fe0c0'), 0.02);
+  }],
+  ['near', 78, null, (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#4a3f52', body: '#352d3e', dark: '#241f2c', debris: ['#241f2c', '#5c5070'] });
+    campfire(c, 66, GROUND_Y + 8);
+  }],
+]);
 
-// 7. Estufa (interior) — plantas sob lâmpadas
-SCENES.greenhouse = () => {
-  const c = new Canvas(W, H), r = rng(707);
-  c.rect(0, 0, W, H, hex('#1d3a33'));
-  // painéis translúcidos ao fundo
-  for (let x = 0; x < W; x += 16) {
-    c.rect(x, 0, 15, GROUND_Y, hex('#27514a'));
-    c.vline(x + 15, 0, GROUND_Y, hex('#173029'));
-  }
-  for (let y = 0; y < GROUND_Y; y += 18) c.hline(0, y, W, hex('#173029'));
-  for (let i = 0; i < 120; i++) c.px(ri(r, 0, W - 1), ri(r, 0, GROUND_Y - 1), hex('#3f7a6a'), 0.35);
-  // estrutura
-  c.rect(0, 0, W, 5, hex('#14282300'.slice(0, 7)));
-  c.rect(0, 0, W, 4, hex('#152b26'));
-  growLamp(c, 34, 8); growLamp(c, 90, 8); growLamp(c, 146, 8);
-  greenhouseRow(c, 10, 58, 48); greenhouseRow(c, 68, 58, 48); greenhouseRow(c, 126, 58, 46);
-  greenhouseRow(c, 22, GROUND_Y, 60, { pot: '#5a3f2a', leaf: '#7fe06a', deep: '#3aa34d' });
-  greenhouseRow(c, 100, GROUND_Y, 58, { pot: '#5a3f2a', leaf: '#7fe06a', deep: '#3aa34d' });
-  ground(c, r, { y: GROUND_Y, top: '#4a5f4a', body: '#37473a', dark: '#26332a', debris: ['#26332a', '#5f7a5a'] });
-  tint(c, 0, 0, W, H, '#ffd36b', 0.05);
-  vignette(c, 0.4, '#04120c');
-  return c;
-};
+// 7. Estufa (interior)
+SCENES.greenhouse = () => cena(707, [
+  ['bg', 0, null, (c, r) => {
+    c.rect(0, 0, W, H, hex('#1d3a33'));
+    for (let x = 0; x < W; x += 16) { c.rect(x, 0, 15, GROUND_Y, hex('#27514a')); c.vline(x + 15, 0, GROUND_Y, hex('#173029')); }
+    for (let y = 0; y < GROUND_Y; y += 18) c.hline(0, y, W, hex('#173029'));
+    for (let i = 0; i < 120; i++) c.px(ri(r, 0, W - 1), ri(r, 0, GROUND_Y - 1), hex('#3f7a6a'), 0.35);
+    c.rect(0, 0, W, 4, hex('#152b26'));
+    ground(c, r, { y: GROUND_Y, top: '#4a5f4a', body: '#37473a', dark: '#26332a', debris: ['#26332a', '#5f7a5a'] });
+  }],
+  ['fx', 0, 'glow', (c) => { growLamp(c, 34, 8); growLamp(c, 90, 8); growLamp(c, 146, 8); }],
+  ['mid', 0, 'sway', (c) => {
+    greenhouseRow(c, 10, 58, 48); greenhouseRow(c, 68, 58, 48); greenhouseRow(c, 126, 58, 46);
+    greenhouseRow(c, 22, GROUND_Y, 60, { pot: '#5a3f2a', leaf: '#7fe06a', deep: '#3aa34d' });
+    greenhouseRow(c, 100, GROUND_Y, 58, { pot: '#5a3f2a', leaf: '#7fe06a', deep: '#3aa34d' });
+  }],
+]);
 
-// 8. Ermo à noite — frio e vazio
-SCENES.wasteland = () => {
-  const c = new Canvas(W, H), r = rng(808);
-  sky(c, ['#0c0f1c', '#141a2e', '#232a44', '#39405c'], 0, GROUND_Y);
-  stars(c, r, 60, 55);
-  c.ellipse(146, 20, 8, 8, hex('#dfe4f0'));
-  c.ellipse(143, 18, 6, 6, hex('#171c2e'));
-  for (let i = 26; i > 0; i--) c.ellipse(146, 20, i, i, hex('#aab6d8'), 0.014);
-  hills(c, rng(81), { baseY: GROUND_Y - 4, amp: 14, color: '#1a2036' });
-  hills(c, rng(82), { baseY: GROUND_Y, amp: 7, color: '#121729' });
-  for (let i = 0; i < 4; i++) deadTree(c, 24 + i * 44, GROUND_Y, ri(r, 14, 24), '#0e1120');
-  ground(c, r, { y: GROUND_Y, top: '#2b3149', body: '#1e2336', dark: '#141828', debris: ['#141828', '#3a4260'] });
-  vignette(c, 0.6, '#04060f');
-  return c;
-};
+// 8. Ermo à noite
+SCENES.wasteland = () => cena(808, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#0c0f1c', '#141a2e', '#232a44', '#39405c'], 0, H);
+    stars(c, r, 60, 55);
+    c.ellipse(146, 20, 8, 8, hex('#dfe4f0')); c.ellipse(143, 18, 6, 6, hex('#171c2e'));
+    for (let i = 26; i > 0; i--) c.ellipse(146, 20, i, i, hex('#aab6d8'), 0.014);
+  }],
+  ['far', 340, null, (c, r) => hills(c, r, { baseY: GROUND_Y - 4, amp: 14, color: '#1a2036' })],
+  ['mid', 170, null, (c, r) => {
+    hills(c, r, { baseY: GROUND_Y, amp: 7, color: '#121729' });
+    for (let i = 0; i < 4; i++) deadTree(c, 24 + i * 44, GROUND_Y, ri(r, 14, 24), '#0e1120');
+  }],
+  ['near', 85, null, (c, r) => ground(c, r, { y: GROUND_Y, top: '#2b3149', body: '#1e2336', dark: '#141828', debris: ['#141828', '#3a4260'] })],
+]);
 
-// 9. Amanhecer esperançoso — assentamento vivo
-SCENES.dawn = () => {
-  const c = new Canvas(W, H), r = rng(909);
-  sky(c, ['#2a3f6b', '#5f6f9c', '#c98a63', '#f4c07a', '#ffe0a3'], 0, GROUND_Y);
-  sunDisc(c, 128, 58, 9, '#fff0c0', '#ffcf7a');
-  clouds(c, r, { n: 5, yMin: 10, yMax: 32, base: '#ffd9a8', dark: '#d69a6e', a: 0.8 });
-  hills(c, rng(91), { baseY: GROUND_Y - 4, amp: 10, color: '#4a6a52', a: 0.9 });
-  // campo verde
-  ground(c, r, { y: GROUND_Y, top: '#6ec850', body: '#3fa34d', dark: '#26773a', debris: ['#26773a', '#a8e05f'] });
-  for (let i = 0; i < 40; i++) {
-    const x = ri(r, 0, W - 1), y = ri(r, GROUND_Y + 2, H - 2);
-    c.vline(x, y - 2, 2, hex('#a8e05f'), 0.7);
-  }
-  shack(c, 22, 56, 26, 20, { wall: '#9a7550', roof: '#c85a2a', on: true });
-  shack(c, 62, 62, 20, 14, { wall: '#8a6a4a', roof: '#b5551e', on: true });
-  windmill(c, 100, 34, 28, { blade: '#f0f6ff' });
-  bush(c, 158, GROUND_Y + 4, 12, 6);
-  bush(c, 8, GROUND_Y + 7, 9, 5);
-  for (let i = 0; i < 26; i++) c.px(ri(r, 0, W - 1), ri(r, 30, 78), hex('#ffe9b0'), 0.45);
-  vignette(c, 0.28, '#3a1f10');
-  return c;
-};
+// 9. Amanhecer sobre o assentamento
+SCENES.dawn = () => cena(909, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#2a3f6b', '#5f6f9c', '#c98a63', '#f4c07a', '#ffe0a3'], 0, H);
+    sunDisc(c, 128, 58, 9, '#fff0c0', '#ffcf7a');
+    clouds(c, r, { n: 5, yMin: 10, yMax: 32, base: '#ffd9a8', dark: '#d69a6e', a: 0.8 });
+  }],
+  ['far', 300, null, (c, r) => hills(c, r, { baseY: GROUND_Y - 4, amp: 10, color: '#4a6a52', a: 0.9 })],
+  ['mid', 0, null, (c) => {
+    shack(c, 22, 56, 26, 20, { wall: '#9a7550', roof: '#c85a2a', on: true });
+    shack(c, 62, 62, 20, 14, { wall: '#8a6a4a', roof: '#b5551e', on: true });
+    windmill(c, 100, 34, 28, { blade: '#f0f6ff' });
+  }],
+  ['near', 70, 'sway', (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#6ec850', body: '#3fa34d', dark: '#26773a', debris: ['#26773a', '#a8e05f'] });
+    for (let i = 0; i < 40; i++) c.vline(ri(r, 0, W - 1), ri(r, GROUND_Y + 2, H - 2) - 2, 2, hex('#a8e05f'), 0.7);
+    bush(c, 158, GROUND_Y + 4, 12, 6); bush(c, 8, GROUND_Y + 7, 9, 5);
+  }],
+]);
 
-// 10. Ruínas sombrias — final triste
-SCENES.bleak = () => {
-  const c = new Canvas(W, H), r = rng(1010);
-  // frio e sem esperança, mas ainda legível: azul-acinzentado com lua encoberta
-  sky(c, ['#16192a', '#232840', '#3a4059', '#565d78'], 0, GROUND_Y);
-  stars(c, r, 30, 40, '#c8cfe4');
-  for (let i = 20; i > 0; i--) c.ellipse(40, 24, i, i, hex('#8f9ab8'), 0.016);
-  c.ellipse(40, 24, 7, 7, hex('#9aa4c0'), 0.5);
-  cityscape(c, rng(101), { baseY: GROUND_Y, color: '#2b3048', minH: 22, maxH: 48, minW: 10, maxW: 22, a: 0.75 });
-  cityscape(c, rng(103), { baseY: GROUND_Y, color: '#171b2b', minH: 14, maxH: 34, minW: 12, maxW: 24 });
-  fogBands(c, r, { y0: 60, y1: 82, color: '#7a83a0', a: 0.13, n: 6 });
-  ground(c, r, { y: GROUND_Y, top: '#39405c', body: '#252a3e', dark: '#171b28', debris: ['#171b28', '#454c68'] });
-  for (let i = 0; i < 70; i++) c.px(ri(r, 0, W - 1), ri(r, 0, H - 1), hex('#aab3cc'), 0.16);
-  vignette(c, 0.5, '#05060d');
-  return c;
-};
+// 10. Ruínas sombrias
+SCENES.bleak = () => cena(1010, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#16192a', '#232840', '#3a4059', '#565d78'], 0, H);
+    stars(c, r, 30, 40, '#c8cfe4');
+    for (let i = 20; i > 0; i--) c.ellipse(40, 24, i, i, hex('#8f9ab8'), 0.016);
+    c.ellipse(40, 24, 7, 7, hex('#9aa4c0'), 0.5);
+  }],
+  ['far', 320, null, (c, r) => cityscape(c, r, { baseY: GROUND_Y, color: '#2b3048', minH: 22, maxH: 48, minW: 10, maxW: 22, a: 0.75 })],
+  ['mid', 160, null, (c, r) => {
+    cityscape(c, r, { baseY: GROUND_Y, color: '#171b2b', minH: 14, maxH: 34, minW: 12, maxW: 24 });
+    fogBands(c, r, { y0: 60, y1: 82, color: '#7a83a0', a: 0.13, n: 6 });
+  }],
+  ['near', 82, null, (c, r) => ground(c, r, { y: GROUND_Y, top: '#39405c', body: '#252a3e', dark: '#171b28', debris: ['#171b28', '#454c68'] })],
+]);
 
-// 11. Abrigo solitário — a guardiã
-SCENES.lone = () => {
-  const c = new Canvas(W, H), r = rng(1111);
-  sky(c, ['#211a2e', '#3d2c44', '#6b4450', '#a8623f'], 0, GROUND_Y);
-  stars(c, r, 24, 30);
-  cityscape(c, rng(111), { baseY: GROUND_Y - 2, color: '#251d30', minH: 16, maxH: 38, minW: 12, maxW: 24, a: 0.85 });
-  ground(c, r, { y: GROUND_Y, top: '#463a48', body: '#332a36', dark: '#231d26', debris: ['#231d26', '#584a5e'] });
-  // abrigo improvisado de chapas
-  c.rect(52, 54, 44, 30, hex('#4a4054')); c.outlineRect(52, 54, 44, 30, hex(P_OUT));
-  for (let x = 54; x < 96; x += 6) c.vline(x, 55, 28, hex('#5c5068'), 0.7);
-  for (let i = 0; i < 46; i++) c.px(52 + ri(r, 0, 43), 54 + ri(r, 0, 29), hex('#8a5a3a'), 0.35);
-  c.rect(46, 50, 56, 5, hex('#7a4a2a')); c.outlineRect(46, 50, 56, 5, hex(P_OUT));
-  c.rect(68, 68, 10, 16, hex('#241f2c')); c.outlineRect(68, 68, 10, 16, hex(P_OUT));
-  campfire(c, 120, GROUND_Y + 8);
-  vignette(c, 0.5, '#0d0714');
-  return c;
-};
+// 11. Abrigo solitário
+SCENES.lone = () => cena(1111, [
+  ['sky', 0, null, (c, r) => { sky(c, ['#211a2e', '#3d2c44', '#6b4450', '#a8623f'], 0, H); stars(c, r, 24, 30); }],
+  ['far', 300, null, (c, r) => cityscape(c, r, { baseY: GROUND_Y - 2, color: '#251d30', minH: 16, maxH: 38, minW: 12, maxW: 24, a: 0.85 })],
+  ['mid', 0, null, (c, r) => {
+    c.rect(52, 54, 44, 30, hex('#4a4054')); c.outlineRect(52, 54, 44, 30, hex(P_OUT));
+    for (let x = 54; x < 96; x += 6) c.vline(x, 55, 28, hex('#5c5068'), 0.7);
+    for (let i = 0; i < 46; i++) c.px(52 + ri(r, 0, 43), 54 + ri(r, 0, 29), hex('#8a5a3a'), 0.35);
+    c.rect(46, 50, 56, 5, hex('#7a4a2a')); c.outlineRect(46, 50, 56, 5, hex(P_OUT));
+    c.rect(68, 68, 10, 16, hex('#241f2c')); c.outlineRect(68, 68, 10, 16, hex(P_OUT));
+  }],
+  ['near', 80, null, (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#463a48', body: '#332a36', dark: '#231d26', debris: ['#231d26', '#584a5e'] });
+    campfire(c, 120, GROUND_Y + 8);
+  }],
+]);
 
-// 12. A Mancha — o fungo tomando as ruínas (a virada da história)
-SCENES.mancha = () => {
-  const c = new Canvas(W, H), r = rng(1313);
-  sky(c, ['#241a2e', '#3d2c40', '#6b4a44', '#a8724a'], 0, GROUND_Y);
-  stars(c, r, 18, 26);
-  cityscape(c, rng(131), { baseY: GROUND_Y, color: '#2b2033', minH: 24, maxH: 46, minW: 12, maxW: 24, a: 0.7 });
-  cityscape(c, rng(132), { baseY: GROUND_Y, color: '#1a1422', minH: 14, maxH: 32, minW: 10, maxW: 20 });
-  // a crosta sobe pela base dos prédios
-  crust(c, rng(133), { x: 0, y: GROUND_Y, w: W, h: 26, density: 0.6 });
-  ground(c, r, { y: GROUND_Y, top: '#2a3a26', body: '#1d2a1c', dark: '#121a11', debris: ['#121a11', '#2f5c33'] });
-  // touceiras: caule com folhas largas, para ler como planta e não como
-  // crosta de fungo
-  for (let i = 0; i < 26; i++) {
-    const x = ri(r, 4, W - 5), base = ri(r, GROUND_Y + 1, GROUND_Y + 9);
-    const alt = ri(r, 5, 13);
-    const caule = r() < 0.5 ? hex('#2f6b34') : hex('#1f4a2a');
-    for (let j = 0; j < alt; j++) c.px(x + Math.round(Math.sin(j * 0.5) * 0.8), base - j, caule);
-    // pares de folhas ao longo do caule
-    for (let f = 2; f < alt; f += 3) {
-      const y = base - f, lado = f % 6 === 2 ? 1 : -1;
-      const folha = r() < 0.4 ? hex('#7fe06a') : hex('#3f8a43');
-      for (let k = 1; k <= ri(r, 2, 4); k++) c.px(x + lado * k, y - Math.round(k * 0.4), folha);
+// 12. A Mancha tomando as ruínas
+SCENES.mancha = () => cena(1313, [
+  ['sky', 0, null, (c, r) => { sky(c, ['#241a2e', '#3d2c40', '#6b4a44', '#a8724a'], 0, H); stars(c, r, 18, 26); }],
+  ['far', 300, null, (c, r) => cityscape(c, r, { baseY: GROUND_Y, color: '#2b2033', minH: 24, maxH: 46, minW: 12, maxW: 24, a: 0.7 })],
+  ['mid', 150, 'sway', (c, r) => {
+    cityscape(c, r, { baseY: GROUND_Y, color: '#1a1422', minH: 14, maxH: 32, minW: 10, maxW: 20 });
+    crust(c, r, { x: 0, y: GROUND_Y, w: W, h: 26, density: 0.6 });
+  }],
+  ['near', 70, 'sway', (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#2a3a26', body: '#1d2a1c', dark: '#121a11', debris: ['#121a11', '#2f5c33'] });
+    for (let i = 0; i < 26; i++) {
+      const x = ri(r, 4, W - 5), base = ri(r, GROUND_Y + 1, GROUND_Y + 9), alt = ri(r, 5, 13);
+      const caule = r() < 0.5 ? hex('#2f6b34') : hex('#1f4a2a');
+      for (let j = 0; j < alt; j++) c.px(x + Math.round(Math.sin(j * 0.5) * 0.8), base - j, caule);
+      for (let f = 2; f < alt; f += 3) {
+        const y = base - f, lado = f % 6 === 2 ? 1 : -1;
+        const folha = r() < 0.4 ? hex('#7fe06a') : hex('#3f8a43');
+        for (let k = 1; k <= ri(r, 2, 4); k++) c.px(x + lado * k, y - Math.round(k * 0.4), folha);
+      }
+      c.px(x, base - alt, hex('#9fffa0'), 0.9);
     }
-    c.px(x, base - alt, hex('#9fffa0'), 0.9);
-  }
-  // esporos subindo
-  for (let i = 0; i < 44; i++) c.px(ri(r, 0, W - 1), ri(r, 26, H - 1), hex('#9fffa0'), r() < 0.5 ? 0.45 : 0.9);
-  for (let i = 16; i > 0; i--) c.ellipse(90, GROUND_Y + 2, i * 4, i, hex('#4fe07a'), 0.012);
-  vignette(c, 0.5, '#050c07');
-  return c;
-};
+  }],
+]);
 
-// 12. Tela inicial — panorama dramático (mais alto)
+// 13. Campo de girassóis (o melhor desfecho)
+SCENES.campo = () => cena(1414, [
+  ['sky', 0, null, (c, r) => {
+    sky(c, ['#3f6fa8', '#7fa8cc', '#bfd8e0', '#f0e0b0'], 0, H);
+    sunDisc(c, 40, 22, 10, '#fffbe0', '#ffe89a');
+    clouds(c, r, { n: 6, yMin: 8, yMax: 34, base: '#ffffff', dark: '#c9d8e6', a: 0.9 });
+  }],
+  ['far', 300, null, (c, r) => hills(c, r, { baseY: GROUND_Y - 6, amp: 9, color: '#5f8f5a', a: 0.85 })],
+  ['mid', 150, 'sway', (c, r) => {
+    // fileira distante de girassóis
+    for (let x = 2; x < W; x += 7) {
+      const alt = ri(r, 9, 14), base = GROUND_Y - 1;
+      c.vline(x, base - alt, alt, hex('#3f7a34'));
+      c.ellipse(x, base - alt - 2, 3, 3, hex('#f0b429'));
+      c.px(x, base - alt - 2, hex('#6b4a1a'));
+    }
+  }],
+  ['near', 68, 'sway', (c, r) => {
+    ground(c, r, { y: GROUND_Y, top: '#7fc850', body: '#4aa33f', dark: '#2c7330', debris: ['#2c7330', '#a8e05f'] });
+    for (let x = -4; x < W + 6; x += 11) {
+      const alt = ri(r, 16, 24), base = GROUND_Y + ri(r, 4, 10);
+      c.rect(x, base - alt, 2, alt, hex('#2f6b2c'));
+      for (let f = 4; f < alt; f += 6) {
+        const lado = f % 12 === 4 ? 1 : -1;
+        for (let k = 1; k <= 4; k++) c.px(x + lado * k, base - f - Math.round(k * 0.5), hex('#4f9c42'));
+      }
+      c.ellipse(x + 1, base - alt - 4, 6, 5, hex('#f4c430'));
+      c.ellipse(x + 1, base - alt - 4, 3, 3, hex('#7a4a12'));
+      for (let p = 0; p < 8; p++) {
+        const ang = (p / 8) * Math.PI * 2;
+        c.px(x + 1 + Math.round(Math.cos(ang) * 7), base - alt - 4 + Math.round(Math.sin(ang) * 6), hex('#ffdc5c'));
+      }
+    }
+  }],
+]);
+
+// 14. Tela inicial — panorama (mais alto)
 SCENES.hero = () => {
-  const HH = 150;
-  const c = new Canvas(W, HH), r = rng(1212);
-  const gy = 128;
-  sky(c, ['#171334', '#33265a', '#7a3f63', '#c95f4a', '#f0954e', '#ffcf82'], 0, gy);
-  stars(c, r, 55, 46);
-  sunDisc(c, 96, 96, 13, '#ffe9a8', '#ff9a4a');
-  clouds(c, r, { n: 7, yMin: 22, yMax: 62, base: '#e2a06e', dark: '#a86a4c', a: 0.7, minW: 20, maxW: 46 });
-  cityscape(c, rng(121), { baseY: gy, color: '#4a2f4a', minH: 34, maxH: 62, minW: 14, maxW: 26, a: 0.6 });
-  cityscape(c, rng(122), { baseY: gy, color: '#241a30', minH: 22, maxH: 52, minW: 10, maxW: 22, windows: { color: '#1a1224', lit: '#ffb85c', litChance: 0.14 } });
-  fogBands(c, r, { y0: 100, y1: 126, color: '#e0a070', a: 0.1, n: 6 });
-  ground(c, r, { y: gy, top: '#3f3348', body: '#2b2434', dark: '#1b1724', debris: ['#1b1724', '#544665'] });
-  deadTree(c, 24, gy, 26, '#181322');
-  carWreck(c, 132, gy + 10, { body: '#4a2f42', dark: '#221624', glass: '#5f5c78' });
-  survivor(c, 78, gy - 20);
-  vignette(c, 0.5, '#0a0614');
-  return c;
+  const HH = 150, gy = 128;
+  const mk = (vel, fx, desenha, i) => {
+    const c = new Canvas(W, HH, vel > 0);
+    desenha(c, rng(1212 + i * 91));
+    return { nome: ['sky', 'far', 'mid', 'near'][i], vel, fx, canvas: c };
+  };
+  return [
+    mk(0, null, (c, r) => {
+      sky(c, ['#171334', '#33265a', '#7a3f63', '#c95f4a', '#f0954e', '#ffcf82'], 0, gy);
+      stars(c, r, 55, 46);
+      sunDisc(c, 96, 96, 13, '#ffe9a8', '#ff9a4a');
+      clouds(c, r, { n: 7, yMin: 22, yMax: 62, base: '#e2a06e', dark: '#a86a4c', a: 0.7, minW: 20, maxW: 46 });
+    }, 0),
+    mk(340, null, (c, r) => cityscape(c, r, { baseY: gy, color: '#4a2f4a', minH: 34, maxH: 62, minW: 14, maxW: 26, a: 0.6 }), 1),
+    mk(170, null, (c, r) => {
+      cityscape(c, r, { baseY: gy, color: '#241a30', minH: 22, maxH: 52, minW: 10, maxW: 22, windows: { color: '#1a1224', lit: '#ffb85c', litChance: 0.14 } });
+      fogBands(c, r, { y0: 100, y1: 126, color: '#e0a070', a: 0.1, n: 6 });
+    }, 2),
+    mk(85, null, (c, r) => {
+      ground(c, r, { y: gy, top: '#3f3348', body: '#2b2434', dark: '#1b1724', debris: ['#1b1724', '#544665'] });
+      deadTree(c, 24, gy, 26, '#181322');
+      carWreck(c, 132, gy + 10, { body: '#4a2f42', dark: '#221624', glass: '#5f5c78' });
+    }, 3),
+  ];
 };
 
 // ═════════════════════════════════════════════════════════
@@ -810,37 +870,51 @@ async function saveIcons() {
 const args = process.argv.slice(2);
 fs.rmSync(OUT, { recursive: true, force: true });
 
-const made = [];
-for (const [key, fn] of Object.entries(SCENES)) {
-  const c = fn();
-  const file = path.join(OUT, `${key}.png`);
-  await c.save(file);
-  made.push({ key, file, w: c.w, h: c.h });
-  console.log(`✓ ${key.padEnd(12)} ${c.w}x${c.h}`);
+const manifesto = {};
+for (const [chave, fn] of Object.entries(SCENES)) {
+  const camadas = fn();
+  for (const cam of camadas) await cam.canvas.save(path.join(OUT, chave, `${cam.nome}.png`));
+  manifesto[chave] = camadas.map(cam => ({ n: cam.nome, v: cam.vel, fx: cam.fx ?? null }));
+  // versão achatada, para fundo de créditos/carregamento e como reserva
+  const dir = path.join(OUT, chave);
+  await sharp(path.join(dir, camadas[0].nome + '.png'))
+    .composite(camadas.slice(1).map(cam => ({ input: path.join(dir, cam.nome + '.png') })))
+    .png({ compressionLevel: 9, palette: true }).toFile(path.join(dir, 'flat.png'));
+  console.log(`✓ ${chave.padEnd(11)} ${camadas.length} camadas  ${camadas.map(c => c.nome).join(' ')}`);
 }
+fs.writeFileSync(path.join(OUT, 'manifesto.json'), JSON.stringify(manifesto, null, 1));
+// o componente importa o manifesto direto do código, então mantém a cópia junta
+fs.writeFileSync('src/game/artManifest.json', JSON.stringify(manifesto, null, 1));
 
-// sprite do protagonista isolado (para a UI sobrepor às cenas)
-{
+// protagonista: dois quadros de respiração
+for (const [nome, desloca] of [['survivor-1', 0], ['survivor-2', 1]]) {
   const c = new Canvas(16, 20);
-  drawSprite(c, SURVIVOR, SURVIVOR_PAL, 0, 0);
-  await c.save(path.join(OUT, 'survivor.png'));
-  console.log('✓ survivor     16x20');
+  drawSprite(c, SURVIVOR, SURVIVOR_PAL, 0, desloca);
+  await c.save(path.join(OUT, `${nome}.png`));
 }
+console.log('✓ survivor    2 quadros');
 
 await saveIcons();
 
 if (args.includes('--sheet')) {
-  const S = 3, cols = 3;
-  const rows = Math.ceil(made.length / cols);
-  const cw = W * S, chh = 150 * S;
-  const sheet = sharp({ create: { width: cw * cols, height: chh * rows, channels: 4, background: '#101014' } });
+  const S = 3;
+  const chaves = Object.keys(manifesto);
   const comps = [];
-  for (let i = 0; i < made.length; i++) {
-    const buf = await sharp(made[i].file).resize(made[i].w * S, made[i].h * S, { kernel: 'nearest' }).toBuffer();
-    comps.push({ input: buf, left: (i % cols) * cw, top: Math.floor(i / cols) * chh });
+  const cw = W * S, chh = 150 * S, cols = 3;
+  for (let i = 0; i < chaves.length; i++) {
+    // achata as camadas de cada cena para revisão
+    const camadas = manifesto[chaves[i]];
+    let base = sharp(path.join(OUT, chaves[i], camadas[0].n + '.png'));
+    const over = [];
+    for (let j = 1; j < camadas.length; j++) over.push({ input: path.join(OUT, chaves[i], camadas[j].n + '.png') });
+    const buf = await base.composite(over).png().toBuffer();
+    const up = await sharp(buf).resize((await sharp(buf).metadata()).width * S, null, { kernel: 'nearest' }).toBuffer();
+    comps.push({ input: up, left: (i % cols) * cw, top: Math.floor(i / cols) * chh });
   }
-  await sheet.composite(comps).png().toFile('/tmp/cinzas-sheet.png');
+  const rows = Math.ceil(chaves.length / cols);
+  await sharp({ create: { width: cw * cols, height: chh * rows, channels: 4, background: '#101014' } })
+    .composite(comps).png().toFile('/tmp/cinzas-sheet.png');
   console.log('→ contato em /tmp/cinzas-sheet.png');
 }
 
-console.log(`\n${made.length} cenários gerados em ${OUT}`);
+console.log(`\n${Object.keys(manifesto).length} cenas em camadas geradas em ${OUT}`);

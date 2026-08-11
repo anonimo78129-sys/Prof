@@ -5,16 +5,17 @@
 // por scripts/gen-art.mjs, então o carregamento é rápido.
 // ─────────────────────────────────────────────────────────
 
+import { todasAsImagens } from '../components/Game/ParallaxScene';
+
 const ICON = (p: string) => `/assets/cinzas/icons/${p}.png`;
 const ART = (p: string) => `/assets/cinzas/art/${p}.png`;
 
 export const CRITICAL_IMAGES: string[] = [
-  // ícones do HUD e dos desfechos
   ...['bread', 'flask', 'medkit', 'bandage', 'nametag', 'poison', 'ablaze',
     'gasmask', 'lamp', 'busstop', 'silo', 'windmill', 'sprout'].map(ICON),
-  // cenários pixel art + protagonista
-  ...['bunker', 'ruins', 'toxic', 'cistern', 'station', 'settlement', 'greenhouse',
-    'wasteland', 'dawn', 'bleak', 'lone', 'mancha', 'hero', 'survivor'].map(ART),
+  ...['survivor-1', 'survivor-2'].map(ART),
+  // todas as camadas de todas as cenas, mais as versões achatadas
+  ...todasAsImagens(),
 ];
 
 /**

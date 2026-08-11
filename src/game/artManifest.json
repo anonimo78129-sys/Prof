@@ -1,0 +1,310 @@
+{
+ "bunker": [
+  {
+   "n": "bg",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "fx",
+   "v": 0,
+   "fx": "flicker"
+  }
+ ],
+ "ruins": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 300,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 150,
+   "fx": null
+  },
+  {
+   "n": "near",
+   "v": 72,
+   "fx": null
+  }
+ ],
+ "toxic": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 320,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 160,
+   "fx": null
+  },
+  {
+   "n": "near",
+   "v": 80,
+   "fx": null
+  }
+ ],
+ "arvore": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 300,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 0,
+   "fx": "sway"
+  },
+  {
+   "n": "near",
+   "v": 80,
+   "fx": null
+  }
+ ],
+ "station": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 300,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "fx",
+   "v": 0,
+   "fx": "glow"
+  },
+  {
+   "n": "near",
+   "v": 80,
+   "fx": null
+  }
+ ],
+ "settlement": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 320,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "fx",
+   "v": 0,
+   "fx": "glow"
+  },
+  {
+   "n": "near",
+   "v": 78,
+   "fx": null
+  }
+ ],
+ "greenhouse": [
+  {
+   "n": "bg",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "fx",
+   "v": 0,
+   "fx": "glow"
+  },
+  {
+   "n": "mid",
+   "v": 0,
+   "fx": "sway"
+  }
+ ],
+ "wasteland": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 340,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 170,
+   "fx": null
+  },
+  {
+   "n": "near",
+   "v": 85,
+   "fx": null
+  }
+ ],
+ "dawn": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 300,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "near",
+   "v": 70,
+   "fx": "sway"
+  }
+ ],
+ "bleak": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 320,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 160,
+   "fx": null
+  },
+  {
+   "n": "near",
+   "v": 82,
+   "fx": null
+  }
+ ],
+ "lone": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 300,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "near",
+   "v": 80,
+   "fx": null
+  }
+ ],
+ "mancha": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 300,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 150,
+   "fx": "sway"
+  },
+  {
+   "n": "near",
+   "v": 70,
+   "fx": "sway"
+  }
+ ],
+ "campo": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 300,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 150,
+   "fx": "sway"
+  },
+  {
+   "n": "near",
+   "v": 68,
+   "fx": "sway"
+  }
+ ],
+ "hero": [
+  {
+   "n": "sky",
+   "v": 0,
+   "fx": null
+  },
+  {
+   "n": "far",
+   "v": 340,
+   "fx": null
+  },
+  {
+   "n": "mid",
+   "v": 170,
+   "fx": null
+  },
+  {
+   "n": "near",
+   "v": 85,
+   "fx": null
+  }
+ ]
+}

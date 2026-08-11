@@ -4,6 +4,7 @@ import { applyEffect, freshStats, type Mood, type Scene, type StatEffect, type S
 import { saveCheckpoint, clearSave, recordSolved, recordError, recordEnding, getStats, recordDiscovery, getDiscoveries, getSave } from '../../game/progress';
 import { playSfx, isMuted, setMuted, getVolume, setVolume, subscribeAudio } from '../../game/audio';
 import { C, ART, ICON, bevel } from '../../game/theme';
+import ParallaxScene from './ParallaxScene';
 import type { SharedQuiz } from '../../game/quizShare';
 
 // Etapas da história, na ordem. Alimenta a barra de progresso: o jogador
@@ -106,21 +107,12 @@ function Action({ children, onClick, tone = 'rust' }: {
   );
 }
 
-// Painel de arte: crossfade entre cenários + partículas + protagonista
+// Painel de cena: parallax em camadas + partículas de clima + a
+// protagonista sobre a linha do chão. As camadas e as velocidades vêm do
+// manifesto gerado junto com a arte.
 function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
   art: string; mood: Mood; title: string; chapter: string; showHero: boolean; compact?: boolean;
 }) {
-  const [layers, setLayers] = useState<string[]>([art]);
-  const [active, setActive] = useState(art);
-
-  useEffect(() => {
-    if (art === active) return;
-    setLayers(l => (l.includes(art) ? l : [...l, art]));
-    const t = window.setTimeout(() => setActive(art), 20);
-    const cleanup = window.setTimeout(() => setLayers([art]), 900);
-    return () => { window.clearTimeout(t); window.clearTimeout(cleanup); };
-  }, [art]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const p = PARTICLE[mood];
   const particles = useMemo(() => Array.from({ length: p.n }, (_, i) => ({
     id: i,
@@ -130,22 +122,7 @@ function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
   })), [mood]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{
-      // Na hora de decidir, o cenário cede altura para as alternativas
-      // caberem na tela. A cena continua visível, só mais baixa.
-      position: 'relative', width: '100%', flex: 'none',
-      aspectRatio: compact ? '180 / 62' : '180 / 100',
-      transition: 'aspect-ratio 320ms ease',
-      border: `2px solid ${C.line}`, overflow: 'hidden', background: C.shellLo,
-    }}>
-      {layers.map(src => (
-        <img key={src} src={ART(src)} alt="" style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%',
-          imageRendering: 'pixelated', objectFit: 'cover', objectPosition: 'center bottom',
-          opacity: src === active ? 1 : 0, transition: 'opacity 700ms ease',
-        }} />
-      ))}
-
+    <ParallaxScene cena={art} compact={compact}>
       {particles.map(pt => (
         <span key={pt.id} style={{
           position: 'absolute', top: '-4%', left: pt.left, width: 2, height: 2,
@@ -155,7 +132,7 @@ function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
       ))}
 
       {showHero && (
-        <img src={ART('survivor')} alt="" style={{
+        <img src={ART('survivor-1')} alt="" style={{
           position: 'absolute', left: '50%', bottom: '10%',
           width: '8.9%', imageRendering: 'pixelated',
           transform: 'translateX(-50%)', animation: 'hero-bob 2.6s steps(2) infinite',
@@ -180,7 +157,7 @@ function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
           {title}
         </div>
       )}
-    </div>
+    </ParallaxScene>
   );
 }
 
