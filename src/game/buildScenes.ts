@@ -29,7 +29,7 @@ export function buildScenes(quiz?: SharedQuiz | null): Record<string, Scene> {
     const q = questions[qi++ % questions.length];
     scenes[id] = {
       ...scene,
-      question: { text: q.text, options: q.options, correct: q.correct },
+      question: { text: q.text, options: [...q.options], correct: q.correct },
       // o roteiro original comentava a resposta de biologia; com pergunta
       // de fora, isso não vale mais
       intro: scene.intro,

@@ -220,6 +220,14 @@ export default function App() {
               O ÚLTIMO ABRIGO
             </span>
           </div>
+          {/* quem chega pelo QR do professor não sabe o que vai jogar */}
+          <p className="font-vt" style={{
+            fontSize: 17, lineHeight: 1.4, color: C.bone, margin: '11px auto 0', maxWidth: 320,
+            textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+          }}>
+            Uma história de sobrevivência em que suas decisões dependem de
+            entender o que o mundo está fazendo. Cerca de 10 minutos.
+          </p>
         </div>
 
         {/* ── ARTE EMOLDURADA — mesma proporção nativa, sem corte ── */}
@@ -249,19 +257,28 @@ export default function App() {
             tone={save ? 'ghost' : 'rust'}
             onClick={() => { startMusic(); setQuiz(null); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setView('loading'); }}
           />
-          <HomeButton label="CRIAR QUIZ" tone="steel" onClick={() => { window.location.hash = '#setup'; }} />
-
-          <button
-            onClick={() => setView('creditos')}
-            className="font-pixel"
-            style={{
-              marginTop: 2, background: 'transparent', border: 'none',
-              color: C.boneDim, fontSize: 8, letterSpacing: 1,
-              padding: '6px 10px', cursor: 'pointer', textShadow: '0 1px 2px rgba(0,0,0,0.9)',
-            }}
-          >
-            CRÉDITOS
-          </button>
+          {/* ações de professor e de rodapé, subordinadas ao JOGAR */}
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+            {[
+              { rotulo: 'SOU PROFESSOR', acao: () => { window.location.hash = '#setup'; } },
+              { rotulo: 'CRÉDITOS', acao: () => setView('creditos') },
+            ].map(({ rotulo, acao }, i) => (
+              <span key={rotulo} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {i > 0 && <span style={{ color: C.boneDim, opacity: 0.5 }}>·</span>}
+                <button
+                  onClick={acao}
+                  className="font-pixel"
+                  style={{
+                    background: 'transparent', border: 'none', color: C.boneDim, fontSize: 8,
+                    letterSpacing: 1, padding: '8px 6px', cursor: 'pointer',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.9)',
+                  }}
+                >
+                  {rotulo}
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { buildScenes } from '../../game/buildScenes';
 import { applyEffect, freshStats, type Mood, type Scene, type StatEffect, type Stats } from '../../game/cinzas';
-import { saveCheckpoint, clearSave, recordSolved, recordError, recordEnding, getStats } from '../../game/progress';
+import { saveCheckpoint, clearSave, recordSolved, recordError, recordEnding, getStats, recordDiscovery, getDiscoveries } from '../../game/progress';
 import { playSfx, isMuted, setMuted, getVolume, setVolume, subscribeAudio } from '../../game/audio';
 import { C, ART, ICON, bevel } from '../../game/theme';
 import type { SharedQuiz } from '../../game/quizShare';
+
+// Etapas da história, na ordem. Alimenta a barra de progresso: o jogador
+// precisa saber onde está e quanto falta.
+const ETAPAS = ['CAPÍTULO 1', 'CAPÍTULO 2', 'CAPÍTULO 3', 'CAPÍTULO 4', 'A ESCOLHA', 'EPÍLOGO'];
 
 // Partícula ambiente por clima: cinza, brasa ou esporo
 const PARTICLE: Record<Mood, { color: string; n: number }> = {
@@ -43,6 +47,7 @@ function Choice({ children, onClick }: { children: ReactNode; onClick: () => voi
   const [over, setOver] = useState(false);
   return (
     <button
+      data-escolha
       onClick={onClick}
       onPointerDown={() => setDown(true)}
       onPointerUp={() => setDown(false)}
@@ -79,6 +84,7 @@ function Action({ children, onClick, tone = 'rust' }: {
   const top = tone === 'rust' ? C.rustLite : C.shellHi;
   return (
     <button
+      data-acao
       onClick={onClick}
       onPointerDown={() => setDown(true)}
       onPointerUp={() => setDown(false)}
@@ -101,8 +107,8 @@ function Action({ children, onClick, tone = 'rust' }: {
 }
 
 // Painel de arte: crossfade entre cenários + partículas + protagonista
-function ScenePanel({ art, mood, title, chapter, showHero }: {
-  art: string; mood: Mood; title: string; chapter: string; showHero: boolean;
+function ScenePanel({ art, mood, title, chapter, showHero, compact }: {
+  art: string; mood: Mood; title: string; chapter: string; showHero: boolean; compact?: boolean;
 }) {
   const [layers, setLayers] = useState<string[]>([art]);
   const [active, setActive] = useState(art);
@@ -125,13 +131,17 @@ function ScenePanel({ art, mood, title, chapter, showHero }: {
 
   return (
     <div style={{
-      position: 'relative', width: '100%', aspectRatio: '180 / 100', flex: 'none',
+      // Na hora de decidir, o cenário cede altura para as alternativas
+      // caberem na tela. A cena continua visível, só mais baixa.
+      position: 'relative', width: '100%', flex: 'none',
+      aspectRatio: compact ? '180 / 62' : '180 / 100',
+      transition: 'aspect-ratio 320ms ease',
       border: `2px solid ${C.line}`, overflow: 'hidden', background: C.shellLo,
     }}>
       {layers.map(src => (
         <img key={src} src={ART(src)} alt="" style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%',
-          imageRendering: 'pixelated', objectFit: 'cover',
+          imageRendering: 'pixelated', objectFit: 'cover', objectPosition: 'center bottom',
           opacity: src === active ? 1 : 0, transition: 'opacity 700ms ease',
         }} />
       ))}
@@ -174,12 +184,91 @@ function ScenePanel({ art, mood, title, chapter, showHero }: {
   );
 }
 
+// Caderno de campo: guarda cada descoberta assim que ela acontece, para
+// o jogador reler quando quiser. As que ainda não vieram aparecem como
+// páginas em branco, o que mostra quanto falta sem entregar nada.
+function Caderno({ scenes, onClose }: { scenes: Record<string, Scene>; onClose: () => void }) {
+  const vistas = getDiscoveries();
+  const paginas = Object.values(scenes).filter((sc): sc is Extract<Scene, { kind: 'challenge' }> => sc.kind === 'challenge');
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(6,5,10,0.82)',
+      display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+      zIndex: 60, padding: '16px 12px', overflowY: 'auto',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: C.paper, border: `2px solid ${C.line}`, boxShadow: bevel(4),
+        width: '100%', maxWidth: 420,
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: C.rust, borderBottom: `2px solid ${C.line}`, padding: '9px 10px',
+        }}>
+          <span className="font-pixel" style={{ fontSize: 9, color: '#fff', letterSpacing: 1 }}>
+            CADERNO DE CAMPO
+          </span>
+          <div style={{ flex: 1 }} />
+          <span className="font-pixel" style={{ fontSize: 8, color: '#fff', opacity: 0.85 }}>
+            {vistas.length}/{paginas.length}
+          </span>
+          <IconBtn label="✕" onClick={onClose} title="Fechar o caderno" />
+        </div>
+
+        <div style={{ padding: '12px 13px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {paginas.map((pg, i) => {
+            const aberta = vistas.includes(pg.id);
+            return (
+              <div key={pg.id} style={{
+                border: `2px solid ${aberta ? C.paperEdge : 'rgba(93,83,66,0.3)'}`,
+                background: aberta ? '#ece2cc' : 'transparent',
+                padding: '9px 11px',
+              }}>
+                <div className="font-pixel" style={{
+                  fontSize: 8, letterSpacing: 0.5, marginBottom: aberta ? 7 : 0,
+                  color: aberta ? C.rust : 'rgba(93,83,66,0.55)',
+                }}>
+                  {aberta ? pg.title.toUpperCase() : `PÁGINA ${i + 1} EM BRANCO`}
+                </div>
+                {aberta && (
+                  <p className="font-vt" style={{ fontSize: 17, lineHeight: 1.4, color: C.paperInk, margin: 0 }}>
+                    {pg.hint}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────
 export interface SurvivalGameProps {
   onExit: () => void;
   onRestart?: () => void;
   continueFrom?: { sceneId: string; stats: Stats } | null;
   quiz?: SharedQuiz | null;
+}
+
+// Avisa que há conteúdo abaixo da dobra e some ao chegar ao fim. Sem
+// isso, numa tela curta o jogador não vê a quarta alternativa e nem
+// desconfia que ela existe.
+function useTemMais(ref: React.RefObject<HTMLDivElement | null>, dep: unknown) {
+  const [temMais, setTemMais] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const medir = () => setTemMais(el.scrollTop + el.clientHeight < el.scrollHeight - 28);
+    medir();
+    el.addEventListener('scroll', medir, { passive: true });
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    const t = window.setTimeout(medir, 400);   // depois das transições
+    return () => { el.removeEventListener('scroll', medir); ro.disconnect(); window.clearTimeout(t); };
+  }, [ref, dep]);
+  return temMais;
 }
 
 export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: SurvivalGameProps) {
@@ -189,6 +278,7 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
   // ESCONDIDOS: quem joga sente a consequência na história, não numa barra.
   const [stats, setStats] = useState<Stats>(continueFrom?.stats ?? freshStats());
   const [showSettings, setShowSettings] = useState(false);
+  const [showCaderno, setShowCaderno] = useState(false);
   const [muted, setMutedUi] = useState(isMuted());
   const [volume, setVolumeUi] = useState(getVolume());
 
@@ -198,7 +288,29 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
   const statsRef = useRef(stats);
   statsRef.current = stats;
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => subscribeAudio(() => { setMutedUi(isMuted()); setVolumeUi(getVolume()); }), []);
+
+  // Teclado, para quem joga no computador: 1 a 4 escolhem, Enter avança,
+  // C abre o caderno e Esc fecha o que estiver aberto.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowCaderno(false); setShowSettings(false); return; }
+      if (showCaderno || showSettings) return;
+      if (e.key.toLowerCase() === 'c') { setShowCaderno(true); return; }
+      const n = Number(e.key);
+      if (n >= 1 && n <= 4) {
+        const alvo = document.querySelectorAll<HTMLButtonElement>('[data-escolha]')[n - 1];
+        alvo?.click();
+      }
+      if (e.key === 'Enter') {
+        document.querySelector<HTMLButtonElement>('[data-acao]')?.click();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showCaderno, showSettings]);
 
   const resolve = (id: string, s: Stats): string => {
     let guard = 0;
@@ -238,6 +350,7 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
     const correct = i === scene.question.correct;
     playSfx(correct ? 'correct' : 'wrong');
     if (correct) recordSolved(); else recordError();
+    recordDiscovery(scene.id);   // a explicação vai para o caderno, errando ou acertando
     apply(correct ? scene.effectCorrect : scene.effectWrong, stats);
     setWasCorrect(correct);
     setAnswered(true);
@@ -251,8 +364,10 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
     onRestart?.();
   };
 
+  const temMais = useTemMais(scrollRef, `${sceneId}-${answered}`);
+
   return (
-    <div style={{
+    <div ref={scrollRef} style={{
       position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
       display: 'flex', justifyContent: 'center', padding: '10px 10px 28px',
     }}>
@@ -271,8 +386,23 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
             DIA {String(scene.day).padStart(2, '0')}
           </span>
           <div style={{ flex: 1 }} />
+          <IconBtn label="✎" onClick={() => setShowCaderno(true)} title="Caderno de campo" />
           <IconBtn label="⚙" onClick={() => setShowSettings(true)} title="Ajustes" />
           <IconBtn label="✕" onClick={onExit} title="Sair" />
+        </div>
+
+        {/* onde estou na história e quanto falta */}
+        <div style={{ display: 'flex', gap: 3 }} aria-hidden>
+          {ETAPAS.map((etapa, i) => {
+            const atual = ETAPAS.indexOf(scene.chapter);
+            return (
+              <span key={etapa} style={{
+                flex: 1, height: 4, border: `1px solid ${C.line}`,
+                background: i <= atual ? C.rustGlow : 'rgba(255,255,255,0.08)',
+                transition: 'background 400ms ease',
+              }} />
+            );
+          })}
         </div>
 
         <ScenePanel
@@ -281,6 +411,7 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
           chapter={scene.chapter}
           title={scene.title}
           showHero={scene.kind !== 'ending'}
+          compact={scene.kind === 'narrative' || (scene.kind === 'challenge' && !answered)}
         />
 
         {scene.kind === 'ending' ? (
@@ -340,6 +471,27 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
           </>
         ) : null}
       </div>
+
+      {/* dobra: puxa o olho para baixo enquanto sobrar conteúdo */}
+      {temMais && (
+        <button
+          aria-label="Ver o resto da tela"
+          onClick={() => scrollRef.current?.scrollBy({ top: 260, behavior: 'smooth' })}
+          style={{
+            position: 'fixed', left: '50%', bottom: 10, transform: 'translateX(-50%)',
+            zIndex: 40, display: 'flex', alignItems: 'center', gap: 6,
+            background: C.rust, color: '#fff', border: `2px solid ${C.line}`,
+            boxShadow: bevel(3), padding: '6px 12px', cursor: 'pointer',
+            animation: 'hint-bounce 1.6s ease-in-out infinite',
+          }}
+          className="font-pixel"
+        >
+          <span style={{ fontSize: 7, letterSpacing: 1 }}>MAIS ABAIXO</span>
+          <span style={{ fontSize: 10, lineHeight: 1 }}>▾</span>
+        </button>
+      )}
+
+      {showCaderno && <Caderno scenes={scenes} onClose={() => setShowCaderno(false)} />}
 
       {showSettings && (
         <Settings

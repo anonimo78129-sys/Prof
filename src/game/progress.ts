@@ -12,6 +12,7 @@ import type { Stats } from './cinzas';
 
 const LS_SAVE = 'cinzas-save';
 const LS_STATS = 'cinzas-stats';
+const LS_NOTES = 'cinzas-caderno';
 
 export interface SaveData {
   sceneId: string;
@@ -75,4 +76,20 @@ export function medalFor(stats: GameStats): Medal {
   if (stats.errors === 0) return 'ouro';
   if (stats.errors <= 2) return 'prata';
   return 'bronze';
+}
+
+// ── Caderno de campo ──
+// Guarda quais descobertas a jogadora já viu, para ela poder reler
+// depois. Sobrevive entre partidas de propósito: o caderno é dela, não
+// da partida.
+export function getDiscoveries(): string[] {
+  const d = readJson<string[]>(LS_NOTES);
+  return Array.isArray(d) ? d : [];
+}
+export function recordDiscovery(id: string) {
+  const d = getDiscoveries();
+  if (!d.includes(id)) writeJson(LS_NOTES, [...d, id]);
+}
+export function clearDiscoveries() {
+  try { localStorage.removeItem(LS_NOTES); } catch { /* indisponível */ }
 }

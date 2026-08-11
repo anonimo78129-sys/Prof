@@ -126,6 +126,13 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+  /* Foco por teclado: anel visível em tudo que é clicável. Só aparece
+     na navegação por teclado, não no toque/clique. */
+  button:focus-visible, a:focus-visible, input:focus-visible {
+    outline: 3px solid #7fc4e0;
+    outline-offset: 2px;
+  }
+
   /* ═══════════════════════════════════
      ANIMATIONS
   ═══════════════════════════════════ */
@@ -172,6 +179,12 @@
   @keyframes hero-bob {
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50%       { transform: translateX(-50%) translateY(-2%); }
+  }
+
+  /* Indicador de "tem mais abaixo" chamando o olho */
+  @keyframes hint-bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(3px); }
   }
 
   /* "+5 / -3" subindo do cartão de recurso */
@@ -227,4 +240,14 @@
   }
   .input-rpg::placeholder { color: #a88060; }
   .input-rpg:focus { border-color: #c88f20; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(200,143,32,0.4); }
+
+  /* Quem pediu menos movimento no sistema recebe menos movimento aqui:
+     partículas, respiração do sprite e transições longas desligam. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
