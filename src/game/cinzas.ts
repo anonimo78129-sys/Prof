@@ -21,7 +21,14 @@
 // Com um quiz de professor (link/QR, ver quizShare.ts), as 5 perguntas
 // são trocadas pelas dele e a narrativa segue igual (ver buildScenes.ts).
 // ─────────────────────────────────────────────────────────
-import type { MCQuestion } from '../types/game';
+// O jogo usa duas alternativas por decisão, no mesmo ritmo das escolhas
+// de enredo. O quiz do professor pode trazer quatro, e o tipo aceita as
+// duas formas.
+export interface Pergunta {
+  text: string;
+  options: string[];
+  correct: number;
+}
 
 export interface Stats {
   racao: number;
@@ -88,7 +95,7 @@ export interface NarrativeScene extends SceneBase {
 export interface ChallengeScene extends SceneBase {
   kind: 'challenge';
   intro: string;
-  question: MCQuestion;
+  question: Pergunta;
   correctText: string;
   wrongText: string;
   hint: string;            // a explicação, mostrada acertando ou errando
@@ -113,59 +120,49 @@ export type Scene = NarrativeScene | ChallengeScene | EndingScene | RouterScene;
 // ─────────────────────────────────────────────────────────
 // As 5 perguntas padrão. Cada uma entrega uma peça da virada.
 // ─────────────────────────────────────────────────────────
-const Q_RADIACAO: MCQuestion = {
+const Q_RADIACAO: Pergunta = {
   text: 'Você calcula quanto tempo pode ficar lá fora. O que pesa nessa conta?',
   options: [
-    'O tempo somado de exposição, porque cada dose vai quebrando o DNA das células',
-    'Só o pico do aparelho agora: se não apitar forte, o dia inteiro é seguro',
-    'A temperatura do ar, porque a radiação age esfriando as células',
-    'Nada disso: radiação estraga metal, não tecido vivo',
+    'O tempo somado lá fora, porque cada dose vai quebrando o DNA das células',
+    'Só o que o aparelho marca agora: se não apitar forte, o dia inteiro é seguro',
   ],
   correct: 0,
 };
 
-const Q_AGUA: MCQuestion = {
+const Q_AGUA: Pergunta = {
   text: 'Sobra pouco combustível. O que você faz com essa água?',
   options: [
     'Coar num pano limpo: se sair transparente, está boa',
-    'Deixar descansando ao sol, porque o calor do dia dá conta',
     'Ferver por alguns minutos antes de encher os cantis',
-    'Beber assim: água de caixa fechada não transmite doença',
   ],
-  correct: 2,
+  correct: 1,
 };
 
-const Q_IMUNIDADE: MCQuestion = {
+const Q_IMUNIDADE: Pergunta = {
   text: 'O que você responde para ele?',
   options: [
-    'Que não é ferida fechando: o calor e o inchaço são a defesa do corpo agindo, e a linha subindo é a infecção se espalhando',
+    'Que não é ferida fechando: o inchaço é a defesa do corpo agindo, e a linha subindo é a infecção se espalhando',
     'Que ele tem razão, porque toda ferida esquenta enquanto cicatriza',
-    'Que o problema é a radiação da região, e não bactéria nenhuma',
-    'Que é falta de circulação, e ele precisa apertar mais o pano',
   ],
   correct: 0,
 };
 
-const Q_ESTUFA: MCQuestion = {
+const Q_ESTUFA: Pergunta = {
   text: 'Ela pergunta o que você acha. Qual é a diferença entre os dois canteiros?',
   options: [
-    'As lâmpadas esterilizam o ar e limpam a contaminação da terra',
-    'A luz das lâmpadas dá a energia da fotossíntese, e a terra daqui dentro veio de fora, sem a contaminação do solo do lado de lá',
-    'Sob luz artificial a planta não precisa tirar nada do solo',
-    'O plástico barra a radiação do céu, que é de onde vem toda a contaminação',
+    'O plástico da estufa barra a radiação do céu, que é de onde vem a contaminação',
+    'A luz dá a energia da fotossíntese, e a terra daqui dentro veio de fora, sem a contaminação do solo',
   ],
   correct: 1,
 };
 
-const Q_FUNGO: MCQuestion = {
+const Q_FUNGO: Pergunta = {
   text: 'Elias espera você dizer alguma coisa. O que está acontecendo naquela parede?',
   options: [
+    'A crosta é um fungo, e fungo acumula no corpo o que está dissolvido em volta, inclusive material radioativo',
     'O fungo solta oxigênio, e isso dilui a radiação do ar em volta',
-    'A crosta é um fungo, e fungo absorve o que está dissolvido em volta e acumula no próprio corpo, inclusive material radioativo',
-    'A crosta reflete a radiação de volta, como uma casca de metal',
-    'Esse fungo só nasce onde nunca houve contaminação, então ali sempre foi limpo',
   ],
-  correct: 1,
+  correct: 0,
 };
 
 // ─────────────────────────────────────────────────────────

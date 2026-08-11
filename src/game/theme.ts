@@ -18,9 +18,12 @@ export const C = {
   paperSoft:  '#5d5342',
 
   // acentos
-  rust:       '#e2612f',
-  rustDark:   '#a83f18',
-  rustLite:   '#ff8a52',
+  // rust carrega texto branco pequeno (botões, faixas), então precisa
+  // passar em contraste: 5.34 contra branco. rustGlow é só decoração.
+  rust:       '#b8461a',
+  rustGlow:   '#e2612f',
+  rustDark:   '#8f3210',
+  rustLite:   '#e2703c',
   steel:      '#3f8fb5',
   steelDark:  '#23617f',
   green:      '#4aa83a',
