@@ -26,6 +26,9 @@ const DEV_SCENES = [
   { label: 'A escolha (lua nova)', id: 'escolha' },
   { label: 'Epílogo — A Primeira Colheita', id: 'final_colheita' },
   { label: 'Epílogo — A Fogueira', id: 'final_fogueira' },
+  { label: 'Morte — A Água da Caixa', id: 'final_disenteria' },
+  { label: 'Morte — Dose Demais', id: 'final_dose' },
+  { label: 'Morte — A Fumaça', id: 'final_fumaca' },
 ] as const;
 
 function seeded(seed: number) {

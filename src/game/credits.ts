@@ -45,7 +45,7 @@ export const CREDITS: CreditSection[] = [
         title: 'Roteiro e virada',
         author: 'Equipe do Prof. Corujão',
         license: 'Original do projeto',
-        note: 'Os 4 capítulos, a escolha final e os 6 desfechos foram escritos para este jogo. A biologia aparece como decisão da personagem, não como prova: radiação e DNA, fervura e micro-organismos, resposta imune, fotossíntese e contaminação do solo, e fungos que acumulam isótopos.',
+        note: 'Os 4 capítulos, a escolha final e os 9 desfechos, três deles por morte, foram escritos para este jogo. A biologia aparece como decisão da personagem, não como prova: radiação e DNA, fervura e micro-organismos, resposta imune, fotossíntese e contaminação do solo, e fungos que acumulam isótopos.',
       },
     ],
   },
