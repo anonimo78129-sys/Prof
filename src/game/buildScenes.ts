@@ -13,8 +13,8 @@ import { defaultScenes, type Scene } from './cinzas';
 import type { SharedQuiz } from './quizShare';
 
 const CHALLENGE_IDS = [
-  'desafio_radiacao', 'desafio_agua', 'desafio_imunidade',
-  'desafio_estufa', 'desafio_fungo',
+  'desafio_sementes', 'desafio_transpiracao', 'desafio_solanina',
+  'desafio_estufa', 'desafio_raizes',
 ] as const;
 
 export function buildScenes(quiz?: SharedQuiz | null): Record<string, Scene> {
