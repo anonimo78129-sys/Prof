@@ -25,13 +25,28 @@ const PARTICLE: Record<Mood, { color: string; n: number }> = {
 // ─────────────────────────────────────────────────────────
 // Peças de interface
 // ─────────────────────────────────────────────────────────
+// Balão de fala: bloco creme chapado, sem borda e sem canto arredondado.
+// O topo é uma segunda barra mais estreita, encaixada acima, e o rabicho
+// é um triângulo apontando para a cena — a mesma construção do balão
+// desenhado a retângulo, só que em CSS.
 function Prose({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <div style={{
-      background: C.paper, border: `2px solid ${C.paperEdge}`, boxShadow: bevel(3),
-      padding: '13px 14px', ...style,
-    }}>
-      {children}
+    <div style={{ position: 'relative', marginTop: 7, ...style }}>
+      {/* barra do topo, recuada dos dois lados */}
+      <div aria-hidden style={{
+        position: 'absolute', top: -7, left: 7, right: 7, height: 7, background: C.paper,
+      }} />
+      {/* rabicho apontando para a cena. Precisa passar bem acima da barra
+          do topo, senão ela cobre o triângulo e o balão perde o bico. */}
+      <div aria-hidden style={{
+        position: 'absolute', top: -22, left: 26, width: 0, height: 0,
+        borderLeft: '9px solid transparent',
+        borderRight: '17px solid transparent',
+        borderBottom: `22px solid ${C.paper}`,
+      }} />
+      <div style={{ background: C.paper, padding: '13px 14px', boxShadow: bevel(4) }}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -57,17 +72,17 @@ function Choice({ children, onClick }: { children: ReactNode; onClick: () => voi
       className="font-vt"
       style={{
         display: 'flex', alignItems: 'stretch', gap: 0, width: '100%', textAlign: 'left',
-        background: over ? C.paper : '#ece2cc',
-        border: `2px solid ${C.line}`,
+        background: over ? '#35356a' : C.shell,
+        border: `2px solid ${C.lineSoft}`,
         boxShadow: down ? 'none' : bevel(3),
         transform: down ? 'translate(3px, 3px)' : 'none',
         padding: 0, cursor: 'pointer', overflow: 'hidden',
         transition: 'transform 60ms, box-shadow 60ms, background 120ms',
       }}
     >
-      <span style={{ flex: 'none', width: 6, background: C.rust }} />
+      <span style={{ flex: 'none', width: 6, background: over ? C.rustLite : C.rustGlow }} />
       <span style={{
-        flex: 1, padding: '10px 12px', fontSize: 17, lineHeight: 1.35, color: C.paperInk,
+        flex: 1, padding: '10px 12px', fontSize: 17, lineHeight: 1.35, color: C.bone,
       }}>
         {children}
       </span>
@@ -367,14 +382,19 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
       display: 'flex', justifyContent: 'center',
       // com o indicador na tela, o conteúdo precisa de espaço para não
       // ficar embaixo dele
-      padding: `10px 10px ${temMais ? 62 : 28}px`,
+      padding: `10px 0 ${temMais ? 62 : 28}px`,
     }}>
-      <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Quadro retrato: preenche a largura no celular e trava em 9:16 no
+          desktop, do jeito que o canvas de referência se comporta. */}
+      <div style={{
+        width: 'min(100vw, 56.25vh)', padding: '0 10px',
+        display: 'flex', flexDirection: 'column', gap: 8,
+      }}>
 
         {/* barra superior */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          background: C.shell, border: `2px solid ${C.line}`, boxShadow: bevel(3),
+          background: C.shell, border: `2px solid ${C.lineSoft}`, boxShadow: bevel(3),
           padding: '7px 8px',
         }}>
           <span className="font-pixel" style={{ fontSize: 10, color: C.rustLite, letterSpacing: 1 }}>CINZAS</span>
@@ -403,14 +423,17 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
           })}
         </div>
 
-        <ScenePanel
-          art={scene.art}
-          mood={scene.mood}
-          chapter={scene.chapter}
-          title={scene.title}
-          showHero={scene.kind !== 'ending'}
-          compact={scene.kind === 'narrative' || (scene.kind === 'challenge' && !answered)}
-        />
+        {/* a cena sangra até a borda do quadro; o resto respeita o recuo */}
+        <div style={{ margin: '0 -10px' }}>
+          <ScenePanel
+            art={scene.art}
+            mood={scene.mood}
+            chapter={scene.chapter}
+            title={scene.title}
+            showHero={scene.kind !== 'ending'}
+            compact={scene.kind === 'narrative' || (scene.kind === 'challenge' && !answered)}
+          />
+        </div>
 
         {scene.kind !== 'ending' && (() => {
           const c = condicao(stats.saude);
