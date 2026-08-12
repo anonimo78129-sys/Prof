@@ -34,33 +34,43 @@ const GROUND_Y = 252;   // linha do chão, igual em todos os cenários
 // de uma rampa; nada de cor solta. Rampas curtas forçam decisão de valor,
 // que é o que faz a leitura de forma funcionar.
 // ═════════════════════════════════════════════════════════
+// Paleta índigo noturna. A base (tinta, roxo, pedra) é fria e
+// dessaturada; é ela que dá o ar de noite e ocupa quase toda a área. Os
+// acentos (verde, ciano, ouro) entram muito saturados justamente porque
+// a base é apagada, e é esse choque que faz a leitura.
+//
+// As rampas quentes continuam existindo, porque o roteiro precisa de
+// amanhecer, fogo e ferrugem, mas foram puxadas para o vermelho-violeta
+// para não voltarem a virar cena sépia.
 const PAL = {
   // tinta: contorno, sombra profunda, noite
-  ink0: '#0b0913', ink1: '#16121f', ink2: '#241d33', ink3: '#362b4a',
+  ink0: '#07071a', ink1: '#0d0d24', ink2: '#171735', ink3: '#252549',
   // roxo: penumbra, crepúsculo, sombra colorida
-  rox0: '#4a3a6b', rox1: '#664f94', rox2: '#8a68c0', rox3: '#b394e0',
+  rox0: '#343452', rox1: '#454568', rox2: '#6b6ba8', rox3: '#9a9ad4',
   // azul: céu, distância, metal frio
-  azu0: '#17244d', azu1: '#24417e', azu2: '#3568bd', azu3: '#5b9ae0', azu4: '#9ccdf2',
+  azu0: '#141433', azu1: '#20205a', azu2: '#32329a', azu3: '#4a68c8', azu4: '#8fa8e0',
   // ciano: vidro, água, luz de estufa
-  cia0: '#0f5f6b', cia1: '#178f96', cia2: '#26c4bd', cia3: '#6ee9dd', cia4: '#bdfaf2',
+  cia0: '#0d4f66', cia1: '#1785a3', cia2: '#4cdde0', cia3: '#72ffff', cia4: '#c8ffff',
   // verde: folhagem viva
-  ver0: '#123c1e', ver1: '#1d662e', ver2: '#35983c', ver3: '#5ec74a', ver4: '#a2ee68',
+  // o topo da rampa é o verde neon da referência, mas só no topo: usado
+  // como tom médio ele vira campo fluorescente e come a cena inteira
+  ver0: '#0f3a1c', ver1: '#1a6b28', ver2: '#2ba838', ver3: '#4df11c', ver4: '#79ff3b',
   // musgo: verde ácido, contaminação, mato seco
-  mus0: '#2a3a10', mus1: '#4d6a16', mus2: '#82a621', mus3: '#bfda3a', mus4: '#e9ff78',
+  mus0: '#233312', mus1: '#4a7018', mus2: '#8fc41f', mus3: '#dfff39', mus4: '#f2ff9c',
   // ouro: sol, trigo, luz de janela
-  our0: '#6a3e12', our1: '#a5681a', our2: '#dd9e28', our3: '#f5ca46', our4: '#ffefa0',
+  our0: '#5c3a1c', our1: '#9a7018', our2: '#e0c220', our3: '#fff12c', our4: '#fff9d8',
   // laranja: fogo, ferrugem, telhado
-  lar0: '#7a2410', lar1: '#b8461a', lar2: '#e6702a', lar3: '#ff9f4a', lar4: '#ffc98a',
+  lar0: '#5e1c2c', lar1: '#a33028', lar2: '#e05a2e', lar3: '#ff8f52', lar4: '#ffbf94',
   // rubi: alerta, sangue, luz de emergência
-  rub0: '#5c1424', rub1: '#97243c', rub2: '#d33f56', rub3: '#f4707f',
+  rub0: '#4a1030', rub1: '#8a1c48', rub2: '#c92f55', rub3: '#f4707f',
   // rosa: céu de amanhecer, carne, flor
-  ros0: '#7a2f4a', ros1: '#b8496a', ros2: '#e87a92', ros3: '#ffb0bc',
+  ros0: '#5e2450', ros1: '#9a3a72', ros2: '#d86a9a', ros3: '#ffa8c8',
   // madeira: tronco, terra, couro
-  mad0: '#2c1b13', mad1: '#4d321e', mad2: '#78512f', mad3: '#a67646', mad4: '#d2a36a',
-  // pedra: concreto, asfalto, aço (puxando azul, nunca cinza morto)
-  ped0: '#282a3a', ped1: '#41465e', ped2: '#626987', ped3: '#8c94b2', ped4: '#c0c7db',
+  mad0: '#251a2a', mad1: '#42304a', mad2: '#6b4f5e', mad3: '#997a80', mad4: '#c8a8a4',
+  // pedra: concreto, asfalto, aço (puxando índigo, nunca cinza morto)
+  ped0: '#252540', ped1: '#3d3d63', ped2: '#55558a', ped3: '#77779b', ped4: '#aaaacc',
   // creme: papel, névoa, poeira iluminada
-  cre0: '#b5a582', cre1: '#d6c69e', cre2: '#efe2be', cre3: '#fff7df',
+  cre0: '#8a86a8', cre1: '#b8b4c8', cre2: '#e0dcc8', cre3: '#fff9d8',
   bra: '#ffffff',
 };
 

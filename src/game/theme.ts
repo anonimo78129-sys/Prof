@@ -1,37 +1,44 @@
 // ─────────────────────────────────────────────────────────
 // Tokens visuais de CINZAS. Um só lugar define a paleta, para que jogo,
 // tela inicial, carregamento e créditos fiquem coerentes.
+//
+// Paleta índigo noturna: base fria em roxo-azulado, cromo em linha clara
+// (#5e5e91), texto narrativo em balão creme, e os acentos entram
+// saturados justamente porque a base é dessaturada. Nada de gradiente,
+// nada de canto arredondado, nada de blur: só campo chapado e borda dura.
 // ─────────────────────────────────────────────────────────
 
 export const C = {
   // chrome / estrutura
-  ink:        '#171520',
-  shell:      '#221f31',
-  shellHi:    '#332f47',
-  shellLo:    '#12101c',
-  line:       '#0d0b14',
+  ink:        '#11112f',   // vazio da página
+  shell:      '#2a2a55',   // painel, botão neutro
+  shellHi:    '#454568',   // aresta de cima do bisel
+  shellLo:    '#171735',   // fundo do quadro de cena
+  line:       '#0a0a1c',   // borda dura, sombra sólida
+  lineSoft:   '#5e5e91',   // borda clara do cromo (barras, chips)
 
-  // papel (painéis de texto)
-  paper:      '#f6f0e1',
-  paperEdge:  '#b9a97e',
-  paperInk:   '#241d14',
-  paperSoft:  '#5d5342',
+  // papel: o balão de fala. Único bloco quente da tela, de propósito,
+  // porque é onde a história é lida.
+  paper:      '#fff9d8',
+  paperEdge:  '#d3cca4',
+  paperInk:   '#22213a',
+  paperSoft:  '#55547a',
 
   // acentos
   // rust carrega texto branco pequeno (botões, faixas), então precisa
-  // passar em contraste: 5.34 contra branco. rustGlow é só decoração.
-  rust:       '#b8461a',
-  rustGlow:   '#e2612f',
-  rustDark:   '#8f3210',
-  rustLite:   '#e2703c',
-  steel:      '#3f8fb5',
-  steelDark:  '#23617f',
-  green:      '#4aa83a',
-  greenLite:  '#6ec850',
-  red:        '#d43f60',
-  amber:      '#f0932b',
-  bone:       '#e9dcc0',
-  boneDim:    '#a89c80',
+  // passar em contraste. rustGlow e rustLite são só decoração.
+  rust:       '#5f33c4',
+  rustGlow:   '#7e4ee8',
+  rustDark:   '#4c25b9',
+  rustLite:   '#9a6ff0',
+  steel:      '#237d99',
+  steelDark:  '#14566b',
+  green:      '#2b8f22',
+  greenLite:  '#4df11c',
+  red:        '#c92f55',
+  amber:      '#e0aa14',
+  bone:       '#d0d0e6',
+  boneDim:    '#8a8ab0',
 } as const;
 
 // Cores por recurso (cartões do HUD)
@@ -45,11 +52,13 @@ export interface StatSkin {
   text: string;
 }
 
+// Cartão escuro com preenchimento saturado: sobre a base índigo, campo
+// claro salta demais e rouba a leitura da cena.
 export const STAT_SKINS: StatSkin[] = [
-  { key: 'racao',     label: 'RAÇÃO',     icon: 'bread',   bg: '#fdf0dd', border: '#f0932b', fill: '#f0932b', text: '#8a5312' },
-  { key: 'agua',      label: 'ÁGUA',      icon: 'flask',   bg: '#e4f3fb', border: '#3f8fb5', fill: '#3f8fb5', text: '#175a76' },
-  { key: 'saude',     label: 'SAÚDE',     icon: 'medkit',  bg: '#fde7ed', border: '#d43f60', fill: '#d43f60', text: '#8a1f3a' },
-  { key: 'confianca', label: 'CONFIANÇA', icon: 'nametag', bg: '#e8f6e2', border: '#4aa83a', fill: '#4aa83a', text: '#2a6a20' },
+  { key: 'racao',     label: 'RAÇÃO',     icon: 'bread',   bg: '#2a2450', border: '#e0aa14', fill: '#e0aa14', text: '#ffd96b' },
+  { key: 'agua',      label: 'ÁGUA',      icon: 'flask',   bg: '#1c2c50', border: '#4cdde0', fill: '#4cdde0', text: '#9df0f2' },
+  { key: 'saude',     label: 'SAÚDE',     icon: 'medkit',  bg: '#2e1d3d', border: '#c92f55', fill: '#c92f55', text: '#ff9db3' },
+  { key: 'confianca', label: 'CONFIANÇA', icon: 'nametag', bg: '#1d2f42', border: '#4df11c', fill: '#4df11c', text: '#a6ff86' },
 ];
 
 export const ART = (key: string) => `/assets/cinzas/art/${key}.png`;

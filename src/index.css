@@ -23,7 +23,7 @@
 @layer base {
   body {
     @apply antialiased overflow-hidden;
-    background: #08070A;
+    background: #11112f;
     touch-action: manipulation;
   }
   * { box-sizing: border-box; }

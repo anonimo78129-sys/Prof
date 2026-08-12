@@ -56,7 +56,7 @@ function Embers() {
       driftDelay: `-${seeded(i * 11) * 12}s`,
       driftX:    `${(seeded(i * 19) > 0.5 ? 1 : -1) * (18 + seeded(i * 23) * 55)}px`,
       driftY:    `${(seeded(i * 31) > 0.5 ? 1 : -1) * (10 + seeded(i * 37) * 35)}px`,
-      glow: `0 0 ${Math.round(size * 2)}px rgba(217,122,62,${(bright * 0.9).toFixed(2)}), 0 0 ${Math.round(size * 5)}px rgba(181,85,30,${(bright * 0.55).toFixed(2)})`,
+      glow: `0 0 ${Math.round(size * 2)}px rgba(76,221,224,${(bright * 0.9).toFixed(2)}), 0 0 ${Math.round(size * 5)}px rgba(126,78,232,${(bright * 0.55).toFixed(2)})`,
     };
   }), []);
 
@@ -68,7 +68,7 @@ function Embers() {
           left: f.left, top: f.top,
           width: f.size, height: f.size,
           borderRadius: '50%',
-          background: `radial-gradient(circle, #F2C464, #B5551E)`,
+          background: `radial-gradient(circle, #d0d0e6, #5e5e91)`,
           boxShadow: f.glow,
           pointerEvents: 'none',
           animation: `ember-drift ${f.driftDur} ease-in-out ${f.driftDelay} infinite, ember-pulse ${f.pulseDur} ease-in-out ${f.pulseDelay} infinite`,
@@ -86,7 +86,7 @@ function HomeButton({ label, tone, onClick }: {
 }) {
   const [down, setDown] = useState(false);
   const bg = tone === 'rust' ? C.rust : tone === 'steel' ? C.steel : C.shell;
-  const top = tone === 'rust' ? C.rustLite : tone === 'steel' ? '#5fa9cc' : C.shellHi;
+  const top = tone === 'rust' ? C.rustLite : tone === 'steel' ? '#4cdde0' : C.shellHi;
   return (
     <button
       onClick={onClick}
@@ -209,14 +209,14 @@ export default function App() {
       }} />
 
       <div style={{
-        position: 'relative', width: '100%', maxWidth: 400,
+        position: 'relative', width: 'min(100vw - 24px, 56.25vh)',
         display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'center',
       }}>
         {/* ── TÍTULO ── */}
         <div style={{ textAlign: 'center' }}>
           <h1 className="font-pixel" style={{
             fontSize: 'clamp(24px, 8.5vw, 34px)', color: C.bone, letterSpacing: 6, margin: 0,
-            textShadow: `0 4px 0 ${C.line}, 0 0 26px rgba(226,97,47,0.5)`,
+            textShadow: `0 4px 0 ${C.line}, 0 0 26px rgba(126,78,232,0.55)`,
           }}>
             CINZAS
           </h1>
