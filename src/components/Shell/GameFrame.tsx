@@ -107,7 +107,9 @@ export function Janela({ rotulo, children }: { rotulo?: string; children?: React
       <div
         className={children ? undefined : 'px-dither'}
         style={{
-          position: 'relative', width: '100%', aspectRatio: '1 / 1',
+          // levemente mais larga que alta: em quadrado a janela empurrava a
+          // caixa de texto para fora da dobra no celular
+          position: 'relative', width: '100%', aspectRatio: '11 / 10',
           // backgroundColor, nunca o atalho background: o atalho zera o
           // background-image que a classe .px-dither define
           backgroundColor: C.shellLo, overflow: 'hidden',
