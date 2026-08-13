@@ -14,6 +14,16 @@ export interface Opcao {
   proximo: string | null;
 }
 
+/**
+ * Como a ilustração é animada. As duas técnicas estão em uso de propósito,
+ * uma em cada capítulo, para dar para comparar o resultado lado a lado.
+ */
+export type Animacao =
+  /** arte recortada em planos, cada um numa velocidade (parallax de verdade) */
+  | { tipo: 'camadas'; camadas: { src: string; fator: number }[] }
+  /** arte achatada mais mapa de profundidade, deslocada por shader (2,5D) */
+  | { tipo: 'profundidade'; mapa: string; escalaY: number; offsetY: number };
+
 export interface Capitulo {
   id: string;
   titulo: string;
@@ -21,6 +31,7 @@ export interface Capitulo {
   imagem: string;
   /** object-position do recorte, escolhido para não cortar o essencial */
   foco: string;
+  animacao?: Animacao;
   texto: string;
   opcoes: Opcao[];
 }
@@ -33,6 +44,15 @@ export const CAPITULOS: Record<string, Capitulo> = {
     imagem: '/assets/cenas/torre.jpg',
     // o cavaleiro fica no terço de baixo; centralizar cortaria ele fora
     foco: 'center 63%',
+    // técnica 2: a arte foi recortada em três planos por scripts/gen-camadas.mjs
+    animacao: {
+      tipo: 'camadas',
+      camadas: [
+        { src: '/assets/cenas/torre-ceu.png', fator: 0.25 },
+        { src: '/assets/cenas/torre-meio.png', fator: 1 },
+        { src: '/assets/cenas/torre-frente.png', fator: 2.6 },
+      ],
+    },
     texto:
       'A torre continua de pé, e é a única coisa que continua. O musgo subiu ' +
       'pela pedra até onde a chuva alcança e parou numa linha reta, como se ' +
@@ -51,6 +71,15 @@ export const CAPITULOS: Record<string, Capitulo> = {
     imagem: '/assets/cenas/arcos.jpg',
     // o viajante está na borda de baixo, e é ele que dá escala à cena
     foco: 'center 77%',
+    // técnica 4: arte achatada, profundidade autorada em gen-camadas.mjs.
+    // A janela é 11/7 e a arte é retrato, então o shader recebe a mesma
+    // fatia que o object-position 77% recortaria.
+    animacao: {
+      tipo: 'profundidade',
+      mapa: '/assets/cenas/arcos-prof.png',
+      escalaY: 468 / 1030,
+      offsetY: 430 / 1030,
+    },
     texto:
       'Do outro lado dos arcos o capim vai até o joelho e é verde de um jeito ' +
       'que você não vê há anos. No meio dele está caída uma coisa de casco ' +
