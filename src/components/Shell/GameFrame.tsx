@@ -166,7 +166,8 @@ function Progresso({ total, atual }: { total: number; atual: number }) {
 
 export interface GameFrameProps {
   titulo: string;
-  marcador?: string;
+  /** botão de voltar, no canto do HUD onde ficava o marcador de dia */
+  onVoltar?: () => void;
   etapas?: number;
   etapaAtual?: number;
   cena?: ReactNode;
@@ -181,7 +182,7 @@ export interface GameFrameProps {
 }
 
 export default function GameFrame({
-  titulo, marcador, etapas = 0, etapaAtual = 0,
+  titulo, onVoltar, etapas = 0, etapaAtual = 0,
   cena, imagem, foco, texto, continuar, opcoes, acoes,
 }: GameFrameProps) {
   return (
@@ -205,15 +206,19 @@ export default function GameFrame({
           }}>
             <span style={{ ...T.titulo, color: C.bone }}>{titulo}</span>
             <div style={{ flex: 1 }} />
-            {marcador && (
-              <span style={{
-                ...T.rotulo, color: '#fff', background: C.rust,
-                padding: `${px(1)} ${px(2)}`,
-                boxShadow: `0 0 0 var(--p) ${C.line}`,
-                marginRight: 'var(--p)',
-              }}>
-                {marcador}
-              </span>
+            {onVoltar && (
+              <button
+                onClick={onVoltar}
+                aria-label="Voltar"
+                style={{
+                  ...T.rotulo, color: '#fff', background: C.rust, border: 'none',
+                  padding: `${px(1)} ${px(2)}`,
+                  boxShadow: `0 0 0 var(--p) ${C.line}`,
+                  marginRight: 'var(--p)', cursor: 'pointer',
+                }}
+              >
+                ← VOLTAR
+              </button>
             )}
           </div>
         </div>

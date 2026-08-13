@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import Credits from './components/Game/Credits';
-import GameFrame, { Box, Janela } from './components/Shell/GameFrame';
+import GameFrame, { Janela } from './components/Shell/GameFrame';
 import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { CAPITULOS, PRIMEIRO } from './game/capitulos';
@@ -99,7 +99,7 @@ export default function App() {
     return (
       <GameFrame
         titulo={cap.titulo}
-        marcador={cap.marcador}
+        onVoltar={voltar}
         etapas={IDS.length}
         etapaAtual={IDS.indexOf(cap.id)}
         imagem={cap.imagem}
@@ -112,20 +112,6 @@ export default function App() {
             else setView('fim');
           },
         }))}
-        acoes={
-          <Box>
-            <button
-              onClick={voltar}
-              style={{
-                width: '100%', background: 'transparent', border: 'none',
-                ...T.rotulo, color: C.paperInk,
-                padding: `${px(1)} ${px(1)}`, cursor: 'pointer', textAlign: 'left',
-              }}
-            >
-              ← SAIR
-            </button>
-          </Box>
-        }
       />
     );
   }
