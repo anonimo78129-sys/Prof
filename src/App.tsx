@@ -4,26 +4,15 @@ import Credits from './components/Game/Credits';
 import GameFrame, { Box, Janela } from './components/Shell/GameFrame';
 import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
+import { CAPITULOS, PRIMEIRO } from './game/capitulos';
 
 // ─────────────────────────────────────────────────────────
-// A história e as ilustrações foram removidas a pedido: o foco agora é o
-// desenho da tela. O que sobrou é o chassi — moldura, caixas, tipografia,
-// paleta e ritmo vertical — alimentado por conteúdo de demonstração, para
-// dar para julgar o design sem depender de roteiro nem de arte.
+// O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
+// (game/capitulos) trazem o conteúdo. Um não conhece o outro: dá para
+// trocar o roteiro sem tocar no desenho, e vice-versa.
 // ─────────────────────────────────────────────────────────
 
-type View = 'home' | 'demo' | 'setup' | 'creditos';
-
-// Texto só para ocupar a caixa com um volume realista de leitura.
-const DEMO = {
-  titulo: 'CINZAS',
-  marcador: 'DIA 01',
-  texto:
-    'Aqui entra a narração da cena. O bloco existe para mostrar como a caixa ' +
-    'se comporta com um parágrafo de tamanho realista, com a entrelinha e a ' +
-    'margem que o texto vai ter de verdade.',
-  opcoes: ['Primeira alternativa da escolha', 'Segunda alternativa, um pouco mais longa que a primeira'],
-};
+type View = 'home' | 'jogo' | 'fim' | 'setup' | 'creditos';
 
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
@@ -59,8 +48,11 @@ function HomeButton({ label, tone, onClick }: {
   );
 }
 
+const IDS = Object.keys(CAPITULOS);
+
 export default function App() {
   const [view, setView] = useState<View>('home');
+  const [capId, setCapId] = useState<string>(PRIMEIRO);
 
   useEffect(() => {
     const handleHash = () => {
@@ -87,16 +79,39 @@ export default function App() {
     return <Credits onBack={() => setView('home')} />;
   }
 
-  if (view === 'demo') {
+  if (view === 'fim') {
     return (
       <GameFrame
-        titulo={DEMO.titulo}
-        marcador={DEMO.marcador}
-        etapas={6}
-        etapaAtual={1}
-        texto={DEMO.texto}
-        continuar
-        opcoes={DEMO.opcoes.map(label => ({ label, onClick: () => {} }))}
+        titulo="CINZAS"
+        etapas={IDS.length}
+        etapaAtual={IDS.length}
+        texto="Por enquanto a trilha termina aqui. Os próximos capítulos ainda não foram escritos."
+        opcoes={[
+          { label: 'Voltar ao começo', onClick: () => { setCapId(PRIMEIRO); setView('jogo'); } },
+          { label: 'Sair para a tela inicial', onClick: voltar },
+        ]}
+      />
+    );
+  }
+
+  if (view === 'jogo') {
+    const cap = CAPITULOS[capId];
+    return (
+      <GameFrame
+        titulo={cap.titulo}
+        marcador={cap.marcador}
+        etapas={IDS.length}
+        etapaAtual={IDS.indexOf(cap.id)}
+        imagem={cap.imagem}
+        foco={cap.foco}
+        texto={cap.texto}
+        opcoes={cap.opcoes.map(o => ({
+          label: o.label,
+          onClick: () => {
+            if (o.proximo) { setCapId(o.proximo); window.scrollTo({ top: 0 }); }
+            else setView('fim');
+          },
+        }))}
         acoes={
           <Box>
             <button
@@ -107,7 +122,7 @@ export default function App() {
                 padding: `${px(1)} ${px(1)}`, cursor: 'pointer', textAlign: 'left',
               }}
             >
-              ← VOLTAR
+              ← SAIR
             </button>
           </Box>
         }
@@ -140,11 +155,15 @@ export default function App() {
           </div>
         </div>
 
-        {/* a janela vazia já mostra a proporção e a moldura da cena */}
-        <Janela />
+        {/* capa: a mesma arte do primeiro capítulo */}
+        <Janela imagem={CAPITULOS[PRIMEIRO].imagem} foco={CAPITULOS[PRIMEIRO].foco} />
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(3) }}>
-          <HomeButton label="VER O CHASSI" tone="primario" onClick={() => { startMusic(); setView('demo'); }} />
+          <HomeButton
+            label="JOGAR"
+            tone="primario"
+            onClick={() => { startMusic(); setCapId(PRIMEIRO); setView('jogo'); }}
+          />
           <div style={{ display: 'flex', gap: px(2), alignItems: 'center', marginTop: 'var(--p)' }}>
             {[
               { rotulo: 'SOU PROFESSOR', acao: () => { window.location.hash = '#setup'; } },

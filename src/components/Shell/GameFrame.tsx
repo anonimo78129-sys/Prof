@@ -101,11 +101,18 @@ export function MenuItem({ children, onClick, divisor }: {
  * Sem ilustração, o interior recebe xadrez de dithering na escala do
  * pixel, para o vazio ler como textura proposital em vez de erro.
  */
-export function Janela({ children }: { children?: ReactNode }) {
+export function Janela({ children, imagem, foco = 'center' }: {
+  children?: ReactNode;
+  /** ilustração da cena, recortada para a faixa da janela */
+  imagem?: string;
+  /** que parte da composição não pode ser cortada (object-position) */
+  foco?: string;
+}) {
+  const vazia = !children && !imagem;
   return (
     <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
       <div
-        className={children ? undefined : 'px-dither'}
+        className={vazia ? 'px-dither' : undefined}
         style={{
           // faixa larga e baixa: em quadrado a janela empurrava a caixa de
           // texto e as alternativas para fora da dobra no celular
@@ -117,7 +124,18 @@ export function Janela({ children }: { children?: ReactNode }) {
           ['--dither-b' as string]: '#232f18',
         }}
       >
-        {children ?? (
+        {imagem && (
+          <img
+            src={imagem}
+            alt=""
+            style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: foco, display: 'block',
+            }}
+          />
+        )}
+        {children}
+        {vazia && (
           <div style={{
             position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
             ...T.rotulo, letterSpacing: 2, color: C.boneDim, textAlign: 'center', padding: px(5),
@@ -152,6 +170,9 @@ export interface GameFrameProps {
   etapas?: number;
   etapaAtual?: number;
   cena?: ReactNode;
+  /** ilustração da cena e o ponto do recorte que não pode ser cortado */
+  imagem?: string;
+  foco?: string;
   texto: ReactNode;
   /** mostra a seta de continuar no canto da caixa de texto */
   continuar?: boolean;
@@ -161,7 +182,7 @@ export interface GameFrameProps {
 
 export default function GameFrame({
   titulo, marcador, etapas = 0, etapaAtual = 0,
-  cena, texto, continuar, opcoes, acoes,
+  cena, imagem, foco, texto, continuar, opcoes, acoes,
 }: GameFrameProps) {
   return (
     <div style={{
@@ -199,7 +220,7 @@ export default function GameFrame({
 
         {etapas > 0 && <Progresso total={etapas} atual={etapaAtual} />}
 
-        <Janela>{cena}</Janela>
+        <Janela imagem={imagem} foco={foco}>{cena}</Janela>
 
         <Box>
           <div style={{ ...T.corpo, color: C.paperInk }}>{texto}</div>
