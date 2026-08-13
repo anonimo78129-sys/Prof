@@ -5,6 +5,7 @@ import GameFrame, { Janela } from './components/Shell/GameFrame';
 import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { CAPITULOS, PRIMEIRO } from './game/capitulos';
+import { CenaCamadas, CenaProfundidade } from './components/Shell/CenaAnimada';
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -53,6 +54,8 @@ const IDS = Object.keys(CAPITULOS);
 export default function App() {
   const [view, setView] = useState<View>('home');
   const [capId, setCapId] = useState<string>(PRIMEIRO);
+  // cada incremento dispara um passo da animação da ilustração
+  const [gatilho, setGatilho] = useState(0);
 
   useEffect(() => {
     const handleHash = () => {
@@ -96,20 +99,36 @@ export default function App() {
 
   if (view === 'jogo') {
     const cap = CAPITULOS[capId];
+    const an = cap.animacao;
     return (
       <GameFrame
         titulo={cap.titulo}
         onVoltar={voltar}
         etapas={IDS.length}
         etapaAtual={IDS.indexOf(cap.id)}
-        imagem={cap.imagem}
+        imagem={an ? undefined : cap.imagem}
         foco={cap.foco}
+        cena={
+          an?.tipo === 'camadas'
+            ? <CenaCamadas camadas={an.camadas} foco={cap.foco} gatilho={gatilho} />
+            : an?.tipo === 'profundidade'
+              ? <CenaProfundidade
+                  arte={cap.imagem} mapa={an.mapa} gatilho={gatilho}
+                  recorte={{ escalaY: an.escalaY, offsetY: an.offsetY }}
+                />
+              : undefined
+        }
         texto={cap.texto}
         opcoes={cap.opcoes.map(o => ({
           label: o.label,
           onClick: () => {
-            if (o.proximo) { setCapId(o.proximo); window.scrollTo({ top: 0 }); }
-            else setView('fim');
+            // a ilustração anda primeiro; a cena só troca quando o passo
+            // termina, senão o movimento é cortado no meio
+            setGatilho(g => g + 1);
+            window.setTimeout(() => {
+              if (o.proximo) { setCapId(o.proximo); window.scrollTo({ top: 0 }); }
+              else setView('fim');
+            }, 620);
           },
         }))}
       />
