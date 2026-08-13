@@ -30,43 +30,61 @@ const px = (n: number) => `calc(var(--p) * ${n})`;
  * miolo, com o pixel da quina removido. O entalhe é o que separa moldura
  * de 8 bits de retângulo de navegador.
  */
-export function Box({ children, style, tom = 'claro' }: {
+export function Box({ children, style, tom = 'claro', padding = true }: {
   children: ReactNode; style?: CSSProperties; tom?: 'claro' | 'escuro';
+  /** desliga o recuo interno para a divisa do menu correr de ponta a ponta */
+  padding?: boolean;
 }) {
   const fundo = tom === 'claro' ? C.paper : C.shell;
   return (
     <div className="px-notch" style={{ background: C.line, padding: 'var(--p)', ...style }}>
       <div className="px-notch" style={{ background: fundo, padding: 'var(--p)' }}>
         <div style={{ border: `var(--p) solid ${C.line}`, background: fundo }}>
-          <div style={{ padding: `${px(3)} ${px(4)}` }}>{children}</div>
+          <div style={{ padding: padding ? `${px(3)} ${px(4)}` : undefined }}>{children}</div>
         </div>
       </div>
     </div>
   );
 }
 
-/** Linha de menu. O cursor só aparece na ativa e pulsa em passo duro. */
-export function MenuItem({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+/**
+ * Linha de menu.
+ *
+ * O cursor fica SEMPRE visível, um por linha. Antes ele só aparecia no
+ * hover, e como celular não tem hover as alternativas chegavam ao aluno
+ * sem marcador nenhum: duas respostas de duas linhas cada liam como um
+ * parágrafo único de quatro linhas, sem dar para saber onde uma acaba e
+ * a outra começa. O hover agora só reforça a linha ativa, não é o que
+ * revela que ali existe uma opção.
+ *
+ * A divisa entre as linhas é o segundo marcador, para o caso de a
+ * alternativa quebrar em várias linhas.
+ */
+export function MenuItem({ children, onClick, divisor }: {
+  children: ReactNode; onClick?: () => void; divisor?: boolean;
+}) {
   const [ativa, setAtiva] = useState(false);
   return (
     <button
       onClick={onClick}
       onPointerEnter={() => setAtiva(true)}
       onPointerLeave={() => setAtiva(false)}
+      onPointerDown={() => setAtiva(true)}
       onFocus={() => setAtiva(true)}
       onBlur={() => setAtiva(false)}
       style={{
         display: 'flex', alignItems: 'flex-start', gap: px(2), width: '100%',
         textAlign: 'left', border: 'none', cursor: 'pointer',
+        borderTop: divisor ? `var(--p) solid ${C.paperEdge}` : undefined,
         background: ativa ? C.paperEdge : 'transparent',
-        padding: `${px(2)} ${px(1)}`,
+        padding: `${px(3)} ${px(2)}`,
         ...T.corpo, color: C.paperInk,
       }}
     >
       <span
         aria-hidden
         className={ativa ? 'px-nudge' : undefined}
-        style={{ flex: 'none', width: px(4), visibility: ativa ? 'visible' : 'hidden' }}
+        style={{ flex: 'none', width: px(4), color: ativa ? C.paperInk : C.paperSoft }}
       >
         ▶
       </span>
@@ -202,9 +220,9 @@ export default function GameFrame({
         </Box>
 
         {opcoes && opcoes.length > 0 && (
-          <Box>
+          <Box padding={false}>
             {opcoes.map((o, i) => (
-              <MenuItem key={i} onClick={o.onClick}>{o.label}</MenuItem>
+              <MenuItem key={i} onClick={o.onClick} divisor={i > 0}>{o.label}</MenuItem>
             ))}
           </Box>
         )}
