@@ -1,0 +1,216 @@
+import { useState, type CSSProperties, type ReactNode } from 'react';
+import { C, T } from '../../game/theme';
+
+// ─────────────────────────────────────────────────────────
+// O chassi do jogo, em pixel art de 8 bits.
+//
+//   ┌─────────────┐
+//   │ HUD         │  título, marcador, progresso
+//   ├─────────────┤
+//   │   JANELA    │  a cena
+//   ├─────────────┤
+//   │ CAIXA TEXTO │  a narração, com seta de continuar
+//   ├─────────────┤
+//   │ ▶ RESPOSTA  │  o menu de escolhas
+//   └─────────────┘
+//
+// Tudo é medido em --p, o tamanho de um pixel de arte (ver index.css).
+// Nenhuma medida solta em px: borda, recuo e espaço entre caixas são
+// múltiplos inteiros dessa unidade, senão a grade quebra e a tela deixa
+// de ler como pixel art.
+//
+// Só o chassi mora aqui: nem história nem ilustração. O que entra em
+// cada fatia vem por prop.
+// ─────────────────────────────────────────────────────────
+
+const px = (n: number) => `calc(var(--p) * ${n})`;
+
+/**
+ * Caixa de diálogo: anel preto, filete claro e linha preta fechando o
+ * miolo, com o pixel da quina removido. O entalhe é o que separa moldura
+ * de 8 bits de retângulo de navegador.
+ */
+export function Box({ children, style, tom = 'claro' }: {
+  children: ReactNode; style?: CSSProperties; tom?: 'claro' | 'escuro';
+}) {
+  const fundo = tom === 'claro' ? C.paper : C.shell;
+  return (
+    <div className="px-notch" style={{ background: C.line, padding: 'var(--p)', ...style }}>
+      <div className="px-notch" style={{ background: fundo, padding: 'var(--p)' }}>
+        <div style={{ border: `var(--p) solid ${C.line}`, background: fundo }}>
+          <div style={{ padding: `${px(3)} ${px(4)}` }}>{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Linha de menu. O cursor só aparece na ativa e pulsa em passo duro. */
+export function MenuItem({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+  const [ativa, setAtiva] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onPointerEnter={() => setAtiva(true)}
+      onPointerLeave={() => setAtiva(false)}
+      onFocus={() => setAtiva(true)}
+      onBlur={() => setAtiva(false)}
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: px(2), width: '100%',
+        textAlign: 'left', border: 'none', cursor: 'pointer',
+        background: ativa ? C.paperEdge : 'transparent',
+        padding: `${px(2)} ${px(1)}`,
+        ...T.corpo, color: C.paperInk,
+      }}
+    >
+      <span
+        aria-hidden
+        className={ativa ? 'px-nudge' : undefined}
+        style={{ flex: 'none', width: px(4), visibility: ativa ? 'visible' : 'hidden' }}
+      >
+        ▶
+      </span>
+      <span style={{ flex: 1 }}>{children}</span>
+    </button>
+  );
+}
+
+/**
+ * Janela da cena: só moldura preta, sem bisel. Bisel de canto claro é
+ * idioma de interface de desktop dos anos 90; console de 8 bits emoldura
+ * a tela com preto e ponto final.
+ *
+ * Sem ilustração, o interior recebe xadrez de dithering na escala do
+ * pixel, para o vazio ler como textura proposital em vez de erro.
+ */
+export function Janela({ rotulo, children }: { rotulo?: string; children?: ReactNode }) {
+  return (
+    <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
+      <div
+        className={children ? undefined : 'px-dither'}
+        style={{
+          position: 'relative', width: '100%', aspectRatio: '1 / 1',
+          // backgroundColor, nunca o atalho background: o atalho zera o
+          // background-image que a classe .px-dither define
+          backgroundColor: C.shellLo, overflow: 'hidden',
+          ['--dither-a' as string]: C.shellLo,
+          ['--dither-b' as string]: '#232f18',
+        }}
+      >
+        {children ?? (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+            ...T.rotulo, letterSpacing: 2, color: C.boneDim, textAlign: 'center', padding: px(5),
+          }}>
+            JANELA DA CENA
+          </div>
+        )}
+        {rotulo && (
+          <div style={{
+            position: 'absolute', left: 0, bottom: 0, right: 0,
+            ...T.rotulo, color: C.bone,
+            background: 'linear-gradient(to top, rgba(10,10,10,0.94), rgba(10,10,10,0))',
+            padding: `${px(4)} ${px(3)} ${px(2)}`,
+          }}>
+            {rotulo}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Barra de progresso em blocos: em 8 bits progresso é contado, não medido. */
+function Progresso({ total, atual }: { total: number; atual: number }) {
+  return (
+    <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }} aria-hidden>
+      <div style={{ display: 'flex', gap: 'var(--p)' }}>
+        {Array.from({ length: total }, (_, i) => (
+          <span key={i} style={{
+            flex: 1, height: px(2),
+            background: i <= atual ? C.lineSoft : C.shellLo,
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export interface GameFrameProps {
+  titulo: string;
+  marcador?: string;
+  etapas?: number;
+  etapaAtual?: number;
+  rotuloCena?: string;
+  cena?: ReactNode;
+  texto: ReactNode;
+  /** mostra a seta de continuar no canto da caixa de texto */
+  continuar?: boolean;
+  opcoes?: { label: string; onClick?: () => void }[];
+  acoes?: ReactNode;
+}
+
+export default function GameFrame({
+  titulo, marcador, etapas = 0, etapaAtual = 0,
+  rotuloCena, cena, texto, continuar, opcoes, acoes,
+}: GameFrameProps) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
+      display: 'flex', justifyContent: 'center',
+      padding: `${px(3)} 0 ${px(8)}`,
+    }}>
+      {/* preenche a largura no celular e trava em 9:16 no desktop */}
+      <div style={{
+        width: 'min(100vw, 56.25vh)', padding: `0 ${px(3)}`,
+        display: 'flex', flexDirection: 'column', gap: px(3),
+      }}>
+
+        {/* ── HUD ── */}
+        <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: px(3),
+            background: C.shell, padding: `${px(2)} ${px(3)}`,
+            boxShadow: `inset 0 ${px(1)} 0 0 ${C.shellHi}`,
+          }}>
+            <span style={{ ...T.titulo, color: C.bone }}>{titulo}</span>
+            <div style={{ flex: 1 }} />
+            {marcador && (
+              <span style={{
+                ...T.rotulo, color: '#fff', background: C.rust,
+                padding: `${px(1)} ${px(2)}`,
+                boxShadow: `0 0 0 var(--p) ${C.line}`,
+                marginRight: 'var(--p)',
+              }}>
+                {marcador}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {etapas > 0 && <Progresso total={etapas} atual={etapaAtual} />}
+
+        <Janela rotulo={rotuloCena}>{cena}</Janela>
+
+        <Box>
+          <div style={{ ...T.corpo, color: C.paperInk }}>{texto}</div>
+          {continuar && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: px(2) }}>
+              <span aria-hidden className="px-blink" style={{ ...T.rotulo, color: C.paperInk }}>▼</span>
+            </div>
+          )}
+        </Box>
+
+        {opcoes && opcoes.length > 0 && (
+          <Box>
+            {opcoes.map((o, i) => (
+              <MenuItem key={i} onClick={o.onClick}>{o.label}</MenuItem>
+            ))}
+          </Box>
+        )}
+
+        {acoes}
+      </div>
+    </div>
+  );
+}

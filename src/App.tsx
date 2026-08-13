@@ -1,107 +1,58 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { GameConfig } from './types/game';
+import { useEffect, useState } from 'react';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
-import SurvivalGame from './components/Game/SurvivalGame';
-import LoadingScreen from './components/Game/LoadingScreen';
 import Credits from './components/Game/Credits';
-import { getSave, clearSave, resetStats } from './game/progress';
-import { freshStats } from './game/cinzas';
-import { C, ART, CENA_FLAT, bevel } from './game/theme';
-import ParallaxScene from './components/Game/ParallaxScene';
-import DevPanel from './components/Dev/DevPanel';
-import StyleGallery from './components/Dev/StyleGallery';
+import GameFrame, { Box, Janela } from './components/Shell/GameFrame';
+import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
-import { decodeQuiz, type SharedQuiz } from './game/quizShare';
 
-// Atalhos de DEV — pulam direto para um capítulo/desafio/desfecho
-const DEV_SCENES = [
-  { label: 'Cap. 1 — Abrigo 7', id: 'abrigo' },
-  { label: 'Cap. 1 — As sementes', id: 'desafio_sementes' },
-  { label: 'Cap. 2 — As Ruínas', id: 'ruinas' },
-  { label: 'Cap. 2 — Zona industrial', id: 'perigo' },
-  { label: 'Cap. 2 — Sede (transpiração)', id: 'desafio_transpiracao' },
-  { label: 'Cap. 3 — Elias', id: 'encontro' },
-  { label: 'Cap. 3 — A batata verde', id: 'desafio_solanina' },
-  { label: 'Cap. 3 — A Mancha', id: 'mancha' },
-  { label: 'Cap. 4 — O Cercado', id: 'assentamento' },
-  { label: 'Cap. 4 — A estufa', id: 'desafio_estufa' },
-  { label: 'Cap. 4 — A virada (raízes)', id: 'desafio_raizes' },
-  { label: 'A escolha (lua nova)', id: 'escolha' },
-  { label: 'Epílogo — A Primeira Colheita', id: 'final_colheita' },
-  { label: 'Epílogo — A Fogueira', id: 'final_fogueira' },
-  { label: 'Morte — Sede', id: 'final_sede' },
-  { label: 'Morte — O Verde da Batata', id: 'final_solanina' },
-  { label: 'Morte — Dose Demais', id: 'final_dose' },
-  { label: 'Morte — A Fumaça', id: 'final_fumaca' },
-] as const;
+// ─────────────────────────────────────────────────────────
+// A história e as ilustrações foram removidas a pedido: o foco agora é o
+// desenho da tela. O que sobrou é o chassi — moldura, caixas, tipografia,
+// paleta e ritmo vertical — alimentado por conteúdo de demonstração, para
+// dar para julgar o design sem depender de roteiro nem de arte.
+// ─────────────────────────────────────────────────────────
 
-function seeded(seed: number) {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
+type View = 'home' | 'demo' | 'setup' | 'creditos';
 
-// Brasas/cinzas cor de ferrugem, deriva errática — versão da tela inicial
-function Embers() {
-  const flies = useMemo(() => Array.from({ length: 32 }, (_, i) => {
-    const size = 1 + seeded(i * 3) * 4;
-    const bright = 0.6 + seeded(i * 29) * 0.4;
-    return {
-      id: i,
-      left:     `${seeded(i * 7) * 100}%`,
-      top:      `${seeded(i * 13) * 85}%`,
-      size,
-      pulseDur: `${1.4 + seeded(i * 41) * 2.6}s`,
-      pulseDelay: `-${seeded(i * 17) * 3}s`,
-      driftDur:  `${9 + seeded(i * 5) * 14}s`,
-      driftDelay: `-${seeded(i * 11) * 12}s`,
-      driftX:    `${(seeded(i * 19) > 0.5 ? 1 : -1) * (18 + seeded(i * 23) * 55)}px`,
-      driftY:    `${(seeded(i * 31) > 0.5 ? 1 : -1) * (10 + seeded(i * 37) * 35)}px`,
-      glow: `0 0 ${Math.round(size * 2)}px rgba(76,221,224,${(bright * 0.9).toFixed(2)}), 0 0 ${Math.round(size * 5)}px rgba(126,78,232,${(bright * 0.55).toFixed(2)})`,
-    };
-  }), []);
+// Texto só para ocupar a caixa com um volume realista de leitura.
+const DEMO = {
+  titulo: 'CINZAS',
+  marcador: 'DIA 01',
+  rotuloCena: 'Nome do lugar',
+  texto:
+    'Aqui entra a narração da cena. O bloco existe para mostrar como a caixa ' +
+    'se comporta com um parágrafo de tamanho realista, com a entrelinha e a ' +
+    'margem que o texto vai ter de verdade.',
+  opcoes: ['Primeira alternativa da escolha', 'Segunda alternativa, um pouco mais longa que a primeira'],
+};
 
-  return (
-    <>
-      {flies.map(f => (
-        <div key={f.id} style={{
-          position: 'absolute',
-          left: f.left, top: f.top,
-          width: f.size, height: f.size,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, #d0d0e6, #5e5e91)`,
-          boxShadow: f.glow,
-          pointerEvents: 'none',
-          animation: `ember-drift ${f.driftDur} ease-in-out ${f.driftDelay} infinite, ember-pulse ${f.pulseDur} ease-in-out ${f.pulseDelay} infinite`,
-          '--dx': f.driftX,
-          '--dy': f.driftY,
-        } as React.CSSProperties} />
-      ))}
-    </>
-  );
-}
+const px = (n: number) => `calc(var(--p) * ${n})`;
 
-// Botão da tela inicial: bisel pixel, sem gradiente, com press físico
+// Botão do menu: moldura preta com bisel de um pixel em cima, e ao
+// apertar ele afunda exatamente um pixel da grade — não uma fração.
 function HomeButton({ label, tone, onClick }: {
-  label: string; tone: 'rust' | 'steel' | 'ghost'; onClick: () => void;
+  label: string; tone: 'primario' | 'fantasma'; onClick: () => void;
 }) {
   const [down, setDown] = useState(false);
-  const bg = tone === 'rust' ? C.rust : tone === 'steel' ? C.steel : C.shell;
-  const top = tone === 'rust' ? C.rustLite : tone === 'steel' ? '#4cdde0' : C.shellHi;
+  const bg = tone === 'primario' ? C.rust : C.shell;
+  const topo = tone === 'primario' ? C.rustLite : C.shellHi;
   return (
     <button
       onClick={onClick}
       onPointerDown={() => setDown(true)}
       onPointerUp={() => setDown(false)}
       onPointerLeave={() => setDown(false)}
-      className="font-pixel"
+      className="px-notch"
       style={{
-        width: '100%', maxWidth: 300, fontSize: 12, letterSpacing: 1, color: '#fff',
-        background: bg, border: `3px solid ${C.line}`, borderTop: `3px solid ${top}`,
-        boxShadow: down ? 'none' : bevel(4),
-        transform: down ? 'translate(4px, 4px)' : 'none',
-        padding: '15px 8px', cursor: 'pointer',
-        transition: 'transform 70ms, box-shadow 70ms',
-        textShadow: `0 2px 0 rgba(0,0,0,0.45)`,
+        width: '100%', maxWidth: px(90),
+        ...T.titulo, color: '#fff',
+        background: bg, border: 'none', padding: `${px(4)} ${px(3)}`,
+        boxShadow: down
+          ? `inset 0 0 0 var(--p) ${C.line}`
+          : `inset 0 0 0 var(--p) ${C.line}, inset 0 ${px(2)} 0 0 ${topo}`,
+        transform: down ? `translateY(var(--p))` : 'none',
+        cursor: 'pointer',
+        textShadow: `0 var(--p) 0 rgba(0,0,0,0.45)`,
       }}
     >
       {label}
@@ -109,91 +60,61 @@ function HomeButton({ label, tone, onClick }: {
   );
 }
 
-type View = 'home' | 'loading' | 'setup' | 'jogar' | 'creditos' | 'galeria';
-
 export default function App() {
   const [view, setView] = useState<View>('home');
-  const [devStart, setDevStart] = useState<{ sceneId: string; stats: ReturnType<typeof freshStats> } | null>(null);
-  // remonta o SurvivalGame do zero em "JOGAR DE NOVO"
-  const [gameKey, setGameKey] = useState(0);
-  // checkpoint salvo (para o botão CONTINUAR); relido ao voltar à home
-  const [save, setSave] = useState(() => getSave());
-  useEffect(() => { if (view === 'home') setSave(getSave()); }, [view]);
-  // quiz do professor (quando o aluno abre um link/QR compartilhado)
-  const [quiz, setQuiz] = useState<SharedQuiz | null>(null);
 
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash;
-      // link/QR compartilhado pelo professor: #jogo=<quiz codificado>
-      if (hash.startsWith('#jogo=')) {
-        const q = decodeQuiz(hash.slice('#jogo='.length));
-        if (q && (q.questions.length > 0 || q.pairs.length > 0)) {
-          setQuiz(q);
-          resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1);
-          setView('loading');
-          startMusic();
-          return;
-        }
-        // link inválido: cai na home
-        window.location.hash = '';
-      }
-      if (hash === '#setup') setView('setup');
-      else setView('home');
+      setView(window.location.hash === '#setup' ? 'setup' : 'home');
     };
     handleHash();
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
-  // Tema da tela inicial: toca em loop enquanto view === 'home'.
-  // Os navegadores bloqueiam autoplay sem interação, então tentamos tocar
-  // direto (funciona se o navegador permitir) e, se falhar, disparamos na
-  // PRIMEIRA interação de qualquer tipo — mover o mouse, rolar, tocar a
-  // tela ou apertar uma tecla — não só ao clicar num botão. Assim a música
-  // começa o quanto antes, sem depender de o usuário clicar em JOGAR.
   useEffect(() => {
-    if (view !== 'home') { stopHomeTheme(); return; }
-    startHomeTheme();
-    const EVENTS = ['pointerdown', 'pointermove', 'touchstart', 'keydown', 'scroll', 'wheel', 'click'] as const;
-    const kick = () => { startHomeTheme(); cleanup(); };
-    const cleanup = () => EVENTS.forEach(ev => window.removeEventListener(ev, kick, true));
-    EVENTS.forEach(ev => window.addEventListener(ev, kick, { capture: true, passive: true }));
-    return cleanup;
+    if (view === 'home') startHomeTheme(); else stopHomeTheme();
   }, [view]);
 
-  const goHome = () => { stopMusic(); setQuiz(null); window.location.hash = ''; setView('home'); };
+  const voltar = () => { stopMusic(); window.location.hash = ''; setView('home'); };
 
-  // ── TELA DO PROFESSOR (criador de perguntas/jornada) ──
   if (view === 'setup') {
-    return (
-      <SetupWizard
-        onGameCreated={(_config: GameConfig) => { goHome(); }}
-      />
-    );
-  }
-
-  // ── CRÉDITOS — atribuições de arte, áudio, fontes e tecnologia ──
-  if (view === 'galeria') {
-    return <StyleGallery onFechar={() => setView('home')} />;
+    // o quiz do professor gerava as perguntas do roteiro; sem roteiro ele
+    // só devolve para a home até haver conteúdo novo para alimentar
+    return <SetupWizard onGameCreated={voltar} />;
   }
 
   if (view === 'creditos') {
     return <Credits onBack={() => setView('home')} />;
   }
 
-  // ── LOADING — pré-carrega os ícones antes de começar ──
-  if (view === 'loading') {
-    return <LoadingScreen onDone={() => setView('jogar')} />;
-  }
-
-  // ── JOGAR — ficção interativa de sobrevivência ──
-  if (view === 'jogar') {
-    return <SurvivalGame key={gameKey}
-      onExit={() => { setDevStart(null); goHome(); }}
-      onRestart={() => { resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); }}
-      continueFrom={devStart}
-      quiz={quiz} />;
+  if (view === 'demo') {
+    return (
+      <GameFrame
+        titulo={DEMO.titulo}
+        marcador={DEMO.marcador}
+        etapas={6}
+        etapaAtual={1}
+        rotuloCena={DEMO.rotuloCena}
+        texto={DEMO.texto}
+        continuar
+        opcoes={DEMO.opcoes.map(label => ({ label, onClick: () => {} }))}
+        acoes={
+          <Box>
+            <button
+              onClick={voltar}
+              style={{
+                width: '100%', background: 'transparent', border: 'none',
+                ...T.rotulo, color: C.paperInk,
+                padding: `${px(1)} ${px(1)}`, cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              ← VOLTAR
+            </button>
+          </Box>
+        }
+      />
+    );
   }
 
   // ── TELA INICIAL ──────────────────────────────────────
@@ -202,89 +123,42 @@ export default function App() {
       position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
       display: 'flex', justifyContent: 'center', padding: '18px 12px 24px',
     }}>
-      {/* arte borrada ao fundo, só para não deixar as bordas mortas */}
-      <img src={CENA_FLAT('hero')} alt="" aria-hidden style={{
-        position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
-        filter: 'brightness(0.35) saturate(1.1) blur(3px)', pointerEvents: 'none',
-      }} />
-
       <div style={{
         position: 'relative', width: 'min(100vw - 24px, 56.25vh)',
-        display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'center',
+        display: 'flex', flexDirection: 'column', gap: px(5), justifyContent: 'center',
       }}>
-        {/* ── TÍTULO ── */}
         <div style={{ textAlign: 'center' }}>
           <h1 className="font-pixel" style={{
             fontSize: 'clamp(24px, 8.5vw, 34px)', color: C.bone, letterSpacing: 6, margin: 0,
-            textShadow: `0 4px 0 ${C.line}, 0 0 26px rgba(126,78,232,0.55)`,
+            textShadow: `0 var(--p) 0 ${C.line}`,
           }}>
             CINZAS
           </h1>
-          <div style={{
-            display: 'inline-block', marginTop: 9, padding: '5px 10px',
-            background: C.rust, border: `2px solid ${C.line}`, boxShadow: bevel(3),
+          <div className="px-notch" style={{
+            display: 'inline-block', marginTop: px(3), padding: `${px(2)} ${px(3)}`,
+            background: C.rust, boxShadow: `inset 0 0 0 var(--p) ${C.line}`,
           }}>
-            <span className="font-pixel" style={{ fontSize: 8, color: '#fff', letterSpacing: 1 }}>
-              O ÚLTIMO ABRIGO
-            </span>
+            <span style={{ ...T.rotulo, color: '#fff' }}>O ÚLTIMO ABRIGO</span>
           </div>
-          {/* quem chega pelo QR do professor não sabe o que vai jogar */}
-          <p className="font-vt" style={{
-            fontSize: 17, lineHeight: 1.4, color: C.bone, margin: '11px auto 0', maxWidth: 320,
-            textShadow: '0 1px 3px rgba(0,0,0,0.9)',
-          }}>
-            Uma história de sobrevivência em que suas decisões dependem de
-            entender o que o mundo está fazendo. Cerca de 10 minutos.
-          </p>
         </div>
 
-        {/* ── ARTE EMOLDURADA — mesma proporção nativa, sem corte ── */}
-        <ParallaxScene
-          cena="hero"
-          aspect="180 / 150"
-          style={{ border: `3px solid ${C.line}`, boxShadow: bevel(4) }}
-        >
-          {/* a protagonista fica fora das camadas que rolam: dentro delas
-              ela apareceria duas vezes quando a tira dá a volta */}
-          <img src={ART('survivor-1')} alt="" style={{
-            position: 'absolute', left: '44%', bottom: '13%', width: '7.8%',
-            imageRendering: 'pixelated', transform: 'translateX(-50%)',
-            animation: 'hero-bob 2.6s steps(2) infinite',
-            filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.5))',
-          }} />
-          <div className="screen-shimmer" />
-          <Embers />
-        </ParallaxScene>
+        {/* a janela vazia já mostra a proporção e a moldura da cena */}
+        <Janela />
 
-        {/* ── BOTÕES ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
-          {save && (
-            <HomeButton
-              label="CONTINUAR"
-              tone="rust"
-              onClick={() => { startMusic(); setQuiz(null); setDevStart({ sceneId: save.sceneId, stats: save.stats }); setGameKey(k => k + 1); setView('loading'); }}
-            />
-          )}
-          <HomeButton
-            label={save ? 'NOVO JOGO' : 'JOGAR'}
-            tone={save ? 'ghost' : 'rust'}
-            onClick={() => { startMusic(); setQuiz(null); resetStats(); clearSave(); setDevStart(null); setGameKey(k => k + 1); setView('loading'); }}
-          />
-          {/* ações de professor e de rodapé, subordinadas ao JOGAR */}
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(3) }}>
+          <HomeButton label="VER O CHASSI" tone="primario" onClick={() => { startMusic(); setView('demo'); }} />
+          <div style={{ display: 'flex', gap: px(2), alignItems: 'center', marginTop: 'var(--p)' }}>
             {[
               { rotulo: 'SOU PROFESSOR', acao: () => { window.location.hash = '#setup'; } },
               { rotulo: 'CRÉDITOS', acao: () => setView('creditos') },
             ].map(({ rotulo, acao }, i) => (
-              <span key={rotulo} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span key={rotulo} style={{ display: 'flex', alignItems: 'center', gap: px(2) }}>
                 {i > 0 && <span style={{ color: C.boneDim, opacity: 0.5 }}>·</span>}
                 <button
                   onClick={acao}
-                  className="font-pixel"
                   style={{
-                    background: 'transparent', border: 'none', color: C.boneDim, fontSize: 8,
-                    letterSpacing: 1, padding: '8px 6px', cursor: 'pointer',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.9)',
+                    background: 'transparent', border: 'none', color: C.boneDim,
+                    ...T.rotulo, padding: `${px(2)} ${px(2)}`, cursor: 'pointer',
                   }}
                 >
                   {rotulo}
@@ -294,18 +168,6 @@ export default function App() {
           </div>
         </div>
       </div>
-
-      {/* ── PAINEL DEV — sempre visível, inclusive na versão publicada ── */}
-      <DevPanel
-        cenas={DEV_SCENES}
-        onPular={id => {
-          startMusic(); setQuiz(null);
-          setDevStart({ sceneId: id, stats: freshStats() });
-          setView('jogar');
-        }}
-        onGaleria={() => setView('galeria')}
-      />
-
     </div>
   );
 }
