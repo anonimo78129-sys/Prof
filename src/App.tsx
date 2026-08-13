@@ -18,7 +18,6 @@ type View = 'home' | 'demo' | 'setup' | 'creditos';
 const DEMO = {
   titulo: 'CINZAS',
   marcador: 'DIA 01',
-  rotuloCena: 'Nome do lugar',
   texto:
     'Aqui entra a narração da cena. O bloco existe para mostrar como a caixa ' +
     'se comporta com um parágrafo de tamanho realista, com a entrelinha e a ' +
@@ -95,7 +94,6 @@ export default function App() {
         marcador={DEMO.marcador}
         etapas={6}
         etapaAtual={1}
-        rotuloCena={DEMO.rotuloCena}
         texto={DEMO.texto}
         continuar
         opcoes={DEMO.opcoes.map(label => ({ label, onClick: () => {} }))}
