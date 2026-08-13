@@ -101,15 +101,15 @@ export function MenuItem({ children, onClick, divisor }: {
  * Sem ilustração, o interior recebe xadrez de dithering na escala do
  * pixel, para o vazio ler como textura proposital em vez de erro.
  */
-export function Janela({ rotulo, children }: { rotulo?: string; children?: ReactNode }) {
+export function Janela({ children }: { children?: ReactNode }) {
   return (
     <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
       <div
         className={children ? undefined : 'px-dither'}
         style={{
-          // levemente mais larga que alta: em quadrado a janela empurrava a
-          // caixa de texto para fora da dobra no celular
-          position: 'relative', width: '100%', aspectRatio: '11 / 10',
+          // faixa larga e baixa: em quadrado a janela empurrava a caixa de
+          // texto e as alternativas para fora da dobra no celular
+          position: 'relative', width: '100%', aspectRatio: '11 / 7',
           // backgroundColor, nunca o atalho background: o atalho zera o
           // background-image que a classe .px-dither define
           backgroundColor: C.shellLo, overflow: 'hidden',
@@ -123,16 +123,6 @@ export function Janela({ rotulo, children }: { rotulo?: string; children?: React
             ...T.rotulo, letterSpacing: 2, color: C.boneDim, textAlign: 'center', padding: px(5),
           }}>
             JANELA DA CENA
-          </div>
-        )}
-        {rotulo && (
-          <div style={{
-            position: 'absolute', left: 0, bottom: 0, right: 0,
-            ...T.rotulo, color: C.bone,
-            background: 'linear-gradient(to top, rgba(10,10,10,0.94), rgba(10,10,10,0))',
-            padding: `${px(4)} ${px(3)} ${px(2)}`,
-          }}>
-            {rotulo}
           </div>
         )}
       </div>
@@ -161,7 +151,6 @@ export interface GameFrameProps {
   marcador?: string;
   etapas?: number;
   etapaAtual?: number;
-  rotuloCena?: string;
   cena?: ReactNode;
   texto: ReactNode;
   /** mostra a seta de continuar no canto da caixa de texto */
@@ -172,7 +161,7 @@ export interface GameFrameProps {
 
 export default function GameFrame({
   titulo, marcador, etapas = 0, etapaAtual = 0,
-  rotuloCena, cena, texto, continuar, opcoes, acoes,
+  cena, texto, continuar, opcoes, acoes,
 }: GameFrameProps) {
   return (
     <div style={{
@@ -210,7 +199,7 @@ export default function GameFrame({
 
         {etapas > 0 && <Progresso total={etapas} atual={etapaAtual} />}
 
-        <Janela rotulo={rotuloCena}>{cena}</Janela>
+        <Janela>{cena}</Janela>
 
         <Box>
           <div style={{ ...T.corpo, color: C.paperInk }}>{texto}</div>
