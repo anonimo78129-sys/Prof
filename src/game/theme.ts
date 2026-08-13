@@ -2,43 +2,48 @@
 // Tokens visuais de CINZAS. Um só lugar define a paleta, para que jogo,
 // tela inicial, carregamento e créditos fiquem coerentes.
 //
-// Paleta índigo noturna: base fria em roxo-azulado, cromo em linha clara
-// (#5e5e91), texto narrativo em balão creme, e os acentos entram
-// saturados justamente porque a base é dessaturada. Nada de gradiente,
-// nada de canto arredondado, nada de blur: só campo chapado e borda dura.
+// Duas referências, cada uma mandando numa metade:
+//
+// O chassi vem do RPG de Game Boy: janela da cena em cima, caixa de texto
+// embaixo, e a caixa de respostas abaixo dela. Caixa é sempre off-white
+// com moldura preta grossa, filete claro e linha interna — nada de
+// gradiente, canto arredondado ou sombra borrada.
+//
+// A ilustração vem do desenho de traço: cor chapada com contorno preto,
+// céu ciano forte, pedra creme tomada de musgo, e laranja como único
+// acento quente.
 // ─────────────────────────────────────────────────────────
 
 export const C = {
   // chrome / estrutura
-  ink:        '#11112f',   // vazio da página
-  shell:      '#2a2a55',   // painel, botão neutro
-  shellHi:    '#454568',   // aresta de cima do bisel
-  shellLo:    '#171735',   // fundo do quadro de cena
-  line:       '#0a0a1c',   // borda dura, sombra sólida
-  lineSoft:   '#5e5e91',   // borda clara do cromo (barras, chips)
+  ink:        '#0e1410',   // vazio fora do quadro
+  shell:      '#33421f',   // painel, botão neutro (oliva)
+  shellHi:    '#4d6130',   // aresta de cima do bisel
+  shellLo:    '#1b2415',   // fundo do quadro de cena
+  line:       '#101010',   // contorno preto: moldura, sombra sólida
+  lineSoft:   '#7ba428',   // filete de musgo no cromo
 
-  // papel: o balão de fala. Único bloco quente da tela, de propósito,
-  // porque é onde a história é lida.
-  paper:      '#fff9d8',
-  paperEdge:  '#d3cca4',
-  paperInk:   '#22213a',
-  paperSoft:  '#55547a',
+  // caixa de texto do Game Boy
+  paper:      '#f8f8e8',
+  paperEdge:  '#c9c9b0',
+  paperInk:   '#101010',
+  paperSoft:  '#4a5240',
 
   // acentos
-  // rust carrega texto branco pequeno (botões, faixas), então precisa
-  // passar em contraste. rustGlow e rustLite são só decoração.
-  rust:       '#5f33c4',
-  rustGlow:   '#7e4ee8',
-  rustDark:   '#4c25b9',
-  rustLite:   '#9a6ff0',
-  steel:      '#237d99',
-  steelDark:  '#14566b',
-  green:      '#2b8f22',
-  greenLite:  '#4df11c',
-  red:        '#c92f55',
-  amber:      '#e0aa14',
-  bone:       '#d0d0e6',
-  boneDim:    '#8a8ab0',
+  // rust carrega texto branco pequeno, então precisa passar em contraste;
+  // o laranja da ilustração é claro demais para isso e fica só em rustLite.
+  rust:       '#a85a10',
+  rustGlow:   '#f7941e',
+  rustDark:   '#7d4109',
+  rustLite:   '#ffb347',
+  steel:      '#0f7f9c',
+  steelDark:  '#0a5566',
+  green:      '#5c7a1a',
+  greenLite:  '#a3d13f',
+  red:        '#c0392b',
+  amber:      '#e8a020',
+  bone:       '#ede9d0',
+  boneDim:    '#a8a890',
 } as const;
 
 // Cores por recurso (cartões do HUD)

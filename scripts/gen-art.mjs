@@ -34,43 +34,41 @@ const GROUND_Y = 252;   // linha do chão, igual em todos os cenários
 // de uma rampa; nada de cor solta. Rampas curtas forçam decisão de valor,
 // que é o que faz a leitura de forma funcionar.
 // ═════════════════════════════════════════════════════════
-// Paleta índigo noturna. A base (tinta, roxo, pedra) é fria e
-// dessaturada; é ela que dá o ar de noite e ocupa quase toda a área. Os
-// acentos (verde, ciano, ouro) entram muito saturados justamente porque
-// a base é apagada, e é esse choque que faz a leitura.
+// Paleta de desenho de traço: cor chapada, contorno preto, céu ciano
+// forte e pedra creme tomada de musgo.
 //
-// As rampas quentes continuam existindo, porque o roteiro precisa de
-// amanhecer, fogo e ferrugem, mas foram puxadas para o vermelho-violeta
-// para não voltarem a virar cena sépia.
+// A rampa "ink" aqui não é penumbra colorida, é tinta de contorno mesmo:
+// os quatro tons ficam quase pretos de propósito, porque nesse idioma a
+// linha é preta e o volume vem do recorte, não do sombreado. Rampas de
+// tom continuam existindo, mas com degraus largos: dois ou três valores
+// legíveis por objeto, nada de rampa suave que empasta o campo chapado.
 const PAL = {
-  // tinta: contorno, sombra profunda, noite
-  ink0: '#07071a', ink1: '#0d0d24', ink2: '#171735', ink3: '#252549',
-  // roxo: penumbra, crepúsculo, sombra colorida
-  rox0: '#343452', rox1: '#454568', rox2: '#6b6ba8', rox3: '#9a9ad4',
-  // azul: céu, distância, metal frio
-  azu0: '#141433', azu1: '#20205a', azu2: '#32329a', azu3: '#4a68c8', azu4: '#8fa8e0',
+  // tinta: contorno preto e sombra recortada
+  ink0: '#101010', ink1: '#1c1f18', ink2: '#2b3124', ink3: '#3d4632',
+  // oliva: massa escura de mata, o enquadramento do primeiro plano
+  rox0: '#4a5a24', rox1: '#5c6b2a', rox2: '#7a8c3a', rox3: '#9aad55',
+  // azul: céu
+  azu0: '#0f7f9c', azu1: '#17a8cc', azu2: '#2ad4f5', azu3: '#7fe6fa', azu4: '#c8f4ff',
   // ciano: vidro, água, luz de estufa
-  cia0: '#0d4f66', cia1: '#1785a3', cia2: '#4cdde0', cia3: '#72ffff', cia4: '#c8ffff',
+  cia0: '#0a6070', cia1: '#12909c', cia2: '#2ad4f5', cia3: '#7fe6fa', cia4: '#d0f8ff',
   // verde: folhagem viva
-  // o topo da rampa é o verde neon da referência, mas só no topo: usado
-  // como tom médio ele vira campo fluorescente e come a cena inteira
-  ver0: '#0f3a1c', ver1: '#1a6b28', ver2: '#2ba838', ver3: '#4df11c', ver4: '#79ff3b',
+  ver0: '#3a5a18', ver1: '#5c7a1a', ver2: '#7ba428', ver3: '#a3d13f', ver4: '#c8e878',
   // musgo: verde ácido, contaminação, mato seco
-  mus0: '#233312', mus1: '#4a7018', mus2: '#8fc41f', mus3: '#dfff39', mus4: '#f2ff9c',
+  mus0: '#414d16', mus1: '#6b7d1e', mus2: '#95ad2a', mus3: '#c3d94a', mus4: '#e2f08a',
   // ouro: sol, trigo, luz de janela
-  our0: '#5c3a1c', our1: '#9a7018', our2: '#e0c220', our3: '#fff12c', our4: '#fff9d8',
+  our0: '#8a5a10', our1: '#c08018', our2: '#f0b028', our3: '#ffd257', our4: '#fff0b0',
   // laranja: fogo, ferrugem, telhado
-  lar0: '#5e1c2c', lar1: '#a33028', lar2: '#e05a2e', lar3: '#ff8f52', lar4: '#ffbf94',
+  lar0: '#7d4109', lar1: '#c06010', lar2: '#f7941e', lar3: '#ffb347', lar4: '#ffd699',
   // rubi: alerta, sangue, luz de emergência
-  rub0: '#4a1030', rub1: '#8a1c48', rub2: '#c92f55', rub3: '#f4707f',
+  rub0: '#5c1a12', rub1: '#8f2a1c', rub2: '#c0392b', rub3: '#e0705c',
   // rosa: céu de amanhecer, carne, flor
-  ros0: '#5e2450', ros1: '#9a3a72', ros2: '#d86a9a', ros3: '#ffa8c8',
+  ros0: '#8a4030', ros1: '#c06a50', ros2: '#e89a7a', ros3: '#ffc8a8',
   // madeira: tronco, terra, couro
-  mad0: '#251a2a', mad1: '#42304a', mad2: '#6b4f5e', mad3: '#997a80', mad4: '#c8a8a4',
-  // pedra: concreto, asfalto, aço (puxando índigo, nunca cinza morto)
-  ped0: '#252540', ped1: '#3d3d63', ped2: '#55558a', ped3: '#77779b', ped4: '#aaaacc',
-  // creme: papel, névoa, poeira iluminada
-  cre0: '#8a86a8', cre1: '#b8b4c8', cre2: '#e0dcc8', cre3: '#fff9d8',
+  mad0: '#2e2416', mad1: '#4d3d22', mad2: '#75603a', mad3: '#a08a5c', mad4: '#c9b68c',
+  // pedra: o creme das ruínas, nunca cinza morto
+  ped0: '#5e6252', ped1: '#8a8e78', ped2: '#b5b89c', ped3: '#d6d8ba', ped4: '#ede9d0',
+  // creme: papel, névoa, nuvem
+  cre0: '#b5b89c', cre1: '#d6d8ba', cre2: '#ede9d0', cre3: '#ffffff',
   bra: '#ffffff',
 };
 
@@ -202,10 +200,14 @@ class Canvas {
 // Desenha numa tela temporária, contorna tudo que ficou opaco e cola no
 // destino. É o que garante a borda escura nítida em volta de cada objeto,
 // que é a assinatura do pixel art de RPG.
-function stamp(c, x, y, w, h, desenha, { out = 'ink1', luz = null } = {}) {
+function stamp(c, x, y, w, h, desenha, { out = 'ink0', luz = null } = {}) {
   const t = new Canvas(w, h);
   desenha(t);
-  const O = P(out);
+  // No idioma de desenho de traço o contorno é preto e fecha a forma
+  // inteira, então qualquer tom que o chamador peça é puxado para a
+  // tinta. Sem isso cada objeto sai com um contorno de cor diferente e o
+  // conjunto perde a cara de desenho.
+  const O = P('ink0');
   const borda = [];
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
     if (t.a(i, j) > 0) continue;

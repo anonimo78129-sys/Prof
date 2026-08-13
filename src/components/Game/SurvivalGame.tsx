@@ -25,30 +25,28 @@ const PARTICLE: Record<Mood, { color: string; n: number }> = {
 // ─────────────────────────────────────────────────────────
 // Peças de interface
 // ─────────────────────────────────────────────────────────
-// Balão de fala: bloco creme chapado, sem borda e sem canto arredondado.
-// O topo é uma segunda barra mais estreita, encaixada acima, e o rabicho
-// é um triângulo apontando para a cena — a mesma construção do balão
-// desenhado a retângulo, só que em CSS.
-function Prose({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+// Caixa de texto de RPG de Game Boy: moldura preta grossa, filete claro
+// por dentro e uma linha preta fina fechando o miolo. São três anéis, e é
+// essa repetição que dá o ar de portátil antigo — uma borda só lê como
+// caixa de site.
+export function GbcBox({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <div style={{ position: 'relative', marginTop: 7, ...style }}>
-      {/* barra do topo, recuada dos dois lados */}
-      <div aria-hidden style={{
-        position: 'absolute', top: -7, left: 7, right: 7, height: 7, background: C.paper,
-      }} />
-      {/* rabicho apontando para a cena. Precisa passar bem acima da barra
-          do topo, senão ela cobre o triângulo e o balão perde o bico. */}
-      <div aria-hidden style={{
-        position: 'absolute', top: -22, left: 26, width: 0, height: 0,
-        borderLeft: '9px solid transparent',
-        borderRight: '17px solid transparent',
-        borderBottom: `22px solid ${C.paper}`,
-      }} />
-      <div style={{ background: C.paper, padding: '13px 14px', boxShadow: bevel(4) }}>
-        {children}
+    <div style={{
+      background: C.line, padding: 3,          // anel 1: preto
+      boxShadow: bevel(3), ...style,
+    }}>
+      <div style={{ background: C.paper, padding: 3 }}>{/* anel 2: claro */}
+        <div style={{ border: `2px solid ${C.line}`, background: C.paper }}>
+          <div style={{ padding: '11px 12px' }}>{children}</div>
+        </div>
       </div>
     </div>
   );
+}
+
+// Mantém o nome antigo para não mexer nas chamadas espalhadas pelo arquivo.
+function Prose({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+  return <GbcBox style={style}>{children}</GbcBox>;
 }
 
 // Escolha da história: cartão de papel, do mesmo material do painel de
@@ -69,23 +67,25 @@ function Choice({ children, onClick }: { children: ReactNode; onClick: () => voi
       onPointerUp={() => setDown(false)}
       onPointerEnter={() => setOver(true)}
       onPointerLeave={() => { setDown(false); setOver(false); }}
+      onFocus={() => setOver(true)}
+      onBlur={() => setOver(false)}
       className="font-vt"
       style={{
-        display: 'flex', alignItems: 'stretch', gap: 0, width: '100%', textAlign: 'left',
-        background: over ? '#35356a' : C.shell,
-        border: `2px solid ${C.lineSoft}`,
-        boxShadow: down ? 'none' : bevel(3),
-        transform: down ? 'translate(3px, 3px)' : 'none',
-        padding: 0, cursor: 'pointer', overflow: 'hidden',
-        transition: 'transform 60ms, box-shadow 60ms, background 120ms',
+        display: 'flex', alignItems: 'flex-start', gap: 7, width: '100%', textAlign: 'left',
+        background: 'transparent', border: 'none',
+        padding: '7px 2px', cursor: 'pointer',
+        fontSize: 17, lineHeight: 1.3, color: C.paperInk,
+        transform: down ? 'translateX(2px)' : 'none', transition: 'transform 60ms',
       }}
     >
-      <span style={{ flex: 'none', width: 6, background: over ? C.rustLite : C.rustGlow }} />
-      <span style={{
-        flex: 1, padding: '10px 12px', fontSize: 17, lineHeight: 1.35, color: C.bone,
+      {/* cursor do menu: só aparece na linha ativa, como no portátil */}
+      <span aria-hidden style={{
+        flex: 'none', width: 11, lineHeight: 1.3,
+        visibility: over ? 'visible' : 'hidden',
       }}>
-        {children}
+        ▶
       </span>
+      <span style={{ flex: 1 }}>{children}</span>
     </button>
   );
 }
@@ -467,11 +467,11 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
                   {scene.question.text}
                 </p>
               </Prose>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <GbcBox>
                 {scene.question.options.map((opt, i) => (
                   <Choice key={i} onClick={() => handleAnswer(i)}>{opt}</Choice>
                 ))}
-              </div>
+              </GbcBox>
             </>
           ) : (
             <>
@@ -498,11 +498,11 @@ export default function SurvivalGame({ onExit, onRestart, continueFrom, quiz }: 
                 {scene.text}
               </p>
             </Prose>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <GbcBox>
               {scene.choices.map((c, i) => (
                 <Choice key={i} onClick={() => handleChoice(i)}>{c.label}</Choice>
               ))}
-            </div>
+            </GbcBox>
           </>
         ) : null}
       </div>
