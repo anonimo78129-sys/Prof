@@ -66,9 +66,6 @@ export const STAT_SKINS: StatSkin[] = [
   { key: 'confianca', label: 'CONFIANÇA', icon: 'nametag', bg: '#1d2f42', border: '#4df11c', fill: '#4df11c', text: '#a6ff86' },
 ];
 
-export const ART = (key: string) => `/assets/cinzas/art/${key}.png`;
-/** Versão achatada de uma cena, para fundos que não precisam animar. */
-export const CENA_FLAT = (cena: string) => `/assets/cinzas/art/${cena}/flat.png`;
 export const ICON = (name: string) => `/assets/cinzas/icons/${name}.png`;
 
 // Moldura pixel: borda dura + sombra sólida (sem blur), estilo pixel art

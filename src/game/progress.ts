@@ -8,7 +8,16 @@
 //   desfecho alcançado, usados na tela de resultado final.
 // Tudo em localStorage — sobrevive a fechar o app (é um PWA).
 // ─────────────────────────────────────────────────────────
-import type { Stats } from './cinzas';
+// Os recursos do jogador. Vivia em game/cinzas.ts junto com o roteiro;
+// com o roteiro removido, a definição passou a morar aqui, que é quem
+// realmente precisa dela para gravar o checkpoint.
+export interface Stats {
+  racao: number;
+  agua: number;
+  saude: number;
+  confianca: number;
+  lucidez: number;
+}
 
 const LS_SAVE = 'cinzas-save';
 const LS_STATS = 'cinzas-stats';
