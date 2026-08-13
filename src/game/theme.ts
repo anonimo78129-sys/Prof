@@ -16,17 +16,17 @@
 
 export const C = {
   // chrome / estrutura
-  ink:        '#0e1410',   // vazio fora do quadro
-  shell:      '#33421f',   // painel, botão neutro (oliva)
-  shellHi:    '#4d6130',   // aresta de cima do bisel
-  shellLo:    '#1b2415',   // fundo do quadro de cena
-  line:       '#101010',   // contorno preto: moldura, sombra sólida
-  lineSoft:   '#7ba428',   // filete de musgo no cromo
+  ink:        '#0a0d07',   // vazio fora do quadro, quase preto
+  shell:      '#2c3a1a',   // painel, botão neutro (oliva)
+  shellHi:    '#55702a',   // aresta de cima do bisel
+  shellLo:    '#151d10',   // fundo da janela de cena
+  line:       '#0a0a0a',   // contorno preto: moldura, sombra sólida
+  lineSoft:   '#8fbf35',   // filete de musgo no cromo
 
-  // caixa de texto do Game Boy
+  // caixa de texto
   paper:      '#f8f8e8',
-  paperEdge:  '#c9c9b0',
-  paperInk:   '#101010',
+  paperEdge:  '#c2c2a6',
+  paperInk:   '#0a0a0a',
   paperSoft:  '#4a5240',
 
   // acentos
@@ -43,7 +43,18 @@ export const C = {
   red:        '#c0392b',
   amber:      '#e8a020',
   bone:       '#ede9d0',
-  boneDim:    '#a8a890',
+  boneDim:    '#9aa384',
+} as const;
+
+// Escala tipográfica: três degraus e só. A tela antiga tinha oito
+// tamanhos soltos entre 7 e 19px, o que é o que mais faz interface
+// parecer improvisada. Rótulo e título usam a fonte de pixel; texto
+// corrido usa a de terminal, porque fonte de pixel em parágrafo longo
+// não se lê.
+export const T = {
+  rotulo: { fontFamily: "'Press Start 2P', monospace", fontSize: 8,  letterSpacing: 1 },
+  titulo: { fontFamily: "'Press Start 2P', monospace", fontSize: 11, letterSpacing: 1 },
+  corpo:  { fontFamily: "'VT323', monospace",          fontSize: 19, lineHeight: 1.35 },
 } as const;
 
 // Cores por recurso (cartões do HUD)

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import Credits from './components/Game/Credits';
-import GameFrame, { Box } from './components/Shell/GameFrame';
-import { C, bevel } from './game/theme';
+import GameFrame, { Box, Janela } from './components/Shell/GameFrame';
+import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 
 // ─────────────────────────────────────────────────────────
@@ -26,27 +26,33 @@ const DEMO = {
   opcoes: ['Primeira alternativa da escolha', 'Segunda alternativa, um pouco mais longa que a primeira'],
 };
 
+const px = (n: number) => `calc(var(--p) * ${n})`;
+
+// Botão do menu: moldura preta com bisel de um pixel em cima, e ao
+// apertar ele afunda exatamente um pixel da grade — não uma fração.
 function HomeButton({ label, tone, onClick }: {
   label: string; tone: 'primario' | 'fantasma'; onClick: () => void;
 }) {
   const [down, setDown] = useState(false);
   const bg = tone === 'primario' ? C.rust : C.shell;
-  const top = tone === 'primario' ? C.rustLite : C.shellHi;
+  const topo = tone === 'primario' ? C.rustLite : C.shellHi;
   return (
     <button
       onClick={onClick}
       onPointerDown={() => setDown(true)}
       onPointerUp={() => setDown(false)}
       onPointerLeave={() => setDown(false)}
-      className="font-pixel"
+      className="px-notch"
       style={{
-        width: '100%', maxWidth: 320, fontSize: 12, letterSpacing: 1, color: '#fff',
-        background: bg, border: `3px solid ${C.line}`, borderTop: `3px solid ${top}`,
-        boxShadow: down ? 'none' : bevel(4),
-        transform: down ? 'translate(4px, 4px)' : 'none',
-        padding: '15px 8px', cursor: 'pointer',
-        transition: 'transform 70ms, box-shadow 70ms',
-        textShadow: '0 2px 0 rgba(0,0,0,0.45)',
+        width: '100%', maxWidth: px(90),
+        ...T.titulo, color: '#fff',
+        background: bg, border: 'none', padding: `${px(4)} ${px(3)}`,
+        boxShadow: down
+          ? `inset 0 0 0 var(--p) ${C.line}`
+          : `inset 0 0 0 var(--p) ${C.line}, inset 0 ${px(2)} 0 0 ${topo}`,
+        transform: down ? `translateY(var(--p))` : 'none',
+        cursor: 'pointer',
+        textShadow: `0 var(--p) 0 rgba(0,0,0,0.45)`,
       }}
     >
       {label}
@@ -91,16 +97,16 @@ export default function App() {
         etapaAtual={1}
         rotuloCena={DEMO.rotuloCena}
         texto={DEMO.texto}
+        continuar
         opcoes={DEMO.opcoes.map(label => ({ label, onClick: () => {} }))}
         acoes={
           <Box>
             <button
               onClick={voltar}
-              className="font-pixel"
               style={{
                 width: '100%', background: 'transparent', border: 'none',
-                fontSize: 9, letterSpacing: 1, color: C.paperInk,
-                padding: '4px 2px', cursor: 'pointer', textAlign: 'left',
+                ...T.rotulo, color: C.paperInk,
+                padding: `${px(1)} ${px(1)}`, cursor: 'pointer', textAlign: 'left',
               }}
             >
               ← VOLTAR
@@ -119,51 +125,40 @@ export default function App() {
     }}>
       <div style={{
         position: 'relative', width: 'min(100vw - 24px, 56.25vh)',
-        display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center',
+        display: 'flex', flexDirection: 'column', gap: px(5), justifyContent: 'center',
       }}>
         <div style={{ textAlign: 'center' }}>
           <h1 className="font-pixel" style={{
             fontSize: 'clamp(24px, 8.5vw, 34px)', color: C.bone, letterSpacing: 6, margin: 0,
-            textShadow: `0 4px 0 ${C.line}`,
+            textShadow: `0 var(--p) 0 ${C.line}`,
           }}>
             CINZAS
           </h1>
-          <div style={{
-            display: 'inline-block', marginTop: 9, padding: '5px 10px',
-            background: C.rust, border: `2px solid ${C.line}`, boxShadow: bevel(3),
+          <div className="px-notch" style={{
+            display: 'inline-block', marginTop: px(3), padding: `${px(2)} ${px(3)}`,
+            background: C.rust, boxShadow: `inset 0 0 0 var(--p) ${C.line}`,
           }}>
-            <span className="font-pixel" style={{ fontSize: 8, color: '#fff', letterSpacing: 1 }}>
-              O ÚLTIMO ABRIGO
-            </span>
+            <span style={{ ...T.rotulo, color: '#fff' }}>O ÚLTIMO ABRIGO</span>
           </div>
         </div>
 
         {/* a janela vazia já mostra a proporção e a moldura da cena */}
-        <div style={{
-          width: '100%', aspectRatio: '1 / 1', background: C.shellLo,
-          border: `3px solid ${C.line}`, boxShadow: bevel(4),
-          display: 'grid', placeItems: 'center',
-        }}>
-          <span className="font-pixel" style={{ fontSize: 8, letterSpacing: 2, color: C.boneDim }}>
-            SEM ILUSTRAÇÃO
-          </span>
-        </div>
+        <Janela />
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(3) }}>
           <HomeButton label="VER O CHASSI" tone="primario" onClick={() => { startMusic(); setView('demo'); }} />
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+          <div style={{ display: 'flex', gap: px(2), alignItems: 'center', marginTop: 'var(--p)' }}>
             {[
               { rotulo: 'SOU PROFESSOR', acao: () => { window.location.hash = '#setup'; } },
               { rotulo: 'CRÉDITOS', acao: () => setView('creditos') },
             ].map(({ rotulo, acao }, i) => (
-              <span key={rotulo} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span key={rotulo} style={{ display: 'flex', alignItems: 'center', gap: px(2) }}>
                 {i > 0 && <span style={{ color: C.boneDim, opacity: 0.5 }}>·</span>}
                 <button
                   onClick={acao}
-                  className="font-pixel"
                   style={{
-                    background: 'transparent', border: 'none', color: C.boneDim, fontSize: 8,
-                    letterSpacing: 1, padding: '8px 6px', cursor: 'pointer',
+                    background: 'transparent', border: 'none', color: C.boneDim,
+                    ...T.rotulo, padding: `${px(2)} ${px(2)}`, cursor: 'pointer',
                   }}
                 >
                   {rotulo}

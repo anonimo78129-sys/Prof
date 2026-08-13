@@ -1,40 +1,51 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
-import { C, bevel } from '../../game/theme';
+import { C, T } from '../../game/theme';
 
 // ─────────────────────────────────────────────────────────
-// O chassi do jogo, no formato de RPG de portátil antigo:
+// O chassi do jogo, em pixel art de 8 bits.
 //
 //   ┌─────────────┐
+//   │ HUD         │  título, marcador, progresso
+//   ├─────────────┤
 //   │   JANELA    │  a cena
 //   ├─────────────┤
-//   │ CAIXA TEXTO │  a narração
+//   │ CAIXA TEXTO │  a narração, com seta de continuar
 //   ├─────────────┤
 //   │ ▶ RESPOSTA  │  o menu de escolhas
 //   └─────────────┘
 //
+// Tudo é medido em --p, o tamanho de um pixel de arte (ver index.css).
+// Nenhuma medida solta em px: borda, recuo e espaço entre caixas são
+// múltiplos inteiros dessa unidade, senão a grade quebra e a tela deixa
+// de ler como pixel art.
+//
 // Só o chassi mora aqui: nem história nem ilustração. O que entra em
-// cada fatia vem por prop, então dá para julgar o desenho da tela sem
-// depender de conteúdo nenhum.
+// cada fatia vem por prop.
 // ─────────────────────────────────────────────────────────
 
+const px = (n: number) => `calc(var(--p) * ${n})`;
+
 /**
- * Caixa de três anéis: moldura preta, filete claro e linha preta fechando
- * o miolo. Uma borda só lê como caixa de site; é a repetição dos anéis
- * que dá o ar de portátil antigo.
+ * Caixa de diálogo: anel preto, filete claro e linha preta fechando o
+ * miolo, com o pixel da quina removido. O entalhe é o que separa moldura
+ * de 8 bits de retângulo de navegador.
  */
-export function Box({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+export function Box({ children, style, tom = 'claro' }: {
+  children: ReactNode; style?: CSSProperties; tom?: 'claro' | 'escuro';
+}) {
+  const fundo = tom === 'claro' ? C.paper : C.shell;
   return (
-    <div style={{ background: C.line, padding: 3, boxShadow: bevel(3), ...style }}>
-      <div style={{ background: C.paper, padding: 3 }}>
-        <div style={{ border: `2px solid ${C.line}`, background: C.paper }}>
-          <div style={{ padding: '11px 12px' }}>{children}</div>
+    <div className="px-notch" style={{ background: C.line, padding: 'var(--p)', ...style }}>
+      <div className="px-notch" style={{ background: fundo, padding: 'var(--p)' }}>
+        <div style={{ border: `var(--p) solid ${C.line}`, background: fundo }}>
+          <div style={{ padding: `${px(3)} ${px(4)}` }}>{children}</div>
         </div>
       </div>
     </div>
   );
 }
 
-/** Linha de menu: o cursor só aparece na opção ativa, como no portátil. */
+/** Linha de menu. O cursor só aparece na ativa e pulsa em passo duro. */
 export function MenuItem({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
   const [ativa, setAtiva] = useState(false);
   return (
@@ -44,15 +55,19 @@ export function MenuItem({ children, onClick }: { children: ReactNode; onClick?:
       onPointerLeave={() => setAtiva(false)}
       onFocus={() => setAtiva(true)}
       onBlur={() => setAtiva(false)}
-      className="font-vt"
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: 7, width: '100%',
-        textAlign: 'left', background: 'transparent', border: 'none',
-        padding: '7px 2px', cursor: 'pointer',
-        fontSize: 17, lineHeight: 1.3, color: C.paperInk,
+        display: 'flex', alignItems: 'flex-start', gap: px(2), width: '100%',
+        textAlign: 'left', border: 'none', cursor: 'pointer',
+        background: ativa ? C.paperEdge : 'transparent',
+        padding: `${px(2)} ${px(1)}`,
+        ...T.corpo, color: C.paperInk,
       }}
     >
-      <span aria-hidden style={{ flex: 'none', width: 11, visibility: ativa ? 'visible' : 'hidden' }}>
+      <span
+        aria-hidden
+        className={ativa ? 'px-nudge' : undefined}
+        style={{ flex: 'none', width: px(4), visibility: ativa ? 'visible' : 'hidden' }}
+      >
         ▶
       </span>
       <span style={{ flex: 1 }}>{children}</span>
@@ -60,101 +75,130 @@ export function MenuItem({ children, onClick }: { children: ReactNode; onClick?:
   );
 }
 
-/** Janela da cena. Sem ilustração, mostra a moldura vazia com um rótulo. */
+/**
+ * Janela da cena: só moldura preta, sem bisel. Bisel de canto claro é
+ * idioma de interface de desktop dos anos 90; console de 8 bits emoldura
+ * a tela com preto e ponto final.
+ *
+ * Sem ilustração, o interior recebe xadrez de dithering na escala do
+ * pixel, para o vazio ler como textura proposital em vez de erro.
+ */
 export function Janela({ rotulo, children }: { rotulo?: string; children?: ReactNode }) {
   return (
-    <div style={{
-      position: 'relative', width: '100%', aspectRatio: '1 / 1',
-      background: C.shellLo, border: `3px solid ${C.line}`, boxShadow: bevel(3),
-      overflow: 'hidden',
-    }}>
-      {children ?? (
-        <div className="font-pixel" style={{
-          position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-          fontSize: 8, letterSpacing: 2, color: C.boneDim, textAlign: 'center', padding: 16,
-        }}>
-          JANELA DA CENA
-        </div>
-      )}
-      {rotulo && (
-        <div className="font-pixel" style={{
-          position: 'absolute', left: 0, bottom: 0, right: 0, fontSize: 7.5,
-          color: C.bone, background: 'linear-gradient(to top, rgba(16,16,16,0.92), rgba(16,16,16,0))',
-          padding: '12px 8px 5px', letterSpacing: 0.5,
-        }}>
-          {rotulo}
-        </div>
-      )}
+    <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
+      <div
+        className={children ? undefined : 'px-dither'}
+        style={{
+          position: 'relative', width: '100%', aspectRatio: '1 / 1',
+          // backgroundColor, nunca o atalho background: o atalho zera o
+          // background-image que a classe .px-dither define
+          backgroundColor: C.shellLo, overflow: 'hidden',
+          ['--dither-a' as string]: C.shellLo,
+          ['--dither-b' as string]: '#232f18',
+        }}
+      >
+        {children ?? (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+            ...T.rotulo, letterSpacing: 2, color: C.boneDim, textAlign: 'center', padding: px(5),
+          }}>
+            JANELA DA CENA
+          </div>
+        )}
+        {rotulo && (
+          <div style={{
+            position: 'absolute', left: 0, bottom: 0, right: 0,
+            ...T.rotulo, color: C.bone,
+            background: 'linear-gradient(to top, rgba(10,10,10,0.94), rgba(10,10,10,0))',
+            padding: `${px(4)} ${px(3)} ${px(2)}`,
+          }}>
+            {rotulo}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Barra de progresso em blocos: em 8 bits progresso é contado, não medido. */
+function Progresso({ total, atual }: { total: number; atual: number }) {
+  return (
+    <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }} aria-hidden>
+      <div style={{ display: 'flex', gap: 'var(--p)' }}>
+        {Array.from({ length: total }, (_, i) => (
+          <span key={i} style={{
+            flex: 1, height: px(2),
+            background: i <= atual ? C.lineSoft : C.shellLo,
+          }} />
+        ))}
+      </div>
     </div>
   );
 }
 
 export interface GameFrameProps {
   titulo: string;
-  /** contador curto no topo, ex. "DIA 01" */
   marcador?: string;
-  /** quantas etapas a barra de progresso tem, e em qual estamos */
   etapas?: number;
   etapaAtual?: number;
   rotuloCena?: string;
   cena?: ReactNode;
-  /** o texto da caixa de narração */
   texto: ReactNode;
-  /** as opções do menu; sem elas a caixa de respostas não aparece */
+  /** mostra a seta de continuar no canto da caixa de texto */
+  continuar?: boolean;
   opcoes?: { label: string; onClick?: () => void }[];
   acoes?: ReactNode;
 }
 
 export default function GameFrame({
   titulo, marcador, etapas = 0, etapaAtual = 0,
-  rotuloCena, cena, texto, opcoes, acoes,
+  rotuloCena, cena, texto, continuar, opcoes, acoes,
 }: GameFrameProps) {
   return (
     <div style={{
       position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
-      display: 'flex', justifyContent: 'center', padding: '10px 0 28px',
+      display: 'flex', justifyContent: 'center',
+      padding: `${px(3)} 0 ${px(8)}`,
     }}>
       {/* preenche a largura no celular e trava em 9:16 no desktop */}
       <div style={{
-        width: 'min(100vw, 56.25vh)', padding: '0 10px',
-        display: 'flex', flexDirection: 'column', gap: 8,
+        width: 'min(100vw, 56.25vh)', padding: `0 ${px(3)}`,
+        display: 'flex', flexDirection: 'column', gap: px(3),
       }}>
 
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: C.shell, border: `2px solid ${C.line}`, boxShadow: bevel(3),
-          padding: '7px 8px',
-        }}>
-          <span className="font-pixel" style={{ fontSize: 10, color: C.bone, letterSpacing: 1 }}>
-            {titulo}
-          </span>
-          {marcador && (
-            <span className="font-pixel" style={{
-              fontSize: 7, color: '#fff', background: C.rust,
-              border: `2px solid ${C.line}`, padding: '3px 6px',
-            }}>
-              {marcador}
-            </span>
-          )}
+        {/* ── HUD ── */}
+        <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: px(3),
+            background: C.shell, padding: `${px(2)} ${px(3)}`,
+            boxShadow: `inset 0 ${px(1)} 0 0 ${C.shellHi}`,
+          }}>
+            <span style={{ ...T.titulo, color: C.bone }}>{titulo}</span>
+            <div style={{ flex: 1 }} />
+            {marcador && (
+              <span style={{
+                ...T.rotulo, color: '#fff', background: C.rust,
+                padding: `${px(1)} ${px(2)}`,
+                boxShadow: `0 0 0 var(--p) ${C.line}`,
+                marginRight: 'var(--p)',
+              }}>
+                {marcador}
+              </span>
+            )}
+          </div>
         </div>
 
-        {etapas > 0 && (
-          <div style={{ display: 'flex', gap: 3 }} aria-hidden>
-            {Array.from({ length: etapas }, (_, i) => (
-              <span key={i} style={{
-                flex: 1, height: 4, border: `1px solid ${C.line}`,
-                background: i <= etapaAtual ? C.lineSoft : 'rgba(255,255,255,0.08)',
-              }} />
-            ))}
-          </div>
-        )}
+        {etapas > 0 && <Progresso total={etapas} atual={etapaAtual} />}
 
         <Janela rotulo={rotuloCena}>{cena}</Janela>
 
         <Box>
-          <div className="font-vt" style={{ fontSize: 19, lineHeight: 1.4, color: C.paperInk }}>
-            {texto}
-          </div>
+          <div style={{ ...T.corpo, color: C.paperInk }}>{texto}</div>
+          {continuar && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: px(2) }}>
+              <span aria-hidden className="px-blink" style={{ ...T.rotulo, color: C.paperInk }}>▼</span>
+            </div>
+          )}
         </Box>
 
         {opcoes && opcoes.length > 0 && (

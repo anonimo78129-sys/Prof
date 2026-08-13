@@ -288,6 +288,56 @@
   .input-rpg::placeholder { color: #a88060; }
   .input-rpg:focus { border-color: #c88f20; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(200,143,32,0.4); }
 
+  /* ═══════════════════════════════════
+     GRADE DE PIXEL
+
+     Tudo é medido em --p, o tamanho de UM pixel de arte na tela. É essa
+     unidade única que separa pixel art de "site com fonte de pixel":
+     borda, recuo, entalhe e espaço entre caixas são todos múltiplos
+     inteiros dela, então nada cai fora da grade e nada sai meio-pixel
+     borrado.
+     ═══════════════════════════════════ */
+  :root {
+    --p: 3px;              /* um pixel de arte */
+    --p2: calc(var(--p) * 2);
+    --p3: calc(var(--p) * 3);
+    --p4: calc(var(--p) * 4);
+    --p6: calc(var(--p) * 6);
+    --p8: calc(var(--p) * 8);
+  }
+  @media (min-width: 520px) { :root { --p: 4px; } }
+
+  /* Canto entalhado: caixa de 8 bits não tem canto reto nem arredondado,
+     tem o pixel da quina removido. É o detalhe que mais denuncia moldura
+     desenhada no navegador quando falta. */
+  .px-notch {
+    clip-path: polygon(
+      var(--p) 0, calc(100% - var(--p)) 0,
+      100% var(--p), 100% calc(100% - var(--p)),
+      calc(100% - var(--p)) 100%, var(--p) 100%,
+      0 calc(100% - var(--p)), 0 var(--p)
+    );
+  }
+
+  /* Xadrez de dithering na escala do pixel de arte. É como 8 bits fazia
+     meio-tom, e serve de vazio honesto na janela enquanto não há
+     ilustração: lê como textura proposital, não como caixa quebrada. */
+  .px-dither {
+    background-image: repeating-conic-gradient(
+      var(--dither-a) 0% 25%, var(--dither-b) 0% 50%
+    );
+    background-size: var(--p2) var(--p2);
+  }
+
+  /* Seta de "continuar", piscando no canto da caixa de texto. Passo duro,
+     sem esmaecer: em 8 bits não existe meio-alfa. */
+  @keyframes px-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  .px-blink { animation: px-blink 1s steps(1, end) infinite; }
+
+  /* Cursor do menu, com o mesmo passo duro. */
+  @keyframes px-nudge { 0%, 49% { transform: translateX(0); } 50%, 100% { transform: translateX(var(--p)); } }
+  .px-nudge { animation: px-nudge 0.6s steps(1, end) infinite; }
+
   /* Quem pediu menos movimento no sistema recebe menos movimento aqui:
      partículas, respiração do sprite e transições longas desligam. */
   @media (prefers-reduced-motion: reduce) {
