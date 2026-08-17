@@ -6,6 +6,9 @@ import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { CAPITULOS, PRIMEIRO } from './game/capitulos';
 import { CenaCamadas, CenaProfundidade } from './components/Shell/CenaAnimada';
+import Cena3D from './components/Shell/Cena3D';
+import { JOGOS, type Jogo } from './game/jogos';
+import { ARCA, ARCA_PRIMEIRO } from './game/arca';
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -13,7 +16,7 @@ import { CenaCamadas, CenaProfundidade } from './components/Shell/CenaAnimada';
 // trocar o roteiro sem tocar no desenho, e vice-versa.
 // ─────────────────────────────────────────────────────────
 
-type View = 'home' | 'jogo' | 'fim' | 'setup' | 'creditos';
+type View = 'home' | 'jogo' | 'arca' | 'fim' | 'setup' | 'creditos';
 
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
@@ -49,6 +52,42 @@ function HomeButton({ label, tone, onClick }: {
   );
 }
 
+// Cartão da tela de escolha: a capa mostra a técnica de imagem que o
+// jogo usa, então dá para ver a diferença antes de entrar.
+function CartaoJogo({ jogo, onClick }: { jogo: Jogo; onClick: () => void }) {
+  const [down, setDown] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onPointerDown={() => setDown(true)}
+      onPointerUp={() => setDown(false)}
+      onPointerLeave={() => setDown(false)}
+      className="px-notch"
+      style={{
+        display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
+        background: C.line, border: 'none', padding: 'var(--p)',
+        transform: down ? 'translateY(var(--p))' : 'none',
+      }}
+    >
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '11 / 6', overflow: 'hidden', background: C.shellLo }}>
+        {jogo.tecnica === '3d'
+          ? <Cena3D />
+          : <img
+              src={CAPITULOS[PRIMEIRO].imagem}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: CAPITULOS[PRIMEIRO].foco }}
+            />}
+      </div>
+      <div style={{ background: C.shell, padding: `${px(3)} ${px(3)}` }}>
+        <div style={{ ...T.titulo, color: C.bone }}>{jogo.titulo}</div>
+        <div style={{ ...T.rotulo, color: C.rustLite, marginTop: px(1) }}>{jogo.subtitulo}</div>
+        <div style={{ ...T.corpo, fontSize: 16, color: C.boneDim, marginTop: px(2) }}>{jogo.chamada}</div>
+        <div style={{ ...T.rotulo, color: C.lineSoft, marginTop: px(2) }}>{jogo.conteudo}</div>
+      </div>
+    </button>
+  );
+}
+
 const IDS = Object.keys(CAPITULOS);
 
 export default function App() {
@@ -56,6 +95,10 @@ export default function App() {
   const [capId, setCapId] = useState<string>(PRIMEIRO);
   // cada incremento dispara um passo da animação da ilustração
   const [gatilho, setGatilho] = useState(0);
+  const [arcaId, setArcaId] = useState<string>(ARCA_PRIMEIRO);
+  // texto de consequência mostrado depois da escolha, antes de seguir
+  const [resultado, setResultado] = useState<string | null>(null);
+  const [proximoArca, setProximoArca] = useState<string | null>(null);
 
   useEffect(() => {
     const handleHash = () => {
@@ -93,6 +136,41 @@ export default function App() {
           { label: 'Voltar ao começo', onClick: () => { setCapId(PRIMEIRO); setView('jogo'); } },
           { label: 'Sair para a tela inicial', onClick: voltar },
         ]}
+      />
+    );
+  }
+
+  if (view === 'arca') {
+    const cap = ARCA[arcaId];
+    return (
+      <GameFrame
+        titulo={cap.titulo}
+        onVoltar={voltar}
+        etapas={Object.keys(ARCA).length}
+        etapaAtual={Object.keys(ARCA).indexOf(cap.id)}
+        cena={<Cena3D avanco={gatilho * 1.4} />}
+        texto={resultado ?? cap.texto}
+        continuar={!!resultado}
+        opcoes={
+          resultado
+            ? [{
+                label: proximoArca ? 'Continuar' : 'Encerrar por aqui',
+                onClick: () => {
+                  setResultado(null);
+                  if (proximoArca) { setArcaId(proximoArca); setProximoArca(null); }
+                  else setView('fim');
+                },
+              }]
+            : cap.opcoes.map(o => ({
+                label: o.label,
+                onClick: () => {
+                  // a cena anda, e só então o resultado aparece
+                  setGatilho(g => g + 1);
+                  setProximoArca(o.proximo);
+                  window.setTimeout(() => setResultado(o.resultado), 620);
+                },
+              }))
+        }
       />
     );
   }
@@ -146,29 +224,22 @@ export default function App() {
         display: 'flex', flexDirection: 'column', gap: px(5), justifyContent: 'center',
       }}>
         <div style={{ textAlign: 'center' }}>
-          <h1 className="font-pixel" style={{
-            fontSize: 'clamp(24px, 8.5vw, 34px)', color: C.bone, letterSpacing: 6, margin: 0,
-            textShadow: `0 var(--p) 0 ${C.line}`,
-          }}>
-            CINZAS
-          </h1>
-          <div className="px-notch" style={{
-            display: 'inline-block', marginTop: px(3), padding: `${px(2)} ${px(3)}`,
-            background: C.rust, boxShadow: `inset 0 0 0 var(--p) ${C.line}`,
-          }}>
-            <span style={{ ...T.rotulo, color: '#fff' }}>O ÚLTIMO ABRIGO</span>
-          </div>
+          <div style={{ ...T.rotulo, color: C.boneDim, letterSpacing: 3 }}>ESCOLHA UMA HISTÓRIA</div>
         </div>
 
-        {/* capa: a mesma arte do primeiro capítulo */}
-        <Janela imagem={CAPITULOS[PRIMEIRO].imagem} foco={CAPITULOS[PRIMEIRO].foco} />
+        {JOGOS.map(j => (
+          <CartaoJogo
+            key={j.id}
+            jogo={j}
+            onClick={() => {
+              startMusic();
+              if (j.id === 'cinzas') { setCapId(PRIMEIRO); setView('jogo'); }
+              else { setArcaId(ARCA_PRIMEIRO); setResultado(null); setView('arca'); }
+            }}
+          />
+        ))}
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(3) }}>
-          <HomeButton
-            label="JOGAR"
-            tone="primario"
-            onClick={() => { startMusic(); setCapId(PRIMEIRO); setView('jogo'); }}
-          />
           <div style={{ display: 'flex', gap: px(2), alignItems: 'center', marginTop: 'var(--p)' }}>
             {[
               { rotulo: 'SOU PROFESSOR', acao: () => { window.location.hash = '#setup'; } },
