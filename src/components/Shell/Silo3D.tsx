@@ -3,384 +3,373 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────
-// O Núcleo Verde em 3D, rasterizado como portátil antigo.
+// O Núcleo Verde em voxel.
 //
-// A estética não vem de modelar em blocos: vem do jeito de RENDERIZAR.
-// A cena é desenhada num alvo de 208x156 — resolução de portátil — e
-// depois ampliada sem suavizar. Por cima passa um shader que prende cada
-// pixel a uma paleta fechada, com dithering ordenado 4x4 fingindo os
-// tons que a paleta não tem. É a mesma receita da pixel art 2D do
-// projeto, agora aplicada a geometria 3D.
+// O mundo é uma grade de cubos de 1x1x1, cada tipo com sua textura de
+// 16x16 desenhada por código e ampliada sem suavizar — o mesmo princípio
+// do Minecraft. A pixelização vem da textura e de um render em baixa
+// resolução; a paleta é ampla de propósito, porque prender tudo a poucos
+// tons deixava a cena escura e chapada.
 //
-// Sem isso, 3D com pouca cor só parece 3D pobre. Com isso, parece
-// máquina de 16 bits.
+// Desempenho: um cubo por bloco seria uma chamada de desenho por bloco.
+// Aqui cada TIPO de bloco é um InstancedMesh, então o mundo inteiro sai
+// em meia dúzia de chamadas. E só entram na malha os blocos com pelo
+// menos uma face exposta — o miolo maciço nunca é desenhado.
 // ─────────────────────────────────────────────────────────
 
-const LARGURA = 208, ALTURA = 156;
+const LARGURA = 256, ALTURA = 192;
 
-/** Paleta fechada. Poucas cores, decididas — não é limitação, é o estilo. */
-const PALETA = [
-  '#0a0d07', '#151d10', '#232f18', '#3a4a20',
-  '#4a5a24', '#5c7a1a', '#7ba428', '#a3d13f',
-  '#c3d94a', '#5e6252', '#8a8e78', '#b5b89c',
-  '#ede9d0', '#f8f8e8', '#7d4109', '#f7941e',
-].map(h => new THREE.Color(h));
+// ── blocos ───────────────────────────────────────────────
+const AR = 0, CONCRETO = 1, METAL = 2, TERRA = 3, GRAMA = 4,
+      FOLHA = 5, VIDRO = 6, LAMPADA = 7, MADEIRA = 8;
+
+const WX = 26, WY = 8, WZ = 44;
+const grade = new Uint8Array(WX * WY * WZ);
+const iv = (x: number, y: number, z: number) => x + y * WX + z * WX * WY;
+const bloco = (x: number, y: number, z: number) =>
+  (x < 0 || y < 0 || z < 0 || x >= WX || y >= WY || z >= WZ) ? AR : grade[iv(x, y, z)];
+const poe = (x: number, y: number, z: number, t: number) => {
+  if (x >= 0 && y >= 0 && z >= 0 && x < WX && y < WY && z < WZ) grade[iv(x, y, z)] = t;
+};
+
+function montaMundo() {
+  grade.fill(AR);
+  for (let x = 0; x < WX; x++) for (let z = 0; z < WZ; z++) {
+    poe(x, 0, z, METAL);                                  // piso
+    poe(x, WY - 1, z, z % 6 === 0 ? VIDRO : CONCRETO);    // teto com clarabóia
+    if (x === 0 || x === WX - 1 || z === 0 || z === WZ - 1)
+      for (let y = 1; y < WY - 1; y++) poe(x, y, z, CONCRETO);
+  }
+
+  // dois canteiros longos, com borda de madeira e cultura por cima
+  for (const x0 of [5, WX - 9]) {
+    for (let z = 4; z < WZ - 4; z++) {
+      for (let x = x0; x < x0 + 4; x++) {
+        poe(x, 1, z, MADEIRA);
+        poe(x, 2, z, x === x0 || x === x0 + 3 ? MADEIRA : TERRA);
+        if (x > x0 && x < x0 + 3 && z % 2 === 0) poe(x, 3, z, GRAMA);
+        if (x > x0 && x < x0 + 3 && z % 4 === 0) poe(x, 4, z, FOLHA);
+      }
+    }
+  }
+
+  // lâmpadas de cultivo penduradas no corredor
+  for (let z = 4; z < WZ - 4; z += 5) {
+    for (const x of [7, WX - 8]) poe(x, WY - 2, z, LAMPADA);
+  }
+
+  // parede de vidro no fundo, para a cena ter um ponto de fuga claro
+  for (let x = 2; x < WX - 2; x++) for (let y = 1; y < 5; y++) poe(x, y, 2, VIDRO);
+}
+
+/** Textura 16x16 desenhada por código: base, ruído e borda escura. */
+function textura(base: string, ruido = 0.35, borda = true) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 16;
+  const g = c.getContext('2d')!;
+  g.fillStyle = base;
+  g.fillRect(0, 0, 16, 16);
+  for (let i = 0; i < 256; i++) {
+    if (Math.random() > ruido) continue;
+    const escuro = Math.random() < 0.5;
+    g.fillStyle = escuro ? `rgba(0,0,0,${Math.random() * 0.28})` : `rgba(255,255,255,${Math.random() * 0.18})`;
+    g.fillRect(i % 16, Math.floor(i / 16), 1, 1);
+  }
+  if (borda) {
+    g.fillStyle = 'rgba(0,0,0,0.22)';
+    g.fillRect(0, 0, 16, 1); g.fillRect(0, 15, 16, 1);
+    g.fillRect(0, 0, 1, 16); g.fillRect(15, 0, 1, 16);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter;
+  t.minFilter = THREE.NearestFilter;
+  return t;
+}
+
+function materiais() {
+  const m = (cor: string, ruido?: number, extra?: THREE.MeshLambertMaterialParameters) =>
+    new THREE.MeshLambertMaterial({ map: textura(cor, ruido), ...extra });
+
+  const grama = [
+    m('#6f8f3a'), m('#6f8f3a'),      // lados
+    m('#8ec73f', 0.5),               // topo, mais claro
+    m('#6b4a2a'),                    // base, terra
+    m('#6f8f3a'), m('#6f8f3a'),
+  ];
+
+  return {
+    [CONCRETO]: m('#9aa08c', 0.45),
+    [METAL]: m('#7c8496', 0.3),
+    [TERRA]: m('#6b4a2a', 0.55),
+    [GRAMA]: grama,
+    [FOLHA]: m('#7ec44a', 0.5),
+    [VIDRO]: new THREE.MeshLambertMaterial({
+      map: textura('#bfeaff', 0.2), transparent: true, opacity: 0.42,
+    }),
+    [LAMPADA]: new THREE.MeshBasicMaterial({ map: textura('#fff6c2', 0.15, false) }),
+    [MADEIRA]: m('#8a6136', 0.5),
+  } as Record<number, THREE.Material | THREE.Material[]>;
+}
+
+/** Só desenha bloco com face exposta: o miolo maciço não aparece nunca. */
+function exposto(x: number, y: number, z: number) {
+  return bloco(x + 1, y, z) === AR || bloco(x - 1, y, z) === AR
+      || bloco(x, y + 1, z) === AR || bloco(x, y - 1, z) === AR
+      || bloco(x, y, z + 1) === AR || bloco(x, y, z - 1) === AR
+      || bloco(x + 1, y, z) === VIDRO || bloco(x, y + 1, z) === VIDRO;
+}
+
+function Mundo() {
+  const mats = useMemo(() => { montaMundo(); return materiais(); }, []);
+
+  const malhas = useMemo(() => {
+    const geo = new THREE.BoxGeometry(1, 1, 1);
+    const porTipo: Record<number, THREE.Matrix4[]> = {};
+    const dummy = new THREE.Object3D();
+    for (let x = 0; x < WX; x++) for (let y = 0; y < WY; y++) for (let z = 0; z < WZ; z++) {
+      const t = bloco(x, y, z);
+      if (t === AR || !exposto(x, y, z)) continue;
+      dummy.position.set(x - WX / 2, y, z - WZ / 2);
+      dummy.updateMatrix();
+      (porTipo[t] ??= []).push(dummy.matrix.clone());
+    }
+    return Object.entries(porTipo).map(([tipo, ms]) => {
+      const inst = new THREE.InstancedMesh(geo, mats[+tipo] as THREE.Material, ms.length);
+      ms.forEach((m, i) => inst.setMatrixAt(i, m));
+      inst.instanceMatrix.needsUpdate = true;
+      return inst;
+    });
+  }, [mats]);
+
+  return <>{malhas.map((m, i) => <primitive key={i} object={m} />)}</>;
+}
+
+// ── rasterizador de baixa resolução ──────────────────────
 
 const VERT = /* glsl */`
 varying vec2 vUv;
 void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 
-// Bayer 4x4: o desvio antes de escolher a cor da paleta é o que cria a
-// ilusão de mais tons. Sem ele a imagem fica em faixas chapadas.
+// Só pixeliza e dá um leve degrau de cor. A quantização dura, presa a
+// poucos tons, apagava as texturas e deixava tudo escuro e chapado.
 const FRAG = /* glsl */`
 precision mediump float;
 varying vec2 vUv;
 uniform sampler2D tela;
-uniform vec3 paleta[16];
-uniform vec2 tamanho;
-
-float bayer(vec2 p) {
-  int x = int(mod(p.x, 4.0)), y = int(mod(p.y, 4.0));
-  int i = x + y * 4;
-  float m[16];
-  m[0]=0.0;  m[1]=8.0;  m[2]=2.0;  m[3]=10.0;
-  m[4]=12.0; m[5]=4.0;  m[6]=14.0; m[7]=6.0;
-  m[8]=3.0;  m[9]=11.0; m[10]=1.0; m[11]=9.0;
-  m[12]=15.0;m[13]=7.0; m[14]=13.0;m[15]=5.0;
-  for (int k = 0; k < 16; k++) if (k == i) return m[k] / 16.0 - 0.5;
-  return 0.0;
-}
-
 void main() {
   vec3 c = texture2D(tela, vUv).rgb;
-  c += bayer(vUv * tamanho) * 0.07;
-
-  float melhor = 1e9;
-  vec3 saida = paleta[0];
-  for (int i = 0; i < 16; i++) {
-    vec3 d = c - paleta[i];
-    // verde pesa mais porque o olho enxerga mais verde
-    float dist = d.r*d.r*0.30 + d.g*d.g*0.59 + d.b*d.b*0.11;
-    if (dist < melhor) { melhor = dist; saida = paleta[i]; }
-  }
-  gl_FragColor = vec4(saida, 1.0);
+  c = floor(c * 22.0 + 0.5) / 22.0;   // degraus largos, cor ainda viva
+  gl_FragColor = vec4(c, 1.0);
 }`;
 
-/**
- * Assume o desenho: renderiza a cena no alvo pequeno e depois estampa
- * esse alvo na tela passando pelo shader de paleta.
- */
 function Rasterizador() {
-  const { gl, scene, camera, size } = useThree();
-
+  const { gl, scene, camera } = useThree();
   const { alvo, cenaTela, camTela } = useMemo(() => {
     const alvo = new THREE.WebGLRenderTarget(LARGURA, ALTURA, {
-      minFilter: THREE.NearestFilter,
-      magFilter: THREE.NearestFilter,
-      depthBuffer: true,
+      minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true,
     });
     const cenaTela = new THREE.Scene();
     const camTela = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    const quad = new THREE.Mesh(
+    cenaTela.add(new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
       new THREE.ShaderMaterial({
-        vertexShader: VERT,
-        fragmentShader: FRAG,
-        uniforms: {
-          tela: { value: alvo.texture },
-          paleta: { value: PALETA },
-          tamanho: { value: new THREE.Vector2(LARGURA, ALTURA) },
-        },
+        vertexShader: VERT, fragmentShader: FRAG,
+        uniforms: { tela: { value: alvo.texture } },
       }),
-    );
-    cenaTela.add(quad);
+    ));
     return { alvo, cenaTela, camTela };
   }, []);
 
-  useEffect(() => () => alvo.dispose(), [alvo]);
-  useEffect(() => { gl.setPixelRatio(1); }, [gl, size]);
-
+  useEffect(() => { gl.setPixelRatio(1); return () => alvo.dispose(); }, [gl, alvo]);
   useFrame(() => {
     gl.setRenderTarget(alvo);
     gl.render(scene, camera);
     gl.setRenderTarget(null);
     gl.render(cenaTela, camTela);
-  }, 1);   // prioridade 1: assume o laço de desenho do react-three-fiber
-
+  }, 1);
   return null;
 }
 
-// ── mundo ────────────────────────────────────────────────
+// ── jogador ──────────────────────────────────────────────
 
-/** Obstáculos em planta baixa, para o jogador não atravessar parede. */
-const BLOQUEIOS: [number, number, number, number][] = [
-  [-6, -20, -4.4, 20],   // parede esquerda
-  [4.4, -20, 6, 20],     // parede direita
-  [-6, -20, 6, -18.5],   // fundo
-  [-6, 18.5, 6, 20],     // trás
-  [-3.4, -14, -1.6, 12], // bancada esquerda
-  [1.6, -14, 3.4, 12],   // bancada direita
-];
-
-function colide(x: number, z: number) {
-  const r = 0.42;
-  return BLOQUEIOS.some(([x0, z0, x1, z1]) =>
-    x + r > x0 && x - r < x1 && z + r > z0 && z - r < z1);
+function solido(x: number, z: number) {
+  const bx = Math.floor(x + WX / 2), bz = Math.floor(z + WZ / 2);
+  for (const y of [1, 2]) {
+    const t = bloco(bx, y, bz);
+    if (t !== AR && t !== VIDRO) return true;
+  }
+  return false;
 }
 
-function Bancada({ lado, murcha }: { lado: number; murcha: boolean }) {
-  const mudas = useRef<THREE.InstancedMesh>(null);
-  const total = 40;
+type Entrada = { frente: number; lado: number; giro: number; olhar: number };
 
-  const base = useMemo(() => {
-    const arr: { z: number; alt: number; giro: number }[] = [];
-    for (let i = 0; i < total; i++) {
-      arr.push({
-        z: -13 + i * 0.62,
-        alt: 0.30 + Math.abs(Math.sin(i * 78.233)) * 0.26,
-        giro: i * 0.9,
-      });
-    }
-    return arr;
-  }, []);
-
-  useFrame(({ clock }) => {
-    const inst = mudas.current;
-    if (!inst) return;
-    const t = clock.getElapsedTime();
-    const m = new THREE.Matrix4();
-    for (let i = 0; i < base.length; i++) {
-      const b = base[i];
-      // sem vento a muda tomba; com vento ela balança e fica de pé
-      const tombo = murcha ? 0.55 + Math.sin(i) * 0.12 : Math.sin(t * 1.2 + i) * 0.09;
-      m.compose(
-        new THREE.Vector3(lado * 2.5, 0.92 + b.alt / 2, b.z),
-        new THREE.Quaternion().setFromEuler(new THREE.Euler(tombo, b.giro, tombo * 0.4)),
-        new THREE.Vector3(1, b.alt / 0.4, 1),
-      );
-      inst.setMatrixAt(i, m);
-    }
-    inst.instanceMatrix.needsUpdate = true;
-  });
-
-  return (
-    <group>
-      <mesh position={[lado * 2.5, 0.8, -1]}>
-        <boxGeometry args={[1.8, 0.18, 26]} />
-        <meshStandardMaterial color="#8a8e78" flatShading />
-      </mesh>
-      <mesh position={[lado * 2.5, 0.5, -1]}>
-        <boxGeometry args={[1.5, 0.6, 25.6]} />
-        <meshStandardMaterial color="#5e6252" flatShading />
-      </mesh>
-      <mesh position={[lado * 2.5, 0.91, -1]}>
-        <boxGeometry args={[1.6, 0.08, 25.7]} />
-        <meshStandardMaterial color="#3a2b1a" flatShading />
-      </mesh>
-      <instancedMesh ref={mudas} args={[undefined, undefined, total]}>
-        <coneGeometry args={[0.14, 0.4, 5]} />
-        <meshStandardMaterial color={murcha ? '#8a8e78' : '#7ba428'} flatShading />
-      </instancedMesh>
-    </group>
-  );
-}
-
-function Corredor() {
-  return (
-    <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[12, 40]} />
-        <meshStandardMaterial color="#232f18" flatShading />
-      </mesh>
-      <mesh position={[0, 4, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[12, 40]} />
-        <meshStandardMaterial color="#151d10" flatShading />
-      </mesh>
-      {[-5.2, 5.2].map(x => (
-        <mesh key={x} position={[x, 2, 0]} rotation={[0, x > 0 ? -Math.PI / 2 : Math.PI / 2, 0]}>
-          <planeGeometry args={[40, 4]} />
-          <meshStandardMaterial color="#3a4a20" flatShading />
-        </mesh>
-      ))}
-      <mesh position={[0, 2, -19]}>
-        <planeGeometry args={[12, 4]} />
-        <meshStandardMaterial color="#2c3a1a" flatShading />
-      </mesh>
-      {Array.from({ length: 13 }, (_, i) => (
-        <mesh key={i} position={[0, 2, -18 + i * 3]}>
-          <torusGeometry args={[5.6, 0.16, 4, 4, Math.PI]} />
-          <meshStandardMaterial color="#5e6252" flatShading />
-        </mesh>
-      ))}
-      {/* luminárias de cultivo */}
-      {Array.from({ length: 7 }, (_, i) => {
-        const z = -15 + i * 5;
-        return (
-          <group key={z}>
-            <mesh position={[0, 3.6, z]}>
-              <boxGeometry args={[8, 0.14, 0.6]} />
-              <meshStandardMaterial color="#c3d94a" emissive="#c3d94a" emissiveIntensity={1.5} />
-            </mesh>
-            <pointLight position={[0, 3.4, z]} intensity={34} distance={16} color="#c3d94a" />
-          </group>
-        );
-      })}
-      <ambientLight intensity={1.05} color="#8a8e78" />
-    </>
-  );
-}
-
-/** Marcadores das estações onde há algo para examinar. */
-export interface Estacao { id: string; z: number; rotulo: string }
-
-function Marcador({ z, ativo }: { z: number; ativo: boolean }) {
-  const ref = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => {
-    if (ref.current) ref.current.position.y = 1.9 + Math.sin(clock.getElapsedTime() * 2) * 0.12;
-  });
-  return (
-    <mesh ref={ref} position={[0, 1.9, z]} rotation={[0, Math.PI / 4, 0]}>
-      <octahedronGeometry args={[ativo ? 0.26 : 0.17]} />
-      <meshStandardMaterial
-        color={ativo ? '#f7941e' : '#a3d13f'}
-        emissive={ativo ? '#f7941e' : '#a3d13f'}
-        emissiveIntensity={ativo ? 1.4 : 0.6}
-        flatShading
-      />
-    </mesh>
-  );
-}
-
-/** Movimento em primeira pessoa, com colisão e balanço de passo. */
 function Jogador({ entrada, estacoes, onPerto }: {
-  entrada: React.MutableRefObject<{ frente: number; lado: number; giro: number }>;
+  entrada: React.MutableRefObject<Entrada>;
   estacoes: Estacao[];
   onPerto: (id: string | null) => void;
 }) {
   const { camera } = useThree();
-  const pos = useRef(new THREE.Vector3(0, 1.5, 14));
-  // rotação Y igual a zero já olha para -Z, que é o fundo do corredor
+  const pos = useRef(new THREE.Vector3(0, 2.6, WZ / 2 - 5));
+  // zero olha para -Z, que é o fundo do corredor; com PI o jogador
+  // nascia encarando a parede das costas
   const ang = useRef(0);
   const passo = useRef(0);
   const perto = useRef<string | null>(null);
 
   useFrame((_, dt) => {
     const e = entrada.current;
-    ang.current -= e.giro * dt * 1.8;
-    e.giro *= 0.82;
+    ang.current -= (e.giro * 1.8 + e.olhar * 2.6) * dt;
+    e.olhar = 0;
 
-    // frente da câmera é (-sen, 0, -cos); a direita é (cos, 0, -sen).
-    // Com o sinal trocado o boneco andava para trás olhando para a frente.
-    const vel = 3.4 * dt;
+    const vel = 4.2 * dt;
     const s = Math.sin(ang.current), c = Math.cos(ang.current);
     const dx = (-s * e.frente + c * e.lado) * vel;
     const dz = (-c * e.frente - s * e.lado) * vel;
-
-    // testa cada eixo separado: raspar na parede não trava o movimento
-    if (!colide(pos.current.x + dx, pos.current.z)) pos.current.x += dx;
-    if (!colide(pos.current.x, pos.current.z + dz)) pos.current.z += dz;
+    if (!solido(pos.current.x + dx, pos.current.z)) pos.current.x += dx;
+    if (!solido(pos.current.x, pos.current.z + dz)) pos.current.z += dz;
 
     const andando = Math.abs(e.frente) + Math.abs(e.lado) > 0.01;
-    if (andando) passo.current += dt * 7;
+    if (andando) passo.current += dt * 7.5;
     camera.position.set(
       pos.current.x,
-      1.5 + (andando ? Math.sin(passo.current) * 0.045 : 0),
+      2.6 + (andando ? Math.sin(passo.current) * 0.06 : 0),
       pos.current.z,
     );
-    camera.rotation.set(0, ang.current, andando ? Math.sin(passo.current * 0.5) * 0.008 : 0, 'YXZ');
+    camera.rotation.set(0, ang.current, 0, 'YXZ');
 
-    const achou = estacoes.find(s => Math.abs(s.z - pos.current.z) < 2.2) ?? null;
+    const achou = estacoes.find(sx => Math.abs(sx.z - pos.current.z) < 2.6) ?? null;
     const id = achou?.id ?? null;
     if (id !== perto.current) { perto.current = id; onPerto(id); }
   });
-
   return null;
+}
+
+export interface Estacao { id: string; z: number; rotulo: string }
+
+function Marcador({ z, ativo }: { z: number; ativo: boolean }) {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (!ref.current) return;
+    ref.current.position.y = 3.4 + Math.sin(t * 2.2) * 0.18;
+    ref.current.rotation.y = t * 1.2;
+  });
+  return (
+    <mesh ref={ref} position={[0, 3.4, z]}>
+      <boxGeometry args={[0.5, 0.5, 0.5]} />
+      <meshBasicMaterial color={ativo ? '#ffb43c' : '#9ff05a'} />
+    </mesh>
+  );
 }
 
 export interface Silo3DProps {
   estacoes: Estacao[];
-  /** as mudas ficam tombadas até o ventilador voltar */
-  murcha?: boolean;
   onPerto?: (id: string | null) => void;
 }
 
-export default function Silo3D({ estacoes, murcha = true, onPerto }: Silo3DProps) {
-  const entrada = useRef({ frente: 0, lado: 0, giro: 0 });
+export default function Silo3D({ estacoes, onPerto }: Silo3DProps) {
+  const entrada = useRef<Entrada>({ frente: 0, lado: 0, giro: 0, olhar: 0 });
   const [ativa, setAtiva] = useState<string | null>(null);
+  const area = useRef<HTMLDivElement>(null);
 
-  // teclado no computador
   useEffect(() => {
-    const mapa: Record<string, [keyof typeof entrada.current, number]> = {
+    const mapa: Record<string, ['frente' | 'lado' | 'giro', number]> = {
       w: ['frente', 1], s: ['frente', -1], a: ['lado', -1], d: ['lado', 1],
       arrowup: ['frente', 1], arrowdown: ['frente', -1],
       arrowleft: ['giro', -1], arrowright: ['giro', 1],
     };
-    const tecla = (e: KeyboardEvent, v: number) => {
+    const t = (e: KeyboardEvent, v: number) => {
       const m = mapa[e.key.toLowerCase()];
       if (!m) return;
       e.preventDefault();
-      if (m[0] === 'giro') { if (v) entrada.current.giro = m[1] * 0.9; }
-      else entrada.current[m[0]] = v ? m[1] : 0;
+      entrada.current[m[0]] = v ? m[1] : 0;
     };
-    const dn = (e: KeyboardEvent) => tecla(e, 1);
-    const up = (e: KeyboardEvent) => tecla(e, 0);
+    const dn = (e: KeyboardEvent) => t(e, 1), up = (e: KeyboardEvent) => t(e, 0);
     window.addEventListener('keydown', dn);
     window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', dn); window.removeEventListener('keyup', up); };
   }, []);
 
+  // arrastar na tela para virar — é assim que se olha em volta no celular
+  useEffect(() => {
+    const el = area.current;
+    if (!el) return;
+    let id: number | null = null, ultimoX = 0;
+    const desce = (e: PointerEvent) => {
+      if ((e.target as HTMLElement).closest('[data-dpad]')) return;
+      id = e.pointerId; ultimoX = e.clientX;
+    };
+    const move = (e: PointerEvent) => {
+      if (e.pointerId !== id) return;
+      entrada.current.olhar += (e.clientX - ultimoX) * 0.012;
+      ultimoX = e.clientX;
+    };
+    const sobe = (e: PointerEvent) => { if (e.pointerId === id) id = null; };
+    el.addEventListener('pointerdown', desce);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', sobe);
+    window.addEventListener('pointercancel', sobe);
+    return () => {
+      el.removeEventListener('pointerdown', desce);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', sobe);
+      window.removeEventListener('pointercancel', sobe);
+    };
+  }, []);
+
   const aviso = (id: string | null) => { setAtiva(id); onPerto?.(id); };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+    <div ref={area} style={{ position: 'absolute', inset: 0, overflow: 'hidden', touchAction: 'none' }}>
       <Canvas
         style={{ position: 'absolute', inset: 0, imageRendering: 'pixelated' }}
         gl={{ antialias: false, powerPreference: 'low-power' }}
-        camera={{ fov: 68, near: 0.1, far: 50 }}
+        camera={{ fov: 70, near: 0.1, far: 90 }}
       >
-        <color attach="background" args={['#151d10']} />
-        <fog attach="fog" args={['#151d10', 16, 44]} />
-        <Corredor />
-        <Bancada lado={-1} murcha={murcha} />
-        <Bancada lado={1} murcha={murcha} />
+        <color attach="background" args={['#cfe6f5']} />
+        {/* claro de propósito: cena de estufa iluminada, não porão */}
+        <ambientLight intensity={1.5} />
+        <hemisphereLight args={['#eaf6ff', '#6b5a3a', 1.2]} />
+        <directionalLight position={[10, 24, 8]} intensity={1.5} />
+        <Mundo />
         {estacoes.map(s => <Marcador key={s.id} z={s.z} ativo={ativa === s.id} />)}
         <Jogador entrada={entrada} estacoes={estacoes} onPerto={aviso} />
         <Rasterizador />
       </Canvas>
 
-      <ControlesToque entrada={entrada} />
+      <Dpad entrada={entrada} />
     </div>
   );
 }
 
-/** D-pad de toque. Sem isso o jogo não anda em celular, que é o alvo. */
-function ControlesToque({ entrada }: { entrada: React.MutableRefObject<{ frente: number; lado: number; giro: number }> }) {
-  const botao = (rotulo: string, aplica: (v: number) => void) => (
+/** D-pad de toque. O arrastar cuida da direção; aqui é só andar. */
+function Dpad({ entrada }: { entrada: React.MutableRefObject<Entrada> }) {
+  const b = (rotulo: string, aplica: (v: number) => void) => (
     <button
-      onPointerDown={e => { e.preventDefault(); aplica(1); }}
+      data-dpad
+      onPointerDown={e => { e.preventDefault(); e.stopPropagation(); aplica(1); }}
       onPointerUp={() => aplica(0)}
       onPointerLeave={() => aplica(0)}
       onPointerCancel={() => aplica(0)}
       style={{
-        width: 38, height: 38, display: 'grid', placeItems: 'center',
-        background: 'rgba(10,13,7,0.82)', color: '#a3d13f',
-        border: '2px solid #5c7a1a', fontFamily: 'monospace', fontSize: 15,
+        width: 42, height: 42, display: 'grid', placeItems: 'center',
+        background: 'rgba(10,13,7,0.7)', color: '#cfe6a0',
+        border: '2px solid #8ec73f', fontFamily: 'monospace', fontSize: 16,
         cursor: 'pointer', touchAction: 'none',
       }}
     >
       {rotulo}
     </button>
   );
-
   return (
-    <div style={{
-      position: 'absolute', left: 8, bottom: 8, zIndex: 3,
-      display: 'grid', gridTemplateColumns: 'repeat(3, 38px)', gap: 3,
+    <div data-dpad style={{
+      position: 'absolute', left: 10, bottom: 10, zIndex: 3,
+      display: 'grid', gridTemplateColumns: 'repeat(3, 42px)', gap: 3,
     }}>
-      <div />{botao('▲', v => (entrada.current.frente = v))}<div />
-      {botao('◄', v => (entrada.current.giro = -v * 0.9))}
-      {botao('▼', v => (entrada.current.frente = -v))}
-      {botao('►', v => (entrada.current.giro = v * 0.9))}
+      <div />{b('▲', v => (entrada.current.frente = v))}<div />
+      {b('◄', v => (entrada.current.lado = -v))}
+      {b('▼', v => (entrada.current.frente = -v))}
+      {b('►', v => (entrada.current.lado = v))}
     </div>
   );
 }

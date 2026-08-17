@@ -27,9 +27,6 @@ export default function JogoSilo({ onSair }: { onSair: () => void }) {
   const [resultado, setResultado] = useState<string | null>(null);
   const [resolvidos, setResolvidos] = useState<string[]>([]);
 
-  // as mudas só param de tombar depois que o ventilador é consertado
-  const murcha = !resolvidos.includes('mudas');
-
   const abrir = () => {
     if (!perto) return;
     setAberto(SILO[perto]);
@@ -82,7 +79,7 @@ export default function JogoSilo({ onSair }: { onSair: () => void }) {
         <div style={{ position: 'relative', flex: 1, margin: `${px(2)} ${px(3)}` }}>
           <div className="px-notch" style={{ position: 'absolute', inset: 0, background: C.line, padding: 'var(--p)' }}>
             <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-              <Silo3D estacoes={ESTACOES} murcha={murcha} onPerto={setPerto} />
+              <Silo3D estacoes={ESTACOES} onPerto={setPerto} />
 
               {/* aviso de que há algo para examinar aqui */}
               {perto && !aberto && (
