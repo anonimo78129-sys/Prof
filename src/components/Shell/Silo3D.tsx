@@ -1,6 +1,10 @@
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import {
+  texSolida, geoCruz, matPlanta,
+  TRIGO, MUDA, MATO, FLOR_VERMELHA, FLOR_AZUL, FLOR_BRANCA,
+} from './blocos';
 
 // ─────────────────────────────────────────────────────────
 // O Núcleo Verde em voxel.
@@ -23,8 +27,16 @@ import * as THREE from 'three';
 // ─────────────────────────────────────────────────────────
 
 // ── blocos ───────────────────────────────────────────────
+// cubos inteiros
 const AR = 0, CONCRETO = 1, METAL = 2, TERRA = 3, GRAMA = 4,
-      FOLHA = 5, VIDRO = 6, LAMPADA = 7, MADEIRA = 8;
+      LAMPADA = 7, MADEIRA = 8;
+// placa fina
+const VIDRO = 6;
+// vegetação em cruz, e miudezas em cubo pequeno
+const TIPO_CRUZ = [10, 11, 12, 13, 14, 15] as const;
+const V_TRIGO = 10, V_MUDA = 11, V_MATO = 12,
+      V_FLOR_R = 13, V_FLOR_A = 14, V_FLOR_B = 15;
+const MIUDO = 20;
 
 const WX = 26, WY = 8, WZ = 44;
 const grade = new Uint8Array(WX * WY * WZ);
@@ -43,88 +55,102 @@ function montaMundo() {
     if (x === 0 || x === WX - 1 || z === 0 || z === WZ - 1)
       for (let y = 1; y < WY - 1; y++) poe(x, y, z, CONCRETO);
   }
+
+  // Canteiros: caixa de madeira, terra dentro, e a cultura POR CIMA em
+  // cruz. Desenhar a planta como cubo era o que deixava tudo com cara de
+  // caixote empilhado.
   for (const x0 of [5, WX - 9]) {
     for (let z = 4; z < WZ - 4; z++) {
       for (let x = x0; x < x0 + 4; x++) {
+        const borda = x === x0 || x === x0 + 3;
         poe(x, 1, z, MADEIRA);
-        poe(x, 2, z, x === x0 || x === x0 + 3 ? MADEIRA : TERRA);
-        if (x > x0 && x < x0 + 3 && z % 2 === 0) poe(x, 3, z, GRAMA);
-        if (x > x0 && x < x0 + 3 && z % 4 === 0) poe(x, 4, z, FOLHA);
+        poe(x, 2, z, borda ? MADEIRA : TERRA);
+        if (borda) continue;
+        // trecho de cada canteiro com uma cultura diferente, e mato e
+        // flor espalhados para a fileira não ficar mecânica
+        const r = (x * 31 + z * 17) % 11;
+        if (z % 9 === 0 && r < 4) poe(x, 3, z, V_FLOR_R + (r % 3));
+        else if (r < 6) poe(x, 3, z, z < WZ / 2 ? V_TRIGO : V_MUDA);
+        else if (r < 8) poe(x, 3, z, V_MATO);
       }
     }
   }
+
+  // vasinhos e válvulas na beira do corredor: cubo pequeno, não inteiro
+  for (let z = 6; z < WZ - 6; z += 7) {
+    poe(4, 1, z, MIUDO);
+    poe(WX - 5, 1, z + 3, MIUDO);
+  }
+
   for (let z = 4; z < WZ - 4; z += 5) for (const x of [7, WX - 8]) poe(x, WY - 2, z, LAMPADA);
   for (let x = 2; x < WX - 2; x++) for (let y = 1; y < 5; y++) poe(x, y, 2, VIDRO);
 }
 
-function textura(base: string, ruido = 0.35, borda = true) {
-  const c = document.createElement('canvas');
-  c.width = c.height = 16;
-  const g = c.getContext('2d')!;
-  g.fillStyle = base;
-  g.fillRect(0, 0, 16, 16);
-  for (let i = 0; i < 256; i++) {
-    if (Math.random() > ruido) continue;
-    g.fillStyle = Math.random() < 0.5
-      ? `rgba(0,0,0,${Math.random() * 0.26})`
-      : `rgba(255,255,255,${Math.random() * 0.18})`;
-    g.fillRect(i % 16, Math.floor(i / 16), 1, 1);
-  }
-  if (borda) {
-    g.fillStyle = 'rgba(0,0,0,0.2)';
-    g.fillRect(0, 0, 16, 1); g.fillRect(0, 15, 16, 1);
-    g.fillRect(0, 0, 1, 16); g.fillRect(15, 0, 1, 16);
-  }
-  const t = new THREE.CanvasTexture(c);
-  // o pixel da textura continua duro: é isso que dá a cara de bloco
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestMipmapNearestFilter;
-  t.generateMipmaps = true;
-  return t;
-}
-
 function materiais() {
   const m = (cor: string, ruido?: number) =>
-    new THREE.MeshLambertMaterial({ map: textura(cor, ruido) });
+    new THREE.MeshLambertMaterial({ map: texSolida(cor, ruido) });
   return {
     [CONCRETO]: m('#9aa08c', 0.45),
     [METAL]: m('#7c8496', 0.3),
     [TERRA]: m('#6b4a2a', 0.55),
     [GRAMA]: [m('#6f8f3a'), m('#6f8f3a'), m('#8ec73f', 0.5), m('#6b4a2a'), m('#6f8f3a'), m('#6f8f3a')],
-    [FOLHA]: m('#7ec44a', 0.5),
-    [VIDRO]: new THREE.MeshLambertMaterial({ map: textura('#bfeaff', 0.2), transparent: true, opacity: 0.4 }),
-    [LAMPADA]: new THREE.MeshBasicMaterial({ map: textura('#fff6c2', 0.15, false) }),
+    [VIDRO]: new THREE.MeshLambertMaterial({ map: texSolida('#bfeaff', 0.2), transparent: true, opacity: 0.4 }),
+    [LAMPADA]: new THREE.MeshBasicMaterial({ map: texSolida('#fff6c2', 0.15, false) }),
     [MADEIRA]: m('#8a6136', 0.5),
+    [MIUDO]: m('#b06a3a', 0.4),
+    [V_TRIGO]: matPlanta(TRIGO),
+    [V_MUDA]: matPlanta(MUDA),
+    [V_MATO]: matPlanta(MATO),
+    [V_FLOR_R]: matPlanta(FLOR_VERMELHA),
+    [V_FLOR_A]: matPlanta(FLOR_AZUL),
+    [V_FLOR_B]: matPlanta(FLOR_BRANCA),
   } as Record<number, THREE.Material | THREE.Material[]>;
 }
 
+const ehCruz = (t: number) => (TIPO_CRUZ as readonly number[]).includes(t);
+
+// Planta e miudeza não tapam o vizinho, então quem está atrás delas
+// continua com face exposta e precisa ser desenhado.
+const vazado = (t: number) => t === AR || t === VIDRO || ehCruz(t) || t === MIUDO;
+
 const exposto = (x: number, y: number, z: number) =>
-  [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]
-    .some(([a, b, c]) => {
-      const v = bloco(x + a, y + b, z + c);
-      return v === AR || v === VIDRO;
-    });
+  [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+    .some(([a, b, c]) => vazado(bloco(x + a, y + b, z + c)));
 
 function Mundo() {
   const mats = useMemo(() => { montaMundo(); return materiais(); }, []);
+
   const malhas = useMemo(() => {
-    const geo = new THREE.BoxGeometry(1, 1, 1);
+    // três formas no mesmo mundo
+    const geoCubo = new THREE.BoxGeometry(1, 1, 1);
+    const geoMiudo = new THREE.BoxGeometry(0.34, 0.42, 0.34);
+    const geoPlanta = geoCruz(0.95);
+
     const porTipo: Record<number, THREE.Matrix4[]> = {};
     const d = new THREE.Object3D();
     for (let x = 0; x < WX; x++) for (let y = 0; y < WY; y++) for (let z = 0; z < WZ; z++) {
       const t = bloco(x, y, z);
-      if (t === AR || !exposto(x, y, z)) continue;
-      d.position.set(x - WX / 2, y, z - WZ / 2);
+      if (t === AR) continue;
+      const cruz = ehCruz(t);
+      if (!cruz && t !== MIUDO && !exposto(x, y, z)) continue;
+      // a cruz nasce apoiada na face de cima do bloco de baixo, e leva um
+      // giro por posição para a fileira não sair toda alinhada
+      d.position.set(x - WX / 2, cruz ? y - 0.5 : t === MIUDO ? y + 0.2 : y, z - WZ / 2);
+      d.rotation.set(0, cruz ? ((x * 7 + z * 13) % 4) * (Math.PI / 8) : 0, 0);
       d.updateMatrix();
       (porTipo[t] ??= []).push(d.matrix.clone());
     }
+
     return Object.entries(porTipo).map(([tipo, ms]) => {
-      const inst = new THREE.InstancedMesh(geo, mats[+tipo] as THREE.Material, ms.length);
+      const n = +tipo;
+      const geo = ehCruz(n) ? geoPlanta : n === MIUDO ? geoMiudo : geoCubo;
+      const inst = new THREE.InstancedMesh(geo, mats[n] as THREE.Material, ms.length);
       ms.forEach((m, i) => inst.setMatrixAt(i, m));
       inst.instanceMatrix.needsUpdate = true;
       return inst;
     });
   }, [mats]);
+
   return <>{malhas.map((m, i) => <primitive key={i} object={m} />)}</>;
 }
 
@@ -134,7 +160,8 @@ function solido(x: number, z: number) {
   const bx = Math.floor(x + WX / 2), bz = Math.floor(z + WZ / 2);
   for (const y of [1, 2]) {
     const t = bloco(bx, y, bz);
-    if (t !== AR && t !== VIDRO) return true;
+    // planta e miudeza não barram: atravessar mato é esperado
+    if (t !== AR && t !== VIDRO && !ehCruz(t) && t !== MIUDO) return true;
   }
   return false;
 }
