@@ -6,9 +6,8 @@ import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { CAPITULOS, PRIMEIRO } from './game/capitulos';
 import { CenaCamadas, CenaProfundidade } from './components/Shell/CenaAnimada';
-import Cena3D from './components/Shell/Cena3D';
+import JogoSilo from './components/Shell/JogoSilo';
 import { JOGOS, type Jogo } from './game/jogos';
-import { ARCA, ARCA_PRIMEIRO } from './game/arca';
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -16,7 +15,7 @@ import { ARCA, ARCA_PRIMEIRO } from './game/arca';
 // trocar o roteiro sem tocar no desenho, e vice-versa.
 // ─────────────────────────────────────────────────────────
 
-type View = 'home' | 'jogo' | 'arca' | 'fim' | 'setup' | 'creditos';
+type View = 'home' | 'jogo' | 'silo' | 'fim' | 'setup' | 'creditos';
 
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
@@ -70,8 +69,20 @@ function CartaoJogo({ jogo, onClick }: { jogo: Jogo; onClick: () => void }) {
       }}
     >
       <div style={{ position: 'relative', width: '100%', aspectRatio: '11 / 6', overflow: 'hidden', background: C.shellLo }}>
+        {/* a capa do 3D não roda a cena: subir uma segunda instância de
+            WebGL só para a miniatura custa caro e trava celular fraco */}
         {jogo.tecnica === '3d'
-          ? <Cena3D />
+          ? <div
+              className="px-dither"
+              style={{
+                width: '100%', height: '100%', display: 'grid', placeItems: 'center',
+                backgroundColor: C.shellLo,
+                ['--dither-a' as string]: C.shellLo,
+                ['--dither-b' as string]: '#2c3a1a',
+              }}
+            >
+              <span style={{ ...T.titulo, color: C.lineSoft, letterSpacing: 3 }}>3D</span>
+            </div>
           : <img
               src={CAPITULOS[PRIMEIRO].imagem}
               alt=""
@@ -95,10 +106,7 @@ export default function App() {
   const [capId, setCapId] = useState<string>(PRIMEIRO);
   // cada incremento dispara um passo da animação da ilustração
   const [gatilho, setGatilho] = useState(0);
-  const [arcaId, setArcaId] = useState<string>(ARCA_PRIMEIRO);
   // texto de consequência mostrado depois da escolha, antes de seguir
-  const [resultado, setResultado] = useState<string | null>(null);
-  const [proximoArca, setProximoArca] = useState<string | null>(null);
 
   useEffect(() => {
     const handleHash = () => {
@@ -140,39 +148,8 @@ export default function App() {
     );
   }
 
-  if (view === 'arca') {
-    const cap = ARCA[arcaId];
-    return (
-      <GameFrame
-        titulo={cap.titulo}
-        onVoltar={voltar}
-        etapas={Object.keys(ARCA).length}
-        etapaAtual={Object.keys(ARCA).indexOf(cap.id)}
-        cena={<Cena3D avanco={gatilho * 1.4} />}
-        texto={resultado ?? cap.texto}
-        continuar={!!resultado}
-        opcoes={
-          resultado
-            ? [{
-                label: proximoArca ? 'Continuar' : 'Encerrar por aqui',
-                onClick: () => {
-                  setResultado(null);
-                  if (proximoArca) { setArcaId(proximoArca); setProximoArca(null); }
-                  else setView('fim');
-                },
-              }]
-            : cap.opcoes.map(o => ({
-                label: o.label,
-                onClick: () => {
-                  // a cena anda, e só então o resultado aparece
-                  setGatilho(g => g + 1);
-                  setProximoArca(o.proximo);
-                  window.setTimeout(() => setResultado(o.resultado), 620);
-                },
-              }))
-        }
-      />
-    );
+  if (view === 'silo') {
+    return <JogoSilo onSair={voltar} />;
   }
 
   if (view === 'jogo') {
@@ -234,7 +211,7 @@ export default function App() {
             onClick={() => {
               startMusic();
               if (j.id === 'cinzas') { setCapId(PRIMEIRO); setView('jogo'); }
-              else { setArcaId(ARCA_PRIMEIRO); setResultado(null); setView('arca'); }
+              else setView('silo');
             }}
           />
         ))}

@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────
 
 export interface Jogo {
-  id: 'cinzas' | 'arca';
+  id: 'cinzas' | 'silo';
   titulo: string;
   subtitulo: string;
   /** o que o aluno aprende, em uma linha, para a tela de escolha */
@@ -28,11 +28,11 @@ export const JOGOS: Jogo[] = [
     tecnica: 'ilustracao',
   },
   {
-    id: 'arca',
-    titulo: 'ARCA',
-    subtitulo: 'O AR QUE FALTA',
-    conteudo: 'Fotossíntese, respiração e ciclos',
-    chamada: 'A nave está lacrada há trinta anos e o oxigênio está caindo. Não há vazamento. O ar está indo para algum lugar.',
+    id: 'silo',
+    titulo: 'SILO ALPHA',
+    subtitulo: 'O ÚLTIMO CICLO',
+    conteudo: 'Plantas, ar e o ciclo fechado',
+    chamada: 'A Dra. Mara foi hospitalizada e o Núcleo Verde está entrando em colapso. As mudas tombam, as folhas amarelam e as flores não dão fruto.',
     tecnica: '3d',
   },
 ];
