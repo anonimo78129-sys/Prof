@@ -88,14 +88,20 @@ function nervura() {
     const p = noArco(i / 40);
     pts.push(new THREE.Vector3(p.x, p.y, 0));
   }
-  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 44, 0.17, 6, false);
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.17, 5, false);
 }
 
 // ── vegetação ────────────────────────────────────────────
 
-/** Cartão de folha com uma curva: folha plana lê como adesivo. */
+/**
+ * Cartão de folha com uma curva: folha plana lê como adesivo.
+ * Três divisões no comprimento e nenhuma na largura. A versão anterior
+ * tinha 3x6 e gastava 36 triângulos POR FOLHA — com milhares de folhas
+ * na estufa isso sozinho passava de trezentos mil triângulos por quadro,
+ * para uma curvatura que ninguém enxerga.
+ */
 function cartaoFolha(larg: number, alt: number, curva: number) {
-  const g = new THREE.PlaneGeometry(larg, alt, 3, 6);
+  const g = new THREE.PlaneGeometry(larg, alt, 1, 3);
   const p = g.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), y = p.getY(i) + alt / 2;
@@ -183,8 +189,10 @@ export function montaCenario(): Cenario {
   };
 
   // ── chão: plano deslocado, então o monte é curva e não degrau ──
+  // divisão só o bastante para o monte ficar liso: 120x200 dava quarenta
+  // e oito mil triângulos num chão que é quase todo plano
   const chaoGeo = new THREE.PlaneGeometry(
-    MEIA_LARGURA * 2, Z_FRENTE - Z_FUNDO, 120, 200,
+    MEIA_LARGURA * 2, Z_FRENTE - Z_FUNDO, 34, 64,
   ).rotateX(-Math.PI / 2);
   chaoGeo.translate(0, 0, (Z_FRENTE + Z_FUNDO) / 2);
   {
@@ -402,7 +410,7 @@ export function montaCenario(): Cenario {
     destino: THREE.Matrix4[], x: number, y: number, z: number,
     escala: number, tombada = false,
   ) => {
-    const n = 6 + ((acaso() * 4) | 0);
+    const n = 5 + ((acaso() * 3) | 0);
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + acaso() * 0.6;
       const inclina = tombada ? 1.15 + acaso() * 0.35 : 0.42 + acaso() * 0.5;
@@ -419,14 +427,14 @@ export function montaCenario(): Cenario {
 
   // bancada 1: as mudas tombadas
   for (const b of leitos.slice(0, 2))
-    for (let i = 0; i < 130; i++) {
+    for (let i = 0; i < 82; i++) {
       const x = b.cx + (acaso() - 0.5) * b.lx, z = b.cz + (acaso() - 0.5) * b.lz;
       planta(posesVerde, x, b.y, z, 0.5 + acaso() * 0.18, acaso() < 0.72);
     }
 
   // bancada 2: folha de baixo amarela, verde em cima
   for (const b of leitos.slice(2, 4))
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 76; i++) {
       const x = b.cx + (acaso() - 0.5) * b.lx, z = b.cz + (acaso() - 0.5) * b.lz;
       planta(posesAmarela, x, b.y, z, 0.62 + acaso() * 0.2);
       planta(posesVerde, x, b.y + 0.5, z, 0.5 + acaso() * 0.15);
@@ -434,10 +442,10 @@ export function montaCenario(): Cenario {
 
   // bancada 3 e o monte: folhagem solta
   for (const b of leitos.slice(4))
-    for (let i = 0; i < 90; i++)
+    for (let i = 0; i < 58; i++)
       planta(posesVerde, b.cx + (acaso() - 0.5) * b.lx, b.y, b.cz + (acaso() - 0.5) * b.lz, 0.42 + acaso() * 0.2);
 
-  for (let i = 0; i < 260; i++) {
+  for (let i = 0; i < 150; i++) {
     const a = acaso() * Math.PI * 2, r = Math.sqrt(acaso()) * 12;
     const x = -1 + Math.cos(a) * r, z = -32 + Math.sin(a) * r * 0.78;
     planta(posesVerde, x, alturaEm(x, z), z, 0.3 + acaso() * 0.3);
@@ -461,7 +469,7 @@ export function montaCenario(): Cenario {
     });
     ventos.push(comVento(mat, 0.05));
     const poses: THREE.Matrix4[] = [];
-    for (const b of leitos.slice(4)) for (let i = 0; i < 95; i++) {
+    for (const b of leitos.slice(4)) for (let i = 0; i < 62; i++) {
       const m = new THREE.Matrix4();
       m.compose(
         new THREE.Vector3(
@@ -474,7 +482,7 @@ export function montaCenario(): Cenario {
       poses.push(m);
     }
     // e algumas espalhadas pelo monte de terra
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 28; i++) {
       const a = acaso() * Math.PI * 2, r = Math.sqrt(acaso()) * 11;
       const x = -1 + Math.cos(a) * r, z = -32 + Math.sin(a) * r * 0.78;
       const m = new THREE.Matrix4();
@@ -495,7 +503,7 @@ export function montaCenario(): Cenario {
       side: THREE.DoubleSide, roughness: 0.8,
     });
     const poses: THREE.Matrix4[] = [];
-    for (let i = 0; i < 220; i++) {
+    for (let i = 0; i < 130; i++) {
       const x = (acaso() - 0.5) * 20, z = -24 + acaso() * 20;
       if (Math.abs(x) > 1.7 && x > -8.3 && x < 8.3 && z > -22.4 && z < -7.6) continue;
       const m = new THREE.Matrix4();
@@ -522,7 +530,7 @@ export function montaCenario(): Cenario {
     tronco.position.set(x, y + h / 2, z);
     põe(tronco);
     barra(x - 0.6, z - 0.6, x + 0.6, z + 0.6);
-    for (let i = 0; i < 46; i++) {
+    for (let i = 0; i < 30; i++) {
       const a = acaso() * Math.PI * 2;
       const r = 0.4 + acaso() * 2.1;
       const alt = y + h - 0.6 + (acaso() - 0.45) * 2.2;
@@ -621,7 +629,58 @@ export function montaCenario(): Cenario {
   }
 
   grupo.traverse(o => { if ((o as THREE.Mesh).isMesh) o.receiveShadow = true; });
+  compactar(grupo);
   return { grupo, ventos, agua, lampadas };
+}
+
+/**
+ * Junta num só objeto tudo que é parado e divide o mesmo material.
+ *
+ * O galpão nasce com mais de duzentas malhas soltas — cada pilastra,
+ * cada degrau, cada montante do guarda-corpo. Duzentas malhas são
+ * duzentas conversas com a placa de vídeo por quadro, e é isso que trava
+ * celular, não a quantidade de triângulo. Depois disto sobra cerca de uma
+ * dúzia de chamadas de desenho, com a mesma imagem na tela.
+ *
+ * Fica de fora o que precisa continuar separado: instâncias, material
+ * transparente (que depende de ordem de desenho) e a lâmina d'água.
+ */
+function compactar(grupo: THREE.Group) {
+  const baldes = new Map<THREE.Material, THREE.BufferGeometry[]>();
+
+  for (const o of [...grupo.children]) {
+    const m = o as THREE.Mesh;
+    const mat = m.material as THREE.Material;
+    const junta = m.isMesh
+      && !(m as unknown as THREE.InstancedMesh).isInstancedMesh
+      && !Array.isArray(m.material)
+      && mat && !mat.transparent
+      && !!m.geometry?.attributes?.position
+      && !!m.geometry.attributes.normal
+      && !!m.geometry.attributes.uv;
+    if (!junta) continue;
+
+    o.updateMatrix();
+    // sem índice para todas: geometria indexada não se junta com
+    // geometria sem índice, e as duas formas aparecem aqui
+    const g = m.geometry.toNonIndexed().applyMatrix4(o.matrix);
+    for (const nome of Object.keys(g.attributes))
+      if (nome !== 'position' && nome !== 'normal' && nome !== 'uv') g.deleteAttribute(nome);
+
+    const lista = baldes.get(mat);
+    if (lista) lista.push(g); else baldes.set(mat, [g]);
+    grupo.remove(o);
+  }
+
+  for (const [mat, geos] of baldes) {
+    const g = U.mergeGeometries(geos, false);
+    geos.forEach(x => x.dispose());
+    if (!g) continue;
+    const malha = new THREE.Mesh(g, mat);
+    malha.castShadow = true;
+    malha.receiveShadow = true;
+    grupo.add(malha);
+  }
 }
 
 /** Junta geometrias iguais quando vale a pena. */

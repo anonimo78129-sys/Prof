@@ -79,7 +79,7 @@ function panoramaDeAmbiente(sol: THREE.Vector3) {
 }
 
 /** Céu, sol e o mapa de ambiente tirado dele. Uma direção manda em tudo. */
-function CeuESol({ elevacao = 34, azimute = 152 }) {
+function CeuESol({ elevacao = 34, azimute = 152, fraco = false }) {
   const { scene, gl } = useThree();
 
   const ceu = useMemo(() => {
@@ -169,7 +169,7 @@ function CeuESol({ elevacao = 34, azimute = 152 }) {
       position={[sol.x * 90, sol.y * 90, sol.z * 90]}
       intensity={3.1}
       color="#fff3dd"
-      castShadow
+      castShadow={!fraco}
       shadow-mapSize-width={1024}
       shadow-mapSize-height={1024}
       shadow-camera-near={20}
@@ -186,7 +186,7 @@ function CeuESol({ elevacao = 34, azimute = 152 }) {
 }
 
 /** Feixe de sol descendo pela abóbada. Falso, aditivo e barato. */
-function Feixes() {
+function Feixes({ fraco }: { fraco: boolean }) {
   const mat = useMemo(() => {
     const c = document.createElement('canvas');
     c.width = 8; c.height = 128;
@@ -211,7 +211,7 @@ function Feixes() {
 
   return (
     <>
-      {[-38, -22, -6, 10, 26, 40].map((z, i) => (
+      {(fraco ? [-22, 10, 40] : [-38, -22, -6, 10, 26, 40]).map((z, i) => (
         <mesh
           key={z}
           geometry={geo}
@@ -288,7 +288,7 @@ function Cena({ pesado }: { pesado: boolean }) {
   return (
     <>
       <primitive object={c.grupo} />
-      <Feixes />
+      <Feixes fraco={!pesado} />
       {pesado && <Poeira />}
     </>
   );
@@ -461,6 +461,42 @@ function Pipeline({ pesado }: { pesado: boolean }) {
 // ── a tela ───────────────────────────────────────────────
 
 /**
+ * Qualidade que se ajusta sozinha.
+ *
+ * Não dá para adivinhar o celular do aluno de dentro daqui, e chutar
+ * errado custa caro dos dois lados: chutar alto trava, chutar baixo
+ * entrega imagem feia num aparelho que aguentava mais. Então o jogo
+ * mede: roda meio segundo, olha o tempo de quadro e decide.
+ *
+ * A resolução é a alavanca mais forte de todas. Um celular com três
+ * pixels físicos por pixel de tela desenha NOVE vezes mais pontos que um
+ * de um por um — é a primeira coisa a cair, e a que menos se nota.
+ */
+function Qualidade({ aoDecidir }: { aoDecidir: (leve: boolean) => void }) {
+  const { gl } = useThree();
+  const tempos = useRef<number[]>([]);
+  const decidido = useRef(false);
+
+  useFrame((_, dt) => {
+    if (decidido.current) return;
+    const t = tempos.current;
+    t.push(dt);
+    if (t.length < 40) return;
+    decidido.current = true;
+
+    // mediana, não média: um engasgo de carregamento não pode mandar
+    const meio = [...t.slice(10)].sort((a, b) => a - b);
+    const quadro = meio[(meio.length / 2) | 0];
+    const fps = 1 / Math.max(quadro, 0.001);
+
+    const teto = fps > 52 ? 1.6 : fps > 34 ? 1.15 : 0.85;
+    gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, teto));
+    aoDecidir(fps < 34);
+  });
+  return null;
+}
+
+/**
  * Sonda de saúde. Se a tela ficar vazia num aparelho que não está aqui,
  * a única forma de descobrir o motivo é a própria tela contar. Ela
  * aparece sozinha quando nada é desenhado, e com #diag aparece sempre.
@@ -481,14 +517,16 @@ function Sonda({ aviso }: { aviso: (t: string) => void }) {
     // que desenha dois quadros por segundo, esperar cinquenta quadros é
     // esperar meio minuto
     q.current++;
-    if (q.current !== 12 && q.current % 150 !== 0) return;
+    if (q.current !== 4 && q.current !== 40 && q.current % 240 !== 0) return;
     const ctx = gl.getContext();
     const info = ctx.getExtension('WEBGL_debug_renderer_info');
     const placa = info
       ? String(ctx.getParameter(info.UNMASKED_RENDERER_WEBGL)).slice(0, 40)
       : 'placa desconhecida';
     const tri = gl.info.render.triangles;
-    aviso(`${tri === 0 ? 'NADA DESENHADO · ' : ''}tri ${tri} · calls ${gl.info.render.calls} · ${placa}`);
+    const texto = `${tri === 0 ? 'NADA DESENHADO · ' : ''}tri ${tri} · calls ${gl.info.render.calls} · ${placa}`;
+    if (typeof location !== 'undefined' && location.hash.includes('diag')) console.log('DIAG', texto);
+    aviso(texto);
   });
   return null;
 }
@@ -503,6 +541,7 @@ export default function SiloReal({ estacoes, onPerto }: SiloRealProps) {
   const cam = useRef<Camera>({ yaw: 0, pitch: -0.08 });
   const [ativa, setAtiva] = useState<string | null>(null);
   const [saude, setSaude] = useState<string | null>(null);
+  const [aparelhoFraco, setAparelhoFraco] = useState(false);
   const area = useRef<HTMLDivElement>(null);
 
   // Aparelho fraco perde oclusão e resolução, nunca o caminho da luz.
@@ -512,9 +551,11 @@ export default function SiloReal({ estacoes, onPerto }: SiloRealProps) {
     const h = typeof location !== 'undefined' ? location.hash : '';
     if (h.includes('leve')) return false;
     if (h.includes('pesado')) return true;
-    const n = navigator.hardwareConcurrency ?? 4;
-    const mem = (navigator as { deviceMemory?: number }).deviceMemory ?? 4;
-    return n >= 6 && mem >= 4;
+    // dedo grosso quer dizer celular. É palpite, e vale só para o
+    // primeiro segundo — depois a medição de quadro corrige.
+    const movel = typeof matchMedia !== 'undefined'
+      && matchMedia('(pointer: coarse)').matches;
+    return !movel && (navigator.hardwareConcurrency ?? 4) >= 6;
   }, []);
 
   // Bloom e oclusão entram por cima, e nem toda GPU dá conta de desenhar
@@ -586,14 +627,18 @@ export default function SiloReal({ estacoes, onPerto }: SiloRealProps) {
     >
       <Canvas
         style={{ position: 'absolute', inset: 0 }}
+        // começa em um pixel por pixel: subir depois de medir é barato,
+        // travar na primeira imagem não é
+        dpr={1}
         gl={{ antialias: false, powerPreference: 'high-performance' }}
         camera={{ fov: 62, near: 0.15, far: 500 }}
-        shadows
+        shadows={!aparelhoFraco}
       >
         <fogExp2 attach="fog" args={['#c3d8ec', 0.0055]} />
-        <CeuESol />
+        <CeuESol fraco={aparelhoFraco} />
         <ambientLight intensity={0.18} />
-        <Cena pesado={pesado} />
+        <Cena pesado={pesado && !aparelhoFraco} />
+        <Qualidade aoDecidir={setAparelhoFraco} />
         {estacoes.map(s => <Marcador key={s.id} x={s.x} z={s.z} ativo={ativa === s.id} />)}
         <Jogador mover={mover} cam={cam} estacoes={estacoes} onPerto={aviso} />
         <Renderizador />
