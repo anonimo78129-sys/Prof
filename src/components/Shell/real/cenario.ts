@@ -137,13 +137,17 @@ interface Semeadura {
   geo: THREE.BufferGeometry;
   mat: THREE.Material;
   poses: THREE.Matrix4[];
+  /** folhagem não projeta sombra: são milhares de cartões, e desenhar
+   *  todos de novo no mapa de sombra dobrava o custo do quadro inteiro
+   *  em troca de um rendilhado que ninguém repara */
+  sombra?: boolean;
 }
 
 function instancia(s: Semeadura) {
   const m = new THREE.InstancedMesh(s.geo, s.mat, s.poses.length);
   s.poses.forEach((p, i) => m.setMatrixAt(i, p));
   m.instanceMatrix.needsUpdate = true;
-  m.castShadow = true;
+  m.castShadow = s.sombra ?? true;
   m.receiveShadow = true;
   m.frustumCulled = false;
   return m;
@@ -439,8 +443,8 @@ export function montaCenario(): Cenario {
     planta(posesVerde, x, alturaEm(x, z), z, 0.3 + acaso() * 0.3);
   }
 
-  grupo.add(instancia({ geo: geoFolha, mat: verde, poses: posesVerde }));
-  grupo.add(instancia({ geo: geoFolha, mat: amarelo, poses: posesAmarela }));
+  grupo.add(instancia({ geo: geoFolha, mat: verde, poses: posesVerde, sombra: false }));
+  grupo.add(instancia({ geo: geoFolha, mat: amarelo, poses: posesAmarela, sombra: false }));
 
   // ── flores: o setor 3 é o lugar bonito e inútil do Núcleo Verde ──
   const geoFlor = cartaoFolha(0.62, 0.8, 0.12);
@@ -481,7 +485,7 @@ export function montaCenario(): Cenario {
       );
       poses.push(m);
     }
-    grupo.add(instancia({ geo: geoFlor, mat, poses }));
+    grupo.add(instancia({ geo: geoFlor, mat, poses, sombra: false }));
   }
 
   // pétala caída no chão da passarela: a flor abre e cai sem fruto
@@ -502,7 +506,7 @@ export function montaCenario(): Cenario {
       );
       poses.push(m);
     }
-    grupo.add(instancia({ geo: geoFlor, mat, poses }));
+    grupo.add(instancia({ geo: geoFlor, mat, poses, sombra: false }));
   }
 
   // ── árvores do canteiro de solo ──
@@ -531,7 +535,7 @@ export function montaCenario(): Cenario {
       posesCopa.push(m);
     }
   }
-  grupo.add(instancia({ geo: geoCopa, mat: copaMat, poses: posesCopa }));
+  grupo.add(instancia({ geo: geoCopa, mat: copaMat, poses: posesCopa, sombra: false }));
 
   // ── espelho d'água do setor de floração ──
   const alturaAgua = fbm(131, 4, 9);
