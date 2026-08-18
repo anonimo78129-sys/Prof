@@ -37,6 +37,12 @@ export const CREDITS: CreditSection[] = [
         note: 'Paleta única de 61 cores organizada em rampas de 4 a 5 tons, no espírito dos consoles de 16 bits. Todo objeto sai com contorno escuro e luz vindo de cima e da esquerda, e o único degradê permitido é o dithering ordenado 4x4. A gravação passa por uma quantização que prende cada pixel à paleta, então nenhuma cor escapa dela.',
       },
       {
+        title: 'Sprites do SEMENTE',
+        author: 'Pixel-boy — Sparklin Labs',
+        license: 'CC0 1.0 · domínio público',
+        note: 'O mundo de SEMENTE usa o pacote Ninja Adventure, dos Superpowers Asset Packs. É arte liberada em domínio público: pode ser usada, alterada e distribuída sem pedir licença e sem pagar, inclusive em projeto comercial. Aqui entra o tileset de 16x16 (chão, casas, árvores mortas, cerca) e sete folhas de personagem, cada uma com quatro direções e quatro quadros de caminhada.',
+      },
+      {
         title: 'Ícones e protagonista',
         author: 'Original do projeto',
         license: 'Desenhado por código',
