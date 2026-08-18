@@ -8,17 +8,25 @@
 // ─────────────────────────────────────────────────────────
 
 export interface Jogo {
-  id: 'cinzas' | 'silo';
+  id: 'cinzas' | 'silo' | 'semente';
   titulo: string;
   subtitulo: string;
   /** o que o aluno aprende, em uma linha, para a tela de escolha */
   conteudo: string;
   /** frase de chamada, sem entregar a virada */
   chamada: string;
-  tecnica: 'ilustracao' | '3d';
+  tecnica: 'ilustracao' | '3d' | 'pixel';
 }
 
 export const JOGOS: Jogo[] = [
+  {
+    id: 'semente',
+    titulo: 'SEMENTE',
+    subtitulo: 'O QUE VOLTA A CRESCER',
+    conteudo: 'Biologia de quintal, no mundo depois do Colapso',
+    chamada: 'Barro Alto tem cento e onze bocas e uma horta que dá para setenta. Desce a trilha do sul e fala com quem encontrar: quem ficou vivo aprendeu a olhar.',
+    tecnica: 'pixel',
+  },
   {
     id: 'cinzas',
     titulo: 'CINZAS',

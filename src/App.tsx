@@ -11,6 +11,7 @@ import { JOGOS, type Jogo } from './game/jogos';
 // O SILO ALPHA carrega o Three.js inteiro. Quem só vai jogar CINZAS não
 // tem por que baixar isso: o pedaço só chega quando o jogo é escolhido.
 const JogoSilo = lazy(() => import('./components/Shell/JogoSilo'));
+const Semente = lazy(() => import('./components/Shell/Semente'));
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -18,7 +19,7 @@ const JogoSilo = lazy(() => import('./components/Shell/JogoSilo'));
 // trocar o roteiro sem tocar no desenho, e vice-versa.
 // ─────────────────────────────────────────────────────────
 
-type View = 'home' | 'jogo' | 'silo' | 'fim' | 'setup' | 'creditos';
+type View = 'home' | 'jogo' | 'silo' | 'semente' | 'fim' | 'setup' | 'creditos';
 
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
@@ -74,7 +75,14 @@ function CartaoJogo({ jogo, onClick }: { jogo: Jogo; onClick: () => void }) {
       <div style={{ position: 'relative', width: '100%', aspectRatio: '11 / 6', overflow: 'hidden', background: C.shellLo }}>
         {/* a capa do 3D não roda a cena: subir uma segunda instância de
             WebGL só para a miniatura custa caro e trava celular fraco */}
-        {jogo.tecnica === '3d'
+        {jogo.tecnica === 'pixel'
+          ? <div style={{
+              width: '100%', height: '100%',
+              backgroundImage: 'url(/assets/semente/capa.png)',
+              backgroundSize: 'cover', backgroundPosition: 'center 40%',
+              imageRendering: 'pixelated',
+            }} />
+          : jogo.tecnica === '3d'
           ? <div
               className="px-dither"
               style={{
@@ -148,6 +156,21 @@ export default function App() {
           { label: 'Sair para a tela inicial', onClick: voltar },
         ]}
       />
+    );
+  }
+
+  if (view === 'semente') {
+    return (
+      <Suspense fallback={
+        <div style={{
+          position: 'fixed', inset: 0, background: C.ink, display: 'grid',
+          placeItems: 'center', ...T.rotulo, color: C.lineSoft,
+        }}>
+          DESCENDO A TRILHA…
+        </div>
+      }>
+        <Semente onSair={voltar} />
+      </Suspense>
     );
   }
 
@@ -225,6 +248,7 @@ export default function App() {
             onClick={() => {
               startMusic();
               if (j.id === 'cinzas') { setCapId(PRIMEIRO); setView('jogo'); }
+              else if (j.id === 'semente') setView('semente');
               else setView('silo');
             }}
           />
