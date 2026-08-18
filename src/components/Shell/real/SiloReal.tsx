@@ -99,9 +99,18 @@ function CeuESol({ elevacao = 34, azimute = 152 }) {
     return SOL.setFromSphericalCoords(1, fi, teta).clone();
   }, [elevacao, azimute]);
 
+  const [semAmbiente, setSemAmbiente] = useState(false);
+
   useEffect(() => {
     ceu.material.uniforms.sunPosition.value.copy(sol);
     scene.add(ceu);
+
+    // O panorama também vira o FUNDO da cena. Antes o fundo dependia só
+    // da cúpula do céu; se ela não desenhasse, sobrava a cor do CSS e a
+    // tela ficava azul lisa sem explicação nenhuma.
+    const fundo = panoramaDeAmbiente(sol);
+    scene.background = fundo;
+    scene.backgroundIntensity = 1;
 
     // O mapa de ambiente NÃO sai do céu de Preetham. O disco solar dele
     // passa de sessenta mil, o pré-filtro trabalha em meia precisão, o
@@ -113,25 +122,56 @@ function CeuESol({ elevacao = 34, azimute = 152 }) {
     // azul, horizonte claro, e um chão quente devolvendo luz por baixo.
     // Valores controlados, mesma direção do sol, e a cor fica na minha
     // mão em vez de na do modelo atmosférico.
-    const pmrem = new THREE.PMREMGenerator(gl);
-    const panorama = panoramaDeAmbiente(sol);
-    const alvo = pmrem.fromEquirectangular(panorama);
-    scene.environment = alvo.texture;
-    scene.environmentIntensity = 1.25;
-    pmrem.dispose();
-    panorama.dispose();
+    // O pré-filtro precisa desenhar em ponto flutuante. Onde a GPU não
+    // deixa, ele devolve textura quebrada — e textura de irradiância
+    // quebrada zera a cor de TODO material iluminado. Melhor não ter
+    // mapa de ambiente do que ter um envenenado.
+    const ctx = gl.getContext();
+    const podeFlutuar = !!(ctx.getExtension('EXT_color_buffer_half_float')
+      || ctx.getExtension('EXT_color_buffer_float')
+      || ctx.getExtension('WEBGL_color_buffer_float'));
 
-    return () => { scene.remove(ceu); alvo.dispose(); };
+    let alvo: THREE.WebGLRenderTarget | null = null;
+    if (podeFlutuar) {
+      try {
+        const pmrem = new THREE.PMREMGenerator(gl);
+        alvo = pmrem.fromEquirectangular(fundo);
+        scene.environment = alvo.texture;
+        scene.environmentIntensity = 1.25;
+        pmrem.dispose();
+      } catch {
+        alvo = null;
+      }
+    }
+    if (!alvo) {
+      scene.environment = null;
+      setSemAmbiente(true);
+    }
+
+    return () => {
+      scene.remove(ceu);
+      scene.background = null;
+      scene.environment = null;
+      alvo?.dispose();
+      fundo.dispose();
+    };
   }, [ceu, sol, scene, gl]);
 
   return (
+    <>
+      {/* Sem mapa de ambiente a cena fica sem luz indireta e escurece.
+          Este hemisférico não substitui o mapa, mas garante que nunca
+          exista aparelho vendo um galpão preto. */}
+      <hemisphereLight
+        args={['#bcd9f7', '#9a7550', semAmbiente ? 1.5 : 0.35]}
+      />
     <directionalLight
       position={[sol.x * 90, sol.y * 90, sol.z * 90]}
       intensity={3.1}
       color="#fff3dd"
       castShadow
-      shadow-mapSize-width={2048}
-      shadow-mapSize-height={2048}
+      shadow-mapSize-width={1024}
+      shadow-mapSize-height={1024}
       shadow-camera-near={20}
       shadow-camera-far={220}
       shadow-camera-left={-52}
@@ -141,6 +181,7 @@ function CeuESol({ elevacao = 34, azimute = 152 }) {
       shadow-bias={-0.0006}
       shadow-normalBias={0.035}
     />
+    </>
   );
 }
 
@@ -419,6 +460,39 @@ function Pipeline({ pesado }: { pesado: boolean }) {
 
 // ── a tela ───────────────────────────────────────────────
 
+/**
+ * Sonda de saúde. Se a tela ficar vazia num aparelho que não está aqui,
+ * a única forma de descobrir o motivo é a própria tela contar. Ela
+ * aparece sozinha quando nada é desenhado, e com #diag aparece sempre.
+ */
+function Sonda({ aviso }: { aviso: (t: string) => void }) {
+  const { gl } = useThree();
+  const q = useRef(0);
+
+  useEffect(() => {
+    const tela = gl.domElement;
+    const perdeu = (e: Event) => { e.preventDefault(); aviso('CONTEXTO WEBGL PERDIDO'); };
+    tela.addEventListener('webglcontextlost', perdeu);
+    return () => tela.removeEventListener('webglcontextlost', perdeu);
+  }, [gl, aviso]);
+
+  useFrame(() => {
+    // primeiro relatório cedo, depois de tempos em tempos: num aparelho
+    // que desenha dois quadros por segundo, esperar cinquenta quadros é
+    // esperar meio minuto
+    q.current++;
+    if (q.current !== 12 && q.current % 150 !== 0) return;
+    const ctx = gl.getContext();
+    const info = ctx.getExtension('WEBGL_debug_renderer_info');
+    const placa = info
+      ? String(ctx.getParameter(info.UNMASKED_RENDERER_WEBGL)).slice(0, 40)
+      : 'placa desconhecida';
+    const tri = gl.info.render.triangles;
+    aviso(`${tri === 0 ? 'NADA DESENHADO · ' : ''}tri ${tri} · calls ${gl.info.render.calls} · ${placa}`);
+  });
+  return null;
+}
+
 export interface SiloRealProps {
   estacoes: Estacao[];
   onPerto?: (id: string | null) => void;
@@ -428,6 +502,7 @@ export default function SiloReal({ estacoes, onPerto }: SiloRealProps) {
   const mover = useRef<Mover>({ frente: 0, lado: 0 });
   const cam = useRef<Camera>({ yaw: 0, pitch: -0.08 });
   const [ativa, setAtiva] = useState<string | null>(null);
+  const [saude, setSaude] = useState<string | null>(null);
   const area = useRef<HTMLDivElement>(null);
 
   // Aparelho fraco perde oclusão e resolução, nunca o caminho da luz.
@@ -523,6 +598,7 @@ export default function SiloReal({ estacoes, onPerto }: SiloRealProps) {
         <Jogador mover={mover} cam={cam} estacoes={estacoes} onPerto={aviso} />
         <Renderizador />
         {comPos && <Pipeline pesado={pesado} />}
+        <Sonda aviso={setSaude} />
       </Canvas>
 
       <div aria-hidden style={{
@@ -531,6 +607,18 @@ export default function SiloReal({ estacoes, onPerto }: SiloRealProps) {
         border: '1.5px solid #fff', borderRadius: '50%',
         mixBlendMode: 'difference',
       }} />
+
+      {saude && (/NADA DESENHADO|PERDIDO/.test(saude)
+        || (typeof location !== 'undefined' && location.hash.includes('diag'))) && (
+        <div style={{
+          position: 'absolute', left: 8, right: 8, top: 8, zIndex: 6,
+          background: 'rgba(8,12,16,0.84)', color: '#d6ecff', padding: '6px 8px',
+          font: '11px/1.4 ui-monospace, monospace', borderRadius: 4,
+          pointerEvents: 'none', wordBreak: 'break-word',
+        }}>
+          {saude}
+        </div>
+      )}
 
       <Dpad mover={mover} />
     </div>
