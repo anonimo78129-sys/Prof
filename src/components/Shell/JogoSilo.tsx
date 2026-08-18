@@ -87,9 +87,12 @@ export default function JogoSilo({ onSair }: { onSair: () => void }) {
                   onClick={abrir}
                   className="px-notch"
                   style={{
-                    position: 'absolute', left: '50%', bottom: px(4), transform: 'translateX(-50%)',
+                    // à direita e não no centro: centralizado ele caía em
+                    // cima do d-pad, que mora no canto esquerdo
+                    position: 'absolute', right: px(3), bottom: px(4), maxWidth: '58%',
                     zIndex: 4, background: C.rust, border: 'none', cursor: 'pointer',
-                    padding: `${px(2)} ${px(4)}`, ...T.rotulo, color: '#fff',
+                    padding: `${px(2)} ${px(3)}`, ...T.rotulo, color: '#fff',
+                    textAlign: 'right', lineHeight: 1.5,
                     boxShadow: `0 0 0 var(--p) ${C.line}`,
                   }}
                 >
@@ -118,7 +121,7 @@ export default function JogoSilo({ onSair }: { onSair: () => void }) {
 
               <Box padding={false}>
                 {resultado ? (
-                  <MenuLinha onClick={fechar}>Voltar ao corredor</MenuLinha>
+                  <MenuLinha onClick={fechar}>Voltar ao Núcleo Verde</MenuLinha>
                 ) : (
                   aberto.opcoes.map((o, i) => (
                     <MenuLinha

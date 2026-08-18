@@ -27,7 +27,8 @@ export interface OpcaoSilo {
 
 export interface CapituloSilo {
   id: string;
-  /** onde no corredor fica o marcador desta cena */
+  /** onde no Núcleo Verde fica o marcador desta cena */
+  x: number;
   z: number;
   rotulo: string;
   texto: string;
@@ -38,7 +39,8 @@ export interface CapituloSilo {
 export const SILO: Record<string, CapituloSilo> = {
   mudas: {
     id: 'mudas',
-    z: 8,
+    x: 0,
+    z: 20,
     rotulo: 'BANCADA 1 — MUDAS',
     texto:
       'As mudas da bancada 1 estão tombadas. Não murchas: tombadas, deitadas de lado, com o caule ' +
@@ -69,7 +71,8 @@ export const SILO: Record<string, CapituloSilo> = {
 
   folhas: {
     id: 'folhas',
-    z: 0,
+    x: 14,
+    z: 3,
     rotulo: 'BANCADA 2 — FOLHAGEM',
     texto:
       'Na bancada 2 as folhas estão amarelando. Você repara numa coisa: são as folhas de baixo, ' +
@@ -99,7 +102,8 @@ export const SILO: Record<string, CapituloSilo> = {
 
   flores: {
     id: 'flores',
-    z: -9,
+    x: 0,
+    z: -14,
     rotulo: 'BANCADA 3 — FLORAÇÃO',
     texto:
       'A bancada 3 está coberta de flores abertas, e é a coisa mais bonita do Silo. ' +
@@ -128,7 +132,8 @@ export const SILO: Record<string, CapituloSilo> = {
 
   solo: {
     id: 'solo',
-    z: -16,
+    x: -4,
+    z: -32,
     rotulo: 'CANTEIRO DE SOLO RECICLADO',
     texto:
       'O oxigênio do Silo caiu de 20,8% para 17,4% em trinta anos, e a queda não parou. ' +
@@ -162,7 +167,7 @@ export const SILO: Record<string, CapituloSilo> = {
 
 export const SILO_PRIMEIRO = 'mudas';
 
-/** Marcadores no corredor 3D, na ordem em que o jogador os encontra. */
+/** Marcadores no mundo 3D, na ordem em que o jogador os encontra. */
 export const ESTACOES = Object.values(SILO).map(c => ({
-  id: c.id, z: c.z, rotulo: c.rotulo,
+  id: c.id, x: c.x, z: c.z, rotulo: c.rotulo,
 }));

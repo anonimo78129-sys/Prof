@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import SetupWizard from './components/TeacherSetup/SetupWizard';
 import Credits from './components/Game/Credits';
 import GameFrame, { Janela } from './components/Shell/GameFrame';
@@ -6,8 +6,11 @@ import { C, T } from './game/theme';
 import { startMusic, stopMusic, startHomeTheme, stopHomeTheme } from './game/music';
 import { CAPITULOS, PRIMEIRO } from './game/capitulos';
 import { CenaCamadas, CenaProfundidade } from './components/Shell/CenaAnimada';
-import JogoSilo from './components/Shell/JogoSilo';
 import { JOGOS, type Jogo } from './game/jogos';
+
+// O SILO ALPHA carrega o Three.js inteiro. Quem só vai jogar CINZAS não
+// tem por que baixar isso: o pedaço só chega quando o jogo é escolhido.
+const JogoSilo = lazy(() => import('./components/Shell/JogoSilo'));
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -149,7 +152,18 @@ export default function App() {
   }
 
   if (view === 'silo') {
-    return <JogoSilo onSair={voltar} />;
+    return (
+      <Suspense fallback={
+        <div style={{
+          position: 'fixed', inset: 0, background: C.ink, display: 'grid',
+          placeItems: 'center', ...T.rotulo, color: C.lineSoft,
+        }}>
+          ABRINDO O NÚCLEO VERDE…
+        </div>
+      }>
+        <JogoSilo onSair={voltar} />
+      </Suspense>
+    );
   }
 
   if (view === 'jogo') {
