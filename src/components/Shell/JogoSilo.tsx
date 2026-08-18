@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import Silo3D from './Silo3D';
+import { lazy, Suspense, useState } from 'react';
 import { Box } from './GameFrame';
 import { C, T } from '../../game/theme';
 import { SILO, ESTACOES, type CapituloSilo } from '../../game/silo';
@@ -19,9 +18,17 @@ import { SILO, ESTACOES, type CapituloSilo } from '../../game/silo';
 // atropelada pelo controle.
 // ─────────────────────────────────────────────────────────
 
+// Os dois motores de imagem do mesmo Núcleo Verde. Cada um puxa uma
+// biblioteca diferente e pesada, então só o escolhido é baixado.
+const SiloBloco = lazy(() => import('./Silo3D'));
+const SiloReal = lazy(() => import('./real/SiloReal'));
+
+type Motor = 'bloco' | 'real';
+
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
 export default function JogoSilo({ onSair }: { onSair: () => void }) {
+  const [motor, setMotor] = useState<Motor>('real');
   const [perto, setPerto] = useState<string | null>(null);
   const [aberto, setAberto] = useState<CapituloSilo | null>(null);
   const [resultado, setResultado] = useState<string | null>(null);
@@ -58,6 +65,16 @@ export default function JogoSilo({ onSair }: { onSair: () => void }) {
             }}>
               <span style={{ ...T.titulo, color: C.bone }}>SILO ALPHA</span>
               <div style={{ flex: 1 }} />
+              <button
+                onClick={() => { setMotor(m => (m === 'bloco' ? 'real' : 'bloco')); setPerto(null); }}
+                style={{
+                  ...T.rotulo, color: C.bone, background: 'transparent',
+                  border: `var(--p) solid ${C.lineSoft}`, padding: `${px(1)} ${px(2)}`,
+                  cursor: 'pointer', marginRight: px(2),
+                }}
+              >
+                {motor === 'bloco' ? 'BLOCO' : 'REAL'}
+              </button>
               <span style={{ ...T.rotulo, color: C.lineSoft }}>
                 {resolvidos.length}/{ESTACOES.length}
               </span>
@@ -79,7 +96,18 @@ export default function JogoSilo({ onSair }: { onSair: () => void }) {
         <div style={{ position: 'relative', flex: 1, margin: `${px(2)} ${px(3)}` }}>
           <div className="px-notch" style={{ position: 'absolute', inset: 0, background: C.line, padding: 'var(--p)' }}>
             <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-              <Silo3D estacoes={ESTACOES} onPerto={setPerto} />
+              <Suspense fallback={
+                <div style={{
+                  position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+                  background: C.ink, ...T.rotulo, color: C.lineSoft,
+                }}>
+                  CARREGANDO…
+                </div>
+              }>
+                {motor === 'bloco'
+                  ? <SiloBloco key="bloco" estacoes={ESTACOES} onPerto={setPerto} />
+                  : <SiloReal key="real" estacoes={ESTACOES} onPerto={setPerto} />}
+              </Suspense>
 
               {/* aviso de que há algo para examinar aqui */}
               {perto && !aberto && (
