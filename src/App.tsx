@@ -235,7 +235,11 @@ export default function App() {
     }}>
       <div style={{
         position: 'relative', width: 'min(100vw - 24px, 56.25vh)',
-        display: 'flex', flexDirection: 'column', gap: px(5), justifyContent: 'center',
+        display: 'flex', flexDirection: 'column', gap: px(5),
+        // 'safe' é o que impede a lista de sangrar para cima quando ela
+        // fica mais alta que a tela: com 'center' puro o topo do primeiro
+        // cartão sai da área rolável e não tem como voltar nele
+        justifyContent: 'safe center',
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ ...T.rotulo, color: C.boneDim, letterSpacing: 3 }}>ESCOLHA UMA HISTÓRIA</div>
