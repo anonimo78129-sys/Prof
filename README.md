@@ -17,6 +17,23 @@
 - Storytelling gamificado, Quiz, Caça-Palavras, Palavras Cruzadas, Bingo e Jogo da Memória
 - Tudo pronto para imprimir em A4
 
+### 🕹️ Jogos narrativos
+Quatro jogos completos na tela inicial, cada um com uma técnica de imagem diferente:
+
+| Jogo | Conteúdo | Técnica |
+|---|---|---|
+| **A FONTE** — Água que sobe, água que volta | Ciclo da água e mudanças de estado, em três estações | Plataforma 2D em canvas, com criador de personagem |
+| **SEMENTE** — O que volta a crescer | Biologia de quintal no mundo depois do Colapso | Grade vista de cima, tiles de 16px |
+| **CINZAS** — O último abrigo | Plantas e o mundo vivo | Ilustração em camadas com parallax |
+| **SILO ALPHA** — O último ciclo | Plantas, ar e o ciclo fechado | Cena 3D (Three.js) |
+
+**A FONTE** abre com um criador de personagem de mais de 250 peças (pele, cabelo,
+orelhas, roupa em três casas, braços, chapéu, máscara e item de mão), com cão ou
+raposa de companhia. Depois são três fases de plataforma — bosque de verão, mata
+de outono e serra de inverno — guardadas por nove Sentinelas arqueiras que só
+abrem passagem para quem responde. Errar custa uma flecha e a pergunta volta:
+o que trava o caminho é entender, não sobreviver.
+
 ### 🏆 Turma Gamificada
 - **Pontos e níveis** com avatares corujinha que evoluem (🥚 → 👑), medalhas automáticas e sequências de dias
 - **Equipes** com ranking semanal, **missões coletivas** e **loja de privilégios** (moedas 🪙 trocadas por recompensas sem custo)
@@ -83,6 +100,19 @@ npm run build
 npm run lint
 ```
 
+### Arte de A FONTE
+
+Os sprites vêm de pacotes de pixel art do GandalfHardcore, cuja licença permite
+uso em jogo mas proíbe redistribuir os pacotes. Por isso o repositório guarda só
+o recorte que o jogo carrega, já renomeado e com os atlas de miniatura do criador
+de personagem. Para reimportar a partir dos pacotes originais descompactados:
+
+```bash
+node scripts/gen-bosque.mjs --src <pasta com os pacotes>
+```
+
+O script grava em `public/assets/bosque/` e regenera `src/game/bosqueCatalogo.ts`.
+
 ## Estrutura
 
 ```
@@ -91,7 +121,9 @@ src/
 ├── bncc-data.ts   # Banco local de habilidades BNCC validadas
 ├── firebase.ts    # Configuração Firebase (Auth, Firestore, Storage, FCM)
 ├── sw.ts          # Service worker (PWA, notificações push)
-└── index.css      # Estilos globais (Tailwind)
+├── index.css      # Estilos globais (Tailwind)
+├── game/          # Conteúdo dos jogos (roteiro, mapas, perguntas, créditos)
+└── components/Shell/   # Motores: plataforma (Bosque), grade (Semente), 3D (Silo)
 
 functions/         # Cloud Functions (lembretes de aula via FCM)
 firestore.rules    # Regras de segurança do Firestore

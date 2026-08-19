@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────
-// Os dois jogos do app. A tela inicial escolhe entre eles.
+// Os jogos do app. A tela inicial escolhe entre eles.
 //
 // Cada um cobre um recorte diferente de biologia e usa uma técnica de
 // imagem diferente, de propósito: um é ilustração em camadas com
@@ -8,17 +8,25 @@
 // ─────────────────────────────────────────────────────────
 
 export interface Jogo {
-  id: 'cinzas' | 'silo' | 'semente';
+  id: 'cinzas' | 'silo' | 'semente' | 'fonte';
   titulo: string;
   subtitulo: string;
   /** o que o aluno aprende, em uma linha, para a tela de escolha */
   conteudo: string;
   /** frase de chamada, sem entregar a virada */
   chamada: string;
-  tecnica: 'ilustracao' | '3d' | 'pixel';
+  tecnica: 'ilustracao' | '3d' | 'pixel' | 'plataforma';
 }
 
 export const JOGOS: Jogo[] = [
+  {
+    id: 'fonte',
+    titulo: 'A FONTE',
+    subtitulo: 'ÁGUA QUE SOBE, ÁGUA QUE VOLTA',
+    conteudo: 'Ciclo da água e mudanças de estado, em três estações',
+    chamada: 'A fonte que enche três povoados virou um fio, e a aguadeira que subiu a serra atrás da nascente não voltou. As Sentinelas da Ordem só abrem passagem para quem entende a água.',
+    tecnica: 'plataforma',
+  },
   {
     id: 'semente',
     titulo: 'SEMENTE',
