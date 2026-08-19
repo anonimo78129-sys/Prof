@@ -455,6 +455,32 @@ for (const [estacao, pasta] of ESTACOES) {
   const [castelo] = achar(pasta, 'Background Castle');
   if (castelo) fs.copyFileSync(castelo, path.join(OUT, 'fundo', estacao, 'castelo.png'));
 }
+// ── capa do cartão da tela inicial ──────────────────────
+//
+// O cartão da tela inicial mostrava a camada 1 do fundo sozinha, que é a
+// mata escura rente ao chão: ao lado dos outros três jogos ele lia como
+// um retângulo preto. A capa passa a ser a cena montada — as cinco
+// camadas do verão empilhadas, com uma árvore grande na frente para dar
+// escala.
+{
+  const camadas = [];
+  for (let n = 5; n >= 1; n--) {
+    const arquivo = path.join(OUT, 'fundo', 'verao', `camada-${n}.png`);
+    if (fs.existsSync(arquivo)) camadas.push({ input: arquivo, left: 0, top: 0 });
+  }
+  const arvore = path.join(OUT, 'cenario', 'arvore-2.png');
+  if (fs.existsSync(arvore)) camadas.push({ input: arvore, left: 610, top: 138 });
+  const salgueiro = path.join(OUT, 'cenario', 'salgueiro-1.png');
+  if (fs.existsSync(salgueiro)) camadas.push({ input: salgueiro, left: 40, top: 155 });
+  if (camadas.length) {
+    await sharp({ create: {
+      width: 1024, height: 346, channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    } }).composite(camadas).png().toFile(path.join(OUT, 'capa.png'));
+    console.log('  capa      gerada');
+  }
+}
+
 console.log('  cenário   copiado');
 
 // ── 4. catálogo tipado ──────────────────────────────────

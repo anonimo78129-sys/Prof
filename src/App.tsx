@@ -79,8 +79,8 @@ function CartaoJogo({ jogo, onClick }: { jogo: Jogo; onClick: () => void }) {
         {jogo.tecnica === 'plataforma'
           ? <div style={{
               width: '100%', height: '100%',
-              backgroundImage: 'url(/assets/bosque/fundo/verao/camada-1.png)',
-              backgroundSize: 'cover', backgroundPosition: 'center 62%',
+              backgroundImage: 'url(/assets/bosque/capa.png)',
+              backgroundSize: 'cover', backgroundPosition: 'center 70%',
               imageRendering: 'pixelated',
             }} />
           : jogo.tecnica === 'pixel'
@@ -256,14 +256,27 @@ export default function App() {
       position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
       display: 'flex', justifyContent: 'center', padding: '18px 12px 24px',
     }}>
+      {/* Largura em coluna única no celular em pé, e em grade quando a
+          tela é larga. Sem isso a tela inicial fica presa num tubo de
+          56vh de largura, e quem gira o aparelho para jogar A FONTE não
+          consegue nem chegar no cartão dele. */}
       <div style={{
-        position: 'relative', width: 'min(100vw - 24px, 56.25vh)',
-        display: 'flex', flexDirection: 'column', gap: px(5), justifyContent: 'center',
+        position: 'relative', width: 'min(100vw - 24px, 1040px)',
+        display: 'flex', flexDirection: 'column', gap: px(5),
+        // centralizar na vertical com conteúdo mais alto que a tela corta
+        // o topo e o deixa fora do alcance da rolagem — e com quatro
+        // cartões a lista é sempre mais alta que a tela
+        justifyContent: 'flex-start',
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ ...T.rotulo, color: C.boneDim, letterSpacing: 3 }}>ESCOLHA UMA HISTÓRIA</div>
         </div>
 
+        <div style={{
+          display: 'grid', gap: px(5),
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          alignItems: 'start',
+        }}>
         {JOGOS.map(j => (
           <CartaoJogo
             key={j.id}
@@ -277,6 +290,7 @@ export default function App() {
             }}
           />
         ))}
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(3) }}>
           <div style={{ display: 'flex', gap: px(2), alignItems: 'center', marginTop: 'var(--p)' }}>
