@@ -34,14 +34,21 @@ const VISAO_L = 13, VISAO_A = 22;      // casas visíveis, retrato
 const DUR_PASSO = 0.16;                 // segundos por casa
 
 // ── peças do chão ────────────────────────────────────────
-const CHAO: Record<string, { c: number; r: number; solido?: boolean }> = {
-  '.': { c: 14, r: 16 },
-  ',': { c: 13, r: 16 },
-  ';': { c: 16, r: 16 },
-  't': { c: 18, r: 16 },
-  '=': { c: 22, r: 22 },
-  '#': { c: 2, r: 28, solido: true },
-  ' ': { c: 14, r: 16 },
+//
+// O chão vem de outra folha: a grama chapada e a terra do primeiro
+// pacote deixavam o campo com cara de feltro, e a diferença entre andar
+// e não andar não se lia. Esta tem grama clara, grama escura e terra
+// batida, e é com as duas gramas que a trilha ganha borda — faixa escura
+// de cada lado do caminho, que é o que faz a estrada parecer estrada.
+const CHAO: Record<string, { f?: Folha; c: number; r: number; solido?: boolean }> = {
+  '.': { f: 'bosque', c: 3, r: 3 },
+  ',': { f: 'bosque', c: 11, r: 3 },
+  ';': { f: 'bosque', c: 3, r: 8 },
+  't': { f: 'bosque', c: 7, r: 3 },
+  '~': { f: 'bosque', c: 13, r: 6, solido: true },
+  '=': { f: 'bosque', c: 6, r: 10 },
+  '#': { f: 'bosque', c: 11, r: 3, solido: true },
+  ' ': { f: 'bosque', c: 3, r: 3 },
 };
 
 // ── peças de objeto ─────────────────────────────────────
@@ -57,10 +64,20 @@ const CHAO: Record<string, { c: number; r: number; solido?: boolean }> = {
 // grupo inteiro virou uma peça só — é por isso que o bosque é uma faixa
 // de treze casas e não uma árvore avulsa. Melhor uma mata inteira certa
 // que uma árvore errada.
-interface Peca { c: number; r: number; l: number; a: number; solido?: boolean }
+type Folha = 'tileset' | 'bosque';
+interface Peca { f?: Folha; c: number; r: number; l: number; a: number; solido?: boolean }
 const PECAS: Record<string, Peca> = {
   casa: { c: 0, r: 0, l: 8, a: 3, solido: true },
-  bosque: { c: 0, r: 10, l: 13, a: 2, solido: true },
+  // árvores da folha de bosque: com tronco, copa e sombra própria, ao
+  // contrário da faixa achatada do primeiro pacote
+  arvore: { f: 'bosque', c: 17, r: 0, l: 4, a: 5, solido: true },
+  arvoreMedia: { f: 'bosque', c: 17, r: 5, l: 2, a: 3, solido: true },
+  pinheiro: { f: 'bosque', c: 19, r: 6, l: 2, a: 2, solido: true },
+  ponte: { f: 'bosque', c: 5, r: 7, l: 3, a: 4 },
+  moitaVerde: { f: 'bosque', c: 14, r: 3, l: 1, a: 1 },
+  cogumelo: { f: 'bosque', c: 14, r: 4, l: 1, a: 1 },
+  pedregulho: { f: 'bosque', c: 14, r: 2, l: 1, a: 1, solido: true },
+  florRosa: { f: 'bosque', c: 16, r: 3, l: 1, a: 1 },
   bosqueMorto: { c: 0, r: 27, l: 6, a: 3, solido: true },
   rochedo: { c: 21, r: 0, l: 4, a: 4, solido: true },
   caverna: { c: 14, r: 9, l: 4, a: 3, solido: true },
@@ -103,16 +120,22 @@ const PECAS: Record<string, Peca> = {
 // canto — mundo que muda a cada visita não vira mapa na cabeça de
 // ninguém.
 const MIUDEZAS: Peca[] = [
-  { c: 0, r: 5, l: 1, a: 1 },     // tufo de capim
-  { c: 0, r: 6, l: 1, a: 1 },     // trevo
-  { c: 0, r: 8, l: 1, a: 1 },     // capim rasteiro
-  { c: 3, r: 16, l: 1, a: 1 },    // pedriscos
-  { c: 0, r: 18, l: 1, a: 1 },    // gravetos secos
-  { c: 1, r: 24, l: 1, a: 1 },    // folhas
-  { c: 6, r: 23, l: 1, a: 1 },    // mato baixo
-  { c: 14, r: 29, l: 1, a: 1 },   // folha vermelha
-  { c: 0, r: 7, l: 1, a: 1 },     // pedrinha
-  { c: 0, r: 27, l: 1, a: 1 },    // raízes secas
+  { f: 'bosque', c: 7, r: 2, l: 1, a: 1 },    // tufo de capim
+  { f: 'bosque', c: 6, r: 3, l: 1, a: 1 },    // tufo
+  { f: 'bosque', c: 7, r: 4, l: 1, a: 1 },    // moita rasteira
+  { f: 'bosque', c: 8, r: 5, l: 1, a: 1 },    // moita
+  { f: 'bosque', c: 5, r: 5, l: 1, a: 1 },    // flor amarela
+  { f: 'bosque', c: 16, r: 3, l: 1, a: 1 },   // flor rosa
+  { f: 'bosque', c: 15, r: 2, l: 1, a: 1 },   // pedrinha
+  { f: 'bosque', c: 14, r: 4, l: 1, a: 1 },   // cogumelo
+  { f: 'bosque', c: 16, r: 2, l: 1, a: 1 },   // graveto
+  { c: 0, r: 27, l: 1, a: 1 },                // raiz seca do outro pacote
+];
+
+const PEDRISCOS: Peca[] = [
+  { f: 'bosque', c: 15, r: 2, l: 1, a: 1 },
+  { f: 'bosque', c: 16, r: 2, l: 1, a: 1 },
+  { c: 0, r: 27, l: 1, a: 1 },
 ];
 
 /** Sorteio preso à posição: mesma casa, mesma miudeza, toda partida. */
@@ -180,7 +203,7 @@ export default function Semente({ onSair }: { onSair: () => void }) {
 
   // ── carrega o material ──
   useEffect(() => {
-    const nomes = ['tileset', 'p3', 'p2', 'p4', 'p6', 'p7', 'p9', 'p12'];
+    const nomes = ['tileset', 'bosque', 'p3', 'p2', 'p4', 'p6', 'p7', 'p9', 'p12'];
     let faltam = nomes.length;
     for (const n of nomes) {
       const img = new Image();
@@ -482,7 +505,8 @@ function desenha(
     for (let x = x0; x <= x0 + VISAO_L; x++) {
       const ch = mapa.chao[y]?.[x];
       const t = CHAO[ch ?? '#'] ?? CHAO['#'];
-      ctx.drawImage(ts, t.c * TILE, t.r * TILE, TILE, TILE,
+      const fo = arte[t.f ?? 'tileset'];
+      if (fo?.complete) ctx.drawImage(fo, t.c * TILE, t.r * TILE, TILE, TILE,
         x * TILE - camX, y * TILE - camY, TILE, TILE);
     }
   }
@@ -496,12 +520,19 @@ function desenha(
   for (let y = y0; y <= y0 + VISAO_A; y++) {
     for (let x = x0; x <= x0 + VISAO_L; x++) {
       const ch = mapa.chao[y]?.[x];
-      if (ch !== '.' && ch !== ',' && ch !== ';') continue;
-      if (sorteio(x, y, 7) > 0.24) continue;
-      const m = MIUDEZAS[Math.floor(sorteio(x, y, 11) * MIUDEZAS.length)];
+      const naGrama = ch === '.' || ch === ',' || ch === ';';
+      const naTerra = ch === 't';
+      if (!naGrama && !naTerra) continue;
+      if (sorteio(x, y, 7) > (naGrama ? 0.3 : 0.14)) continue;
+      // na terra só entra pedrisco e graveto; capim no meio da trilha
+      // desmancharia justamente a leitura de caminho
+      const lista = naGrama ? MIUDEZAS : PEDRISCOS;
+      const m = lista[Math.floor(sorteio(x, y, 11) * lista.length)];
+      const fo = arte[m.f ?? 'tileset'];
+      if (!fo?.complete) continue;
       fila.push({
         pe: (y + 1) * TILE - 1,
-        desenhar: () => ctx.drawImage(ts, m.c * TILE, m.r * TILE, TILE, TILE,
+        desenhar: () => ctx.drawImage(fo, m.c * TILE, m.r * TILE, TILE, TILE,
           x * TILE - camX, y * TILE - camY, TILE, TILE),
       });
     }
@@ -512,9 +543,11 @@ function desenha(
     if (!pc) continue;
     if (o.x + pc.l < x0 - 1 || o.x > x0 + VISAO_L + 1) continue;
     if (o.y + pc.a < y0 - 1 || o.y > y0 + VISAO_A + 1) continue;
+    const fo = arte[pc.f ?? 'tileset'];
+    if (!fo?.complete) continue;
     fila.push({
       pe: (o.y + pc.a) * TILE,
-      desenhar: () => ctx.drawImage(ts, pc.c * TILE, pc.r * TILE, pc.l * TILE, pc.a * TILE,
+      desenhar: () => ctx.drawImage(fo, pc.c * TILE, pc.r * TILE, pc.l * TILE, pc.a * TILE,
         o.x * TILE - camX, o.y * TILE - camY, pc.l * TILE, pc.a * TILE),
     });
   }
