@@ -38,9 +38,9 @@ export const CREDITS: CreditSection[] = [
       },
       {
         title: 'Sprites do SEMENTE',
-        author: 'Pixel-boy — Sparklin Labs',
-        license: 'CC0 1.0 · domínio público',
-        note: 'O mundo de SEMENTE usa o pacote Ninja Adventure, dos Superpowers Asset Packs. É arte liberada em domínio público: pode ser usada, alterada e distribuída sem pedir licença e sem pagar, inclusive em projeto comercial. Aqui entra o tileset de 16x16 (chão, casas, árvores mortas, cerca) e sete folhas de personagem, cada uma com quatro direções e quatro quadros de caminhada.',
+        author: 'Kenmi — pacote Cute Fantasy (versão gratuita)',
+        license: 'Uso livre em projeto sem fins comerciais · permite alteração',
+        note: 'O mundo de SEMENTE é montado sobre o pacote Cute Fantasy: grama, trilha, água, canteiro, carvalhos, casa, cerca, ponte, galinhas e a folha de personagem com seis quadros por direção. A licença gratuita libera uso e alteração em projeto sem fins comerciais, que é o caso deste aplicativo — ele é gratuito e feito para sala de aula. O que o pacote não trazia foi derivado dele aqui mesmo, repintando o que já existia: o mato alto e o concreto da estação saem da mesma silhueta da trilha, as árvores secas e a mata fechada são o carvalho com a copa em outra paleta, e cada morador do povoado é a folha do protagonista com outro cabelo, outra roupa e outro tom de pele.',
       },
       {
         title: 'Ícones e protagonista',

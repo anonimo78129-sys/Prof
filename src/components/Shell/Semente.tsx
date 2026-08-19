@@ -14,166 +14,184 @@ import {
 // dificuldade que o Núcleo Verde teve com GPU simplesmente não existe.
 //
 // COMO O MUNDO É DESENHADO
-//   1. o chão, tile por tile, só o pedaço que cabe na tela
-//   2. objetos, NPCs e o jogador juntos numa lista só, ordenados pelo pé
+//   1. a grama, que é cor chapada, pintada de uma vez só
+//   2. as manchas por cima dela — mato alto, trilha, água, canteiro,
+//      concreto — cada uma escolhendo a peça pela vizinhança
+//   3. objetos, NPCs e o jogador juntos numa lista só, ordenados pelo pé
 //      — quem tem o pé mais embaixo desenha por último e tapa o resto.
 //      É isso que faz o jogador passar ATRÁS da árvore e NA FRENTE do
 //      arbusto sem nenhuma camada extra
-//   3. a caixa de texto, que é HTML por cima, para a fonte ficar nítida
+//   4. a caixa de texto, que é HTML por cima, para a fonte ficar nítida
 //
 // O andar é travado na grade, como no jogo de referência: aperta a
 // direção, o boneco caminha uma casa inteira e só então aceita a próxima
 // ordem. Isso é o que dá o peso certo ao passo — movimento livre em
 // mundo de tile sempre parece escorregadio.
 //
-// ARTE: pacote Ninja Adventure, de Pixel-boy (Sparklin Labs), CC0 1.0.
+// ARTE: pacote Cute Fantasy, de Kenmi. Ver src/game/credits.ts.
 // ─────────────────────────────────────────────────────────
 
 const TILE = 16;
 const VISAO_L = 13, VISAO_A = 22;      // casas visíveis, retrato
 const DUR_PASSO = 0.16;                 // segundos por casa
+const BONECO = 32;                      // gente é desenhada em 32, não em 16
+/** onde o pé do boneco cai dentro do quadro de 32 */
+const OFX = -8, OFY = -9;
 
-// ── o chão, por camadas com borda casada ────────────────
+// A grama do pacote é uma cor chapada de 16x16 — pintar o fundo inteiro
+// com ela sai mais barato que mil e poucos drawImage por quadro, e dá
+// exatamente o mesmo pixel.
+const VERDE = '#3e8948';
+
+// ── o chão, por manchas com borda casada ────────────────
 //
-// Aqui estava o maior erro da versão anterior. Eu usava UM tile por
+// Aqui estava o maior erro das versões anteriores. Eu usava UM tile por
 // material — o quadradinho do meio, chapado — e por isso todo encontro
 // entre grama e terra saía num degrau reto de 16 pixels. Era isso que
 // deixava o campo com cara de tabuleiro.
 //
-// Este pacote traz o jogo completo de transições: cada material vem num
-// bloco de 5x5 com as quatro beiradas e os quatro cantos desenhados, com
-// a franja de terra e o capim saindo por cima. O desenho passa a ser em
-// camadas, de baixo para cima:
+// Este pacote desenha a transição de verdade: para cada material vêm as
+// oito peças de borda, os quatro cantos côncavos (aqueles que fecham a
+// quina quando a mancha faz uma dobra para dentro) e três variações do
+// miolo com cascalho. O truque que aproveita tudo isso é ter apagado o
+// verde chapado do fundo das folhas na hora de gerar os arquivos: sem
+// ele, cada mancha vira um decalque que pode ser posto por cima de
+// qualquer chão, e não um retângulo que apaga o que estava embaixo.
 //
-//   1. terra batida no mapa inteiro, sempre
-//   2. água por cima, onde houver
-//   3. grama por cima, escolhendo a peça pela vizinhança
-//   4. grama escura por cima da clara, pela mesma regra
-//
-// Quem decide a peça é a vizinhança: olha os quatro lados, vê onde o
-// material acaba, e pega a beirada ou o canto correspondente. É por isso
-// que a margem agora contorna em vez de cortar.
-type Material = 'terra' | 'grama' | 'escura' | 'agua' | 'madeira';
+// Mato alto e concreto não vinham no pacote. Foram tirados da MESMA
+// silhueta da trilha, só repintados — assim herdam de graça as bordas
+// recortadas e os cantos, e nada destoa.
+type Material = 'grama' | 'escura' | 'terra' | 'agua' | 'horta' | 'piso';
 
 const MATERIAL: Record<string, Material> = {
-  '.': 'grama', ',': 'escura', ';': 'grama', '#': 'grama',
-  't': 'terra', '~': 'agua', '=': 'madeira', ' ': 'grama',
+  '.': 'grama', ',': 'escura', '#': 'grama', ' ': 'grama',
+  't': 'terra', '~': 'agua', 'h': 'horta', '=': 'piso',
 };
 const SOLIDO_CHAO = new Set(['#', '~']);
 
-/** canto superior esquerdo do bloco 5x5 de cada material que tem borda */
-const BLOCO: Partial<Record<Material, { c: number; r: number }>> = {
-  grama: { c: 1, r: 1 },
-  escura: { c: 9, r: 1 },
-};
-/** tiles chapados, para o que não precisa de borda */
-const CHAPADO: Partial<Record<Material, { c: number; r: number }>> = {
-  terra: { c: 7, r: 3 },
-  agua: { c: 13, r: 6 },
-  madeira: { c: 6, r: 10 },
+interface Camada { folha: string; simples?: boolean }
+/** grama não entra: é o fundo, não uma mancha */
+const CAMADA: Partial<Record<Material, Camada>> = {
+  escura: { folha: 'escura' },
+  piso: { folha: 'piso' },
+  agua: { folha: 'agua' },
+  horta: { folha: 'horta', simples: true },
+  terra: { folha: 'trilha' },
 };
 
-/** deslocamento dentro do bloco 5x5, por combinação de lados vazios */
-function pedacoDoBloco(cima: boolean, baixo: boolean, esq: boolean, dir: boolean) {
-  if (!cima && !baixo && !esq && !dir) return [2, 2];
-  if (cima && esq) return [1, 1];
-  if (cima && dir) return [3, 1];
-  if (baixo && esq) return [1, 3];
-  if (baixo && dir) return [3, 3];
-  if (cima) return [2, 0];
-  if (baixo) return [2, 4];
-  if (esq) return [0, 2];
-  return [4, 2];
+/**
+ * Qual peça da folha de transição usar, olhando os oito vizinhos.
+ * A folha é 3x6: linhas 0-2 são as bordas e o miolo, linhas 3-4 são os
+ * quatro cantos côncavos e a linha 5 traz variações do miolo.
+ */
+function pedaco(
+  n: boolean, s: boolean, o: boolean, l: boolean,
+  no: boolean, ne: boolean, so: boolean, se: boolean,
+  simples: boolean, v: number,
+): [number, number] {
+  const cx = o ? (l ? 1 : 2) : 0;
+  const cy = n ? (s ? 1 : 2) : 0;
+  if (cx !== 1 || cy !== 1) return [cx, cy];
+  if (simples) return [1, 1];
+  // rodeado dos quatro lados, mas com uma quina faltando: canto côncavo
+  if (!se) return [0, 3];
+  if (!so) return [1, 3];
+  if (!ne) return [0, 4];
+  if (!no) return [1, 4];
+  return v < 0.09 ? [Math.floor(v / 0.03), 5] : [1, 1];
 }
 
 // ── peças de objeto ─────────────────────────────────────
 //
-// Estas coordenadas NÃO foram escolhidas no olho. Neste tileset as peças
-// se encostam, sem faixa transparente entre elas, então todo recorte
-// estimado puxava um pedaço do vizinho — e era isso que deixava casa
-// cortada e vaso pela metade na tela.
+// Os recortes são em PIXEL, não em casa: neste pacote quase nada começa
+// na quina do tile — o carvalho, por exemplo, tem onze pixels de folga à
+// esquerda. Recorte estimado na grade puxava pedaço do vizinho, e era
+// isso que deixava casa cortada e vaso pela metade na tela.
 //
-// A lista abaixo saiu de uma varredura do PNG: os pixels opacos foram
-// agrupados em regiões conexas e cada região devolveu seu retângulo
-// exato. Onde duas peças se tocavam de verdade no desenho original, o
-// grupo inteiro virou uma peça só — é por isso que o bosque é uma faixa
-// de treze casas e não uma árvore avulsa. Melhor uma mata inteira certa
-// que uma árvore errada.
-type Folha = 'tileset' | 'bosque';
-interface Peca { f?: Folha; c: number; r: number; l: number; a: number; solido?: boolean }
+// `l` e `a` são o que a peça OCUPA no mapa, em casas; `cy`/`ca` limitam
+// a colisão a uma faixa. Árvore com cinco casas de altura só barra o
+// passo nas duas de baixo — o resto é copa, e copa a gente passa atrás.
+interface Peca {
+  f: string;
+  sx: number; sy: number; sl: number; sa: number;
+  l?: number; a?: number;
+  ox?: number; oy?: number;
+  solido?: boolean;
+  cy?: number; ca?: number;
+  /** desenhado junto com o chão, fora da ordenação por pé */
+  piso?: boolean;
+  /** quadros de animação lado a lado, para os bichos */
+  q?: number;
+}
+
+// Atenção ao escolher célula na folha de decoração: ela mistura as peças
+// de mundo com os ícones de inventário das MESMAS coisas, e o ícone vem
+// com um contorno creme em volta. Numa folha só isso passa despercebido;
+// no chão do jogo vira adesivo recortado. As células de ícone são (4,0)
+// (6,0) (4,3) (6,3) (0..2,4) e (0..2,6) — não usar.
+/** peça de uma casa, tirada da folha de decoração */
+const d = (c: number, r: number, extra: Partial<Peca> = {}): Peca =>
+  ({ f: 'decor', sx: c * 16, sy: r * 16, sl: 16, sa: 16, ...extra });
+/** bicho: quadro de 32, dois passos de animação */
+const bicho = (f: string): Peca =>
+  ({ f, sx: 0, sy: 0, sl: 32, sa: 32, ox: OFX, oy: OFY, q: 2, solido: true });
+const copa = (f: string): Peca =>
+  ({ f, sx: 0, sy: 0, sl: 64, sa: 80, l: 4, a: 5, solido: true, cy: 3, ca: 2 });
+
 const PECAS: Record<string, Peca> = {
-  casa: { c: 0, r: 0, l: 8, a: 3, solido: true },
-  // árvores da folha de bosque: com tronco, copa e sombra própria, ao
-  // contrário da faixa achatada do primeiro pacote
-  arvore: { f: 'bosque', c: 17, r: 0, l: 4, a: 5, solido: true },
-  arvoreMedia: { f: 'bosque', c: 17, r: 5, l: 2, a: 3, solido: true },
-  pinheiro: { f: 'bosque', c: 19, r: 6, l: 2, a: 2, solido: true },
-  ponte: { f: 'bosque', c: 5, r: 7, l: 3, a: 4 },
-  moitaVerde: { f: 'bosque', c: 14, r: 3, l: 1, a: 1 },
-  cogumelo: { f: 'bosque', c: 14, r: 4, l: 1, a: 1 },
-  pedregulho: { f: 'bosque', c: 14, r: 2, l: 1, a: 1, solido: true },
-  florRosa: { f: 'bosque', c: 16, r: 3, l: 1, a: 1 },
-  bosqueMorto: { c: 0, r: 27, l: 6, a: 3, solido: true },
-  rochedo: { c: 21, r: 0, l: 4, a: 4, solido: true },
-  caverna: { c: 14, r: 9, l: 4, a: 3, solido: true },
-  portal: { c: 8, r: 21, l: 3, a: 3, solido: true },
-  estatua: { c: 26, r: 0, l: 2, a: 2, solido: true },
-  altar: { c: 9, r: 7, l: 2, a: 2, solido: true },
-  varal: { c: 8, r: 4, l: 2, a: 2, solido: true },
-  carroca: { c: 5, r: 8, l: 2, a: 2, solido: true },
-  carrocaCheia: { c: 7, r: 8, l: 2, a: 2, solido: true },
-  caixotes: { c: 6, r: 6, l: 2, a: 2, solido: true },
-  pedraGrande: { c: 12, r: 10, l: 2, a: 2, solido: true },
-  toco: { c: 6, r: 18, l: 2, a: 2, solido: true },
-  cerca: { c: 19, r: 0, l: 2, a: 2, solido: true },
-  grade: { c: 19, r: 2, l: 2, a: 2, solido: true },
-  bancada: { c: 0, r: 3, l: 3, a: 2, solido: true },
-  varanda: { c: 5, r: 4, l: 3, a: 2, solido: true },
-  moita: { c: 5, r: 9, l: 2, a: 1, solido: true },
-  moitaSeca: { c: 7, r: 9, l: 2, a: 1, solido: true },
-  poste: { c: 8, r: 18, l: 1, a: 2, solido: true },
-  vaso: { c: 0, r: 37, l: 1, a: 2, solido: true },
-  // miudezas de uma casa só
-  pote: { c: 0, r: 6, l: 1, a: 1, solido: true },
-  caixote: { c: 1, r: 6, l: 1, a: 1, solido: true },
-  saco: { c: 2, r: 6, l: 1, a: 1, solido: true },
-  pedra: { c: 1, r: 7, l: 1, a: 1, solido: true },
-  cruz: { c: 8, r: 7, l: 1, a: 1, solido: true },
-  caveira: { c: 2, r: 17, l: 1, a: 1 },
-  osso: { c: 3, r: 17, l: 1, a: 1 },
-  broto: { c: 1, r: 27, l: 1, a: 1 },
-  girassol: { c: 3, r: 15, l: 1, a: 1 },
-  margarida: { c: 1, r: 8, l: 1, a: 1 },
-  flores: { c: 1, r: 21, l: 1, a: 1 },
-  arbusto: { c: 0, r: 21, l: 1, a: 1, solido: true },
-  canteiro: { c: 20, r: 15, l: 3, a: 3 },
+  casa: { f: 'casa', sx: 0, sy: 0, sl: 96, sa: 128, l: 6, a: 8, solido: true },
+
+  arvore: copa('arvore'),
+  arvoreMata: copa('arvoreMata'),
+  arvoreSeca: copa('arvoreSeca'),
+  arvoreMedia: { f: 'arvore2', sx: 32, sy: 0, sl: 32, sa: 48, l: 2, a: 3, solido: true, cy: 2, ca: 1 },
+  arvoreMediaSeca: { f: 'arvore2Seca', sx: 32, sy: 0, sl: 32, sa: 48, l: 2, a: 3, solido: true, cy: 2, ca: 1 },
+  arvorePeq: { f: 'arvore2', sx: 64, sy: 0, sl: 32, sa: 32, l: 2, a: 2, solido: true, cy: 1, ca: 1 },
+  arvorePeqSeca: { f: 'arvore2Seca', sx: 64, sy: 0, sl: 32, sa: 32, l: 2, a: 2, solido: true, cy: 1, ca: 1 },
+
+  cercaH: { f: 'cerca', sx: 32, sy: 0, sl: 16, sa: 16, solido: true },
+  cercaV: { f: 'cerca', sx: 0, sy: 16, sl: 16, sa: 16, solido: true },
+  // ponte é chão, não objeto: entra antes da fila de profundidade, senão
+  // o tabuado passa por cima de quem está atravessando
+  ponteH: { f: 'ponte', sx: 0, sy: 16, sl: 48, sa: 48, l: 3, a: 3, piso: true },
+  ponteV: { f: 'ponte', sx: 56, sy: 16, sl: 32, sa: 48, l: 2, a: 3, piso: true },
+  bau: { f: 'bau', sx: 0, sy: 0, sl: 16, sa: 16, solido: true },
+
+  poste: { f: 'decor', sx: 64, sy: 64, sl: 16, sa: 48, l: 1, a: 3, solido: true, cy: 2, ca: 1 },
+  tora: { f: 'decor', sx: 0, sy: 112, sl: 32, sa: 16, l: 2, a: 1, solido: true },
+
+  tufo: d(0, 0), tufo2: d(1, 0), tufo3: d(2, 0),
+  placa: d(3, 0, { solido: true }), placa2: d(5, 0, { solido: true }),
+  florAmarela: d(0, 1), florLaranja: d(1, 1), florBranca: d(2, 1),
+  brotinho: d(3, 1), broto: d(4, 1), moitaRasteira: d(5, 1), capimAlto: d(6, 1),
+  tocoSeco: d(0, 2, { solido: true }), pedrinhas: d(1, 2), pedras: d(2, 2),
+  mudaSolo: d(3, 2), cenoura: d(4, 2), trigo: d(5, 2), trigoSeco: d(6, 2),
+  pedreira: d(0, 3, { solido: true }), pedreira2: d(1, 3, { solido: true }),
+  pedreira3: d(2, 3, { solido: true }), cristal: d(3, 3), cogumelo: d(2, 7),
+  canteiro1: d(0, 10), canteiro2: d(1, 10), canteiro3: d(2, 10), canteiro4: d(3, 10),
+
+  galinha: bicho('galinha'), porco: bicho('porco'),
+  ovelha: bicho('ovelha'), vaca: { ...bicho('vaca'), l: 2 },
 };
 
-// Miudezas espalhadas pelo chão. Sem elas o campo vira feltro verde: é a
-// sujeira pequena e repetida que faz um mundo de tiles parecer lugar.
-// O sorteio é por posição, então a mesma pedrinha nasce sempre no mesmo
-// canto — mundo que muda a cada visita não vira mapa na cabeça de
-// ninguém.
-const MIUDEZAS: Peca[] = [
-  { f: 'bosque', c: 7, r: 2, l: 1, a: 1 },    // tufo de capim
-  { f: 'bosque', c: 6, r: 3, l: 1, a: 1 },    // tufo
-  { f: 'bosque', c: 7, r: 4, l: 1, a: 1 },    // moita rasteira
-  { f: 'bosque', c: 8, r: 5, l: 1, a: 1 },    // moita
-  { f: 'bosque', c: 5, r: 5, l: 1, a: 1 },    // flor amarela
-  { f: 'bosque', c: 16, r: 3, l: 1, a: 1 },   // flor rosa
-  { f: 'bosque', c: 15, r: 2, l: 1, a: 1 },   // pedrinha
-  { f: 'bosque', c: 14, r: 4, l: 1, a: 1 },   // cogumelo
-  { f: 'bosque', c: 16, r: 2, l: 1, a: 1 },   // graveto
-  { c: 0, r: 27, l: 1, a: 1 },                // raiz seca do outro pacote
-];
+/** todas as folhas de imagem, e onde cada uma mora */
+const FOLHAS: Record<string, string> = {
+  trilha: 'cf/trilha', escura: 'cf/escura', agua: 'cf/agua',
+  piso: 'cf/piso', horta: 'cf/horta', decor: 'cf/decor',
+  arvore: 'cf/arvore', arvoreMata: 'cf/arvoreMata', arvoreSeca: 'cf/arvoreSeca',
+  arvore2: 'cf/arvore2', arvore2Seca: 'cf/arvore2Seca',
+  casa: 'cf/casa', cerca: 'cf/cerca', ponte: 'cf/ponte', bau: 'cf/bau',
+  galinha: 'cf/galinha', porco: 'cf/porco', ovelha: 'cf/ovelha', vaca: 'cf/vaca',
+  heroi: 'cf/heroi',
+  nita: 'cf/g-nita', doril: 'cf/g-doril', vilma: 'cf/g-vilma',
+  anciana: 'cf/g-anciana', teo: 'cf/g-teo', andarilho: 'cf/g-andarilho',
+};
 
-const PEDRISCOS: Peca[] = [
-  { f: 'bosque', c: 15, r: 2, l: 1, a: 1 },
-  { f: 'bosque', c: 16, r: 2, l: 1, a: 1 },
-  { c: 0, r: 27, l: 1, a: 1 },
-];
+/** linha da folha de gente, por direção: parado e andando */
+const PARADO = [0, 2, 1, 1];
+const ANDANDO = [3, 5, 4, 4];
 
-/** Sorteio preso à posição: mesma casa, mesma miudeza, toda partida. */
+/** Sorteio preso à posição: mesma casa, mesma variação, toda partida. */
 function sorteio(x: number, y: number, semente: number) {
   let n = (x * 374761393 + y * 668265263 + semente * 2147483647) | 0;
   n = Math.imul(n ^ (n >>> 13), 1274126177);
@@ -198,8 +216,10 @@ function montaCena(id: string): Cena {
   for (const o of mapa.objetos) {
     const p = PECAS[o.peca];
     if (!p?.solido) continue;
-    for (let y = o.y; y < o.y + p.a; y++)
-      for (let x = o.x; x < o.x + p.l; x++)
+    const l = p.l ?? 1, a = p.a ?? 1;
+    const y0 = o.y + (p.cy ?? 0), y1 = y0 + (p.ca ?? a);
+    for (let y = y0; y < y1; y++)
+      for (let x = o.x; x < o.x + l; x++)
         if (solido[y]) solido[y][x] = true;
   }
   for (const n of mapa.npcs) if (solido[n.y]) solido[n.y][n.x] = true;
@@ -225,7 +245,7 @@ export default function Semente({ onSair }: { onSair: () => void }) {
   const jogo = useRef({
     x: INICIO.x, y: INICIO.y, olhando: INICIO.olhando as Dir,
     passo: null as Passo | null,
-    quadro: 0, andado: 0,
+    tempo: 0, andado: 0,
     apertado: null as Dir | null,
     cena: montaCena(MAPA_INICIAL),
   });
@@ -238,11 +258,11 @@ export default function Semente({ onSair }: { onSair: () => void }) {
 
   // ── carrega o material ──
   useEffect(() => {
-    const nomes = ['tileset', 'bosque', 'p3', 'p2', 'p4', 'p6', 'p7', 'p9', 'p12'];
+    const nomes = Object.keys(FOLHAS);
     let faltam = nomes.length;
     for (const n of nomes) {
       const img = new Image();
-      img.src = `/assets/semente/${n}.png`;
+      img.src = `/assets/semente/${FOLHAS[n]}.png`;
       img.onload = () => { if (--faltam === 0) setPronto(true); };
       img.onerror = () => { if (--faltam === 0) setPronto(true); };
       arte.current[n] = img;
@@ -349,6 +369,7 @@ export default function Semente({ onSair }: { onSair: () => void }) {
       const dt = Math.min((agora - anterior) / 1000, 0.05);
       anterior = agora;
       const g = jogo.current;
+      g.tempo += dt;
 
       // andar: só aceita ordem nova quando a casa anterior terminou
       if (g.passo) {
@@ -370,9 +391,7 @@ export default function Semente({ onSair }: { onSair: () => void }) {
         if (podeIr(g.x + dx, g.y + dy)) g.passo = { ox: g.x, oy: g.y, dx, dy, t: 0 };
       }
 
-      const movendo = !!g.passo;
-      if (movendo) { g.andado += dt; g.quadro = Math.floor(g.andado / 0.08) % 4; }
-      else { g.andado = 0; g.quadro = 0; }
+      if (g.passo) g.andado += dt; else g.andado = 0;
 
       desenha(ctx, g, arte.current);
       requestAnimationFrame(quadro);
@@ -433,7 +452,7 @@ export default function Semente({ onSair }: { onSair: () => void }) {
           <div className="px-notch" style={{ position: 'absolute', inset: 0, background: C.line, padding: 'var(--p)' }}>
             <div style={{
               position: 'relative', width: '100%', height: '100%', overflow: 'hidden',
-              background: '#20301c', display: 'grid', placeItems: 'center',
+              background: VERDE, display: 'grid', placeItems: 'center',
             }}>
               <canvas
                 ref={tela}
@@ -508,7 +527,23 @@ export default function Semente({ onSair }: { onSair: () => void }) {
 
 interface EstadoJogo {
   x: number; y: number; olhando: Dir; passo: Passo | null;
-  quadro: number; cena: Cena;
+  tempo: number; andado: number; cena: Cena;
+}
+
+/** um quadro de gente, com o lado esquerdo saindo do direito espelhado */
+function boneco(
+  ctx: CanvasRenderingContext2D, folha: HTMLImageElement,
+  col: number, lin: number, dx: number, dy: number, espelha: boolean,
+) {
+  const sx = col * BONECO, sy = lin * BONECO;
+  if (!espelha) {
+    ctx.drawImage(folha, sx, sy, BONECO, BONECO, dx, dy, BONECO, BONECO);
+    return;
+  }
+  ctx.save();
+  ctx.scale(-1, 1);
+  ctx.drawImage(folha, sx, sy, BONECO, BONECO, -dx - BONECO, dy, BONECO, BONECO);
+  ctx.restore();
 }
 
 function desenha(
@@ -516,7 +551,6 @@ function desenha(
   g: EstadoJogo,
   arte: Record<string, HTMLImageElement>,
 ) {
-  const ts = arte.tileset;
   const mapa = g.cena.mapa;
   const larg = mapa.chao[0].length, alt = mapa.chao.length;
 
@@ -531,45 +565,33 @@ function desenha(
   const camX = Math.round(Math.max(0, Math.min(jx - meioX, larg * TILE - VISAO_L * TILE)));
   const camY = Math.round(Math.max(0, Math.min(jy - meioY, alt * TILE - VISAO_A * TILE)));
 
-  ctx.fillStyle = '#20301c';
+  ctx.fillStyle = VERDE;
   ctx.fillRect(0, 0, VISAO_L * TILE, VISAO_A * TILE);
-  if (!ts?.complete || !ts.naturalWidth) return;
 
-  const bosque = arte.bosque;
-  const mat = (x: number, y: number): Material =>
-    MATERIAL[mapa.chao[y]?.[x] ?? '#'] ?? 'grama';
-  // fora do mapa conta como o mesmo material: assim a beirada da tela
-  // não ganha franja de borda onde não existe borda nenhuma
-  const temCamada = (x: number, y: number, camada: Material) => {
-    if (y < 0 || y >= alt || x < 0 || x >= larg) return true;
-    const m = mat(x, y);
-    return camada === 'grama' ? (m === 'grama' || m === 'escura') : m === camada;
+  // fora do mapa vale o vizinho de dentro mais próximo: assim a beirada
+  // da tela não ganha franja de borda onde não existe borda nenhuma
+  const mat = (x: number, y: number): Material => {
+    const cx = x < 0 ? 0 : x >= larg ? larg - 1 : x;
+    const cy = y < 0 ? 0 : y >= alt ? alt - 1 : y;
+    return MATERIAL[mapa.chao[cy][cx]] ?? 'grama';
   };
 
   const x0 = Math.floor(camX / TILE), y0 = Math.floor(camY / TILE);
-  if (bosque?.complete) {
-    for (let y = y0; y <= y0 + VISAO_A; y++) {
-      for (let x = x0; x <= x0 + VISAO_L; x++) {
-        const dx = x * TILE - camX, dy = y * TILE - camY;
-        const m = mat(x, y);
-        const chapa = (p: { c: number; r: number }) =>
-          ctx.drawImage(bosque, p.c * TILE, p.r * TILE, TILE, TILE, dx, dy, TILE, TILE);
-        const camada = (nome: Material) => {
-          const b = BLOCO[nome]!;
-          const [ox, oy] = pedacoDoBloco(
-            !temCamada(x, y - 1, nome), !temCamada(x, y + 1, nome),
-            !temCamada(x - 1, y, nome), !temCamada(x + 1, y, nome),
-          );
-          ctx.drawImage(bosque, (b.c + ox) * TILE, (b.r + oy) * TILE, TILE, TILE,
-            dx, dy, TILE, TILE);
-        };
-
-        if (m === 'madeira') { chapa(CHAPADO.madeira!); continue; }
-        chapa(CHAPADO.terra!);
-        if (m === 'agua') chapa(CHAPADO.agua!);
-        if (m === 'grama' || m === 'escura') camada('grama');
-        if (m === 'escura') camada('escura');
-      }
+  for (let y = y0; y <= y0 + VISAO_A; y++) {
+    for (let x = x0; x <= x0 + VISAO_L; x++) {
+      const m = mat(x, y);
+      const cam = CAMADA[m];
+      if (!cam) continue;
+      const fo = arte[cam.folha];
+      if (!fo?.complete || !fo.naturalWidth) continue;
+      const ig = (i: number, j: number) => mat(x + i, y + j) === m;
+      const [cx, cy] = pedaco(
+        ig(0, -1), ig(0, 1), ig(-1, 0), ig(1, 0),
+        ig(-1, -1), ig(1, -1), ig(-1, 1), ig(1, 1),
+        !!cam.simples, sorteio(x, y, 3),
+      );
+      ctx.drawImage(fo, cx * TILE, cy * TILE, TILE, TILE,
+        x * TILE - camX, y * TILE - camY, TILE, TILE);
     }
   }
 
@@ -577,59 +599,59 @@ function desenha(
   interface Sprite { pe: number; desenhar: () => void }
   const fila: Sprite[] = [];
 
-  // miudezas do chão: entram na mesma fila, então um vaso na frente
-  // continua tapando o capim de trás
-  for (let y = y0; y <= y0 + VISAO_A; y++) {
-    for (let x = x0; x <= x0 + VISAO_L; x++) {
-      const ch = mapa.chao[y]?.[x];
-      const naGrama = ch === '.' || ch === ',' || ch === ';';
-      const naTerra = ch === 't';
-      if (!naGrama && !naTerra) continue;
-      if (sorteio(x, y, 7) > (naGrama ? 0.3 : 0.14)) continue;
-      // na terra só entra pedrisco e graveto; capim no meio da trilha
-      // desmancharia justamente a leitura de caminho
-      const lista = naGrama ? MIUDEZAS : PEDRISCOS;
-      const m = lista[Math.floor(sorteio(x, y, 11) * lista.length)];
-      const fo = arte[m.f ?? 'tileset'];
-      if (!fo?.complete) continue;
-      fila.push({
-        pe: (y + 1) * TILE - 1,
-        desenhar: () => ctx.drawImage(fo, m.c * TILE, m.r * TILE, TILE, TILE,
-          x * TILE - camX, y * TILE - camY, TILE, TILE),
-      });
-    }
+  for (const o of mapa.objetos) {
+    const pc = PECAS[o.peca];
+    if (!pc) continue;
+    if (!pc.piso) continue;
+    const fo = arte[pc.f];
+    if (!fo?.complete || !fo.naturalWidth) continue;
+    ctx.drawImage(fo, pc.sx, pc.sy, pc.sl, pc.sa,
+      Math.round(o.x * TILE + (pc.ox ?? 0) - camX),
+      Math.round(o.y * TILE + (pc.oy ?? 0) - camY), pc.sl, pc.sa);
   }
 
   for (const o of mapa.objetos) {
     const pc = PECAS[o.peca];
-    if (!pc) continue;
-    if (o.x + pc.l < x0 - 1 || o.x > x0 + VISAO_L + 1) continue;
-    if (o.y + pc.a < y0 - 1 || o.y > y0 + VISAO_A + 1) continue;
-    const fo = arte[pc.f ?? 'tileset'];
-    if (!fo?.complete) continue;
+    if (!pc || pc.piso) continue;
+    const l = pc.l ?? 1, a = pc.a ?? 1;
+    if (o.x + l < x0 - 1 || o.x > x0 + VISAO_L + 1) continue;
+    if (o.y + a < y0 - 1 || o.y > y0 + VISAO_A + 1) continue;
+    const fo = arte[pc.f];
+    if (!fo?.complete || !fo.naturalWidth) continue;
+    const sx = pc.sx + (pc.q ? Math.floor(g.tempo / 0.7 + o.x) % pc.q * pc.sl : 0);
+    const dx = Math.round(o.x * TILE + (pc.ox ?? 0) - camX);
+    const dy = Math.round(o.y * TILE + (pc.oy ?? 0) - camY);
     fila.push({
-      pe: (o.y + pc.a) * TILE,
-      desenhar: () => ctx.drawImage(fo, pc.c * TILE, pc.r * TILE, pc.l * TILE, pc.a * TILE,
-        o.x * TILE - camX, o.y * TILE - camY, pc.l * TILE, pc.a * TILE),
+      pe: (o.y + a) * TILE,
+      desenhar: () => ctx.drawImage(fo, sx, pc.sy, pc.sl, pc.sa, dx, dy, pc.sl, pc.sa),
     });
   }
 
   for (const n of mapa.npcs) {
-    const folha = arte[n.arte];
-    if (!folha?.complete) continue;
+    const fo = arte[n.arte];
+    if (!fo?.complete || !fo.naturalWidth) continue;
+    // cada um respira no seu tempo, senão o povoado inteiro pisca junto
+    const col = Math.floor(g.tempo / 0.22 + n.x + n.y) % 6;
+    const dx = Math.round(n.x * TILE + OFX - camX);
+    const dy = Math.round(n.y * TILE + OFY - camY);
     fila.push({
       pe: (n.y + 1) * TILE,
-      desenhar: () => ctx.drawImage(folha, n.olhando * TILE, 0, TILE, TILE,
-        n.x * TILE - camX, n.y * TILE - camY, TILE, TILE),
+      desenhar: () => boneco(ctx, fo, col, PARADO[n.olhando], dx, dy, n.olhando === 2),
     });
   }
 
-  const heroi = arte.p3;
-  if (heroi?.complete) {
+  const heroi = arte.heroi;
+  if (heroi?.complete && heroi.naturalWidth) {
+    const andando = !!g.passo;
+    const lin = (andando ? ANDANDO : PARADO)[g.olhando];
+    const col = andando
+      ? Math.floor(g.andado / 0.08) % 6
+      : Math.floor(g.tempo / 0.22) % 6;
+    const dx = Math.round(jx + OFX - camX);
+    const dy = Math.round(jy + OFY - camY);
     fila.push({
       pe: jy + TILE,
-      desenhar: () => ctx.drawImage(heroi, g.olhando * TILE, g.quadro * TILE, TILE, TILE,
-        Math.round(jx - camX), Math.round(jy - camY), TILE, TILE),
+      desenhar: () => boneco(ctx, heroi, col, lin, dx, dy, g.olhando === 2),
     });
   }
 
