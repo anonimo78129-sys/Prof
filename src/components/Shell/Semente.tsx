@@ -33,23 +33,58 @@ const TILE = 16;
 const VISAO_L = 13, VISAO_A = 22;      // casas visíveis, retrato
 const DUR_PASSO = 0.16;                 // segundos por casa
 
-// ── peças do chão ────────────────────────────────────────
+// ── o chão, por camadas com borda casada ────────────────
 //
-// O chão vem de outra folha: a grama chapada e a terra do primeiro
-// pacote deixavam o campo com cara de feltro, e a diferença entre andar
-// e não andar não se lia. Esta tem grama clara, grama escura e terra
-// batida, e é com as duas gramas que a trilha ganha borda — faixa escura
-// de cada lado do caminho, que é o que faz a estrada parecer estrada.
-const CHAO: Record<string, { f?: Folha; c: number; r: number; solido?: boolean }> = {
-  '.': { f: 'bosque', c: 3, r: 3 },
-  ',': { f: 'bosque', c: 11, r: 3 },
-  ';': { f: 'bosque', c: 3, r: 8 },
-  't': { f: 'bosque', c: 7, r: 3 },
-  '~': { f: 'bosque', c: 13, r: 6, solido: true },
-  '=': { f: 'bosque', c: 6, r: 10 },
-  '#': { f: 'bosque', c: 11, r: 3, solido: true },
-  ' ': { f: 'bosque', c: 3, r: 3 },
+// Aqui estava o maior erro da versão anterior. Eu usava UM tile por
+// material — o quadradinho do meio, chapado — e por isso todo encontro
+// entre grama e terra saía num degrau reto de 16 pixels. Era isso que
+// deixava o campo com cara de tabuleiro.
+//
+// Este pacote traz o jogo completo de transições: cada material vem num
+// bloco de 5x5 com as quatro beiradas e os quatro cantos desenhados, com
+// a franja de terra e o capim saindo por cima. O desenho passa a ser em
+// camadas, de baixo para cima:
+//
+//   1. terra batida no mapa inteiro, sempre
+//   2. água por cima, onde houver
+//   3. grama por cima, escolhendo a peça pela vizinhança
+//   4. grama escura por cima da clara, pela mesma regra
+//
+// Quem decide a peça é a vizinhança: olha os quatro lados, vê onde o
+// material acaba, e pega a beirada ou o canto correspondente. É por isso
+// que a margem agora contorna em vez de cortar.
+type Material = 'terra' | 'grama' | 'escura' | 'agua' | 'madeira';
+
+const MATERIAL: Record<string, Material> = {
+  '.': 'grama', ',': 'escura', ';': 'grama', '#': 'grama',
+  't': 'terra', '~': 'agua', '=': 'madeira', ' ': 'grama',
 };
+const SOLIDO_CHAO = new Set(['#', '~']);
+
+/** canto superior esquerdo do bloco 5x5 de cada material que tem borda */
+const BLOCO: Partial<Record<Material, { c: number; r: number }>> = {
+  grama: { c: 1, r: 1 },
+  escura: { c: 9, r: 1 },
+};
+/** tiles chapados, para o que não precisa de borda */
+const CHAPADO: Partial<Record<Material, { c: number; r: number }>> = {
+  terra: { c: 7, r: 3 },
+  agua: { c: 13, r: 6 },
+  madeira: { c: 6, r: 10 },
+};
+
+/** deslocamento dentro do bloco 5x5, por combinação de lados vazios */
+function pedacoDoBloco(cima: boolean, baixo: boolean, esq: boolean, dir: boolean) {
+  if (!cima && !baixo && !esq && !dir) return [2, 2];
+  if (cima && esq) return [1, 1];
+  if (cima && dir) return [3, 1];
+  if (baixo && esq) return [1, 3];
+  if (baixo && dir) return [3, 3];
+  if (cima) return [2, 0];
+  if (baixo) return [2, 4];
+  if (esq) return [0, 2];
+  return [4, 2];
+}
 
 // ── peças de objeto ─────────────────────────────────────
 //
@@ -159,7 +194,7 @@ function montaCena(id: string): Cena {
   const mapa = MAPAS[id];
   const alt = mapa.chao.length, larg = mapa.chao[0].length;
   const solido: boolean[][] = Array.from({ length: alt }, (_, y) =>
-    Array.from({ length: larg }, (_, x) => !!CHAO[mapa.chao[y][x] ?? '#']?.solido));
+    Array.from({ length: larg }, (_, x) => SOLIDO_CHAO.has(mapa.chao[y][x] ?? '#')));
   for (const o of mapa.objetos) {
     const p = PECAS[o.peca];
     if (!p?.solido) continue;
@@ -500,14 +535,41 @@ function desenha(
   ctx.fillRect(0, 0, VISAO_L * TILE, VISAO_A * TILE);
   if (!ts?.complete || !ts.naturalWidth) return;
 
+  const bosque = arte.bosque;
+  const mat = (x: number, y: number): Material =>
+    MATERIAL[mapa.chao[y]?.[x] ?? '#'] ?? 'grama';
+  // fora do mapa conta como o mesmo material: assim a beirada da tela
+  // não ganha franja de borda onde não existe borda nenhuma
+  const temCamada = (x: number, y: number, camada: Material) => {
+    if (y < 0 || y >= alt || x < 0 || x >= larg) return true;
+    const m = mat(x, y);
+    return camada === 'grama' ? (m === 'grama' || m === 'escura') : m === camada;
+  };
+
   const x0 = Math.floor(camX / TILE), y0 = Math.floor(camY / TILE);
-  for (let y = y0; y <= y0 + VISAO_A; y++) {
-    for (let x = x0; x <= x0 + VISAO_L; x++) {
-      const ch = mapa.chao[y]?.[x];
-      const t = CHAO[ch ?? '#'] ?? CHAO['#'];
-      const fo = arte[t.f ?? 'tileset'];
-      if (fo?.complete) ctx.drawImage(fo, t.c * TILE, t.r * TILE, TILE, TILE,
-        x * TILE - camX, y * TILE - camY, TILE, TILE);
+  if (bosque?.complete) {
+    for (let y = y0; y <= y0 + VISAO_A; y++) {
+      for (let x = x0; x <= x0 + VISAO_L; x++) {
+        const dx = x * TILE - camX, dy = y * TILE - camY;
+        const m = mat(x, y);
+        const chapa = (p: { c: number; r: number }) =>
+          ctx.drawImage(bosque, p.c * TILE, p.r * TILE, TILE, TILE, dx, dy, TILE, TILE);
+        const camada = (nome: Material) => {
+          const b = BLOCO[nome]!;
+          const [ox, oy] = pedacoDoBloco(
+            !temCamada(x, y - 1, nome), !temCamada(x, y + 1, nome),
+            !temCamada(x - 1, y, nome), !temCamada(x + 1, y, nome),
+          );
+          ctx.drawImage(bosque, (b.c + ox) * TILE, (b.r + oy) * TILE, TILE, TILE,
+            dx, dy, TILE, TILE);
+        };
+
+        if (m === 'madeira') { chapa(CHAPADO.madeira!); continue; }
+        chapa(CHAPADO.terra!);
+        if (m === 'agua') chapa(CHAPADO.agua!);
+        if (m === 'grama' || m === 'escura') camada('grama');
+        if (m === 'escura') camada('escura');
+      }
     }
   }
 
