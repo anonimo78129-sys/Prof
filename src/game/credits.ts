@@ -43,6 +43,13 @@ export const CREDITS: CreditSection[] = [
         note: 'O mundo de SEMENTE usa o pacote Ninja Adventure, dos Superpowers Asset Packs. É arte liberada em domínio público: pode ser usada, alterada e distribuída sem pedir licença e sem pagar, inclusive em projeto comercial. Aqui entra o tileset de 16x16 (chão, casas, árvores mortas, cerca) e sete folhas de personagem, cada uma com quatro direções e quatro quadros de caminhada.',
       },
       {
+        title: 'Sprites de A FONTE',
+        author: 'GandalfHardcore',
+        license: 'Licença de uso em jogo do autor',
+        note: 'A serra de A FONTE é montada com dezesseis pacotes de pixel art do mesmo autor, comprados/baixados no itch.io: o cenário de plataforma (fundo em cinco camadas nas três estações, chão, árvores, acampamento, fogueira, portal e água), a Sentinela arqueira, o cão e a raposa de companhia, o elmo do HUD, os balões de emoção e as nove pastas de personagem que alimentam o criador — pele, cabelo, orelhas, roupa, braços, chapéu, máscara, item de mão e as amarras da Iara. São 388 arquivos e mais de 250 peças vestíveis. A licença permite uso em jogo comercial e modificação; proíbe revender ou redistribuir os pacotes, e é por isso que só o recorte usado pelo jogo está no repositório.',
+        url: 'https://gandalfhardcore.itch.io/',
+      },
+      {
         title: 'Ícones e protagonista',
         author: 'Original do projeto',
         license: 'Desenhado por código',
@@ -53,6 +60,12 @@ export const CREDITS: CreditSection[] = [
   {
     heading: 'Narrativa e conteúdo',
     items: [
+      {
+        title: 'Roteiro e virada de A FONTE',
+        author: 'Equipe do Prof. Corujão',
+        license: 'Original do projeto',
+        note: 'As nove perguntas das Sentinelas e o desfecho na gruta foram escritos para este jogo. Cada uma parte de uma coisa que dá para ver acontecer — roupa no varal, tampa de panela pingando, copo suando no calor, neblina no rio de manhã, gelo boiando no açude, bica de barro partida pela geada, neve que some sem molhar a pedra — e o nome técnico (evaporação, condensação, sublimação) só entra depois, batizando o que o aluno já entendeu. A virada fecha o ciclo: a fonte não secou por falta de chuva, secou porque derrubaram a mata da encosta e a chuva passou a escorrer em vez de infiltrar.',
+      },
       {
         title: 'Roteiro e virada',
         author: 'Equipe do Prof. Corujão',
@@ -147,6 +160,9 @@ export const CREDITS: CreditSection[] = [
 ];
 
 export const CREDITS_NOTE =
-  'Toda a arte deste jogo é desenhada por código, sem nenhum pack de terceiros. ' +
-  'O áudio e as fontes vêm de fontes com licença livre para uso comercial ' +
-  '(CC0, Licença de Conteúdo Pixabay e SIL Open Font License), verificadas antes do uso.';
+  'A arte de CINZAS é desenhada por código, sem pack de terceiros. SEMENTE e ' +
+  'A FONTE usam pacotes de pixel art de autores externos, com licença ' +
+  'verificada para uso em jogo (CC0 no caso do Ninja Adventure, licença do ' +
+  'autor no caso dos pacotes do GandalfHardcore). O áudio e as fontes vêm de ' +
+  'fontes com licença livre para uso comercial (CC0, Licença de Conteúdo ' +
+  'Pixabay e SIL Open Font License), verificadas antes do uso.';

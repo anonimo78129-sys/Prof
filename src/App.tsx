@@ -12,6 +12,7 @@ import { JOGOS, type Jogo } from './game/jogos';
 // tem por que baixar isso: o pedaço só chega quando o jogo é escolhido.
 const JogoSilo = lazy(() => import('./components/Shell/JogoSilo'));
 const Semente = lazy(() => import('./components/Shell/Semente'));
+const Bosque = lazy(() => import('./components/Shell/Bosque'));
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -19,7 +20,7 @@ const Semente = lazy(() => import('./components/Shell/Semente'));
 // trocar o roteiro sem tocar no desenho, e vice-versa.
 // ─────────────────────────────────────────────────────────
 
-type View = 'home' | 'jogo' | 'silo' | 'semente' | 'fim' | 'setup' | 'creditos';
+type View = 'home' | 'jogo' | 'silo' | 'semente' | 'fonte' | 'fim' | 'setup' | 'creditos';
 
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
@@ -75,7 +76,14 @@ function CartaoJogo({ jogo, onClick }: { jogo: Jogo; onClick: () => void }) {
       <div style={{ position: 'relative', width: '100%', aspectRatio: '11 / 6', overflow: 'hidden', background: C.shellLo }}>
         {/* a capa do 3D não roda a cena: subir uma segunda instância de
             WebGL só para a miniatura custa caro e trava celular fraco */}
-        {jogo.tecnica === 'pixel'
+        {jogo.tecnica === 'plataforma'
+          ? <div style={{
+              width: '100%', height: '100%',
+              backgroundImage: 'url(/assets/bosque/fundo/verao/camada-1.png)',
+              backgroundSize: 'cover', backgroundPosition: 'center 62%',
+              imageRendering: 'pixelated',
+            }} />
+          : jogo.tecnica === 'pixel'
           ? <div style={{
               width: '100%', height: '100%',
               backgroundImage: 'url(/assets/semente/capa.png)',
@@ -156,6 +164,21 @@ export default function App() {
           { label: 'Sair para a tela inicial', onClick: voltar },
         ]}
       />
+    );
+  }
+
+  if (view === 'fonte') {
+    return (
+      <Suspense fallback={
+        <div style={{
+          position: 'fixed', inset: 0, background: C.ink, display: 'grid',
+          placeItems: 'center', ...T.rotulo, color: C.lineSoft,
+        }}>
+          SUBINDO A SERRA…
+        </div>
+      }>
+        <Bosque onSair={voltar} />
+      </Suspense>
     );
   }
 
@@ -249,6 +272,7 @@ export default function App() {
               startMusic();
               if (j.id === 'cinzas') { setCapId(PRIMEIRO); setView('jogo'); }
               else if (j.id === 'semente') setView('semente');
+              else if (j.id === 'fonte') setView('fonte');
               else setView('silo');
             }}
           />

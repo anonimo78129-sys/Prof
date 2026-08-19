@@ -25,7 +25,15 @@ export default defineConfig(({ mode }) => {
           // Os estudos de estilo são ferramenta do painel DEV, não arte do
           // jogo. Fora do precache eles não entram no download de instalação
           // de quem só vai jogar; a galeria busca sob demanda.
-          globIgnores: ['**/assets/cinzas/estudos/**'],
+          globIgnores: [
+            '**/assets/cinzas/estudos/**',
+            // O guarda-roupa de A FONTE são 2,6 MB em 250 folhas de peça,
+            // e uma partida carrega no máximo dez delas. Precachear tudo
+            // dobraria o download de instalação de quem nem vai jogar. Os
+            // atlas de miniatura, o cenário e os bichos continuam dentro:
+            // é com eles que o criador e as três fases se desenham.
+            '**/assets/bosque/{corpo,cabelo,orelha,roupa,braco,chapeu,mascara,mao,amarras}/**',
+          ],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         },
       }),
