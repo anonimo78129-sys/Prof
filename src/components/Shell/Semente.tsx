@@ -44,26 +44,83 @@ const CHAO: Record<string, { c: number; r: number; solido?: boolean }> = {
   ' ': { c: 14, r: 16 },
 };
 
-// ── peças de objeto: recorte no tileset e tamanho em casas ──
+// ── peças de objeto ─────────────────────────────────────
+//
+// Estas coordenadas NÃO foram escolhidas no olho. Neste tileset as peças
+// se encostam, sem faixa transparente entre elas, então todo recorte
+// estimado puxava um pedaço do vizinho — e era isso que deixava casa
+// cortada e vaso pela metade na tela.
+//
+// A lista abaixo saiu de uma varredura do PNG: os pixels opacos foram
+// agrupados em regiões conexas e cada região devolveu seu retângulo
+// exato. Onde duas peças se tocavam de verdade no desenho original, o
+// grupo inteiro virou uma peça só — é por isso que o bosque é uma faixa
+// de treze casas e não uma árvore avulsa. Melhor uma mata inteira certa
+// que uma árvore errada.
 interface Peca { c: number; r: number; l: number; a: number; solido?: boolean }
 const PECAS: Record<string, Peca> = {
-  casaA: { c: 0, r: 0, l: 5, a: 3, solido: true },
-  casaB: { c: 5, r: 0, l: 5, a: 3, solido: true },
-  casaC: { c: 10, r: 0, l: 5, a: 3, solido: true },
-  arvore: { c: 0, r: 9, l: 3, a: 3, solido: true },
-  arvoreMorta: { c: 3, r: 27, l: 3, a: 2, solido: true },
-  matoMorto: { c: 2, r: 28, l: 1, a: 1, solido: true },
+  casa: { c: 0, r: 0, l: 8, a: 3, solido: true },
+  bosque: { c: 0, r: 10, l: 13, a: 2, solido: true },
+  bosqueMorto: { c: 0, r: 27, l: 6, a: 3, solido: true },
+  rochedo: { c: 21, r: 0, l: 4, a: 4, solido: true },
+  caverna: { c: 14, r: 9, l: 4, a: 3, solido: true },
+  portal: { c: 8, r: 21, l: 3, a: 3, solido: true },
+  estatua: { c: 26, r: 0, l: 2, a: 2, solido: true },
+  altar: { c: 9, r: 7, l: 2, a: 2, solido: true },
+  varal: { c: 8, r: 4, l: 2, a: 2, solido: true },
+  carroca: { c: 5, r: 8, l: 2, a: 2, solido: true },
+  carrocaCheia: { c: 7, r: 8, l: 2, a: 2, solido: true },
+  caixotes: { c: 6, r: 6, l: 2, a: 2, solido: true },
+  pedraGrande: { c: 12, r: 10, l: 2, a: 2, solido: true },
+  toco: { c: 6, r: 18, l: 2, a: 2, solido: true },
+  cerca: { c: 19, r: 0, l: 2, a: 2, solido: true },
+  grade: { c: 19, r: 2, l: 2, a: 2, solido: true },
+  bancada: { c: 0, r: 3, l: 3, a: 2, solido: true },
+  varanda: { c: 5, r: 4, l: 3, a: 2, solido: true },
+  moita: { c: 5, r: 9, l: 2, a: 1, solido: true },
+  moitaSeca: { c: 7, r: 9, l: 2, a: 1, solido: true },
+  poste: { c: 8, r: 18, l: 1, a: 2, solido: true },
+  vaso: { c: 0, r: 37, l: 1, a: 2, solido: true },
+  // miudezas de uma casa só
+  pote: { c: 0, r: 6, l: 1, a: 1, solido: true },
+  caixote: { c: 1, r: 6, l: 1, a: 1, solido: true },
+  saco: { c: 2, r: 6, l: 1, a: 1, solido: true },
+  pedra: { c: 1, r: 7, l: 1, a: 1, solido: true },
+  cruz: { c: 8, r: 7, l: 1, a: 1, solido: true },
+  caveira: { c: 2, r: 17, l: 1, a: 1 },
+  osso: { c: 3, r: 17, l: 1, a: 1 },
   broto: { c: 1, r: 27, l: 1, a: 1 },
-  // a árvore que caiu e abriu a clareira: é o mesmo desenho de árvore
-  // morta, deitado no meio do mato novo
-  tronco: { c: 3, r: 27, l: 3, a: 2, solido: true },
-  pote: { c: 1, r: 6, l: 1, a: 1, solido: true },
-  barril: { c: 3, r: 6, l: 1, a: 1, solido: true },
-  poco: { c: 20, r: 6, l: 4, a: 5, solido: true },
+  girassol: { c: 3, r: 15, l: 1, a: 1 },
+  margarida: { c: 1, r: 8, l: 1, a: 1 },
+  flores: { c: 1, r: 21, l: 1, a: 1 },
+  arbusto: { c: 0, r: 21, l: 1, a: 1, solido: true },
   canteiro: { c: 20, r: 15, l: 3, a: 3 },
-  cofre: { c: 5, r: 7, l: 3, a: 2, solido: true },
-  estante: { c: 12, r: 37, l: 2, a: 2, solido: true },
 };
+
+// Miudezas espalhadas pelo chão. Sem elas o campo vira feltro verde: é a
+// sujeira pequena e repetida que faz um mundo de tiles parecer lugar.
+// O sorteio é por posição, então a mesma pedrinha nasce sempre no mesmo
+// canto — mundo que muda a cada visita não vira mapa na cabeça de
+// ninguém.
+const MIUDEZAS: Peca[] = [
+  { c: 0, r: 5, l: 1, a: 1 },     // tufo de capim
+  { c: 0, r: 6, l: 1, a: 1 },     // trevo
+  { c: 0, r: 8, l: 1, a: 1 },     // capim rasteiro
+  { c: 3, r: 16, l: 1, a: 1 },    // pedriscos
+  { c: 0, r: 18, l: 1, a: 1 },    // gravetos secos
+  { c: 1, r: 24, l: 1, a: 1 },    // folhas
+  { c: 6, r: 23, l: 1, a: 1 },    // mato baixo
+  { c: 14, r: 29, l: 1, a: 1 },   // folha vermelha
+  { c: 0, r: 7, l: 1, a: 1 },     // pedrinha
+  { c: 0, r: 27, l: 1, a: 1 },    // raízes secas
+];
+
+/** Sorteio preso à posição: mesma casa, mesma miudeza, toda partida. */
+function sorteio(x: number, y: number, semente: number) {
+  let n = (x * 374761393 + y * 668265263 + semente * 2147483647) | 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
 
 type Dir = 0 | 1 | 2 | 3;               // 0 baixo · 1 cima · 2 esquerda · 3 direita
 const AVANCO: [number, number][] = [[0, 1], [0, -1], [-1, 0], [1, 0]];
@@ -433,6 +490,22 @@ function desenha(
   // tudo que tem pé entra numa lista só e é ordenado por ele
   interface Sprite { pe: number; desenhar: () => void }
   const fila: Sprite[] = [];
+
+  // miudezas do chão: entram na mesma fila, então um vaso na frente
+  // continua tapando o capim de trás
+  for (let y = y0; y <= y0 + VISAO_A; y++) {
+    for (let x = x0; x <= x0 + VISAO_L; x++) {
+      const ch = mapa.chao[y]?.[x];
+      if (ch !== '.' && ch !== ',' && ch !== ';') continue;
+      if (sorteio(x, y, 7) > 0.24) continue;
+      const m = MIUDEZAS[Math.floor(sorteio(x, y, 11) * MIUDEZAS.length)];
+      fila.push({
+        pe: (y + 1) * TILE - 1,
+        desenhar: () => ctx.drawImage(ts, m.c * TILE, m.r * TILE, TILE, TILE,
+          x * TILE - camX, y * TILE - camY, TILE, TILE),
+      });
+    }
+  }
 
   for (const o of mapa.objetos) {
     const pc = PECAS[o.peca];
