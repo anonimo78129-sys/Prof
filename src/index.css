@@ -350,18 +350,18 @@
 }
 
 /* ─────────────────────────────────────────────────────────
-   A FONTE — criador de personagem.
+   O POÇO — criador de personagem.
    Em tela larga o criador vira duas colunas: à esquerda o boneco e as
    decisões de corpo, à direita a grade de peças rolando sozinha.
    Empilhado, a grade empurra o boneco para fora da tela e o jogador
    escolhe cabelo sem ver a cabeça.
    ───────────────────────────────────────────────────────── */
-.fonte-criador {
+.poco-criador {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--p4);
   align-items: start;
 }
 @media (min-width: 700px) {
-  .fonte-criador { grid-template-columns: minmax(240px, 300px) 1fr; }
+  .poco-criador { grid-template-columns: minmax(240px, 300px) 1fr; }
 }

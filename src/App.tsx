@@ -12,7 +12,7 @@ import { JOGOS, type Jogo } from './game/jogos';
 // tem por que baixar isso: o pedaço só chega quando o jogo é escolhido.
 const JogoSilo = lazy(() => import('./components/Shell/JogoSilo'));
 const Semente = lazy(() => import('./components/Shell/Semente'));
-const Bosque = lazy(() => import('./components/Shell/Bosque'));
+const Poco = lazy(() => import('./components/Shell/Poco'));
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -20,7 +20,7 @@ const Bosque = lazy(() => import('./components/Shell/Bosque'));
 // trocar o roteiro sem tocar no desenho, e vice-versa.
 // ─────────────────────────────────────────────────────────
 
-type View = 'home' | 'jogo' | 'silo' | 'semente' | 'fonte' | 'fim' | 'setup' | 'creditos';
+type View = 'home' | 'jogo' | 'silo' | 'semente' | 'poco' | 'fim' | 'setup' | 'creditos';
 
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
@@ -79,7 +79,7 @@ function CartaoJogo({ jogo, onClick }: { jogo: Jogo; onClick: () => void }) {
         {jogo.tecnica === 'plataforma'
           ? <div style={{
               width: '100%', height: '100%',
-              backgroundImage: 'url(/assets/bosque/capa.png)',
+              backgroundImage: 'url(/assets/poco/capa.png)',
               backgroundSize: 'cover', backgroundPosition: 'center 70%',
               imageRendering: 'pixelated',
             }} />
@@ -167,17 +167,17 @@ export default function App() {
     );
   }
 
-  if (view === 'fonte') {
+  if (view === 'poco') {
     return (
       <Suspense fallback={
         <div style={{
           position: 'fixed', inset: 0, background: C.ink, display: 'grid',
           placeItems: 'center', ...T.rotulo, color: C.lineSoft,
         }}>
-          SUBINDO A SERRA…
+          DESCENDO O POÇO…
         </div>
       }>
-        <Bosque onSair={voltar} />
+        <Poco onSair={voltar} />
       </Suspense>
     );
   }
@@ -258,7 +258,7 @@ export default function App() {
     }}>
       {/* Largura em coluna única no celular em pé, e em grade quando a
           tela é larga. Sem isso a tela inicial fica presa num tubo de
-          56vh de largura, e quem gira o aparelho para jogar A FONTE não
+          56vh de largura, e quem gira o aparelho para jogar O POÇO não
           consegue nem chegar no cartão dele. */}
       <div style={{
         position: 'relative', width: 'min(100vw - 24px, 1040px)',
@@ -285,7 +285,7 @@ export default function App() {
               startMusic();
               if (j.id === 'cinzas') { setCapId(PRIMEIRO); setView('jogo'); }
               else if (j.id === 'semente') setView('semente');
-              else if (j.id === 'fonte') setView('fonte');
+              else if (j.id === 'poco') setView('poco');
               else setView('silo');
             }}
           />

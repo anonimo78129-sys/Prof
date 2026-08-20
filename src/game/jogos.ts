@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────
 
 export interface Jogo {
-  id: 'cinzas' | 'silo' | 'semente' | 'fonte';
+  id: 'cinzas' | 'silo' | 'semente' | 'poco';
   titulo: string;
   subtitulo: string;
   /** o que o aluno aprende, em uma linha, para a tela de escolha */
@@ -20,11 +20,11 @@ export interface Jogo {
 
 export const JOGOS: Jogo[] = [
   {
-    id: 'fonte',
-    titulo: 'A FONTE',
-    subtitulo: 'ÁGUA QUE SOBE, ÁGUA QUE VOLTA',
-    conteudo: 'Ciclo da água e mudanças de estado, em três estações',
-    chamada: 'A fonte que enche três povoados virou um fio, e a aguadeira que subiu a serra atrás da nascente não voltou. As Sentinelas da Ordem só abrem passagem para quem entende a água.',
+    id: 'poco',
+    titulo: 'O POÇO',
+    subtitulo: 'QUEM DESCE, SOBE OUTRO',
+    conteudo: 'Terror rural · três descidas e dois fins',
+    chamada: 'O poço de Água Preta nunca secou, e todo inverno alguém desce a corda para limpar o fundo. Este ano saiu o nome da sua irmã. Faz nove dias e a corda continua esticada.',
     tecnica: 'plataforma',
   },
   {

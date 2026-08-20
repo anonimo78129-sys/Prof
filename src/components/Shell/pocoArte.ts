@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────
-// Recortes da arte de A FONTE.
+// Recortes da arte de O POÇO.
 //
 // Os pacotes vêm em folha corrida, sem arquivo de metadados: cada PNG é
 // uma grade de quadros ou uma prancha com várias peças encostadas. Este
@@ -18,7 +18,7 @@
 // licenciados para uso em jogo, com modificação permitida e
 // redistribuição do pacote proibida.
 // ─────────────────────────────────────────────────────────
-import { CATALOGO, type Camada, type Sexo } from '../../game/bosqueCatalogo';
+import { CATALOGO, type Camada, type Sexo } from '../../game/pocoCatalogo';
 
 export const TILE = 16;
 // A janela é uma faixa larga e baixa, e não um quadrado: o mundo aqui
@@ -44,7 +44,7 @@ export function larguraDaVista(proporcao: number) {
 /** altura do mundo, em casas — a largura vem de cada fase */
 export const MUNDO_A = 13;
 
-const RAIZ = '/assets/bosque';
+const RAIZ = '/assets/poco';
 
 // ── folha de personagem ─────────────────────────────────
 //

@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { C, T } from '../../game/theme';
 import { playSfx } from '../../game/audio';
 import {
-  FASES, DESAFIOS, ORDEM, ABERTURA, DESFECHO,
-  type Fase, type Desafio, type Fala, type PostoSentinela,
-} from '../../game/bosque';
-import { CATALOGO, PREVIA, type Sexo } from '../../game/bosqueCatalogo';
+  FASES, DESAFIOS, ORDEM, ABERTURA, DESFECHO, FINAIS,
+  type Fase, type Desafio, type Fala, type Final, type PostoSentinela,
+} from '../../game/poco';
+import { CATALOGO, PREVIA, type Sexo } from '../../game/pocoCatalogo';
 import {
   TILE, VISTA_L, VISTA_A, MUNDO_A, larguraDaVista,
   QUADRO_L, QUADRO_A, PE_NO_QUADRO, POSES, type Pose,
@@ -18,10 +18,10 @@ import {
   HUD, PISO, OFFSET_ESTACAO, NOVE, FINA,
   FUNDO_FATOR, fundoUrl, FUNDO_L, FUNDO_A, FAIXA_ARVORES, ARVORES_DA_ESTACAO, TERRA,
   PECAS, FOLHA_ENFEITES, folhasDaFase, carrega,
-} from './bosqueArte';
+} from './pocoArte';
 
 // ─────────────────────────────────────────────────────────
-// A FONTE — motor de plataforma
+// O POÇO — motor de plataforma
 //
 // Os outros jogos do app são de escolha em cima de uma ilustração parada
 // (CINZAS), de grade vista de cima (SEMENTE) ou de cena 3D (SILO). Este
@@ -29,19 +29,21 @@ import {
 // 2D de 16 pixels do SEMENTE mas com física contínua em vez de passo
 // travado na casa.
 //
-// A pergunta continua sendo o miolo. A diferença é onde ela entra: aqui
-// a Sentinela é uma PAREDE. Enquanto a resposta não vier, o caminho não
-// abre — e errar custa uma flecha, não um game over. O aluno pode tentar
-// de novo quantas vezes quiser; o que a vida mede é teimosia, não nota.
+// A escolha continua sendo o miolo, e a Vigia é uma PAREDE: enquanto a
+// resposta não vier, o caminho não abre. Errar não é game over — é uma
+// flecha, uma vida, e a pergunta de volta. O que trava a passagem é
+// entender com quem você está falando.
 //
 // COMO UM QUADRO É MONTADO
 //   1. as cinco camadas do fundo, cada uma andando numa fração da câmera
-//   2. a faixa de árvores grandes, a meio caminho entre fundo e mundo
-//   3. o rio lá embaixo, que só aparece pelos buracos do chão
-//   4. os enfeites marcados como `fundo`
-//   5. o chão, bloco por bloco, com recorte de nove pedaços
-//   6. o resto dos enfeites, as moedas, as Sentinelas, o bicho, o jogador
-//   7. o HUD, desenhado no mesmo canvas para ficar na escala da arte
+//   2. o céu: nuvem sempre, sol e balão só onde ainda tem gente viva
+//   3. a faixa de árvores grandes, a meio caminho entre fundo e mundo
+//   4. o rio lá embaixo, que só aparece pelos buracos do chão
+//   5. os enfeites de fundo, o chão bloco a bloco, o resto dos enfeites
+//   6. moedas, Vigias, flechas, o bicho, o fogo-fátuo, o jogador
+//   7. o CLIMA por cima de tudo: demão de cor, lanterna e vinheta —
+//      é essa camada que faz a arte de dia claro do pacote virar noite
+//   8. os balões de emoção, que precisam ficar acima do escuro
 //
 // O traje do jogador é achatado numa folha só antes da fase começar
 // (ver montaTraje): no laço, o boneco custa um `drawImage`, não onze.
@@ -76,7 +78,9 @@ type Tela = 'abertura' | 'criador' | 'jogo' | 'fim';
 type Conversa =
   | { tipo: 'fala'; quem: string; texto: string; proximo: () => void }
   | { tipo: 'pergunta'; desafio: Desafio; sentinela: string; ordem: number[] }
-  | { tipo: 'resposta'; texto: string; certa: boolean; desafio: Desafio; sentinela: string };
+  | { tipo: 'resposta'; texto: string; certa: boolean; desafio: Desafio; sentinela: string }
+  /** a última: dois fins escritos, e nenhum deles é o certo */
+  | { tipo: 'final' };
 
 interface Moeda { x: number; y: number; pega: boolean }
 interface Sentinela extends PostoSentinela {
@@ -225,7 +229,7 @@ function desenhaBloco(
 
 // ── componente ──────────────────────────────────────────
 
-export default function Bosque({ onSair }: { onSair: () => void }) {
+export default function Poco({ onSair }: { onSair: () => void }) {
   const tela = useRef<HTMLCanvasElement>(null);
   const elmo = useRef<HTMLCanvasElement>(null);
   const palco = useRef<HTMLDivElement>(null);
@@ -239,6 +243,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
   const [conversa, setConversa] = useState<Conversa | null>(null);
   const [resolvidos, setResolvidos] = useState<string[]>([]);
   const [placar, setPlacar] = useState({ vida: VIDA_CHEIA, moedas: 0 });
+  const [final, setFinal] = useState<Final | null>(null);
 
   const [traje, setTraje] = useState<Traje>(() => trajePadrao('m'));
   const [bicho, setBicho] = useState(BICHOS[0].id);
@@ -440,7 +445,6 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       if (mo.pega) continue;
       if (Math.abs(mo.x - g.x) < 12 && Math.abs(mo.y - (g.y - 20)) < 22) {
         mo.pega = true; g.moedas++;
-        m.baloes.push({ x: g.x, y: g.y - ALTURA_CORPO - 10, emocao: EMOCAO.coracao, t: 0 });
         playSfx('select', 0.4);
         setPlacar((p) => ({ ...p, moedas: g.moedas }));
       }
@@ -451,7 +455,6 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       const px = fx * TILE + TILE, py = fy * TILE;
       if (Math.abs(px - g.x) < 20 && Math.abs(py - g.y) < 40 && g.vida < VIDA_CHEIA) {
         g.vida = VIDA_CHEIA;
-        m.baloes.push({ x: g.x, y: g.y - ALTURA_CORPO - 10, emocao: EMOCAO.sorriso, t: 0 });
         playSfx('correct', 0.35);
         setPlacar((pl) => ({ ...pl, vida: g.vida }));
       }
@@ -546,6 +549,14 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     seguir();
   }
 
+  /** o jogador fecha os olhos, ou não */
+  function decide(f: Final) {
+    playSfx(f.titulo === 'DOIS SUBIRAM' ? 'victory' : 'wrong', 0.55);
+    setFinal(f);
+    setConversa(null);
+    setVista('fim');
+  }
+
   function escolhe(i: number) {
     const c = conversaRef.current;
     if (c?.tipo !== 'pergunta') return;
@@ -574,7 +585,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       g.travado = g.t + 1.1; g.poseTravada = 'festa'; g.tp = 0;
       if (m) m.baloes.push({
         x: (s?.x ?? 0) * TILE + TILE / 2, y: (s?.y ?? 0) * TILE - 46,
-        emocao: EMOCAO.sorriso, t: 0,
+        emocao: EMOCAO.duvida, t: 0,
       });
       // a última coisa que ela diz é o resumo em uma linha, dito de
       // passagem — é o que fica na cabeça depois da explicação comprida
@@ -614,7 +625,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
         if (i < DESFECHO.length) {
           const f = DESFECHO[i++];
           setConversa({ tipo: 'fala', quem: f.quem, texto: f.texto, proximo: seguir });
-        } else { setConversa(null); setVista('fim'); }
+        } else setConversa({ tipo: 'final' });
       };
       seguir();
     }
@@ -866,18 +877,22 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       }
     }
 
-    // nevasca por cima de tudo, só na serra
-    if (m.fase.id === 'inverno') {
+    if (m.fase.clima.nevando) {
       const nv = A[NEVASCA.url];
       if (nv?.naturalWidth) {
         const i = quadroDe(g.t, NEVASCA.n, NEVASCA.fps);
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.4;
         ctx.drawImage(nv,
           (i % NEVASCA.cols) * NEVASCA.l, Math.floor(i / NEVASCA.cols) * NEVASCA.a,
           janela.current.l, VISTA_A, 0, 0, janela.current.l, VISTA_A);
         ctx.globalAlpha = 1;
       }
     }
+
+    // a neve entra antes da demão: assim ela escurece junto com o resto,
+    // em vez de virar chuvisco branco por cima da noite
+    desenhaClima(ctx, g);
+
 
     // balões de emoção
     const em = A[EMOJI.url];
@@ -889,6 +904,70 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       }
     }
 
+  }
+
+  /**
+   * O clima da fase, em três demãos por cima do mundo já desenhado.
+   *
+   * A arte dos pacotes é de dia claro: céu azul, maçã vermelha, capim
+   * verde. Nada disso serve para um jogo que se passa dentro de um poço.
+   * Em vez de repintar 400 arquivos, o mundo é desenhado como veio e
+   * recebe cor por cima — o que também deixa as três fases escurecerem
+   * na mesma medida em que a história desce.
+   *
+   *   1. tinta: uma cor chapada sobre tudo, com pouca opacidade
+   *   2. lanterna: buraco de luz em volta do jogador, escuro no resto —
+   *      é ela que faz o fundo do poço ser fundo de poço
+   *   3. vinheta: as bordas escurecem sempre, em qualquer fase
+   */
+  function desenhaClima(ctx: CanvasRenderingContext2D, g: Estado) {
+    const m = mundo.current;
+    if (!m) return;
+    const { l: L, a: A_ } = janela.current;
+    const cl = m.fase.clima;
+
+    // Uma demão translúcida por cima clareia tanto quanto escurece e a
+    // arte continua parecendo tarde de domingo. O que funciona é o que
+    // um colorista faria: primeiro DRENA a cor (modo saturação com um
+    // cinza), depois MULTIPLICA por uma cor — multiplicar nunca clareia,
+    // então o mundo só pode ir para o escuro.
+    if (cl.lavagem > 0) {
+      ctx.globalCompositeOperation = 'saturation';
+      ctx.globalAlpha = cl.lavagem;
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(0, 0, L, A_);
+      ctx.globalAlpha = 1;
+    }
+    if (cl.tinta) {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = cl.tinta;
+      ctx.fillRect(0, 0, L, A_);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    if (cl.lanterna) {
+      // o tremor do raio é o fogo-fátuo respirando; sem ele a borda da
+      // luz lê como um círculo desenhado por cima da tela
+      const raio = cl.lanterna * (1 + Math.sin(g.t * 1.7) * 0.05);
+      const cx = g.x - g.cam, cy = g.y - 22;
+      const luz = ctx.createRadialGradient(cx, cy, raio * 0.28, cx, cy, raio);
+      // o escuro de fora para em 0.88, e não em 1: o jogador precisa
+      // continuar enxergando a linha do chão e a boca dos buracos, senão
+      // a fase deixa de ser assustadora e passa a ser injusta
+      luz.addColorStop(0, 'rgba(4,6,16,0)');
+      luz.addColorStop(0.6, 'rgba(4,6,16,0.5)');
+      luz.addColorStop(1, 'rgba(4,6,16,0.88)');
+      ctx.fillStyle = luz;
+      ctx.fillRect(0, 0, L, A_);
+    }
+
+    if (cl.vinheta > 0) {
+      const v = ctx.createRadialGradient(L / 2, A_ / 2, A_ * 0.34, L / 2, A_ / 2, L * 0.72);
+      v.addColorStop(0, 'rgba(0,0,0,0)');
+      v.addColorStop(1, `rgba(0,0,0,${cl.vinheta})`);
+      ctx.fillStyle = v;
+      ctx.fillRect(0, 0, L, A_);
+    }
   }
 
   /**
@@ -904,7 +983,11 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     ctx: CanvasRenderingContext2D, A: Record<string, HTMLImageElement>,
     cam: number, t: number,
   ) {
-    const sol = A[CEU.sol];
+    // o sol só existe em Água Preta. Da boca do poço para baixo não tem
+    // de onde ele vir, e é essa ausência que faz o céu da terceira fase
+    // ser um problema em vez de um cenário
+    const clima = mundo.current?.fase.clima;
+    const sol = clima?.sol ? A[CEU.sol] : undefined;
     if (sol?.naturalWidth) ctx.drawImage(sol, Math.round(janela.current.l - 74 - cam * 0.02), 14);
 
     // nuvens: uma a cada 150 pixels de mundo, alternando desenho e altura
@@ -919,8 +1002,8 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       ctx.globalAlpha = 1;
     }
 
-    // um balão a cada oito nuvens, para não virar tráfego aéreo
-    const bal = A[CEU.balao];
+    // um balão a cada oito nuvens, e só onde ainda tem gente para soltar
+    const bal = clima?.sol ? A[CEU.balao] : undefined;
     if (bal?.naturalWidth) {
       const p2 = passo * 8;
       for (let i = Math.floor((cam * 0.16) / p2); i * p2 < cam * 0.16 + janela.current.l; i++)
@@ -1052,11 +1135,11 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
 
   if (vista === 'abertura') {
     return (
-      <Moldura titulo="A FONTE" onSair={onSair}>
+      <Moldura titulo="O POÇO" onSair={onSair}>
         <Prosa
           falas={ABERTURA}
           aoFim={() => setVista('criador')}
-          rotuloFim="Aprontar para subir"
+          rotuloFim="Pegar a corda"
         />
       </Moldura>
     );
@@ -1074,27 +1157,28 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
   }
 
   if (vista === 'fim') {
+    const f = final ?? FINAIS[0];
     return (
-      <Moldura titulo="A FONTE" onSair={onSair}>
+      <Moldura titulo="O POÇO" onSair={onSair}>
         <div style={{ padding: px(4), display: 'flex', flexDirection: 'column', gap: px(4) }}>
           <Caixa>
-            <div style={{ ...T.titulo, color: C.rust, marginBottom: px(3) }}>A ENCOSTA</div>
-            <div style={{ ...T.corpo, color: C.paperInk, whiteSpace: 'pre-line' }}>
-              {'Vocês descem juntos, e a serra fica para trás com a cicatriz à mostra.\n\n' +
-               'A água nunca deixou de subir e voltar. Ela evapora do mar e do rio, vira ' +
-               'nuvem quando o ar esfria, cai de chuva, congela no alto e derrete de novo. ' +
-               'Esse ciclo não depende de ninguém.\n\n' +
-               'O que depende de nós é a última parte: se a chuva vai ter em que se segurar ' +
-               'quando encostar no chão. Mata em pé é o que transforma enxurrada de dois dias ' +
-               'em nascente de ano inteiro.'}
-            </div>
+            <div style={{ ...T.titulo, color: C.rust, marginBottom: px(3) }}>{f.titulo}</div>
+            <div style={{ ...T.corpo, color: C.paperInk, whiteSpace: 'pre-line' }}>{f.texto}</div>
           </Caixa>
+          <div style={{ ...T.rotulo, color: C.boneDim, lineHeight: 1.7 }}>
+            {/* dizer que existe outro fim é o que faz o jogador querer
+                voltar; dizer qual seria estragaria os dois */}
+            O poço tem dois fins. Este foi o seu.
+          </div>
           <Caixa padding={false}>
-            <Opcao onClick={() => { setFaseIdx(0); setResolvidos([]); setVista('abertura'); }}>
-              Jogar de novo
+            <Opcao onClick={() => {
+              setFinal(null); setFaseIdx(0); setResolvidos([]); setVista('abertura');
+            }}>
+              Descer de novo
             </Opcao>
             <Opcao divisor onClick={onSair}>Sair para a tela inicial</Opcao>
           </Caixa>
+          <div style={{ height: px(4) }} />
         </div>
       </Moldura>
     );
@@ -1165,7 +1249,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
           <div style={{
             position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
             background: C.ink, ...T.rotulo, color: C.lineSoft,
-          }}>SUBINDO A SERRA…</div>
+          }}>DESCENDO…</div>
         )}
 
         {/* comandos por cima do mundo, nos dois cantos de baixo */}
@@ -1180,7 +1264,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
             background: 'linear-gradient(to top, rgba(10,13,7,0.92) 62%, rgba(10,13,7,0))',
           }}>
             <div style={{ width: 'min(100%, 720px)', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {conversa.tipo !== 'pergunta' && (
+              {(conversa.tipo === 'fala' || conversa.tipo === 'resposta') && (
                 <div onClick={avanca} style={{ cursor: 'pointer' }}>
                 <Caixa>
                   {conversa.tipo === 'fala' && (
@@ -1190,7 +1274,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
                     <div style={{
                       ...T.rotulo, marginBottom: px(2),
                       color: conversa.certa ? C.green : C.red,
-                    }}>{conversa.certa ? 'PASSAGEM ABERTA' : 'ELA NÃO BAIXA O ARCO'}</div>
+                    }}>{conversa.certa ? 'ELA SAI DA FRENTE' : 'ELA NÃO BAIXA O ARCO'}</div>
                   )}
                   <div style={{ ...T.corpo, color: C.paperInk, whiteSpace: 'pre-line' }}>{conversa.texto}</div>
                   <div
@@ -1200,10 +1284,25 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
                 </Caixa>
                 </div>
               )}
+              {conversa.tipo === 'final' && (
+                <>
+                  <Caixa>
+                    <div style={{ ...T.rotulo, color: C.rust, marginBottom: px(2) }}>DOZE PASSOS</div>
+                    <div style={{ ...T.corpo, color: C.paperInk }}>
+                      Para virar ela, você vai ter que olhar. E atrás dela é o fundo.
+                    </div>
+                  </Caixa>
+                  <Caixa padding={false}>
+                    {FINAIS.map((f, i) => (
+                      <Opcao key={f.titulo} divisor={i > 0} onClick={() => decide(f)}>{f.label}</Opcao>
+                    ))}
+                  </Caixa>
+                </>
+              )}
               {conversa.tipo === 'pergunta' && (
                 <>
                   <Caixa>
-                    <div style={{ ...T.rotulo, color: C.rust, marginBottom: px(2) }}>PASSAGEM DA FONTE</div>
+                    <div style={{ ...T.rotulo, color: C.rust, marginBottom: px(2) }}>A VIGIA ESPERA</div>
                     <div style={{ ...T.corpo, color: C.paperInk }}>{conversa.desafio.pergunta}</div>
                   </Caixa>
                   <Caixa padding={false}>
@@ -1421,19 +1520,19 @@ function Criador({ traje, setTraje, bicho, setBicho, onSair, aoPronto }: {
   };
 
   return (
-    <Moldura titulo="A FONTE" onSair={onSair}>
+    <Moldura titulo="O POÇO" onSair={onSair}>
       {/* Deitado o criador vira duas colunas: o boneco e as decisões de
           corpo à esquerda, a grade de peças à direita, rolando sozinha.
           Empilhado, a grade empurraria o boneco para fora da tela e o
           jogador escolheria cabelo sem ver a cabeça. */}
       <div style={{ padding: pxu(3), display: 'flex', flexDirection: 'column', gap: pxu(3) }}>
         <div style={{ ...T.corpo, color: C.boneDim, fontSize: 17, lineHeight: 1.35 }}>
-          <span style={{ ...T.rotulo, color: C.rustLite }}>QUEM VAI SUBIR </span>
-          Monte quem sobe a serra. Nada disso muda a dificuldade: é a sua cara no jogo,
-          e ela vai aparecer nas três estações.
+          <span style={{ ...T.rotulo, color: C.rustLite }}>QUEM DESCE </span>
+          Monte quem desce atrás da Iara. Nada disso muda a dificuldade: é a sua cara no
+          jogo, e é ela que a Bruna vai confundir com outra pessoa.
         </div>
 
-        <div className="fonte-criador">
+        <div className="poco-criador">
           <div style={{ display: 'flex', flexDirection: 'column', gap: pxu(2) }}>
             <div style={{ display: 'flex', gap: pxu(3), alignItems: 'stretch' }}>
               <div className="px-notch" style={{ background: C.line, padding: 'var(--p)', flex: 'none' }}>
@@ -1470,7 +1569,7 @@ function Criador({ traje, setTraje, bicho, setBicho, onSair, aoPronto }: {
 
             <Caixa padding={false}>
               <Opcao onClick={() => { playSfx('gate', 0.5); aoPronto(); }}>
-                Começar pelo Bosque Verde
+                Descer
               </Opcao>
             </Caixa>
           </div>
@@ -1544,7 +1643,7 @@ function BotaoLinha({ rotulo, nota, onClick }: { rotulo: string; nota?: string; 
  * Uma célula da grade de escolhas.
  *
  * A miniatura não é o PNG da peça: é um recorte do atlas gerado por
- * scripts/gen-bosque.mjs, onde a peça já aparece vestida num corpo. Sem
+ * scripts/gen-poco.mjs, onde a peça já aparece vestida num corpo. Sem
  * o atlas, abrir a aba de cabelo baixaria 68 folhas de 800x448 de uma
  * vez; com ele, baixa uma imagem só por aba.
  */
@@ -1667,7 +1766,7 @@ function GirarCelular() {
       <div style={{ fontSize: 40 }} aria-hidden>📱↻</div>
       <div style={{ ...T.titulo, color: C.bone, textAlign: 'center' }}>GIRE O APARELHO</div>
       <div style={{ ...T.corpo, color: C.boneDim, textAlign: 'center', maxWidth: 260 }}>
-        A serra é larga. Deitado, cabe a trilha inteira na tela.
+        O poço é fundo e a tela é curta. Deitado, cabe mais escuro.
       </div>
     </div>
   );
