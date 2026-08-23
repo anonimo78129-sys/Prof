@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────
-// GERADO por scripts/gen-bosque.mjs — não editar à mão.
+// GERADO por scripts/gen-poco.mjs — não editar à mão.
 //
-// Índice das peças do criador de personagem de A FONTE. O rótulo sai
+// Índice das peças do criador de personagem de O POÇO. O rótulo sai
 // do nome do arquivo original, traduzido palavra por palavra pelo
 // dicionário do gerador.
 // ─────────────────────────────────────────────────────────

@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { C, T } from '../../game/theme';
 import { playSfx } from '../../game/audio';
 import {
-  FASES, DESAFIOS, ORDEM, ABERTURA, DESFECHO,
-  type Fase, type Desafio, type Fala, type PostoSentinela,
-} from '../../game/bosque';
-import { CATALOGO, PREVIA, type Sexo } from '../../game/bosqueCatalogo';
+  FASES, DESAFIOS, ORDEM, ABERTURA, DESFECHO, FINAIS,
+  type Fase, type Desafio, type Fala, type Final, type PostoSentinela,
+} from '../../game/poco';
+import { CATALOGO, PREVIA, type Sexo } from '../../game/pocoCatalogo';
 import {
-  TILE, VISTA_L, VISTA_A, MUNDO_A,
+  TILE, VISTA_L, VISTA_A, MUNDO_A, larguraDaVista,
   QUADRO_L, QUADRO_A, PE_NO_QUADRO, POSES, type Pose,
   PASTA_DA_CASA, opcoesDaCasa, caminhoPrevia,
   montaTraje, folhasDoTraje, type Traje, type Vestir,
@@ -18,10 +18,10 @@ import {
   HUD, PISO, OFFSET_ESTACAO, NOVE, FINA,
   FUNDO_FATOR, fundoUrl, FUNDO_L, FUNDO_A, FAIXA_ARVORES, ARVORES_DA_ESTACAO, TERRA,
   PECAS, FOLHA_ENFEITES, folhasDaFase, carrega,
-} from './bosqueArte';
+} from './pocoArte';
 
 // ─────────────────────────────────────────────────────────
-// A FONTE — motor de plataforma
+// O POÇO — motor de plataforma
 //
 // Os outros jogos do app são de escolha em cima de uma ilustração parada
 // (CINZAS), de grade vista de cima (SEMENTE) ou de cena 3D (SILO). Este
@@ -29,19 +29,21 @@ import {
 // 2D de 16 pixels do SEMENTE mas com física contínua em vez de passo
 // travado na casa.
 //
-// A pergunta continua sendo o miolo. A diferença é onde ela entra: aqui
-// a Sentinela é uma PAREDE. Enquanto a resposta não vier, o caminho não
-// abre — e errar custa uma flecha, não um game over. O aluno pode tentar
-// de novo quantas vezes quiser; o que a vida mede é teimosia, não nota.
+// A escolha continua sendo o miolo, e a Vigia é uma PAREDE: enquanto a
+// resposta não vier, o caminho não abre. Errar não é game over — é uma
+// flecha, uma vida, e a pergunta de volta. O que trava a passagem é
+// entender com quem você está falando.
 //
 // COMO UM QUADRO É MONTADO
 //   1. as cinco camadas do fundo, cada uma andando numa fração da câmera
-//   2. a faixa de árvores grandes, a meio caminho entre fundo e mundo
-//   3. o rio lá embaixo, que só aparece pelos buracos do chão
-//   4. os enfeites marcados como `fundo`
-//   5. o chão, bloco por bloco, com recorte de nove pedaços
-//   6. o resto dos enfeites, as moedas, as Sentinelas, o bicho, o jogador
-//   7. o HUD, desenhado no mesmo canvas para ficar na escala da arte
+//   2. o céu: nuvem sempre, sol e balão só onde ainda tem gente viva
+//   3. a faixa de árvores grandes, a meio caminho entre fundo e mundo
+//   4. o rio lá embaixo, que só aparece pelos buracos do chão
+//   5. os enfeites de fundo, o chão bloco a bloco, o resto dos enfeites
+//   6. moedas, Vigias, flechas, o bicho, o fogo-fátuo, o jogador
+//   7. o CLIMA por cima de tudo: demão de cor, lanterna e vinheta —
+//      é essa camada que faz a arte de dia claro do pacote virar noite
+//   8. os balões de emoção, que precisam ficar acima do escuro
 //
 // O traje do jogador é achatado numa folha só antes da fase começar
 // (ver montaTraje): no laço, o boneco custa um `drawImage`, não onze.
@@ -76,7 +78,9 @@ type Tela = 'abertura' | 'criador' | 'jogo' | 'fim';
 type Conversa =
   | { tipo: 'fala'; quem: string; texto: string; proximo: () => void }
   | { tipo: 'pergunta'; desafio: Desafio; sentinela: string; ordem: number[] }
-  | { tipo: 'resposta'; texto: string; certa: boolean; desafio: Desafio; sentinela: string };
+  | { tipo: 'resposta'; texto: string; certa: boolean; desafio: Desafio; sentinela: string }
+  /** a última: dois fins escritos, e nenhum deles é o certo */
+  | { tipo: 'final' };
 
 interface Moeda { x: number; y: number; pega: boolean }
 interface Sentinela extends PostoSentinela {
@@ -225,15 +229,21 @@ function desenhaBloco(
 
 // ── componente ──────────────────────────────────────────
 
-export default function Bosque({ onSair }: { onSair: () => void }) {
+export default function Poco({ onSair }: { onSair: () => void }) {
   const tela = useRef<HTMLCanvasElement>(null);
   const elmo = useRef<HTMLCanvasElement>(null);
+  const palco = useRef<HTMLDivElement>(null);
+  // A largura da janela do jogo acompanha o formato da tela; a altura
+  // nunca muda. Fica num ref, e não em estado, porque quem lê isso é o
+  // laço de desenho — sessenta vezes por segundo, fora do React.
+  const janela = useRef({ l: VISTA_L, a: VISTA_A });
   const [vista, setVista] = useState<Tela>('abertura');
   const [faseIdx, setFaseIdx] = useState(0);
   const [pronto, setPronto] = useState(false);
   const [conversa, setConversa] = useState<Conversa | null>(null);
   const [resolvidos, setResolvidos] = useState<string[]>([]);
   const [placar, setPlacar] = useState({ vida: VIDA_CHEIA, moedas: 0 });
+  const [final, setFinal] = useState<Final | null>(null);
 
   const [traje, setTraje] = useState<Traje>(() => trajePadrao('m'));
   const [bicho, setBicho] = useState(BICHOS[0].id);
@@ -289,6 +299,28 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     });
     return () => { vivo = false; };
   }, [vista, faseIdx, traje, bicho, fase]);
+
+  // ── a janela acompanha o formato da tela ──
+  useEffect(() => {
+    if (vista !== 'jogo') return;
+    const ajusta = () => {
+      const cv = tela.current, box = palco.current;
+      if (!cv || !box) return;
+      const l = larguraDaVista(box.clientWidth / Math.max(1, box.clientHeight));
+      if (cv.width === l && cv.height === VISTA_A) return;
+      janela.current = { l, a: VISTA_A };
+      cv.width = l; cv.height = VISTA_A;
+      // mexer em width zera o contexto, inclusive o filtro; sem religar
+      // isto o pixel volta a sair borrado depois de girar o aparelho
+      const ctx = cv.getContext('2d');
+      if (ctx) ctx.imageSmoothingEnabled = false;
+    };
+    ajusta();
+    const obs = new ResizeObserver(ajusta);
+    if (palco.current) obs.observe(palco.current);
+    window.addEventListener('orientationchange', ajusta);
+    return () => { obs.disconnect(); window.removeEventListener('orientationchange', ajusta); };
+  }, [vista, pronto]);
 
   // ── laço ──
   useEffect(() => {
@@ -413,7 +445,6 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       if (mo.pega) continue;
       if (Math.abs(mo.x - g.x) < 12 && Math.abs(mo.y - (g.y - 20)) < 22) {
         mo.pega = true; g.moedas++;
-        m.baloes.push({ x: g.x, y: g.y - ALTURA_CORPO - 10, emocao: EMOCAO.coracao, t: 0 });
         playSfx('select', 0.4);
         setPlacar((p) => ({ ...p, moedas: g.moedas }));
       }
@@ -424,7 +455,6 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       const px = fx * TILE + TILE, py = fy * TILE;
       if (Math.abs(px - g.x) < 20 && Math.abs(py - g.y) < 40 && g.vida < VIDA_CHEIA) {
         g.vida = VIDA_CHEIA;
-        m.baloes.push({ x: g.x, y: g.y - ALTURA_CORPO - 10, emocao: EMOCAO.sorriso, t: 0 });
         playSfx('correct', 0.35);
         setPlacar((pl) => ({ ...pl, vida: g.vida }));
       }
@@ -452,7 +482,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       if (Math.abs(f.x - g.x) < 12 && Math.abs(f.y - (g.y - 22)) < 22) {
         f.viva = false; machuca(g, 'flecha');
       }
-      if (f.x < g.cam - 40 || f.x > g.cam + VISTA_L + 40) f.viva = false;
+      if (f.x < g.cam - 40 || f.x > g.cam + janela.current.l + 40) f.viva = false;
     }
     m.flechas = m.flechas.filter((f) => f.viva);
 
@@ -469,9 +499,9 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     // a câmera persegue com folga: dentro de uma faixa central o jogador
     // anda sem arrastar o mundo, e é isso que impede o cenário de tremer
     // a cada correção de meio pixel
-    const alvoCam = g.x - VISTA_L * (g.olhando > 0 ? 0.42 : 0.58);
+    const alvoCam = g.x - janela.current.l * (g.olhando > 0 ? 0.42 : 0.58);
     g.cam += (alvoCam - g.cam) * Math.min(1, dt * 4);
-    g.cam = Math.max(0, Math.min(m.largura * TILE - VISTA_L, g.cam));
+    g.cam = Math.max(0, Math.min(m.largura * TILE - janela.current.l, g.cam));
   }
 
   function machuca(g: Estado, causa: 'flecha' | 'queda') {
@@ -519,6 +549,14 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     seguir();
   }
 
+  /** o jogador fecha os olhos, ou não */
+  function decide(f: Final) {
+    playSfx(f.titulo === 'DOIS SUBIRAM' ? 'victory' : 'wrong', 0.55);
+    setFinal(f);
+    setConversa(null);
+    setVista('fim');
+  }
+
   function escolhe(i: number) {
     const c = conversaRef.current;
     if (c?.tipo !== 'pergunta') return;
@@ -547,7 +585,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       g.travado = g.t + 1.1; g.poseTravada = 'festa'; g.tp = 0;
       if (m) m.baloes.push({
         x: (s?.x ?? 0) * TILE + TILE / 2, y: (s?.y ?? 0) * TILE - 46,
-        emocao: EMOCAO.sorriso, t: 0,
+        emocao: EMOCAO.duvida, t: 0,
       });
       // a última coisa que ela diz é o resumo em uma linha, dito de
       // passagem — é o que fica na cabeça depois da explicação comprida
@@ -587,7 +625,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
         if (i < DESFECHO.length) {
           const f = DESFECHO[i++];
           setConversa({ tipo: 'fala', quem: f.quem, texto: f.texto, proximo: seguir });
-        } else { setConversa(null); setVista('fim'); }
+        } else setConversa({ tipo: 'final' });
       };
       seguir();
     }
@@ -626,7 +664,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     const cam = Math.round(g.cam);
     const oy = OFFSET_ESTACAO[m.fase.id];
 
-    ctx.clearRect(0, 0, VISTA_L, VISTA_A);
+    ctx.clearRect(0, 0, janela.current.l, VISTA_A);
 
     // 1. fundo em camadas, da mais longe para a mais perto
     for (let n = 5; n >= 1; n--) {
@@ -640,7 +678,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       const escala = alvoA / FUNDO_A;
       const largura = Math.ceil(FUNDO_L * escala);
       x = -(((cam * f) % largura) + largura) % largura;
-      for (; x < VISTA_L; x += largura)
+      for (; x < janela.current.l; x += largura)
         ctx.drawImage(img, 0, 0, FUNDO_L, FUNDO_A, Math.round(x), VISTA_A - alvoA, largura, alvoA);
     }
 
@@ -665,7 +703,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
         if (!img?.naturalWidth) continue;
         const dx = Math.round(ad.x * TILE - cam);
         const dy = ad.y * TILE - p.a;
-        if (dx + p.l < -8 || dx > VISTA_L + 8) continue;
+        if (dx + p.l < -8 || dx > janela.current.l + 8) continue;
         if (ad.vira) {
           ctx.save();
           ctx.translate(dx + p.l, dy);
@@ -683,7 +721,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       const terra = A[TERRA.url];
       for (const b of m.fase.blocos) {
         const dx = b.x * TILE - cam;
-        if (dx + b.l * TILE < -TILE || dx > VISTA_L + TILE) continue;
+        if (dx + b.l * TILE < -TILE || dx > janela.current.l + TILE) continue;
         desenhaBloco(ctx, piso, terra, oy, b.x, b.y, b.l, b.a, cam);
       }
     }
@@ -707,7 +745,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       const q = quadroDe(g.t, TOCHA.n, TOCHA.fps);
       for (const lado of [-3, 2]) {
         const tx = Math.round((m.fase.portal.x + lado) * TILE - cam);
-        if (tx < -TOCHA.l || tx > VISTA_L) continue;
+        if (tx < -TOCHA.l || tx > janela.current.l) continue;
         ctx.drawImage(to, q * TOCHA.l, TOCHA.linha * TOCHA.a, TOCHA.l, TOCHA.a,
           tx, m.fase.portal.y * TILE - TOCHA.a - 8, TOCHA.l, TOCHA.a);
       }
@@ -726,7 +764,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     const refem = m.fase.refem;
     if (refem && folhaIara.current) {
       const dx = Math.round(refem.x * TILE - cam - QUADRO_L / 2);
-      if (dx + QUADRO_L > 0 && dx < VISTA_L) {
+      if (dx + QUADRO_L > 0 && dx < janela.current.l) {
         const i = quadroDe(g.t, POSES.parado.n, POSES.parado.fps);
         ctx.drawImage(folhaIara.current, i * QUADRO_L, 0, QUADRO_L, QUADRO_A,
           dx, refem.y * TILE - PE_NO_QUADRO, QUADRO_L, QUADRO_A);
@@ -747,7 +785,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       for (const c of m.moedas) {
         if (c.pega) continue;
         const dx = Math.round(c.x - cam - 8);
-        if (dx < -16 || dx > VISTA_L) continue;
+        if (dx < -16 || dx > janela.current.l) continue;
         // cada moeda gira fora de fase com a vizinha, senão a fileira
         // inteira pisca junto e lê como um objeto só
         const i = quadroDe(g.t + c.x * 0.01, MOEDA.n, MOEDA.fps);
@@ -765,7 +803,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       // ela recua para o lado oposto ao do jogador
       const recuo = s.saiu * (g.x < s.x * TILE ? 1 : -1);
       const dx = Math.round(s.x * TILE + recuo - cam - SENTINELA_L / 2 + TILE / 2);
-      if (dx + SENTINELA_L < 0 || dx > VISTA_L) continue;
+      if (dx + SENTINELA_L < 0 || dx > janela.current.l) continue;
       const dy = s.y * TILE - SENTINELA_A;
       // a Sentinela olha para o jogador; a folha vem virada para a direita
       const paraEsquerda = g.x < s.x * TILE;
@@ -839,18 +877,22 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       }
     }
 
-    // nevasca por cima de tudo, só na serra
-    if (m.fase.id === 'inverno') {
+    if (m.fase.clima.nevando) {
       const nv = A[NEVASCA.url];
       if (nv?.naturalWidth) {
         const i = quadroDe(g.t, NEVASCA.n, NEVASCA.fps);
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.4;
         ctx.drawImage(nv,
           (i % NEVASCA.cols) * NEVASCA.l, Math.floor(i / NEVASCA.cols) * NEVASCA.a,
-          VISTA_L, VISTA_A, 0, 0, VISTA_L, VISTA_A);
+          janela.current.l, VISTA_A, 0, 0, janela.current.l, VISTA_A);
         ctx.globalAlpha = 1;
       }
     }
+
+    // a neve entra antes da demão: assim ela escurece junto com o resto,
+    // em vez de virar chuvisco branco por cima da noite
+    desenhaClima(ctx, g);
+
 
     // balões de emoção
     const em = A[EMOJI.url];
@@ -862,6 +904,70 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       }
     }
 
+  }
+
+  /**
+   * O clima da fase, em três demãos por cima do mundo já desenhado.
+   *
+   * A arte dos pacotes é de dia claro: céu azul, maçã vermelha, capim
+   * verde. Nada disso serve para um jogo que se passa dentro de um poço.
+   * Em vez de repintar 400 arquivos, o mundo é desenhado como veio e
+   * recebe cor por cima — o que também deixa as três fases escurecerem
+   * na mesma medida em que a história desce.
+   *
+   *   1. tinta: uma cor chapada sobre tudo, com pouca opacidade
+   *   2. lanterna: buraco de luz em volta do jogador, escuro no resto —
+   *      é ela que faz o fundo do poço ser fundo de poço
+   *   3. vinheta: as bordas escurecem sempre, em qualquer fase
+   */
+  function desenhaClima(ctx: CanvasRenderingContext2D, g: Estado) {
+    const m = mundo.current;
+    if (!m) return;
+    const { l: L, a: A_ } = janela.current;
+    const cl = m.fase.clima;
+
+    // Uma demão translúcida por cima clareia tanto quanto escurece e a
+    // arte continua parecendo tarde de domingo. O que funciona é o que
+    // um colorista faria: primeiro DRENA a cor (modo saturação com um
+    // cinza), depois MULTIPLICA por uma cor — multiplicar nunca clareia,
+    // então o mundo só pode ir para o escuro.
+    if (cl.lavagem > 0) {
+      ctx.globalCompositeOperation = 'saturation';
+      ctx.globalAlpha = cl.lavagem;
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(0, 0, L, A_);
+      ctx.globalAlpha = 1;
+    }
+    if (cl.tinta) {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = cl.tinta;
+      ctx.fillRect(0, 0, L, A_);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    if (cl.lanterna) {
+      // o tremor do raio é o fogo-fátuo respirando; sem ele a borda da
+      // luz lê como um círculo desenhado por cima da tela
+      const raio = cl.lanterna * (1 + Math.sin(g.t * 1.7) * 0.05);
+      const cx = g.x - g.cam, cy = g.y - 22;
+      const luz = ctx.createRadialGradient(cx, cy, raio * 0.28, cx, cy, raio);
+      // o escuro de fora para em 0.88, e não em 1: o jogador precisa
+      // continuar enxergando a linha do chão e a boca dos buracos, senão
+      // a fase deixa de ser assustadora e passa a ser injusta
+      luz.addColorStop(0, 'rgba(4,6,16,0)');
+      luz.addColorStop(0.6, 'rgba(4,6,16,0.5)');
+      luz.addColorStop(1, 'rgba(4,6,16,0.88)');
+      ctx.fillStyle = luz;
+      ctx.fillRect(0, 0, L, A_);
+    }
+
+    if (cl.vinheta > 0) {
+      const v = ctx.createRadialGradient(L / 2, A_ / 2, A_ * 0.34, L / 2, A_ / 2, L * 0.72);
+      v.addColorStop(0, 'rgba(0,0,0,0)');
+      v.addColorStop(1, `rgba(0,0,0,${cl.vinheta})`);
+      ctx.fillStyle = v;
+      ctx.fillRect(0, 0, L, A_);
+    }
   }
 
   /**
@@ -877,13 +983,17 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     ctx: CanvasRenderingContext2D, A: Record<string, HTMLImageElement>,
     cam: number, t: number,
   ) {
-    const sol = A[CEU.sol];
-    if (sol?.naturalWidth) ctx.drawImage(sol, Math.round(VISTA_L - 74 - cam * 0.02), 14);
+    // o sol só existe em Água Preta. Da boca do poço para baixo não tem
+    // de onde ele vir, e é essa ausência que faz o céu da terceira fase
+    // ser um problema em vez de um cenário
+    const clima = mundo.current?.fase.clima;
+    const sol = clima?.sol ? A[CEU.sol] : undefined;
+    if (sol?.naturalWidth) ctx.drawImage(sol, Math.round(janela.current.l - 74 - cam * 0.02), 14);
 
     // nuvens: uma a cada 150 pixels de mundo, alternando desenho e altura
     const passo = 150, fator = 0.1;
     const desloc = cam * fator;
-    for (let i = Math.floor(desloc / passo) - 1; i * passo < desloc + VISTA_L + 170; i++) {
+    for (let i = Math.floor(desloc / passo) - 1; i * passo < desloc + janela.current.l + 170; i++) {
       const img = A[CEU.nuvens[((i % 6) + 6) % 6]];
       if (!img?.naturalWidth) continue;
       const y = 8 + ((i * 53) % 46);
@@ -892,11 +1002,11 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       ctx.globalAlpha = 1;
     }
 
-    // um balão a cada oito nuvens, para não virar tráfego aéreo
-    const bal = A[CEU.balao];
+    // um balão a cada oito nuvens, e só onde ainda tem gente para soltar
+    const bal = clima?.sol ? A[CEU.balao] : undefined;
     if (bal?.naturalWidth) {
       const p2 = passo * 8;
-      for (let i = Math.floor((cam * 0.16) / p2); i * p2 < cam * 0.16 + VISTA_L; i++)
+      for (let i = Math.floor((cam * 0.16) / p2); i * p2 < cam * 0.16 + janela.current.l; i++)
         ctx.drawImage(bal, Math.round(i * p2 - cam * 0.16), 26 + ((i * 31) % 24));
     }
 
@@ -906,7 +1016,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       const { l, a, n, fps } = CEU.passaros;
       const q = quadroDe(t, n, fps);
       const p3 = 190, voo = t * 11;
-      for (let i = Math.floor((cam * 0.2 + voo) / p3) - 1; i * p3 < cam * 0.2 + voo + VISTA_L; i++)
+      for (let i = Math.floor((cam * 0.2 + voo) / p3) - 1; i * p3 < cam * 0.2 + voo + janela.current.l; i++)
         ctx.drawImage(pas, q * l, 0, l, a,
           Math.round(i * p3 - cam * 0.2 - voo), 18 + ((i * 71) % 40), l, a);
     }
@@ -920,7 +1030,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     const urls = ARVORES_DA_ESTACAO[m.fase.id];
     const desloc = cam * fator;
     const primeiro = Math.floor((desloc - l) / passo);
-    const ultimo = Math.ceil((desloc + VISTA_L) / passo);
+    const ultimo = Math.ceil((desloc + janela.current.l) / passo);
     for (let i = primeiro; i <= ultimo; i++) {
       // a escolha da árvore é fixa pelo índice: o mesmo trecho do mapa
       // mostra sempre a mesma mata, em vez de sortear a cada quadro
@@ -929,9 +1039,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
       const dx = Math.round(i * passo - desloc);
       // altura alternada, para a fileira não virar uma cerca
       const base = m.fase.blocos[0].y * TILE + (i % 3) * 6 - 2;
-      ctx.globalAlpha = 0.8;
       ctx.drawImage(img, 0, 0, l, a, dx, base - a, l, a);
-      ctx.globalAlpha = 1;
     }
   }
 
@@ -944,7 +1052,7 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
     const q = Math.floor(t * AGUA.fps) % AGUA.n;
     const y = (MUNDO_A - 1) * TILE;
     let x = -(((cam * 0.9) % AGUA.l) + AGUA.l) % AGUA.l;
-    for (; x < VISTA_L; x += AGUA.l)
+    for (; x < janela.current.l; x += AGUA.l)
       ctx.drawImage(img, 0, q * AGUA.a, AGUA.l, AGUA.a, Math.round(x), y, AGUA.l, AGUA.a);
   }
 
@@ -1027,11 +1135,11 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
 
   if (vista === 'abertura') {
     return (
-      <Moldura titulo="A FONTE" onSair={onSair}>
+      <Moldura titulo="O POÇO" onSair={onSair}>
         <Prosa
           falas={ABERTURA}
           aoFim={() => setVista('criador')}
-          rotuloFim="Aprontar para subir"
+          rotuloFim="Pegar a corda"
         />
       </Moldura>
     );
@@ -1049,103 +1157,115 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
   }
 
   if (vista === 'fim') {
+    const f = final ?? FINAIS[0];
     return (
-      <Moldura titulo="A FONTE" onSair={onSair}>
+      <Moldura titulo="O POÇO" onSair={onSair}>
         <div style={{ padding: px(4), display: 'flex', flexDirection: 'column', gap: px(4) }}>
           <Caixa>
-            <div style={{ ...T.titulo, color: C.rust, marginBottom: px(3) }}>A ENCOSTA</div>
-            <div style={{ ...T.corpo, color: C.paperInk, whiteSpace: 'pre-line' }}>
-              {'Vocês descem juntos, e a serra fica para trás com a cicatriz à mostra.\n\n' +
-               'A água nunca deixou de subir e voltar. Ela evapora do mar e do rio, vira ' +
-               'nuvem quando o ar esfria, cai de chuva, congela no alto e derrete de novo. ' +
-               'Esse ciclo não depende de ninguém.\n\n' +
-               'O que depende de nós é a última parte: se a chuva vai ter em que se segurar ' +
-               'quando encostar no chão. Mata em pé é o que transforma enxurrada de dois dias ' +
-               'em nascente de ano inteiro.'}
-            </div>
+            <div style={{ ...T.titulo, color: C.rust, marginBottom: px(3) }}>{f.titulo}</div>
+            <div style={{ ...T.corpo, color: C.paperInk, whiteSpace: 'pre-line' }}>{f.texto}</div>
           </Caixa>
+          <div style={{ ...T.rotulo, color: C.boneDim, lineHeight: 1.7 }}>
+            {/* dizer que existe outro fim é o que faz o jogador querer
+                voltar; dizer qual seria estragaria os dois */}
+            O poço tem dois fins. Este foi o seu.
+          </div>
           <Caixa padding={false}>
-            <Opcao onClick={() => { setFaseIdx(0); setResolvidos([]); setVista('abertura'); }}>
-              Jogar de novo
+            <Opcao onClick={() => {
+              setFinal(null); setFaseIdx(0); setResolvidos([]); setVista('abertura');
+            }}>
+              Descer de novo
             </Opcao>
             <Opcao divisor onClick={onSair}>Sair para a tela inicial</Opcao>
           </Caixa>
+          <div style={{ height: px(4) }} />
         </div>
       </Moldura>
     );
   }
 
   // ── tela de jogo ──
-  const nome = fase.nome;
+  //
+  // Deitado e em tela cheia: o mundo rola na horizontal, então o jogo
+  // ocupa a tela inteira e todo o resto — placar, saída, botões e caixa
+  // de fala — fica POR CIMA dele, em cantos que a ação não usa. Numa
+  // faixa de 13 casas de altura, qualquer coisa empilhada por fora
+  // roubaria metade do céu.
   return (
-    <div style={{ position: 'fixed', inset: 0, background: C.ink, display: 'flex', justifyContent: 'center' }}>
-      <div style={{
-        position: 'relative', width: 'min(100vw, 56.25vh)', height: '100%',
-        display: 'flex', flexDirection: 'column',
-      }}>
-        <div style={{ padding: `${px(2)} ${px(3)} 0` }}>
-          <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: px(2),
-              background: C.shell, padding: `${px(2)} ${px(3)}`,
-            }}>
-              <span style={{ ...T.titulo, color: C.bone }}>A FONTE</span>
-              <span style={{ ...T.rotulo, color: C.rustLite }}>{nome}</span>
-              <div style={{ flex: 1 }} />
-              <span style={{ ...T.rotulo, color: C.lineSoft }}>{resolvidos.length}/{ORDEM.length}</span>
-              <button
-                onClick={onSair}
-                style={{
-                  ...T.rotulo, color: '#fff', background: C.rust, border: 'none',
-                  padding: `${px(1)} ${px(2)}`, marginLeft: px(2),
-                  boxShadow: `0 0 0 var(--p) ${C.line}`, cursor: 'pointer',
-                }}
-              >← VOLTAR</button>
-            </div>
+    <div style={{
+      position: 'fixed', inset: 0, background: '#0a0d07', overflow: 'hidden',
+      touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none',
+    }}>
+      <div ref={palco} style={{ position: 'absolute', inset: 0 }}>
+        {/* `contain` é o que impede o mundo de esticar. A largura da janela
+            já acompanha o formato da tela, então em aparelho deitado ela
+            bate e não sobra tarja; em pé, onde nenhuma largura possível
+            chega perto do formato, a tarja aparece e é ela que segura a
+            proporção do pixel. */}
+        <canvas
+          ref={tela}
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'contain', imageRendering: 'pixelated', display: 'block',
+          }}
+        />
+
+        {/* placar, no canto de cima à esquerda: o elmo e três números */}
+        <div style={{
+          position: 'absolute', left: 8, top: 8, display: 'flex', alignItems: 'center', gap: 8,
+          pointerEvents: 'none',
+        }}>
+          <canvas
+            ref={elmo} width={HUD.l} height={HUD.a}
+            style={{ width: 96, height: 53, imageRendering: 'pixelated', flex: 'none' }}
+          />
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 3, ...T.rotulo,
+            textShadow: `2px 2px 0 ${C.line}`,
+          }}>
+            <span style={{ color: C.rustLite }}>{fase.nome}</span>
+            <span style={{ color: C.amber }}>♦ {placar.moedas}</span>
+            <span style={{ color: C.greenLite }}>
+              ▲ {mundo.current ? mundo.current.sentinelas.filter((s) => s.resolvida).length : 0}/3
+            </span>
           </div>
         </div>
 
-        <div style={{ position: 'relative', flex: 1, margin: `${px(2)} ${px(3)}`, minHeight: 0,
-                      display: 'flex', flexDirection: 'column', gap: px(2) }}>
-          <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
-            <div style={{
-              position: 'relative', width: '100%', aspectRatio: `${VISTA_L} / ${VISTA_A}`,
-              overflow: 'hidden', background: '#11202b',
-            }}>
-              <canvas
-                ref={tela} width={VISTA_L} height={VISTA_A}
-                style={{ width: '100%', height: '100%', imageRendering: 'pixelated', display: 'block' }}
-              />
-              {!pronto && (
-                <div style={{
-                  position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-                  ...T.rotulo, color: C.lineSoft,
-                }}>SUBINDO A SERRA…</div>
-              )}
-            </div>
-          </div>
+        {/* saída e progresso, no canto de cima à direita */}
+        <div style={{ position: 'absolute', right: 8, top: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            ...T.rotulo, color: C.bone, textShadow: `2px 2px 0 ${C.line}`,
+          }}>{resolvidos.length}/{ORDEM.length}</span>
+          <button
+            onClick={onSair}
+            style={{
+              ...T.rotulo, color: '#fff', background: C.rust, border: 'none',
+              padding: '6px 8px', boxShadow: `0 0 0 2px ${C.line}`, cursor: 'pointer',
+            }}
+          >SAIR</button>
+        </div>
 
-          {/* placar: o elmo dá a leitura de relance, o número dá a exata */}
-          <div style={{ display: 'flex', gap: px(3), alignItems: 'center' }}>
-            <canvas
-              ref={elmo} width={HUD.l} height={HUD.a}
-              style={{ width: 87, height: 48, imageRendering: 'pixelated', flex: 'none' }}
-            />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: px(1), ...T.rotulo }}>
-              <span style={{ color: C.red }}>VIDA {placar.vida}</span>
-              <span style={{ color: C.amber }}>MOEDAS {placar.moedas}</span>
-              <span style={{ color: C.greenLite }}>
-                PASSAGENS {mundo.current ? mundo.current.sentinelas.filter((s) => s.resolvida).length : 0}/3
-              </span>
-            </div>
-          </div>
+        {!pronto && (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+            background: C.ink, ...T.rotulo, color: C.lineSoft,
+          }}>DESCENDO…</div>
+        )}
 
-          {conversa && (
-            <div style={{
-              display: 'flex', flexDirection: 'column', gap: px(2), flex: 1, minHeight: 0,
-              overflowY: 'auto',
-            }}>
-              {conversa.tipo !== 'pergunta' && (
+        {/* comandos por cima do mundo, nos dois cantos de baixo */}
+        {!conversa && pronto && <Controles teclas={teclas} />}
+
+        {/* a fala ocupa a metade de baixo e some assim que termina */}
+        {conversa && (
+          <div style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '78%',
+            display: 'flex', flexDirection: 'column', gap: 6,
+            padding: 8, overflowY: 'auto',
+            background: 'linear-gradient(to top, rgba(10,13,7,0.92) 62%, rgba(10,13,7,0))',
+          }}>
+            <div style={{ width: 'min(100%, 720px)', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {(conversa.tipo === 'fala' || conversa.tipo === 'resposta') && (
+                <div onClick={avanca} style={{ cursor: 'pointer' }}>
                 <Caixa>
                   {conversa.tipo === 'fala' && (
                     <div style={{ ...T.rotulo, color: C.rust, marginBottom: px(2) }}>{conversa.quem}</div>
@@ -1154,20 +1274,35 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
                     <div style={{
                       ...T.rotulo, marginBottom: px(2),
                       color: conversa.certa ? C.green : C.red,
-                    }}>{conversa.certa ? 'PASSAGEM ABERTA' : 'ELA NÃO BAIXA O ARCO'}</div>
+                    }}>{conversa.certa ? 'ELA SAI DA FRENTE' : 'ELA NÃO BAIXA O ARCO'}</div>
                   )}
                   <div style={{ ...T.corpo, color: C.paperInk, whiteSpace: 'pre-line' }}>{conversa.texto}</div>
                   <div
-                    onClick={avanca}
                     className="px-blink"
-                    style={{ ...T.rotulo, color: C.rust, textAlign: 'right', cursor: 'pointer', marginTop: px(2) }}
-                  >▼</div>
+                    style={{ ...T.rotulo, color: C.rust, textAlign: 'right', marginTop: px(2) }}
+                  >▼ CONTINUAR</div>
                 </Caixa>
+                </div>
+              )}
+              {conversa.tipo === 'final' && (
+                <>
+                  <Caixa>
+                    <div style={{ ...T.rotulo, color: C.rust, marginBottom: px(2) }}>DOZE PASSOS</div>
+                    <div style={{ ...T.corpo, color: C.paperInk }}>
+                      Para virar ela, você vai ter que olhar. E atrás dela é o fundo.
+                    </div>
+                  </Caixa>
+                  <Caixa padding={false}>
+                    {FINAIS.map((f, i) => (
+                      <Opcao key={f.titulo} divisor={i > 0} onClick={() => decide(f)}>{f.label}</Opcao>
+                    ))}
+                  </Caixa>
+                </>
               )}
               {conversa.tipo === 'pergunta' && (
                 <>
                   <Caixa>
-                    <div style={{ ...T.rotulo, color: C.rust, marginBottom: px(2) }}>PASSAGEM DA FONTE</div>
+                    <div style={{ ...T.rotulo, color: C.rust, marginBottom: px(2) }}>A VIGIA ESPERA</div>
                     <div style={{ ...T.corpo, color: C.paperInk }}>{conversa.desafio.pergunta}</div>
                   </Caixa>
                   <Caixa padding={false}>
@@ -1180,15 +1315,11 @@ export default function Bosque({ onSair }: { onSair: () => void }) {
                 </>
               )}
             </div>
-          )}
-        </div>
-
-        <Controles
-          teclas={teclas}
-          conversando={!!conversa}
-          avanca={avanca}
-        />
+          </div>
+        )}
       </div>
+
+      <GirarCelular />
     </div>
   );
 }
@@ -1267,6 +1398,12 @@ function Opcao({ children, onClick, divisor }: {
   );
 }
 
+/**
+ * Chassi das telas de texto (abertura, criador, desfecho).
+ *
+ * Largura presa em 880: deitado num monitor, uma linha correndo de ponta
+ * a ponta da tela é ilegível, e a caixa de fala tem parágrafo de verdade.
+ */
 function Moldura({ titulo, onSair, children }: {
   titulo: string; onSair: () => void; children: React.ReactNode;
 }) {
@@ -1276,7 +1413,7 @@ function Moldura({ titulo, onSair, children }: {
       justifyContent: 'center', overflowY: 'auto',
     }}>
       <div style={{
-        position: 'relative', width: 'min(100vw, 56.25vh)', minHeight: '100%',
+        position: 'relative', width: 'min(100vw, 880px)', minHeight: '100%',
         display: 'flex', flexDirection: 'column',
       }}>
         <div style={{ padding: `${pxu(2)} ${pxu(3)} 0` }}>
@@ -1312,7 +1449,10 @@ function Prosa({ falas, aoFim, rotuloFim }: {
   const f = falas[i];
   const ultima = i === falas.length - 1;
   return (
-    <div style={{ padding: pxu(4), display: 'flex', flexDirection: 'column', gap: pxu(4) }}>
+    <div style={{
+      padding: pxu(4), display: 'flex', flexDirection: 'column', gap: pxu(4),
+      flex: 1, justifyContent: 'center',
+    }}>
       <Caixa>
         <div style={{ ...T.rotulo, color: C.rust, marginBottom: pxu(2) }}>{f.quem}</div>
         <div style={{ ...T.corpo, color: C.paperInk, whiteSpace: 'pre-line' }}>{f.texto}</div>
@@ -1380,97 +1520,103 @@ function Criador({ traje, setTraje, bicho, setBicho, onSair, aoPronto }: {
   };
 
   return (
-    <Moldura titulo="A FONTE" onSair={onSair}>
+    <Moldura titulo="O POÇO" onSair={onSair}>
+      {/* Deitado o criador vira duas colunas: o boneco e as decisões de
+          corpo à esquerda, a grade de peças à direita, rolando sozinha.
+          Empilhado, a grade empurraria o boneco para fora da tela e o
+          jogador escolheria cabelo sem ver a cabeça. */}
       <div style={{ padding: pxu(3), display: 'flex', flexDirection: 'column', gap: pxu(3) }}>
-        <Caixa>
-          <div style={{ ...T.rotulo, color: C.rust, marginBottom: pxu(2) }}>QUEM VAI SUBIR</div>
-          <div style={{ ...T.corpo, color: C.paperInk }}>
-            Monte quem sobe a serra. Nada disso muda a dificuldade: é a sua cara no jogo,
-            e ela vai aparecer nas três estações.
-          </div>
-        </Caixa>
+        <div style={{ ...T.corpo, color: C.boneDim, fontSize: 17, lineHeight: 1.35 }}>
+          <span style={{ ...T.rotulo, color: C.rustLite }}>QUEM DESCE </span>
+          Monte quem desce atrás da Iara. Nada disso muda a dificuldade: é a sua cara no
+          jogo, e é ela que a Bruna vai confundir com outra pessoa.
+        </div>
 
-        <div style={{ display: 'flex', gap: pxu(3), alignItems: 'stretch' }}>
-          <div className="px-notch" style={{ background: C.line, padding: 'var(--p)', flex: 'none' }}>
-            <div style={{ background: C.shellLo, padding: pxu(2) }}>
-              <canvas
-                ref={boneco} width={120} height={186}
-                style={{ display: 'block', width: 80, imageRendering: 'pixelated' }}
-              />
+        <div className="poco-criador">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: pxu(2) }}>
+            <div style={{ display: 'flex', gap: pxu(3), alignItems: 'stretch' }}>
+              <div className="px-notch" style={{ background: C.line, padding: 'var(--p)', flex: 'none' }}>
+                <div style={{ background: C.shellLo, padding: pxu(2) }}>
+                  <canvas
+                    ref={boneco} width={120} height={186}
+                    style={{ display: 'block', width: 84, imageRendering: 'pixelated' }}
+                  />
+                </div>
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: pxu(2), minWidth: 0 }}>
+                <BotaoLinha
+                  rotulo={traje.sexo === 'm' ? 'CORPO A' : 'CORPO B'}
+                  onClick={() => {
+                    playSfx('select', 0.3);
+                    const sx: Sexo = traje.sexo === 'm' ? 'f' : 'm';
+                    // as folhas são desenhadas em cima de um corpo específico
+                    // e não servem no outro: trocar de corpo troca o traje
+                    // inteiro pelo padrão do novo
+                    setTraje(trajePadrao(sx));
+                  }}
+                />
+                <BotaoLinha rotulo="COMPANHEIRO" nota={BICHOS.find((b) => b.id === bicho)!.rotulo} onClick={() => {
+                  playSfx('select', 0.3);
+                  const i = BICHOS.findIndex((b) => b.id === bicho);
+                  setBicho(BICHOS[(i + 1) % BICHOS.length].id);
+                }} />
+                <div style={{ ...T.rotulo, color: C.boneDim, lineHeight: 1.6 }}>
+                  As peças de um corpo não servem no outro: elas foram desenhadas
+                  quadro a quadro por cima dele.
+                </div>
+              </div>
+            </div>
+
+            <Caixa padding={false}>
+              <Opcao onClick={() => { playSfx('gate', 0.5); aoPronto(); }}>
+                Descer
+              </Opcao>
+            </Caixa>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: pxu(2), minWidth: 0 }}>
+            {/* abas das casas de vestir */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: pxu(1) }}>
+              {CASAS.map((c) => (
+                <button
+                  key={c.casa}
+                  onClick={() => { playSfx('tap', 0.25); setCasa(c.casa); }}
+                  style={{
+                    ...T.rotulo, border: 'none', cursor: 'pointer',
+                    padding: `${pxu(2)} ${pxu(2)}`,
+                    background: casa === c.casa ? C.rust : C.shell,
+                    color: casa === c.casa ? '#fff' : C.boneDim,
+                    boxShadow: `0 0 0 var(--p) ${C.line}`,
+                  }}
+                >{c.rotulo}</button>
+              ))}
+            </div>
+
+            {/* grade de peças, recortada do atlas de prévias */}
+            <div className="px-notch" style={{ background: C.line, padding: 'var(--p)', flex: 1, minHeight: 0 }}>
+              <div style={{
+                background: C.shellLo, padding: pxu(2), height: '100%',
+                maxHeight: 'min(52vh, 420px)', overflowY: 'auto',
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(54px, 1fr))', gap: pxu(1),
+                alignContent: 'start',
+              }}>
+                {info.solta && (
+                  <Miniatura vazia escolhida={!traje[casa]} onClick={() => troca(undefined)} />
+                )}
+                {opcoes.map((p) => (
+                  <Miniatura
+                    key={p.id}
+                    atlas={caminhoPrevia(camada, traje.sexo)}
+                    indice={p.i}
+                    titulo={p.rotulo}
+                    escolhida={traje[casa] === p.id}
+                    onClick={() => troca(p.id)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: pxu(2) }}>
-            <BotaoLinha
-              rotulo={traje.sexo === 'm' ? 'CORPO A' : 'CORPO B'}
-              onClick={() => {
-                playSfx('select', 0.3);
-                const s: Sexo = traje.sexo === 'm' ? 'f' : 'm';
-                // as folhas são desenhadas em cima de um corpo específico
-                // e não servem no outro: trocar de corpo troca o traje
-                // inteiro pelo padrão do novo
-                setTraje(trajePadrao(s));
-              }}
-            />
-            <div style={{ ...T.rotulo, color: C.boneDim, lineHeight: 1.6 }}>
-              As peças de um corpo não servem no outro: elas foram desenhadas
-              quadro a quadro por cima dele.
-            </div>
-            <BotaoLinha rotulo="COMPANHEIRO" onClick={() => {
-              playSfx('select', 0.3);
-              const i = BICHOS.findIndex((b) => b.id === bicho);
-              setBicho(BICHOS[(i + 1) % BICHOS.length].id);
-            }} nota={BICHOS.find((b) => b.id === bicho)!.rotulo} />
-          </div>
         </div>
-
-        {/* abas das casas de vestir */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: pxu(1) }}>
-          {CASAS.map((c) => (
-            <button
-              key={c.casa}
-              onClick={() => { playSfx('tap', 0.25); setCasa(c.casa); }}
-              style={{
-                ...T.rotulo, border: 'none', cursor: 'pointer',
-                padding: `${pxu(2)} ${pxu(2)}`,
-                background: casa === c.casa ? C.rust : C.shell,
-                color: casa === c.casa ? '#fff' : C.boneDim,
-                boxShadow: `0 0 0 var(--p) ${C.line}`,
-              }}
-            >{c.rotulo}</button>
-          ))}
-        </div>
-
-        {/* grade de peças, recortada do atlas de prévias */}
-        <div className="px-notch" style={{ background: C.line, padding: 'var(--p)' }}>
-          <div style={{
-            background: C.shellLo, padding: pxu(2), maxHeight: '38vh', overflowY: 'auto',
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))', gap: pxu(1),
-          }}>
-            {info.solta && (
-              <Miniatura
-                vazia
-                escolhida={!traje[casa]}
-                onClick={() => troca(undefined)}
-              />
-            )}
-            {opcoes.map((p) => (
-              <Miniatura
-                key={p.id}
-                atlas={caminhoPrevia(camada, traje.sexo)}
-                indice={p.i}
-                titulo={p.rotulo}
-                escolhida={traje[casa] === p.id}
-                onClick={() => troca(p.id)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <Caixa padding={false}>
-          <Opcao onClick={() => { playSfx('gate', 0.5); aoPronto(); }}>
-            Começar pelo Bosque Verde
-          </Opcao>
-        </Caixa>
         <div style={{ height: pxu(4) }} />
       </div>
     </Moldura>
@@ -1497,7 +1643,7 @@ function BotaoLinha({ rotulo, nota, onClick }: { rotulo: string; nota?: string; 
  * Uma célula da grade de escolhas.
  *
  * A miniatura não é o PNG da peça: é um recorte do atlas gerado por
- * scripts/gen-bosque.mjs, onde a peça já aparece vestida num corpo. Sem
+ * scripts/gen-poco.mjs, onde a peça já aparece vestida num corpo. Sem
  * o atlas, abrir a aba de cabelo baixaria 68 folhas de 800x448 de uma
  * vez; com ele, baixa uma imagem só por aba.
  */
@@ -1545,49 +1691,83 @@ function Miniatura({ atlas, indice, titulo, escolhida, vazia, onClick }: {
 
 // ── controles de toque ──────────────────────────────────
 
-function Controles({ teclas, conversando, avanca }: {
+/**
+ * Comandos de toque, por cima do mundo.
+ *
+ * Direção nos dois cantos de baixo, pulo no canto oposto: é onde os dois
+ * polegares já estão quando o aparelho está deitado. Eles são meio
+ * transparentes de propósito — a faixa de jogo tem 13 casas de altura e
+ * um botão opaco desse tamanho tapa chão que o jogador precisa ver.
+ *
+ * O botão sai da tela quando há conversa: ali o comando é a alternativa
+ * na caixa de fala, e um botão de pulo sobrando só confunde.
+ */
+function Controles({ teclas }: {
   teclas: React.MutableRefObject<{ esq: boolean; dir: boolean; pulo: boolean }>;
-  conversando: boolean; avanca: () => void;
 }) {
-  const seta = (rotulo: string, campo: 'esq' | 'dir') => (
+  const base: React.CSSProperties = {
+    display: 'grid', placeItems: 'center', borderRadius: 12,
+    background: 'rgba(44,58,26,0.62)', color: C.bone,
+    border: `2px solid rgba(143,191,53,0.75)`,
+    fontFamily: 'monospace', cursor: 'pointer',
+    touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none',
+    backdropFilter: 'blur(1px)',
+  };
+  const aperta = (campo: 'esq' | 'dir' | 'pulo', rotulo: string, extra: React.CSSProperties) => (
     <button
+      aria-label={campo}
       onContextMenu={(e) => e.preventDefault()}
       onPointerDown={(e) => { e.preventDefault(); teclas.current[campo] = true; }}
       onPointerUp={() => { teclas.current[campo] = false; }}
       onPointerLeave={() => { teclas.current[campo] = false; }}
       onPointerCancel={() => { teclas.current[campo] = false; }}
-      style={{
-        width: 54, height: 54, display: 'grid', placeItems: 'center',
-        background: C.shell, color: C.bone, border: `2px solid ${C.lineSoft}`,
-        fontFamily: 'monospace', fontSize: 19, cursor: 'pointer',
-        touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none',
-      }}
+      style={{ ...base, ...extra }}
     >{rotulo}</button>
   );
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: `${pxu(2)} ${pxu(4)} ${pxu(4)}`,
-    }}>
-      <div style={{ display: 'flex', gap: 4 }}>
-        {seta('◄', 'esq')}
-        {seta('►', 'dir')}
+    <>
+      <div style={{ position: 'absolute', left: 12, bottom: 12, display: 'flex', gap: 8 }}>
+        {aperta('esq', '◄', { width: 60, height: 60, fontSize: 22 })}
+        {aperta('dir', '►', { width: 60, height: 60, fontSize: 22 })}
       </div>
-      <button
-        onContextMenu={(e) => e.preventDefault()}
-        onPointerDown={(e) => {
-          e.preventDefault();
-          if (conversando) avanca(); else teclas.current.pulo = true;
-        }}
-        onPointerUp={() => { teclas.current.pulo = false; }}
-        onPointerLeave={() => { teclas.current.pulo = false; }}
-        onPointerCancel={() => { teclas.current.pulo = false; }}
-        style={{
-          width: 72, height: 72, borderRadius: '50%', display: 'grid', placeItems: 'center',
-          background: C.rust, color: '#fff', border: `3px solid ${C.line}`,
-          ...T.titulo, cursor: 'pointer', touchAction: 'none', userSelect: 'none',
-        }}
-      >{conversando ? 'OK' : '▲'}</button>
+      <div style={{ position: 'absolute', right: 14, bottom: 12 }}>
+        {aperta('pulo', '▲', {
+          width: 76, height: 76, borderRadius: '50%', fontSize: 26,
+          background: 'rgba(168,90,16,0.72)', borderColor: 'rgba(255,179,71,0.8)',
+        })}
+      </div>
+    </>
+  );
+}
+
+/**
+ * Aviso de girar o aparelho.
+ *
+ * Só aparece em tela pequena e em pé. Não bloqueia nada: quem insistir
+ * continua jogando numa tira estreita, e o aviso some sozinho no
+ * instante em que o aparelho vira.
+ */
+function GirarCelular() {
+  const [empe, setEmpe] = useState(false);
+  useEffect(() => {
+    const ve = () => setEmpe(window.innerHeight > window.innerWidth && window.innerWidth < 620);
+    ve();
+    window.addEventListener('resize', ve);
+    window.addEventListener('orientationchange', ve);
+    return () => { window.removeEventListener('resize', ve); window.removeEventListener('orientationchange', ve); };
+  }, []);
+  if (!empe) return null;
+  return (
+    <div style={{
+      position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)',
+      display: 'grid', placeItems: 'center', gap: 10, padding: 20,
+      background: 'rgba(10,13,7,0.88)', pointerEvents: 'none',
+    }}>
+      <div style={{ fontSize: 40 }} aria-hidden>📱↻</div>
+      <div style={{ ...T.titulo, color: C.bone, textAlign: 'center' }}>GIRE O APARELHO</div>
+      <div style={{ ...T.corpo, color: C.boneDim, textAlign: 'center', maxWidth: 260 }}>
+        O poço é fundo e a tela é curta. Deitado, cabe mais escuro.
+      </div>
     </div>
   );
 }

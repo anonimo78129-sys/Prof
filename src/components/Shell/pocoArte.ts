@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────
-// Recortes da arte de A FONTE.
+// Recortes da arte de O POÇO.
 //
 // Os pacotes vêm em folha corrida, sem arquivo de metadados: cada PNG é
 // uma grade de quadros ou uma prancha com várias peças encostadas. Este
@@ -18,19 +18,33 @@
 // licenciados para uso em jogo, com modificação permitida e
 // redistribuição do pacote proibida.
 // ─────────────────────────────────────────────────────────
-import { CATALOGO, type Camada, type Sexo } from '../../game/bosqueCatalogo';
+import { CATALOGO, type Camada, type Sexo } from '../../game/pocoCatalogo';
 
 export const TILE = 16;
 // A janela é uma faixa larga e baixa, e não um quadrado: o mundo aqui
 // rola na horizontal, então altura sobrando vira terra preta embaixo do
 // caminho — que é exatamente o que não se quer olhando. Com 13 casas,
 // sobram 10 de céu acima do chão e 3 de terra abaixo dele.
-/** o que cabe na tela, em pixels de arte */
-export const VISTA_L = 416, VISTA_A = 208;
+//
+// A ALTURA é fixa: são sempre as mesmas 13 casas, em qualquer aparelho,
+// senão a mesma plataforma ficaria fácil num celular e impossível noutro.
+// A LARGURA é que se ajusta ao formato da tela, para o jogo encher o
+// aparelho deitado sem tarja preta dos lados. Quem tem tela mais larga vê
+// mais chão pela frente, e isso não muda nada do que o jogo cobra.
+export const VISTA_A = 208;
+/** largura padrão, e os limites do que o ajuste pode escolher */
+export const VISTA_L = 416;
+export const VISTA_L_MIN = 320, VISTA_L_MAX = 640;
+
+/** largura de janela para um formato de tela, presa à grade de 2 pixels */
+export function larguraDaVista(proporcao: number) {
+  const l = Math.round((VISTA_A * proporcao) / 2) * 2;
+  return Math.max(VISTA_L_MIN, Math.min(VISTA_L_MAX, l));
+}
 /** altura do mundo, em casas — a largura vem de cada fase */
 export const MUNDO_A = 13;
 
-const RAIZ = '/assets/bosque';
+const RAIZ = '/assets/poco';
 
 // ── folha de personagem ─────────────────────────────────
 //
@@ -332,8 +346,13 @@ export const PECAS: Record<string, Peca> = {
   maca:       { x: 326, y: 21, l: 19, a: 11 },
   garrafas:   { x: 387, y: 20, l: 25, a: 12 },
   feira:      { x: 267, y: 34, l: 39, a: 30 },
-  tendaG:     { x: 0, y: 57, l: 95, a: 71 },
-  tendaP:     { x: 97, y: 57, l: 94, a: 39 },
+  // As duas barracas foram medidas à mão, e não pela varredura de regiões
+  // conexas: na prancha a barraca da esquerda encosta no fogareiro que
+  // vem logo abaixo, e a varredura devolvia as duas coisas num retângulo
+  // só — barraca com um caldeirão pendurado no pé.
+  tendaG:     { x: 0, y: 56, l: 95, a: 40 },
+  tendaP:     { x: 97, y: 56, l: 94, a: 40 },
+  fogareiro:  { x: 32, y: 97, l: 32, a: 32 },
   lenha:      { x: 201, y: 75, l: 47, a: 21 },
   cesto:      { x: 328, y: 81, l: 17, a: 15 },
   // cemitério e horta

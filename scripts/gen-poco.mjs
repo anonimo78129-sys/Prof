@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────
-// Importador de arte de A FONTE.
+// Importador de arte de O POÇO.
 //
 // A arte deste jogo não é desenhada por código como a de CINZAS: são os
 // pacotes de pixel art do GandalfHardcore, comprados/baixados do itch.io.
 // Este script pega os .zip já descompactados, renomeia tudo para um
-// esquema sem espaço e sem acento, joga em public/assets/bosque e gera
+// esquema sem espaço e sem acento, joga em public/assets/poco e gera
 // dois subprodutos que o jogo precisa e que não vêm nos pacotes:
 //
 //   1. as folhas de MINIATURA do criador de personagem — cada peça de
@@ -12,11 +12,11 @@
 //      cima de um corpo, num atlas só por categoria. Sem isso o criador
 //      teria que baixar 285 folhas de 800x448 para desenhar a grade de
 //      escolhas;
-//   2. src/game/bosqueCatalogo.ts, o índice tipado das peças, com rótulo
+//   2. src/game/pocoCatalogo.ts, o índice tipado das peças, com rótulo
 //      em português tirado do nome do arquivo.
 //
 // USO
-//   node scripts/gen-bosque.mjs --src <pasta com os pacotes descompactados>
+//   node scripts/gen-poco.mjs --src <pasta com os pacotes descompactados>
 //
 // A pasta de origem NÃO fica versionada: a licença do autor permite usar
 // a arte no jogo, mas proíbe redistribuir os pacotes. O que entra no
@@ -34,12 +34,12 @@ import path from 'node:path';
 const argv = process.argv.slice(2);
 const SRC = argv[argv.indexOf('--src') + 1];
 if (!SRC || !fs.existsSync(SRC)) {
-  console.error('uso: node scripts/gen-bosque.mjs --src <pasta com os pacotes descompactados>');
+  console.error('uso: node scripts/gen-poco.mjs --src <pasta com os pacotes descompactados>');
   process.exit(1);
 }
 
-const OUT = 'public/assets/bosque';
-const CATALOGO = 'src/game/bosqueCatalogo.ts';
+const OUT = 'public/assets/poco';
+const CATALOGO = 'src/game/pocoCatalogo.ts';
 
 // Quadro da folha de personagem: 80x64, grade de 10 colunas por 7 linhas.
 // (As orelhas élficas vêm em 9 colunas — falta só o último quadro da
@@ -208,7 +208,7 @@ const VETADO = /panties|bikini|underwear|swim trunks|DONT FORGET/i;
 // ── 1. peças de personagem ──────────────────────────────
 
 /**
- * Cada entrada vira uma pasta em public/assets/bosque e uma lista no
+ * Cada entrada vira uma pasta em public/assets/poco e uma lista no
  * catálogo. `fatias` diz de quais pastas de origem a peça sai, e com que
  * sexo do corpo ela casa — as folhas são desenhadas em cima de um corpo
  * específico e não servem no outro.
@@ -455,15 +455,59 @@ for (const [estacao, pasta] of ESTACOES) {
   const [castelo] = achar(pasta, 'Background Castle');
   if (castelo) fs.copyFileSync(castelo, path.join(OUT, 'fundo', estacao, 'castelo.png'));
 }
+// ── capa do cartão da tela inicial ──────────────────────
+//
+// A capa é a cena montada — as cinco camadas do fundo com uma árvore
+// grande na frente — e depois APAGADA: uma demão azul-escura e uma
+// vinheta, os mesmos dois passos que o jogo dá em cima de cada quadro.
+// Sem isso o cartão promete um passeio no mato, que é exatamente o
+// contrário do que o jogo entrega.
+{
+  const L = 1024, A = 346;
+  const camadas = [];
+  for (let n = 5; n >= 1; n--) {
+    const arquivo = path.join(OUT, 'fundo', 'inverno', `camada-${n}.png`);
+    if (fs.existsSync(arquivo)) camadas.push({ input: arquivo, left: 0, top: 0 });
+  }
+  const arvore = path.join(OUT, 'cenario', 'arvore-4.png');
+  if (fs.existsSync(arvore)) camadas.push({ input: arvore, left: 660, top: 138 });
+  const pinheiro = path.join(OUT, 'cenario', 'pinheiro-g.png');
+  if (fs.existsSync(pinheiro)) camadas.push({ input: pinheiro, left: 96, top: 170 });
+
+  if (camadas.length) {
+    const cena = await sharp({ create: {
+      width: L, height: A, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 },
+    } }).composite(camadas).png().toBuffer();
+
+    const tinta = Buffer.from(
+      `<svg width="${L}" height="${A}"><rect width="${L}" height="${A}" fill="#0a1230" opacity="0.52"/></svg>`);
+    // a vinheta é uma elipse clara no meio de um retângulo escuro,
+    // borrada — do mesmo jeito que o jogo faz com createRadialGradient
+    const vinheta = Buffer.from(
+      `<svg width="${L}" height="${A}">
+         <defs><radialGradient id="v" cx="50%" cy="52%" r="62%">
+           <stop offset="45%" stop-color="#000" stop-opacity="0"/>
+           <stop offset="100%" stop-color="#000" stop-opacity="0.85"/>
+         </radialGradient></defs>
+         <rect width="${L}" height="${A}" fill="url(#v)"/>
+       </svg>`);
+
+    await sharp(cena)
+      .composite([{ input: tinta }, { input: vinheta }])
+      .png().toFile(path.join(OUT, 'capa.png'));
+    console.log('  capa      gerada');
+  }
+}
+
 console.log('  cenário   copiado');
 
 // ── 4. catálogo tipado ──────────────────────────────────
 
 const linhas = [
   '// ─────────────────────────────────────────────────────────',
-  '// GERADO por scripts/gen-bosque.mjs — não editar à mão.',
+  '// GERADO por scripts/gen-poco.mjs — não editar à mão.',
   '//',
-  '// Índice das peças do criador de personagem de A FONTE. O rótulo sai',
+  '// Índice das peças do criador de personagem de O POÇO. O rótulo sai',
   '// do nome do arquivo original, traduzido palavra por palavra pelo',
   '// dicionário do gerador.',
   '// ─────────────────────────────────────────────────────────',

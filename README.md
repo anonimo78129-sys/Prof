@@ -20,19 +20,23 @@
 ### 🕹️ Jogos narrativos
 Quatro jogos completos na tela inicial, cada um com uma técnica de imagem diferente:
 
-| Jogo | Conteúdo | Técnica |
+| Jogo | Do que trata | Técnica |
 |---|---|---|
-| **A FONTE** — Água que sobe, água que volta | Ciclo da água e mudanças de estado, em três estações | Plataforma 2D em canvas, com criador de personagem |
+| **O POÇO** — Quem desce, sobe outro | Terror rural · três descidas e dois fins | Plataforma 2D em canvas, com criador de personagem |
 | **SEMENTE** — O que volta a crescer | Biologia de quintal no mundo depois do Colapso | Grade vista de cima, tiles de 16px |
 | **CINZAS** — O último abrigo | Plantas e o mundo vivo | Ilustração em camadas com parallax |
 | **SILO ALPHA** — O último ciclo | Plantas, ar e o ciclo fechado | Cena 3D (Three.js) |
 
-**A FONTE** abre com um criador de personagem de mais de 250 peças (pele, cabelo,
-orelhas, roupa em três casas, braços, chapéu, máscara e item de mão), com cão ou
-raposa de companhia. Depois são três fases de plataforma — bosque de verão, mata
-de outono e serra de inverno — guardadas por nove Sentinelas arqueiras que só
-abrem passagem para quem responde. Errar custa uma flecha e a pergunta volta:
-o que trava o caminho é entender, não sobreviver.
+**O POÇO** é o único que não é de conteúdo escolar. Água Preta tem um poço que
+nunca secou, e todo inverno alguém desce a corda para limpar o fundo — este ano
+saiu o nome da sua irmã. São três descidas guardadas por nove paradas com as
+Vigias, que não fazem prova: fazem pergunta, e a resposta que abre a passagem
+está sempre dita por elas ou plantada no cenário. Errar custa uma flecha e a
+pergunta volta. O fim tem duas saídas, e o jogo não avisa qual é qual.
+
+Abre com um criador de personagem de mais de 250 peças (pele, cabelo, orelhas,
+roupa em três casas, braços, chapéu, máscara e item de mão), com cão ou raposa
+de companhia. É jogado deitado, em tela cheia.
 
 ### 🏆 Turma Gamificada
 - **Pontos e níveis** com avatares corujinha que evoluem (🥚 → 👑), medalhas automáticas e sequências de dias
@@ -100,7 +104,7 @@ npm run build
 npm run lint
 ```
 
-### Arte de A FONTE
+### Arte de O POÇO
 
 Os sprites vêm de pacotes de pixel art do GandalfHardcore, cuja licença permite
 uso em jogo mas proíbe redistribuir os pacotes. Por isso o repositório guarda só
@@ -108,10 +112,16 @@ o recorte que o jogo carrega, já renomeado e com os atlas de miniatura do criad
 de personagem. Para reimportar a partir dos pacotes originais descompactados:
 
 ```bash
-node scripts/gen-bosque.mjs --src <pasta com os pacotes>
+node scripts/gen-poco.mjs --src <pasta com os pacotes>
 ```
 
-O script grava em `public/assets/bosque/` e regenera `src/game/bosqueCatalogo.ts`.
+O script grava em `public/assets/poco/` e regenera `src/game/pocoCatalogo.ts`.
+
+A arte dos pacotes é de dia claro — céu azul, maçã vermelha, capim verde. O jogo
+não repinta nada: cada quadro leva uma demão de cor por cima (drena a saturação,
+multiplica por uma cor, escurece as bordas) e a última fase ganha uma lanterna em
+volta do jogador. É por isso que o mesmo cenário serve para um povoado ao sol e
+para o fundo de um poço.
 
 ## Estrutura
 
@@ -122,7 +132,7 @@ src/
 ├── firebase.ts    # Configuração Firebase (Auth, Firestore, Storage, FCM)
 ├── sw.ts          # Service worker (PWA, notificações push)
 ├── index.css      # Estilos globais (Tailwind)
-├── game/          # Conteúdo dos jogos (roteiro, mapas, perguntas, créditos)
+├── game/          # Conteúdo dos jogos (roteiro, mapas, escolhas, créditos)
 └── components/Shell/   # Motores: plataforma (Bosque), grade (Semente), 3D (Silo)
 
 functions/         # Cloud Functions (lembretes de aula via FCM)

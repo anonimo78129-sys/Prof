@@ -12,7 +12,7 @@ import { JOGOS, type Jogo } from './game/jogos';
 // tem por que baixar isso: o pedaço só chega quando o jogo é escolhido.
 const JogoSilo = lazy(() => import('./components/Shell/JogoSilo'));
 const Semente = lazy(() => import('./components/Shell/Semente'));
-const Bosque = lazy(() => import('./components/Shell/Bosque'));
+const Poco = lazy(() => import('./components/Shell/Poco'));
 
 // ─────────────────────────────────────────────────────────
 // O chassi (components/Shell/GameFrame) desenha a tela; os capítulos
@@ -20,7 +20,7 @@ const Bosque = lazy(() => import('./components/Shell/Bosque'));
 // trocar o roteiro sem tocar no desenho, e vice-versa.
 // ─────────────────────────────────────────────────────────
 
-type View = 'home' | 'jogo' | 'silo' | 'semente' | 'fonte' | 'fim' | 'setup' | 'creditos';
+type View = 'home' | 'jogo' | 'silo' | 'semente' | 'poco' | 'fim' | 'setup' | 'creditos';
 
 const px = (n: number) => `calc(var(--p) * ${n})`;
 
@@ -79,8 +79,8 @@ function CartaoJogo({ jogo, onClick }: { jogo: Jogo; onClick: () => void }) {
         {jogo.tecnica === 'plataforma'
           ? <div style={{
               width: '100%', height: '100%',
-              backgroundImage: 'url(/assets/bosque/fundo/verao/camada-1.png)',
-              backgroundSize: 'cover', backgroundPosition: 'center 62%',
+              backgroundImage: 'url(/assets/poco/capa.png)',
+              backgroundSize: 'cover', backgroundPosition: 'center 70%',
               imageRendering: 'pixelated',
             }} />
           : jogo.tecnica === 'pixel'
@@ -167,17 +167,17 @@ export default function App() {
     );
   }
 
-  if (view === 'fonte') {
+  if (view === 'poco') {
     return (
       <Suspense fallback={
         <div style={{
           position: 'fixed', inset: 0, background: C.ink, display: 'grid',
           placeItems: 'center', ...T.rotulo, color: C.lineSoft,
         }}>
-          SUBINDO A SERRA…
+          DESCENDO O POÇO…
         </div>
       }>
-        <Bosque onSair={voltar} />
+        <Poco onSair={voltar} />
       </Suspense>
     );
   }
@@ -256,18 +256,27 @@ export default function App() {
       position: 'fixed', inset: 0, overflowY: 'auto', background: C.ink,
       display: 'flex', justifyContent: 'center', padding: '18px 12px 24px',
     }}>
+      {/* Largura em coluna única no celular em pé, e em grade quando a
+          tela é larga. Sem isso a tela inicial fica presa num tubo de
+          56vh de largura, e quem gira o aparelho para jogar O POÇO não
+          consegue nem chegar no cartão dele. */}
       <div style={{
-        position: 'relative', width: 'min(100vw - 24px, 56.25vh)',
+        position: 'relative', width: 'min(100vw - 24px, 1040px)',
         display: 'flex', flexDirection: 'column', gap: px(5),
-        // 'safe' é o que impede a lista de sangrar para cima quando ela
-        // fica mais alta que a tela: com 'center' puro o topo do primeiro
-        // cartão sai da área rolável e não tem como voltar nele
-        justifyContent: 'safe center',
+        // centralizar na vertical com conteúdo mais alto que a tela corta
+        // o topo e o deixa fora do alcance da rolagem — e com quatro
+        // cartões a lista é sempre mais alta que a tela
+        justifyContent: 'flex-start',
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ ...T.rotulo, color: C.boneDim, letterSpacing: 3 }}>ESCOLHA UMA HISTÓRIA</div>
         </div>
 
+        <div style={{
+          display: 'grid', gap: px(5),
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          alignItems: 'start',
+        }}>
         {JOGOS.map(j => (
           <CartaoJogo
             key={j.id}
@@ -276,11 +285,12 @@ export default function App() {
               startMusic();
               if (j.id === 'cinzas') { setCapId(PRIMEIRO); setView('jogo'); }
               else if (j.id === 'semente') setView('semente');
-              else if (j.id === 'fonte') setView('fonte');
+              else if (j.id === 'poco') setView('poco');
               else setView('silo');
             }}
           />
         ))}
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(3) }}>
           <div style={{ display: 'flex', gap: px(2), alignItems: 'center', marginTop: 'var(--p)' }}>
