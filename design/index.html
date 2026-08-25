@@ -9,13 +9,11 @@
   :root {
     --ink:        #171016;
     --hud-bg:     #1B1219;
-    --hud-line:   #4A2F2A;
     --chalk:      #F4E9D6;
 
     --heart:      #D8433A;
     --heart-off:  #3A2229;
     --hp-good:    #6FBF3F;
-    --hp-bad:     #C9372C;
     --hp-track:   #2A1A20;
 
     --panel-hi:   #E4E2DA;
@@ -69,6 +67,9 @@
   }
 
   /* ── FAIXA 1 — placar ────────────────────────────────── */
+  /* Sem round, sem cronômetro, sem barra do oponente: em
+     plataforma quem tem vida na tela é você. A do inimigo
+     aparece flutuando em cima dele, dentro da cena. */
 
   .hud {
     flex: 0 0 auto;
@@ -83,8 +84,7 @@
   .hud-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    gap: 7px;
   }
 
   .portrait {
@@ -100,14 +100,17 @@
     image-rendering: pixelated;
   }
 
-  .crowd { display: flex; gap: 3px; align-items: center; }
-  .crowd .portrait { width: 26px; }
-
-  .bars {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  .fase {
+    margin-left: auto;
+    font-size: clamp(5px, 1.3vh, 9px);
+    line-height: 1;
+    color: #E8C13C;
+    letter-spacing: 0.5px;
+    text-shadow: 2px 2px 0 #0C070A;
+    white-space: nowrap;
   }
+
+  .bars { display: flex; }
   .hp {
     flex: 1;
     height: 13px;
@@ -122,8 +125,6 @@
     background: var(--hp-good);
     box-shadow: inset 0 -3px 0 rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.25);
   }
-  .hp.right { justify-content: flex-end; }
-  .hp.right i { background: var(--hp-bad); }
 
   .names {
     display: flex;
@@ -135,10 +136,7 @@
     letter-spacing: 0.5px;
     text-shadow: 2px 2px 0 #0C070A;
   }
-  .names .round {
-    color: #E8C13C;
-    flex: none;
-  }
+  .names .moedas { color: #E8C13C; flex: none; }
 
   /* ── FAIXA 2 — cena ──────────────────────────────────── */
 
@@ -155,6 +153,11 @@
     height: 100%;
     display: block;
     image-rendering: pixelated;
+    /* Em tela normal a resolução do canvas já nasce com a proporção da
+       caixa, então 'contain' não corta nada. Ele só entra em ação numa
+       caixa larga demais para a composição, onde prefere sobrar borda
+       a entregar pixel esticado. */
+    object-fit: contain;
   }
 
   /* ── FAIXA 3 — controle ──────────────────────────────── */
@@ -315,21 +318,16 @@
         <canvas class="heart" data-heart="off"  width="11" height="10"></canvas>
         <canvas class="heart" data-heart="off"  width="11" height="10"></canvas>
       </div>
-      <div class="crowd">
-        <canvas class="portrait" data-face="torcedor" width="16" height="16"></canvas>
-        <canvas class="portrait" data-face="bruto" width="16" height="16"></canvas>
-      </div>
+      <span class="fase">FASE 1 &middot; RUA DAS FLORES</span>
     </div>
 
     <div class="bars">
       <div class="hp"><i style="width:74%"></i></div>
-      <div class="hp right"><i style="width:100%"></i></div>
     </div>
 
     <div class="names">
       <span>CARAMELO FÚRIA</span>
-      <span class="round">ROUND 1 · 0:42</span>
-      <span>CARAMELO BRUTO</span>
+      <span class="moedas">OSSOS 07</span>
     </div>
   </div>
 
@@ -353,20 +351,20 @@
 
     <div class="actions">
       <div class="act red">
-        <span class="lbl">SOCO F.</span>
-        <button type="button" aria-label="Soco forte"><span>👊</span></button>
+        <span class="lbl">SOCO</span>
+        <button type="button" aria-label="Soco"><span>👊</span></button>
       </div>
       <div class="act blue">
-        <span class="lbl">CHUTE F.</span>
-        <button type="button" aria-label="Chute forte"><span>🦵</span></button>
+        <span class="lbl">CHUTE</span>
+        <button type="button" aria-label="Chute"><span>🦵</span></button>
       </div>
       <div class="act yellow flip">
-        <span class="lbl">SOCO L.</span>
-        <button type="button" aria-label="Soco leve"><span>✋</span></button>
+        <span class="lbl">ESPECIAL</span>
+        <button type="button" aria-label="Especial"><span>⚡</span></button>
       </div>
       <div class="act green flip">
-        <span class="lbl">CHUTE L.</span>
-        <button type="button" aria-label="Chute leve"><span>🦶</span></button>
+        <span class="lbl">PULO</span>
+        <button type="button" aria-label="Pulo"><span>⬆️</span></button>
       </div>
     </div>
   </div>
@@ -387,24 +385,51 @@
     janela: '#243043', janelaLuz: '#F6C86A',
     mato: '#4E7A44', matoEsc: '#3A5C34', matoClaro: '#6D9B57',
     asfalto: '#4A4A50', asfaltoEsc: '#3B3B41', asfaltoClaro: '#5A5A61',
+    calcada: '#8A8378', calcadaEsc: '#5F5A52', calcadaHi: '#A79E90',
     faixa: '#C9C6B4',
     contorno: '#241608',
     caramelo: '#C6883F', carameloClaro: '#E8C48E', carameloEsc: '#96601F',
     branco: '#FFFFFF', preto: '#241608',
-    bandana: '#4C8B46', coleira: '#8E2F28', espinho: '#C3C8CE',
+    bandana: '#4C8B46', coleira: '#8E2F28',
     placa: '#E6DCC2', placaVerm: '#B33B31', placaEsc: '#7A6A4E',
     orelhao: '#C0392B', orelhaoEsc: '#7E241A', vidro: '#7FA5B8',
     grafite1: '#C2426A', grafite2: '#4C7FD1', grafite3: '#E0B33C',
+    // peças de plataforma — quentes e com quina clara, para se
+    // destacarem do fundo frio e lerem como "dá para pisar"
+    toldoA: '#C93F35', toldoB: '#EFE3C9', toldoEsc: '#8A2B24',
+    madeira: '#9A6B36', madeiraHi: '#C08E4E', madeiraEsc: '#66431F',
+    metal: '#9BA6AE', metalHi: '#C6D0D6', metalEsc: '#5F6B73',
+    tanque: '#3F7FA8', tanqueHi: '#6FB0D4', tanqueEsc: '#28536E',
+    anexo: '#B98A5E', anexoHi: '#D8AC7E', anexoEsc: '#7E5A38',
+    inimigoHp: '#C9372C', inimigoHpHi: '#E8756A',
   };
 
+  const palco = document.querySelector('.stage');
   const cv = document.getElementById('cena');
   const ctx = cv.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
+  const fundo = document.createElement('canvas');
 
-  const W = cv.width, H = cv.height;
-  const CHAO = 152;            // topo do asfalto
+  // A cena é autorada em 200x212. Na tela real a caixa quase nunca tem
+  // essa proporção, e esticar o canvas deformaria o pixel — em pixel art
+  // isso aparece na hora. Então a largura fica fixa (200 é a unidade em
+  // que tudo foi desenhado) e a ALTURA é calculada da caixa: o pixel sai
+  // sempre quadrado e o que varia é quanto céu existe entre o horizonte
+  // e a rua. O chão fica ancorado embaixo, o topo dos prédios em cima.
+  const W = 200;
+  const H_BASE = 212, CHAO_BASE = 186;
+  let H = H_BASE, CHAO = CHAO_BASE, D = 0;
 
-  // desenha só em retângulo inteiro: é isso que mantém a arte "em pixel"
+  function dimensiona() {
+    const cx = palco.clientWidth  || 200;
+    const cy = palco.clientHeight || 212;
+    H = Math.max(H_BASE, Math.round(W * cy / cx));
+    D = H - H_BASE;            // céu extra a distribuir no miolo
+    CHAO = CHAO_BASE + D;      // topo da calçada: onde o jogador pisa
+    cv.width = W; cv.height = H;
+    fundo.width = W; fundo.height = H;
+    ctx.imageSmoothingEnabled = false;
+  }
+
   function r(x, y, w, h, c) {
     ctx.fillStyle = c;
     ctx.fillRect(x | 0, y | 0, Math.max(1, w | 0), Math.max(1, h | 0));
@@ -431,7 +456,7 @@
     }
   }
 
-  // caramelo bípede em guarda, virado para a direita — 30x35
+  // caramelo bípede em guarda, virado para a direita — 30x34
   const LUTADOR = [
     '..............................',
     '...KK....................KK...',
@@ -468,6 +493,7 @@
     '....KLLLLK..KLLLLK............',
     '....KKKKKK..KKKKKK............',
   ];
+  const ALT_LUTADOR = LUTADOR.length;   // 34
 
   const PAL_FURIA = {
     K: P.contorno, C: P.caramelo, L: P.carameloClaro, D: P.carameloEsc,
@@ -476,6 +502,10 @@
   const PAL_BRUTO = {
     K: P.contorno, C: '#B0742F', L: '#DCB77C', D: '#7E4E16',
     W: P.branco, B: '#8E2F28', G: P.coleira,
+  };
+  const PAL_MAGRO = {
+    K: P.contorno, C: '#A9743A', L: '#D6B384', D: '#6E4718',
+    W: P.branco, B: '#3A2229', G: '#4C7FD1',
   };
 
   // torcedor pequeno no telhado — 11x14
@@ -496,204 +526,7 @@
     '..KKK.KKK..',
   ];
 
-  // ── camadas do cenário ────────────────────────────────
-
-  function ceu() {
-    // faixas discretas em vez de degradê contínuo: é o que dá cara de 16-bit
-    const faixas = [
-      [0,  16, P.ceuTopo], [16, 12, P.ceuTopo2], [28, 12, '#D6B79C'],
-      [40, 14, P.ceuAlto], [54, 16, P.ceuMeio],  [70, 20, P.ceuBaixo],
-      [90, 20, '#F6D9A6'], [110, 20, '#EBC894'],
-    ];
-    faixas.forEach(([y, h, c]) => r(0, y, W, h, c));
-  }
-
-  function solPoente() {
-    const cx = 100, cy = 86, raio = 15;
-    for (let y = -raio - 5; y <= raio + 5; y++) {
-      for (let x = -raio - 5; x <= raio + 5; x++) {
-        const d = Math.sqrt(x * x + y * y);
-        if (d <= raio) r(cx + x, cy + y, 1, 1, P.sol);
-        else if (d <= raio + 4) r(cx + x, cy + y, 1, 1, P.solHalo);
-      }
-    }
-  }
-
-  function horizonte() {
-    // silhueta distante em azul, três profundidades
-    const linhas = [
-      { base: 118, alt: [10,18,8,22,14,9,20,12,16,7,19,11], c: P.longe1, larg: 9 },
-      { base: 124, alt: [16,9,24,12,7,18,10,21,13,8,17,14], c: P.longe2, larg: 11 },
-    ];
-    linhas.forEach(L => {
-      for (let i = 0; i < L.alt.length; i++) {
-        const x = i * L.larg, h = L.alt[i];
-        r(x, L.base - h, L.larg, h, L.c);
-        // janelinhas acesas
-        for (let jy = L.base - h + 3; jy < L.base - 2; jy += 4) {
-          for (let jx = x + 2; jx < x + L.larg - 2; jx += 3) {
-            if (rnd(jx, jy, 3) > 0.72) r(jx, jy, 1, 1, P.janelaLuz);
-          }
-        }
-      }
-    });
-    // passarela ligando os dois lados, bem ao fundo
-    r(72, 112, 56, 2, P.longe3);
-    for (let x = 74; x < 128; x += 6) r(x, 108, 1, 4, P.longe3);
-  }
-
-  function janelas(x0, y0, x1, y1, passoX, passoY, semente) {
-    for (let y = y0; y < y1; y += passoY) {
-      for (let x = x0; x < x1; x += passoX) {
-        const v = rnd(x, y, semente);
-        r(x, y, 5, 6, P.janela);
-        if (v > 0.80) r(x + 1, y + 1, 3, 4, P.janelaLuz);
-        else if (v > 0.62) r(x + 1, y + 1, 3, 4, '#3E5570');
-        // vidro quebrado
-        if (v < 0.18) {
-          r(x + 1, y + 1, 2, 2, P.predioMaisEsc);
-          r(x + 3, y + 3, 2, 2, P.predioMaisEsc);
-        }
-      }
-    }
-  }
-
-  function vinhas(x0, x1, yTopo, semente) {
-    for (let x = x0; x < x1; x++) {
-      const v = rnd(x, yTopo, semente);
-      if (v > 0.55) {
-        const comp = 3 + Math.floor(v * 14);
-        r(x, yTopo, 1, comp, v > 0.8 ? P.matoClaro : P.mato);
-        if (comp > 9) r(x, yTopo + comp, 1, 2, P.matoEsc);
-      }
-    }
-  }
-
-  function predioEsquerdo() {
-    // bloco principal
-    r(0, 60, 74, CHAO - 60, P.predio);
-    r(66, 60, 8, CHAO - 60, P.predioEsc);          // sombra da quina
-    r(0, 60, 74, 3, P.predioMaisEsc);
-
-    // terraço mais alto, onde a torcida fica
-    r(4, 40, 46, 22, P.predio2);
-    r(4, 40, 46, 3, P.predioMaisEsc);
-    r(44, 40, 6, 22, P.predio2Esc);
-    vinhas(4, 50, 62, 11);
-
-    // laje intermediária
-    r(0, 96, 62, 4, P.predioMaisEsc);
-    vinhas(0, 62, 100, 5);
-
-    janelas(6, 106, 60, CHAO - 12, 13, 15, 7);
-    janelas(8, 66, 44, 92, 12, 14, 9);
-
-    // escada externa
-    for (let i = 0; i < 5; i++) {
-      r(2 + i * 4, 118 + i * 6, 14, 3, P.predioMaisEsc);
-      r(2 + i * 4, 121 + i * 6, 2, 6, P.predioEsc);
-    }
-
-    // grafite no muro rente ao chão
-    r(2, CHAO - 24, 30, 18, '#7C8A88');
-    r(4, CHAO - 21, 12, 5, P.grafite1);
-    r(8, CHAO - 15, 16, 4, P.grafite2);
-    r(18, CHAO - 22, 10, 6, P.grafite3);
-    r(3, CHAO - 10, 22, 3, P.grafite1);
-
-    // palmeira na borda
-    r(4, 20, 4, 46, '#7A5B31');
-    [[-11, -3], [-8, -8], [0, -11], [8, -8], [11, -3], [-5, 2], [6, 2]].forEach(([dx, dy]) => {
-      r(6 + dx, 20 + dy, Math.abs(dx) > 7 ? 9 : 7, 4, dx % 2 ? P.mato : P.matoClaro);
-    });
-    r(2, 14, 8, 6, P.matoEsc);
-  }
-
-  function predioDireito() {
-    r(126, 44, W - 126, CHAO - 44, P.predio2);
-    r(126, 44, 7, CHAO - 44, P.predio2Esc);
-    r(126, 44, W - 126, 3, P.predioMaisEsc);
-
-    // laje com beiral
-    r(126, 74, W - 126, 4, P.predioMaisEsc);
-    vinhas(128, W, 78, 13);
-    vinhas(130, W, 48, 17);
-
-    janelas(134, 84, W - 6, 128, 14, 16, 21);
-
-    // placa do mercado
-    r(140, 132, 52, 12, P.placa);
-    r(140, 132, 52, 2, P.placaEsc);
-    r(140, 142, 52, 2, P.placaEsc);
-    txt('MERCADO', 145, 136, 5, '#4A3B22');
-    txt('- FECHADO -', 143, 141, 4, '#7A6A4E');
-
-    // aviso vermelho
-    r(150, 150, 44, 2, P.placaVerm);
-
-    // orelhão
-    r(178, 120, 18, 32, P.orelhao);
-    r(178, 120, 18, 3, P.orelhaoEsc);
-    r(192, 120, 4, 32, P.orelhaoEsc);
-    r(181, 126, 12, 16, P.vidro);
-    r(183, 130, 4, 8, '#2E4152');
-    txt('TEL', 181, 123, 4, '#FFE9C9');
-
-    // porta de aço fechada
-    r(132, 112, 22, 40, '#7E867F');
-    for (let y = 114; y < 150; y += 4) r(132, y, 22, 2, '#6A716B');
-  }
-
-  function torcida() {
-    // no terraço do prédio da esquerda
-    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo, W: P.branco, G: '#D8CBB0' }, 10, 26);
-    sprite(TORCEDOR, { K: P.contorno, C: '#B0742F', W: P.branco, G: '#6E8FBF' }, 26, 26, true);
-    // na laje do meio
-    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo, W: P.branco, G: '#C25A4A' }, 6, 82);
-    sprite(TORCEDOR, { K: P.contorno, C: '#D0A15E', W: P.branco, G: '#E0B33C' }, 22, 82, true);
-    sprite(TORCEDOR, { K: P.contorno, C: '#A9743A', W: P.branco, G: '#4C8B46' }, 38, 82);
-    // no beiral da direita
-    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo, W: P.branco, G: '#D8CBB0' }, 150, 60, true);
-    sprite(TORCEDOR, { K: P.contorno, C: '#BE8438', W: P.branco, G: '#6E8FBF' }, 176, 30);
-  }
-
-  function rua() {
-    r(0, CHAO, W, H - CHAO, P.asfalto);
-    r(0, CHAO, W, 3, P.asfaltoEsc);
-    // calçada ao fundo
-    r(0, CHAO - 4, W, 4, '#8A8378');
-    r(0, CHAO - 1, W, 1, '#5F5A52');
-
-    // textura do asfalto
-    for (let y = CHAO + 4; y < H; y += 2) {
-      for (let x = 0; x < W; x += 3) {
-        const v = rnd(x, y, 31);
-        if (v > 0.88) r(x, y, 2, 1, P.asfaltoClaro);
-        else if (v < 0.10) r(x, y, 2, 1, P.asfaltoEsc);
-      }
-    }
-    // faixa central desbotada
-    for (let x = 6; x < W; x += 26) r(x, H - 16, 12, 3, P.faixa);
-  }
-
-  // chinelos espalhados — o detalhe que entrega o país
-  function chinelos() {
-    const cores = ['#3FA3C4', '#E0B33C', '#C2426A', '#4CA548', '#E36A2C', '#7B5BC4'];
-    const pos = [
-      [10, 176], [34, 190], [58, 170], [78, 198], [96, 178],
-      [118, 192], [140, 172], [162, 196], [182, 180], [24, 204],
-      [104, 206], [150, 206],
-    ];
-    pos.forEach(([x, y], i) => {
-      const c = cores[i % cores.length];
-      r(x, y, 9, 4, c);              // sola
-      r(x, y + 4, 9, 1, P.contorno); // sombra
-      r(x + 2, y - 1, 5, 1, '#F0E6D2'); // tira
-      r(x + 4, y, 1, 2, '#F0E6D2');
-    });
-  }
-
-  // texto minúsculo desenhado em pixel, sem depender de fonte
+  // ── texto em pixel, sem depender de fonte ─────────────
   const GLIFOS = {
     A:['010','101','111','101','101'], B:['110','101','110','101','110'],
     C:['011','100','100','100','011'], D:['110','101','101','101','110'],
@@ -712,7 +545,7 @@
     '.':['000','000','000','000','010'],
   };
 
-  function txt(s, x, y, _size, cor) {
+  function txt(s, x, y, cor) {
     let cx = x;
     for (const ch of s.toUpperCase()) {
       const g = GLIFOS[ch];
@@ -726,46 +559,292 @@
     }
   }
 
-  // ── montagem ──────────────────────────────────────────
-  const fundo = document.createElement('canvas');
-  fundo.width = W; fundo.height = H;
+  // ── fundo distante ────────────────────────────────────
 
+  function ceu() {
+    const faixas = [
+      [0,  16, P.ceuTopo], [16, 12, P.ceuTopo2], [28, 12, '#D6B79C'],
+      [40, 14, P.ceuAlto], [54, 16, P.ceuMeio],  [70, 20, P.ceuBaixo],
+      [90, 20, '#F6D9A6'], [110, 24, '#EBC894'], [134, CHAO - 134, '#DCB68A'],
+    ];
+    faixas.forEach(([y, h, c]) => r(0, y, W, h, c));
+  }
+
+  function solPoente() {
+    const cx = 100, cy = 92 + D, raio = 15;
+    for (let y = -raio - 5; y <= raio + 5; y++) {
+      for (let x = -raio - 5; x <= raio + 5; x++) {
+        const d = Math.sqrt(x * x + y * y);
+        if (d <= raio) r(cx + x, cy + y, 1, 1, P.sol);
+        else if (d <= raio + 4) r(cx + x, cy + y, 1, 1, P.solHalo);
+      }
+    }
+  }
+
+  function horizonte() {
+    const linhas = [
+      { base: 130 + D, alt: [10,18,8,22,14,9,20,12,16,7,19,11], c: P.longe1, larg: 9 },
+      { base: 138 + D, alt: [16,9,24,12,7,18,10,21,13,8,17,14], c: P.longe2, larg: 11 },
+    ];
+    linhas.forEach(L => {
+      for (let i = 0; i < L.alt.length; i++) {
+        const x = i * L.larg, h = L.alt[i];
+        r(x, L.base - h, L.larg, h, L.c);
+        for (let jy = L.base - h + 3; jy < L.base - 2; jy += 4) {
+          for (let jx = x + 2; jx < x + L.larg - 2; jx += 3) {
+            if (rnd(jx, jy, 3) > 0.72) r(jx, jy, 1, 1, P.janelaLuz);
+          }
+        }
+      }
+    });
+    r(72, 124 + D, 56, 2, P.longe3);
+    for (let x = 74; x < 128; x += 6) r(x, 120 + D, 1, 4, P.longe3);
+  }
+
+  function janelas(x0, y0, x1, y1, passoX, passoY, semente) {
+    for (let y = y0; y < y1; y += passoY) {
+      for (let x = x0; x < x1; x += passoX) {
+        const v = rnd(x, y, semente);
+        r(x, y, 5, 6, P.janela);
+        if (v > 0.80) r(x + 1, y + 1, 3, 4, P.janelaLuz);
+        else if (v > 0.62) r(x + 1, y + 1, 3, 4, '#3E5570');
+        if (v < 0.18) {
+          r(x + 1, y + 1, 2, 2, P.predioMaisEsc);
+          r(x + 3, y + 3, 2, 2, P.predioMaisEsc);
+        }
+      }
+    }
+  }
+
+  function vinhas(x0, x1, yTopo, semente) {
+    for (let x = x0; x < x1; x++) {
+      const v = rnd(x, yTopo, semente);
+      if (v > 0.55) {
+        const comp = 3 + Math.floor(v * 12);
+        r(x, yTopo, 1, comp, v > 0.8 ? P.matoClaro : P.mato);
+        if (comp > 9) r(x, yTopo + comp, 1, 2, P.matoEsc);
+      }
+    }
+  }
+
+  function predios() {
+    // esquerda
+    r(0, 52, 62, CHAO - 52, P.predio);
+    r(54, 52, 8, CHAO - 52, P.predioEsc);
+    r(0, 52, 62, 3, P.predioMaisEsc);
+    r(0, 96, 54, 4, P.predioMaisEsc);
+    vinhas(0, 54, 100, 5);
+    janelas(6, 60, 50, 92, 13, 15, 7);
+    janelas(4, 108, 48, CHAO - 36, 13, 16, 9);
+    // grafite rente ao chão
+    r(2, CHAO - 26, 28, 20, '#7C8A88');
+    r(4, CHAO - 22, 12, 5, P.grafite1);
+    r(8, CHAO - 15, 15, 4, P.grafite2);
+    r(17, CHAO - 23, 10, 6, P.grafite3);
+
+    // direita
+    r(132, 40, W - 132, CHAO - 40, P.predio2);
+    r(132, 40, 7, CHAO - 40, P.predio2Esc);
+    r(132, 40, W - 132, 3, P.predioMaisEsc);
+    r(132, 72, W - 132, 4, P.predioMaisEsc);
+    vinhas(134, W, 76, 13);
+    janelas(140, 82, W - 6, CHAO - 54, 14, 16, 21);
+    // porta de aço fechada, rente à calçada
+    r(136, CHAO - 40, 22, 40, '#7E867F');
+    for (let y = CHAO - 38; y < CHAO - 2; y += 4) r(136, y, 22, 2, '#6A716B');
+    // orelhão
+    r(176, CHAO - 34, 18, 34, P.orelhao);
+    r(176, CHAO - 34, 18, 3, P.orelhaoEsc);
+    r(190, CHAO - 34, 4, 34, P.orelhaoEsc);
+    r(179, CHAO - 28, 12, 16, P.vidro);
+    r(181, CHAO - 24, 4, 8, '#2E4152');
+    txt('TEL', 179, CHAO - 31, '#FFE9C9');
+  }
+
+  function torcida() {
+    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo,  W: P.branco, G: '#C25A4A' }, 6, 82);
+    sprite(TORCEDOR, { K: P.contorno, C: '#D0A15E',   W: P.branco, G: '#E0B33C' }, 24, 82, true);
+    sprite(TORCEDOR, { K: P.contorno, C: '#A9743A',   W: P.branco, G: '#4C8B46' }, 40, 82);
+    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo,  W: P.branco, G: '#D8CBB0' }, 152, 58, true);
+    sprite(TORCEDOR, { K: P.contorno, C: '#BE8438',   W: P.branco, G: '#6E8FBF' }, 178, 26);
+  }
+
+  // ── PLATAFORMAS ───────────────────────────────────────
+  // A fase é esta lista. Cada peça tem quina clara em cima e
+  // sombra embaixo: é isso que diz ao olho "dá para pisar".
+
+  // 'acima' é a altura do topo da peça medida a partir da calçada — é
+  // assim que se pensa uma fase ("dá para pular daqui até ali"), e é o
+  // que mantém a fase igual em qualquer altura de tela.
+  const PLATAFORMAS = [
+    { x: 0,   acima: 54, w: 44, t: 'toldo' },   // 1. toldo da loja
+    { x: 96,  acima: 66, w: 38, t: 'anexo' },   // 2. laje do sobradinho
+    { x: 134, acima: 38, w: 66, t: 'muro'  },   // 3. muro do terreno
+    { x: 142, acima: 74, w: 24, t: 'ar'    },   // 4. ar-condicionado na parede
+    { x: 158, acima: 88, w: 40, t: 'laje'  },   // 5. laje da caixa d'água
+  ];
+
+  function quina(x, y, w, hi, corpo, esc, alt) {
+    r(x, y, w, alt, corpo);
+    r(x, y, w, 2, hi);              // quina de cima acesa
+    r(x, y + alt - 2, w, 2, esc);   // sombra embaixo
+    r(x, y, 1, alt, esc);
+    r(x + w - 1, y, 1, alt, esc);
+  }
+
+  function desenhaPlataforma(peca) {
+    const p = { ...peca, y: CHAO - peca.acima };
+    if (p.t === 'toldo') {
+      // toldo listrado de loja: a listra é o que entrega o país
+      for (let i = 0; i < p.w; i++) {
+        r(p.x + i, p.y, 1, 9, (Math.floor(i / 6) % 2) ? P.toldoB : P.toldoA);
+      }
+      r(p.x, p.y, p.w, 2, '#F6EEDC');
+      r(p.x, p.y + 9, p.w, 2, P.toldoEsc);
+      // franja
+      for (let i = 0; i < p.w; i += 4) r(p.x + i, p.y + 11, 3, 2, P.toldoEsc);
+      // tirante preso na parede
+      r(p.x + p.w - 2, p.y - 8, 2, 9, P.metalEsc);
+    } else if (p.t === 'anexo') {
+      const alt = CHAO - p.y;
+      r(p.x, p.y, p.w, alt, P.anexo);
+      r(p.x + p.w - 6, p.y, 6, alt, P.anexoEsc);       // lado na sombra
+      r(p.x, p.y, p.w, 3, P.anexoHi);                  // beiral aceso
+      r(p.x, p.y + 3, p.w, 2, P.anexoEsc);
+      r(p.x, CHAO - 10, p.w, 10, P.anexoEsc);          // rodapé encardido
+      // porta de aço enrolável
+      r(p.x + 5, CHAO - 32, 18, 32, '#7E867F');
+      for (let y = CHAO - 30; y < CHAO - 2; y += 4) r(p.x + 5, y, 18, 2, '#6A716B');
+      // janela acesa em cima da porta
+      r(p.x + 8, CHAO - 48, 13, 11, P.contorno);
+      r(p.x + 9, CHAO - 47, 11, 9, P.janelaLuz);
+      r(p.x + 14, CHAO - 47, 2, 9, P.contorno);
+    } else if (p.t === 'ar') {
+      quina(p.x, p.y, p.w, P.metalHi, P.metal, P.metalEsc, 14);
+      for (let i = 3; i < p.w - 3; i += 3) r(p.x + i, p.y + 4, 1, 7, P.metalEsc);
+      r(p.x + 2, p.y + 14, 3, 4, P.metalEsc);
+      r(p.x + p.w - 5, p.y + 14, 3, 4, P.metalEsc);
+    } else if (p.t === 'muro') {
+      quina(p.x, p.y, p.w, P.calcadaHi, P.calcada, P.calcadaEsc, CHAO - p.y);
+      // fiada de tijolo
+      for (let y = p.y + 5; y < CHAO; y += 6) r(p.x, y, p.w, 1, P.calcadaEsc);
+      // cacos de vidro no topo — muro de rua brasileiro
+      for (let i = 2; i < p.w - 2; i += 3) {
+        const v = rnd(p.x + i, p.y, 41);
+        r(p.x + i, p.y - 3 - Math.floor(v * 2), 2, 3 + Math.floor(v * 2),
+          v > 0.5 ? '#8FD0C8' : '#C6E8E2');
+      }
+    } else if (p.t === 'laje') {
+      quina(p.x, p.y, p.w, P.calcadaHi, P.calcada, P.calcadaEsc, 8);
+      // caixa d'água azul: o objeto mais brasileiro de todo telhado
+      r(p.x + 8, p.y - 20, 22, 20, P.tanque);
+      r(p.x + 8, p.y - 20, 22, 3, P.tanqueHi);
+      r(p.x + 26, p.y - 20, 4, 20, P.tanqueEsc);
+      r(p.x + 12, p.y - 24, 14, 4, P.tanqueEsc);
+      r(p.x + 13, p.y - 23, 12, 2, P.tanqueHi);
+    }
+  }
+
+  function rua() {
+    // calçada
+    r(0, CHAO, W, 8, P.calcada);
+    r(0, CHAO, W, 2, P.calcadaHi);
+    r(0, CHAO + 8, W, 2, P.calcadaEsc);
+    // meio-fio e asfalto
+    r(0, CHAO + 10, W, H - CHAO - 10, P.asfalto);
+    r(0, CHAO + 10, W, 2, P.asfaltoEsc);
+    for (let y = CHAO + 14; y < H; y += 2) {
+      for (let x = 0; x < W; x += 3) {
+        const v = rnd(x, y, 31);
+        if (v > 0.88) r(x, y, 2, 1, P.asfaltoClaro);
+        else if (v < 0.10) r(x, y, 2, 1, P.asfaltoEsc);
+      }
+    }
+    for (let x = 6; x < W; x += 26) r(x, H - 8, 12, 3, P.faixa);
+    // juntas da calçada
+    for (let x = 10; x < W; x += 22) r(x, CHAO + 2, 1, 6, P.calcadaEsc);
+  }
+
+  function chinelos() {
+    const cores = ['#3FA3C4', '#E0B33C', '#C2426A', '#4CA548', '#E36A2C'];
+    [[12, 14], [46, 20], [92, 16], [140, 22], [168, 14]].forEach(([x, dy], i) => {
+      const y = CHAO + dy;
+      const c = cores[i % cores.length];
+      r(x, y, 9, 4, c);
+      r(x, y + 4, 9, 1, P.contorno);
+      r(x + 2, y - 1, 5, 1, '#F0E6D2');
+    });
+  }
+
+  // barra de vida do inimigo, flutuando em cima dele — em
+  // plataforma é aqui que ela vive, não no placar
+  function barraInimigo(cx, y, pct) {
+    const w = 26;
+    const x = cx - (w >> 1);
+    r(x - 1, y - 1, w + 2, 6, P.contorno);
+    r(x, y, w, 4, '#2A1A20');
+    r(x, y, Math.round(w * pct), 4, P.inimigoHp);
+    r(x, y, Math.round(w * pct), 1, P.inimigoHpHi);
+  }
+
+  // faísca de impacto: dois pixels de luz dizem "a briga é aqui"
+  function faisca(cx, cy, f) {
+    if (f > 0.5) return;
+    const braco = [[0,-5],[0,5],[-5,0],[5,0],[-3,-3],[3,-3],[-3,3],[3,3]];
+    r(cx - 2, cy - 2, 4, 4, '#FFF6D8');
+    braco.forEach(([dx, dy]) => r(cx + dx, cy + dy, 2, 2, '#FFD98F'));
+  }
+
+  // ── montagem ──────────────────────────────────────────
   function pintaFundo() {
     ceu();
     solPoente();
     horizonte();
-    predioEsquerdo();
-    predioDireito();
+    predios();
     torcida();
     rua();
+    PLATAFORMAS.forEach(desenhaPlataforma);
     chinelos();
-    // aviso vermelho por cima, para o texto não sumir sob as vinhas
-    r(148, 146, 50, 16, P.placaVerm);
-    r(148, 146, 50, 2, '#7E241A');
-    txt('CUIDADO', 152, 149, 4, '#FFE9C9');
-    txt('CARAMELOS', 152, 155, 4, '#FFE9C9');
-    // guarda o fundo pronto: o laço só reaproveita
     fundo.getContext('2d').drawImage(cv, 0, 0);
   }
+
+  function remonta() {
+    dimensiona();
+    pintaFundo();
+  }
+
+  // posições: pé no chão ou no topo da plataforma
+  const JOGADOR   = { x: 16,  acima: 0  };
+  const INIMIGO_A = { x: 56,  acima: 0  };   // briga acontecendo aqui
+  const INIMIGO_B = { x: 168, acima: 38 };   // o próximo, em cima do muro
 
   function quadro(t) {
     ctx.drawImage(fundo, 0, 0);
 
-    // respiração dos lutadores, em passo inteiro de pixel
     const b1 = Math.floor(Math.sin(t / 420) * 1.4);
     const b2 = Math.floor(Math.sin(t / 420 + 1.7) * 1.4);
+    const b3 = Math.floor(Math.sin(t / 520 + 0.6) * 1.4);
 
     // sombra de contato
-    r(58, 186, 26, 3, 'rgba(20,12,8,0.35)');
-    r(120, 186, 26, 3, 'rgba(20,12,8,0.35)');
+    r(JOGADOR.x + 4,   (CHAO - JOGADOR.acima) - 1,   22, 2, 'rgba(20,12,8,0.35)');
+    r(INIMIGO_A.x + 4, (CHAO - INIMIGO_A.acima) - 1, 22, 2, 'rgba(20,12,8,0.35)');
+    r(INIMIGO_B.x + 4, (CHAO - INIMIGO_B.acima) - 1, 22, 2, 'rgba(20,12,8,0.35)');
 
-    sprite(LUTADOR, PAL_FURIA, 56, 154 + b1, false);
-    sprite(LUTADOR, PAL_BRUTO, 116, 154 + b2, true);
+    sprite(LUTADOR, PAL_FURIA, JOGADOR.x,   (CHAO - JOGADOR.acima)   - ALT_LUTADOR + b1, false);
+    sprite(LUTADOR, PAL_BRUTO, INIMIGO_A.x, (CHAO - INIMIGO_A.acima) - ALT_LUTADOR + b2, true);
+    sprite(LUTADOR, PAL_MAGRO, INIMIGO_B.x, (CHAO - INIMIGO_B.acima) - ALT_LUTADOR + b3, true);
+
+    // vida só do inimigo que está trocando pancada com você
+    barraInimigo(INIMIGO_A.x + 15, (CHAO - INIMIGO_A.acima) - ALT_LUTADOR - 8 + b2, 0.55);
+
+    // impacto entre os dois, piscando
+    faisca(51, (CHAO - INIMIGO_A.acima) - 20, (t / 300) % 1);
 
     requestAnimationFrame(quadro);
   }
 
-  pintaFundo();
+  remonta();
+  addEventListener('resize', remonta);
   requestAnimationFrame(quadro);
 
   // ── retratos e corações do placar ─────────────────────
@@ -791,12 +870,10 @@
   document.querySelectorAll('[data-face]').forEach(el => {
     const c = el.getContext('2d');
     c.imageSmoothingEnabled = false;
-    const alvo = ctx;                       // reaproveita o desenhador
-    const guarda = { fill: ctx.fillStyle };
     const paleta = {
-      furia:     { K: P.contorno, C: P.caramelo, L: P.carameloClaro, W: P.branco, B: P.preto },
-      bruto:     { K: P.contorno, C: '#B0742F', L: '#DCB77C', W: P.branco, B: '#8E2F28' },
-      torcedor:  { K: P.contorno, C: '#D0A15E', L: '#EBD3A8', W: P.branco, B: P.preto },
+      furia:    { K: P.contorno, C: P.caramelo, L: P.carameloClaro, W: P.branco, B: P.preto },
+      bruto:    { K: P.contorno, C: '#B0742F', L: '#DCB77C', W: P.branco, B: '#8E2F28' },
+      torcedor: { K: P.contorno, C: '#D0A15E', L: '#EBD3A8', W: P.branco, B: P.preto },
     }[el.dataset.face];
 
     CARA.forEach((linha, j) => {
@@ -808,8 +885,6 @@
         c.fillRect(i, j, 1, 1);
       });
     });
-    ctx.fillStyle = guarda.fill;
-    void alvo;
   });
 
   const CORACAO = [
@@ -837,7 +912,6 @@
         c.fillRect(i + 1, j + 1, 1, 1);
       });
     });
-    // contorno escuro
     c.fillStyle = '#1A0E12';
     CORACAO.forEach((linha, j) => {
       [...linha].forEach((ch, i) => {
