@@ -20,8 +20,11 @@
     --panel:      #C6C5BC;
     --panel-lo:   #9E9D94;
     --panel-edge: #6E6D66;
-    --dpad:       #B4B3AA;
-    --dpad-lo:    #86857D;
+    --dpad:       #8E8D85;
+    --dpad-hi:    #A9A89F;
+    --dpad-lo:    #6A6961;
+    --btn-edge:   #2B2A26;
+    --btn-face:   #F2ECDD;
 
     --btn-red:    #D63A32;   --btn-red-lo:   #8E211C;
     --btn-blue:   #3B7FD4;   --btn-blue-lo:  #22508D;
@@ -144,7 +147,8 @@
     flex: 1 1 auto;
     min-height: 0;
     position: relative;
-    background: #2E4A63;
+    background: #8FA9C4;   /* mesma cor do topo do céu: se o 'contain'
+                              deixar tarja, ela lê como céu, não buraco */
   }
   .stage canvas {
     position: absolute;
@@ -170,7 +174,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 3% 5%;
+    padding: 5% 7%;
     gap: 4%;
   }
 
@@ -207,8 +211,9 @@
     position: absolute;
     background: var(--dpad);
     box-shadow:
-      inset 0 0 0 2px var(--panel-edge),
-      inset 0 -3px 0 rgba(0,0,0,0.18);
+      inset 0 0 0 3px var(--btn-edge),
+      inset 0 4px 0 rgba(255,255,255,0.16),
+      inset 0 -4px 0 rgba(0,0,0,0.22);
   }
   .dpad .arm.h { left: 0;  right: 0;  top: 33.5%; bottom: 33.5%; }
   .dpad .arm.v { top: 0;   bottom: 0; left: 33.5%; right: 33.5%; }
@@ -217,55 +222,60 @@
     left: 33.5%; right: 33.5%; top: 33.5%; bottom: 33.5%;
     background: var(--dpad-lo);
     border-radius: 50%;
-    box-shadow: inset 0 0 0 2px var(--panel-edge);
+    box-shadow: inset 0 0 0 3px var(--btn-edge);
     z-index: 2;
   }
   .dpad .tri {
     position: absolute;
     width: 0; height: 0;
     z-index: 3;
-    opacity: 0.55;
+    opacity: 0.9;
   }
   .dpad .tri.up {
     top: 7%; left: 50%; transform: translateX(-50%);
     border-left: 7px solid transparent; border-right: 7px solid transparent;
-    border-bottom: 9px solid var(--panel-edge);
+    border-bottom: 9px solid var(--btn-face);
   }
   .dpad .tri.down {
     bottom: 7%; left: 50%; transform: translateX(-50%);
     border-left: 7px solid transparent; border-right: 7px solid transparent;
-    border-top: 9px solid var(--panel-edge);
+    border-top: 9px solid var(--btn-face);
   }
   .dpad .tri.left {
     left: 7%; top: 50%; transform: translateY(-50%);
     border-top: 7px solid transparent; border-bottom: 7px solid transparent;
-    border-right: 9px solid var(--panel-edge);
+    border-right: 9px solid var(--btn-face);
   }
   .dpad .tri.right {
     right: 7%; top: 50%; transform: translateY(-50%);
     border-top: 7px solid transparent; border-bottom: 7px solid transparent;
-    border-left: 9px solid var(--panel-edge);
+    border-left: 9px solid var(--btn-face);
   }
 
-  /* botões de ação */
+  /* botões de ação
+     O disco é a cor inteira, sem anel cinza em volta: o anel roubava
+     um quarto da área de toque e fazia o botão parecer plástico
+     barato. O ícone é desenhado em canvas, como o resto da tela —
+     emoji do sistema muda de forma em cada celular e briga com o
+     pixel art da cena. */
   .actions {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 4% 10%;
+    gap: 6% 12%;
     flex: 1;
-    max-width: 52%;
+    max-width: 54%;
   }
   .act {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
+    min-width: 0;
   }
-  .act.flip { flex-direction: column-reverse; }
   .act .lbl {
-    font-size: clamp(5px, 1.25vh, 9px);
+    font-size: clamp(5px, 1.15vh, 8px);
     line-height: 1;
-    color: #1C1A16;
+    color: #2B2A26;
     letter-spacing: 0.5px;
     white-space: nowrap;
   }
@@ -274,31 +284,42 @@
     border: none;
     cursor: pointer;
     width: 100%;
-    max-width: 62px;
+    max-width: 74px;
     aspect-ratio: 1;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 0;
     padding: 0;
-    background: var(--panel-lo);
-    box-shadow: inset 0 0 0 3px var(--panel-edge);
-    transition: transform .07s steps(2);
+    font-size: 0;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow:
+      inset 0 0 0 3px var(--btn-edge),        /* contorno escuro */
+      inset 0 6px 0 rgba(255,255,255,0.20),   /* topo do disco aceso */
+      inset 0 -7px 0 rgba(0,0,0,0.26),        /* base na sombra */
+      0 4px 0 var(--btn-edge);                /* altura: o botão sai do painel */
+    transition: transform .07s steps(2), box-shadow .07s steps(2);
   }
-  .act button span {
-    display: block;
-    width: 74%; height: 74%;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-size: clamp(13px, 3vh, 24px);
-    line-height: 1;
+  .act button:focus-visible {
+    outline: 3px solid var(--chalk);
+    outline-offset: 3px;
   }
-  .act button:active { transform: translateY(3px); }
-  .act.red    button span { background: var(--btn-red);    box-shadow: inset 0 -5px 0 var(--btn-red-lo); }
-  .act.blue   button span { background: var(--btn-blue);   box-shadow: inset 0 -5px 0 var(--btn-blue-lo); }
-  .act.yellow button span { background: var(--btn-yellow); box-shadow: inset 0 -5px 0 var(--btn-yellow-lo); }
-  .act.green  button span { background: var(--btn-green);  box-shadow: inset 0 -5px 0 var(--btn-green-lo); }
+  /* afundar de verdade: perde a altura e a luz do topo */
+  .act button:active {
+    transform: translateY(4px);
+    box-shadow:
+      inset 0 0 0 3px var(--btn-edge),
+      inset 0 -3px 0 rgba(0,0,0,0.30),
+      0 0 0 var(--btn-edge);
+  }
+  .act .icone {
+    width: 56%; height: 56%;
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+  .act.red    button { background: var(--btn-red);    }
+  .act.blue   button { background: var(--btn-blue);   }
+  .act.yellow button { background: var(--btn-yellow); }
+  .act.green  button { background: var(--btn-green);  }
 
   @media (prefers-reduced-motion: reduce) {
     .act button { transition: none; }
@@ -351,20 +372,28 @@
 
     <div class="actions">
       <div class="act red">
+        <button type="button" aria-label="Soco">
+          <canvas class="icone" data-icone="soco" width="16" height="16"></canvas>
+        </button>
         <span class="lbl">SOCO</span>
-        <button type="button" aria-label="Soco"><span>👊</span></button>
       </div>
       <div class="act blue">
+        <button type="button" aria-label="Chute">
+          <canvas class="icone" data-icone="chute" width="16" height="16"></canvas>
+        </button>
         <span class="lbl">CHUTE</span>
-        <button type="button" aria-label="Chute"><span>🦵</span></button>
       </div>
-      <div class="act yellow flip">
+      <div class="act yellow">
+        <button type="button" aria-label="Especial">
+          <canvas class="icone" data-icone="especial" width="16" height="16"></canvas>
+        </button>
         <span class="lbl">ESPECIAL</span>
-        <button type="button" aria-label="Especial"><span>⚡</span></button>
       </div>
-      <div class="act green flip">
+      <div class="act green">
+        <button type="button" aria-label="Pulo">
+          <canvas class="icone" data-icone="pulo" width="16" height="16"></canvas>
+        </button>
         <span class="lbl">PULO</span>
-        <button type="button" aria-label="Pulo"><span>⬆️</span></button>
       </div>
     </div>
   </div>
@@ -417,12 +446,17 @@
   // e a rua. O chão fica ancorado embaixo, o topo dos prédios em cima.
   const W = 200;
   const H_BASE = 212, CHAO_BASE = 186;
+  // Piso de altura: abaixo disto a composição começa a se atropelar
+  // (o sol encosta no horizonte, a laje some atrás do prédio). Vale
+  // até razão 0.98, que cobre celular retrato de sobra — o 'contain'
+  // do CSS só entra em cena numa caixa mais larga que isso.
+  const H_MIN = 196;
   let H = H_BASE, CHAO = CHAO_BASE, D = 0;
 
   function dimensiona() {
     const cx = palco.clientWidth  || 200;
     const cy = palco.clientHeight || 212;
-    H = Math.max(H_BASE, Math.round(W * cy / cx));
+    H = Math.max(H_MIN, Math.round(W * cy / cx));
     D = H - H_BASE;            // céu extra a distribuir no miolo
     CHAO = CHAO_BASE + D;      // topo da calçada: onde o jogador pisa
     cv.width = W; cv.height = H;
@@ -921,6 +955,106 @@
           const dentro = CORACAO[ny - 1] && CORACAO[ny - 1][nx - 1] === '1';
           if (!dentro) c.fillRect(nx, ny, 1, 1);
         });
+      });
+    });
+  });
+  // ── ícones dos botões ─────────────────────────────────
+  // Desenhados aqui pelo mesmo motivo dos retratos: emoji do sistema
+  // muda de desenho em cada aparelho e não combina com o pixel da
+  // cena. K é o contorno, W o miolo claro, S a sombra do miolo.
+  const ICONES = {
+    // pata de caramelo: num jogo de cachorro é o soco mais legível
+    // que existe em 16 pixels — muito mais que um punho humano.
+    // Os dedos precisam ser grandes e colados na pata, senão o
+    // desenho lê como um rosto. Os dedos ficam em arco — o do meio
+    // mais alto que os das pontas — porque dedos alinhados na mesma
+    // altura viram dois olhos e uma boca na hora.
+    soco: [
+      '................',
+      '.......KK.......',
+      '......KWWK......',
+      '..KK..KWWK..KK..',
+      '.KWWK.KWWK.KWWK.',
+      '.KWWK.KWWK.KWWK.',
+      '.KWWK.KKKK.KWWK.',
+      '.KWWK......KWWK.',
+      '..KK........KK..',
+      '................',
+      '.....KKKKKK.....',
+      '...KKWWWWWWKK...',
+      '..KWWWWWWWWWWK..',
+      '..KWWWWWWWWWWK..',
+      '...KWWWWWWWWK...',
+      '....KKKKKKKK....',
+    ],
+    // perna esticada com o pé para a direita
+    chute: [
+      '................',
+      '....KKKKK.......',
+      '...KWWWWWK......',
+      '...KWWWWWK......',
+      '...KWWWWWK......',
+      '...KWWWWWK......',
+      '...KWWWWWK......',
+      '...KWWWWWKKK....',
+      '...KWWWWWWWWK...',
+      '...KWWWWWWWWWK..',
+      '...KWWWWWWWWWWK.',
+      '...KWWWWWWWWWWK.',
+      '....KKKKKKKKKKK.',
+      '................',
+      '................',
+      '................',
+    ],
+    // o raio tem que ser um traço só: qualquer entalhe no meio
+    // parte o desenho em duas peças soltas
+    especial: [
+      '................',
+      '.........KKK....',
+      '........KWWK....',
+      '.......KWWK.....',
+      '......KWWK......',
+      '.....KWWK.......',
+      '....KWWKKKK.....',
+      '....KWWWWWWK....',
+      '....KKKWWWK.....',
+      '......KWWK......',
+      '.....KWWK.......',
+      '....KWWK........',
+      '...KWWK.........',
+      '...KWK..........',
+      '...KK...........',
+      '................',
+    ],
+    pulo: [
+      '................',
+      '.......KK.......',
+      '......KWWK......',
+      '.....KWWWWK.....',
+      '....KWWWWWWK....',
+      '...KWWWWWWWWK...',
+      '..KWWWWWWWWWWK..',
+      '..KKKKWSSWKKKK..',
+      '.....KWSSWK.....',
+      '.....KWSSWK.....',
+      '.....KWSSWK.....',
+      '.....KWSSWK.....',
+      '.....KKKKKK.....',
+      '................',
+      '................',
+      '................',
+    ],
+  };
+
+  document.querySelectorAll('[data-icone]').forEach(el => {
+    const c = el.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    const cor = { K: '#2B2A26', W: '#F7F2E4', S: '#C9BFA6' };
+    ICONES[el.dataset.icone].forEach((linha, j) => {
+      [...linha].forEach((ch, i) => {
+        if (!cor[ch]) return;
+        c.fillStyle = cor[ch];
+        c.fillRect(i, j, 1, 1);
       });
     });
   });
