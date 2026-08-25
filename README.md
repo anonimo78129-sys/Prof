@@ -1,43 +1,57 @@
 # Rinha de Vira-Lata
 
-O conteúdo anterior foi removido para dar lugar a um jogo novo, que não é
-educacional: cachorros caramelos brigando estilo Mortal Kombat, em celular
-na vertical. A escolha da tecnologia é do zero — não há toolchain ainda.
+Jogo de plataforma 2D em celular na vertical: um vira-lata caramelo anda
+pela rua, sobe em toldo, muro e laje, e briga com os inimigos que
+aparecem no caminho — no mesmo cenário em que anda, sem corte para uma
+tela de luta separada.
 
 ## Estado atual
 
-Só o design das telas por enquanto, em [`design/layout-mobile.html`](design/layout-mobile.html)
-— abra o arquivo direto no navegador. Duas telas:
+Só o design da tela de jogo, em [`design/index.html`](design/index.html).
+Não há lógica de jogo: os botões não fazem nada e os caramelos só
+respiram. É uma tela parada mostrando como o jogo se organiza no formato
+retrato.
 
-- **Explorar**: o jogador anda pela cidade, sobe (escada de incêndio,
-  medidor de altura na borda) e entra em lugares (porta com prompt
-  contextual). Sem botão de ataque — só direção e uma ação que muda de
-  sentido pelo que está por perto.
-- **Lutar**: tela cheia, corpo a corpo, sem direcional — soco, chute,
-  defesa e um especial que carrega. Entra quando um inimigo barra o
-  caminho na exploração.
+Publicado em <https://prof-taupe.vercel.app>.
 
-Nenhuma das duas tem lógica de jogo ainda — é HTML/CSS estático mostrando
-como cada tela se organiza no formato retrato.
+Três faixas, e nada além delas — sem legenda, sem texto explicativo:
 
-Nada foi perdido: o histórico do git está inteiro, sem reescrita. Para
-recuperar qualquer coisa, `git checkout <commit> -- <caminho>`.
+- **Placar**, em cima: retrato, corações, a fase, a barra de vida do
+  jogador e a contagem de ossos. A vida do inimigo não fica aqui: ela
+  flutua sobre a cabeça dele, dentro da cena.
+- **Cenário**, no meio: desenhado em canvas, pixel a pixel. A rota de
+  subida vai da calçada até a laje da caixa d'água — toldo da loja,
+  laje do sobradinho, muro do terreno, ar-condicionado na parede.
+- **Controle**, embaixo: direcional e quatro botões — soco, chute,
+  especial e pulo.
 
-## Onde está o que saiu
+## Como rodar
+
+```
+npm install
+npm run dev
+```
+
+O Vite usa `design/` como raiz e gera em `dist/`. É o mesmo comando que
+a Vercel roda.
+
+### Pixel quadrado
+
+A cena é autorada com 200 de largura. A altura do canvas é calculada da
+proporção real da caixa na tela, e as posições são medidas a partir do
+chão, não do topo. Assim o pixel nunca estica, o chão fica colado
+embaixo e o que varia entre um celular e outro é só quanto céu existe
+entre o horizonte e a rua.
+
+## Onde está o que saiu daqui
+
+O conteúdo anterior — um aplicativo educacional — foi removido para dar
+lugar a este jogo. Nada foi perdido: o histórico do git está inteiro,
+sem reescrita. Para recuperar qualquer coisa,
+`git checkout <commit> -- <caminho>`.
 
 | Commit / branch | O que tem |
 |---|---|
-| `c51f5ca` | Os quatro jogos completos: CINZAS, SEMENTE, SILO ALPHA e O POÇO. É o que está publicado em produção neste momento. |
-| `167f905` | A casca do aplicativo sem os quatro jogos: tela inicial, chassi de interface em pixel, tema, música, PWA, quiz do professor e créditos. |
+| `c51f5ca` | Os quatro jogos completos: CINZAS, SEMENTE, SILO ALPHA e O POÇO. |
+| `167f905` | A casca do aplicativo sem os quatro jogos: tela inicial, chassi de interface em pixel, tema, música, PWA, quiz do professor e créditos. Também o Firebase, as cloud functions, `app/applet/` e a landing page. |
 | `claude/pokemon-battle-act-6-bn1mbk` | Outro aplicativo, o "Prof. Coruja" com Firebase. História de raiz própria, intacta, sem relação com este. |
-
-Também saíram daqui, e estão em `167f905`: o README do Prof. Corujão, as
-configurações do Firebase, as cloud functions, `app/applet/` e a landing
-page.
-
-## Atenção antes de publicar
-
-A branch padrão é `claude/code-github-upload-bwr2rm`, e a Vercel publica
-produção a cada push nela. Sem `package.json` o build falha, então
-publicar este estado derruba `prof-taupe.vercel.app`. Enquanto o jogo
-novo não existir, este trabalho fica só na branch de trabalho.
