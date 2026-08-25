@@ -1,0 +1,1086 @@
+<title>Rinha de Vira-Lata</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    /* chrome da interface */
+    --ink: #201417;
+    --ink-raised: #2C1C20;
+    --ink-line: #46302F;
+    --chalk: #F5EAD8;
+    --chalk-dim: #C7B3A0;
+
+    /* acento — a mesma cor do pelo dos cachorros */
+    --caramel: #E0913F;
+    --caramel-deep: #9A5420;
+    --caramel-glow: #FFD873;
+
+    /* corner P1 / P2, só nas bandanas e num traço fino */
+    --bandana-p1: #B0432A;
+    --bandana-p2: #C24E5C;
+
+    /* cenário */
+    --sky-high: #E67C3A;
+    --sky-low: #F7C36E;
+    --wall: #55394C;
+    --wall-deep: #3B2536;
+    --mural: #C24E5C;
+    --fence: rgba(20, 12, 16, 0.55);
+    --floor-far: #A98B68;
+    --floor-near: #7C6248;
+    --floor-line: rgba(32, 20, 16, 0.35);
+
+    /* vida */
+    --health-fill: #B7C24A;
+    --health-mid: #E3A83E;
+    --health-low: #C4432E;
+
+    --shadow: rgba(18, 9, 7, 0.5);
+    --font-display: 'Bungee', 'Arial Narrow', sans-serif;
+    --font-body: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* forma assinatura da interface: canto cortado, não arredondado */
+    --cut: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    --cut-lg: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--chalk);
+    font-family: var(--font-body);
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: clamp(20px, 4vh, 56px) 16px;
+    background:
+      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(224, 145, 63, 0.10), transparent 60%),
+      var(--ink);
+    overflow-x: hidden;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(28px, 5vh, 44px);
+  }
+
+  .eyebrow {
+    text-align: center;
+    font: 700 11px/1 var(--font-body);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chalk-dim);
+  }
+  .eyebrow strong {
+    color: var(--caramel);
+    font-weight: 800;
+  }
+
+  /* ── laço do jogo ───────────────────────────────────── */
+
+  .loop {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .loop-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
+  .loop-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: var(--ink-raised);
+    box-shadow: inset 0 0 0 1px var(--ink-line);
+    clip-path: var(--cut);
+    font: 700 11px/1 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--chalk);
+    white-space: nowrap;
+  }
+  .loop-pill .icon { font-size: 13px; }
+  .loop-pill.hot {
+    box-shadow: inset 0 0 0 1px var(--caramel-deep);
+    color: var(--caramel-glow);
+  }
+  .loop-arrow {
+    color: var(--chalk-dim);
+    font-size: 13px;
+    opacity: 0.6;
+  }
+  .loop-note {
+    max-width: 46ch;
+    text-align: center;
+    font: 400 13px/1.5 var(--font-body);
+    color: var(--chalk-dim);
+  }
+  .loop-note strong { color: var(--chalk); font-weight: 600; }
+
+  /* ── cada painel: nome + aparelho + legenda ────────────── */
+
+  .panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .panel-title {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+  }
+  .panel-title .num {
+    font: 400 13px/1 var(--font-display);
+    color: var(--caramel);
+  }
+  .panel-title h2 {
+    margin: 0;
+    font: 400 15px/1 var(--font-display);
+    letter-spacing: 0.02em;
+    color: var(--chalk);
+  }
+  .panel-title span.sub {
+    font: 400 12px/1 var(--font-body);
+    color: var(--chalk-dim);
+  }
+
+  .device {
+    position: relative;
+    width: auto;
+    height: min(68vh, 700px);
+    aspect-ratio: 9 / 16;
+    background: var(--ink);
+    border-radius: 30px;
+    padding: 3px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      0 30px 60px -20px rgba(0, 0, 0, 0.7),
+      0 10px 24px -12px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 27px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── faixa 1: topo ──────────────────────────────────── */
+
+  .hud {
+    flex: 0 0 9.5%;
+    background: linear-gradient(180deg, var(--ink) 0%, var(--ink-raised) 100%);
+    border-bottom: 2px solid var(--ink-line);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: max(8px, env(safe-area-inset-top)) 10px 6px;
+    position: relative;
+    z-index: 3;
+  }
+
+  .fighter-tag {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .fighter-tag.right { align-items: flex-end; }
+  .fighter-tag.solo { flex: 0 0 46%; }
+
+  .fighter-tag .name {
+    font: 400 12px/1 var(--font-display);
+    letter-spacing: 0.02em;
+    color: var(--chalk);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .fighter-tag.right .name { flex-direction: row-reverse; }
+
+  .corner-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex: none;
+  }
+  .fighter-tag.left .corner-dot, .fighter-tag.solo .corner-dot { background: var(--bandana-p1); }
+  .fighter-tag.right .corner-dot { background: var(--bandana-p2); }
+
+  .health-track {
+    width: 100%;
+    height: 9px;
+    background: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink-line);
+    clip-path: var(--cut);
+    overflow: hidden;
+    position: relative;
+  }
+  .health-fill {
+    height: 100%;
+    background: linear-gradient(180deg, var(--health-fill), var(--health-mid));
+  }
+  .fighter-tag.left .health-track, .fighter-tag.solo .health-track { direction: ltr; }
+  .fighter-tag.right .health-track { direction: rtl; }
+  .fighter-tag.right .health-fill { margin-left: auto; }
+
+  .round-badge {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    padding: 3px 10px 4px;
+    background: var(--ink-raised);
+    box-shadow: inset 0 0 0 1px var(--ink-line);
+    clip-path: var(--cut);
+  }
+  .round-badge .label {
+    font: 700 7px/1 var(--font-body);
+    letter-spacing: 0.16em;
+    color: var(--chalk-dim);
+    text-transform: uppercase;
+  }
+  .round-badge .time {
+    font: 400 17px/1 var(--font-display);
+    color: var(--caramel-glow);
+  }
+
+  .location-tag {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: var(--ink-raised);
+    box-shadow: inset 0 0 0 1px var(--ink-line);
+    clip-path: var(--cut);
+    font: 700 9px/1 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--chalk-dim);
+    white-space: nowrap;
+  }
+
+  /* ── faixa 2: arena, comum às duas telas ────────────── */
+
+  .arena {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--sky-low);
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  .layer.sky {
+    background:
+      radial-gradient(ellipse 55% 40% at 78% 20%, rgba(255, 216, 115, 0.55), transparent 65%),
+      linear-gradient(180deg, var(--sky-high) 0%, var(--sky-low) 78%);
+  }
+  .layer.sky .cloud {
+    position: absolute;
+    background: rgba(255, 240, 210, 0.28);
+    border-radius: 50%;
+    filter: blur(1px);
+  }
+
+  .arena-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 120% 80% at 50% 50%, transparent 55%, rgba(15, 8, 7, 0.4) 100%);
+    pointer-events: none;
+  }
+
+  .zone-seam {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--ink-line) 15%, var(--ink-line) 85%, transparent);
+  }
+
+  /* ── arena: tela de luta ────────────────────────────── */
+
+  .layer.wall {
+    top: 22%;
+    bottom: 40%;
+    background: linear-gradient(180deg, var(--wall) 0%, var(--wall-deep) 100%);
+  }
+  .layer.wall::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(58deg, var(--fence) 0 1.5px, transparent 1.5px 16px),
+      repeating-linear-gradient(122deg, var(--fence) 0 1.5px, transparent 1.5px 16px);
+    opacity: 0.5;
+  }
+  .lamp {
+    position: absolute;
+    top: -6%;
+    left: 8%;
+    width: 3px;
+    height: 55%;
+    background: var(--fence);
+  }
+  .lamp::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -7px;
+    width: 17px;
+    height: 10px;
+    background: var(--fence);
+    border-radius: 2px 2px 8px 8px;
+  }
+  .mural-tag {
+    position: absolute;
+    right: 6%;
+    bottom: 8%;
+    width: 30%;
+    max-width: 90px;
+    opacity: 0.85;
+  }
+
+  .layer.floor {
+    top: 60%;
+    background: linear-gradient(180deg, var(--floor-far) 0%, var(--floor-near) 100%);
+  }
+  .layer.floor::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg, var(--floor-line) 0 1px, transparent 1px 13%
+    );
+    opacity: 0.6;
+  }
+  .layer.floor::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 14%;
+    background: linear-gradient(180deg, rgba(20, 10, 8, 0.35), transparent);
+  }
+  .crack {
+    position: absolute;
+    stroke: var(--floor-line);
+    stroke-width: 1.4;
+    fill: none;
+  }
+
+  .fighter {
+    position: absolute;
+    bottom: 12%;
+    width: 30%;
+    max-width: 130px;
+    filter: drop-shadow(0 6px 4px var(--shadow));
+    animation: bob 2.6s ease-in-out infinite;
+  }
+  .fighter svg { width: 100%; height: 100%; display: block; }
+  .fighter.p1 { left: 8%; --bandana: var(--bandana-p1); }
+  .fighter.p2 {
+    right: 8%;
+    --bandana: var(--bandana-p2);
+    transform: scaleX(-1);
+    animation-name: bob-flip;
+    animation-delay: -1.3s;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2.5%); }
+  }
+  @keyframes bob-flip {
+    0%, 100% { transform: scaleX(-1) translateY(0); }
+    50% { transform: scaleX(-1) translateY(-2.5%); }
+  }
+
+  /* ── arena: tela de mundo ───────────────────────────── */
+
+  .arena.mundo .layer.sky { background: linear-gradient(180deg, var(--sky-high) 0%, var(--sky-low) 60%); }
+
+  .skyline {
+    position: absolute;
+    left: 0; right: 0; bottom: 60%; height: 26%;
+    opacity: 0.55;
+  }
+  .skyline svg { width: 100%; height: 100%; display: block; }
+
+  .layer.facade {
+    top: 34%;
+    bottom: 30%;
+    background: linear-gradient(180deg, var(--wall) 0%, var(--wall-deep) 100%);
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 20px, var(--ink-line) 20px 21px),
+      repeating-linear-gradient(90deg, transparent 0 20px, var(--ink-line) 20px 21px);
+    background-blend-mode: normal;
+  }
+  .lit-window {
+    position: absolute;
+    width: 9px; height: 12px;
+    background: var(--caramel-glow);
+    opacity: 0.75;
+    box-shadow: 0 0 6px rgba(255, 216, 115, 0.6);
+  }
+
+  .door {
+    position: absolute;
+    left: 6%;
+    bottom: 0;
+    width: 15%;
+    height: 62%;
+  }
+  .door .frame {
+    position: absolute;
+    inset: 0;
+    background: var(--wall-deep);
+    box-shadow: inset 0 0 0 2px var(--ink-line);
+  }
+  .door .glow {
+    position: absolute;
+    left: 50%; bottom: 0;
+    width: 220%; height: 60%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(255, 216, 115, 0.25), transparent 70%);
+  }
+  .door .awning {
+    position: absolute;
+    top: -10%; left: -20%; right: -20%;
+    height: 14%;
+    background: var(--caramel-deep);
+    clip-path: polygon(0 100%, 8% 0, 92% 0, 100% 100%);
+  }
+
+  .escape {
+    position: absolute;
+    left: 46%;
+    top: 4%;
+    width: 20%;
+    height: 88%;
+  }
+  .escape svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  .layer.street {
+    top: 62%;
+    background: linear-gradient(180deg, var(--floor-far) 0%, var(--floor-near) 100%);
+  }
+  .layer.street::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg, var(--floor-line) 0 1px, transparent 1px 13%
+    );
+    opacity: 0.6;
+  }
+
+  .prop-can {
+    position: absolute;
+    left: 30%;
+    bottom: 8%;
+    width: 5%;
+    height: 16%;
+    background: var(--wall-deep);
+    border-radius: 2px 2px 5px 5px;
+    box-shadow: inset 0 0 0 1px var(--ink-line);
+  }
+
+  .enemy-peek {
+    position: absolute;
+    right: 4%;
+    bottom: 4%;
+    width: 15%;
+    opacity: 0.92;
+  }
+  .enemy-peek svg { width: 100%; display: block; }
+  .enemy-peek .alert {
+    position: absolute;
+    top: -34%;
+    left: 50%;
+    transform: translateX(-50%);
+    font: 400 15px/1 var(--font-display);
+    color: var(--caramel-glow);
+    animation: alert-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes alert-pulse {
+    0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 1; transform: translateX(-50%) translateY(-3px); }
+  }
+
+  .explorer {
+    left: 20%;
+    width: 24%;
+  }
+
+  .climb-meter {
+    position: absolute;
+    right: 12px;
+    top: 8%;
+    bottom: 8%;
+    width: 3px;
+    background: repeating-linear-gradient(to bottom, var(--chalk-dim) 0 2px, transparent 2px 7px);
+    opacity: 0.45;
+    z-index: 4;
+  }
+  .climb-meter .goal {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+  }
+  .climb-meter .here {
+    position: absolute;
+    bottom: 24%;
+    left: 50%;
+    width: 9px; height: 9px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: var(--caramel-glow);
+    box-shadow: 0 0 8px rgba(255, 216, 115, 0.8);
+  }
+
+  .prompt {
+    position: absolute;
+    left: 27%;
+    bottom: 46%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: var(--ink);
+    box-shadow: inset 0 0 0 1.5px var(--caramel-glow);
+    clip-path: var(--cut);
+    font: 700 9px/1 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--caramel-glow);
+    white-space: nowrap;
+    z-index: 4;
+    animation: prompt-pulse 1.8s ease-in-out infinite;
+  }
+  .prompt.dim {
+    left: 13%;
+    bottom: 20%;
+    box-shadow: inset 0 0 0 1px var(--ink-line);
+    color: var(--chalk-dim);
+    opacity: 0.65;
+    animation: none;
+  }
+  @keyframes prompt-pulse {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fighter, .btn.especial::before, .enemy-peek .alert, .prompt { animation: none !important; }
+  }
+
+  /* ── faixa 3: controles ─────────────────────────────── */
+
+  .controls {
+    flex: 0 0 22%;
+    background: linear-gradient(180deg, var(--ink-raised) 0%, var(--ink) 100%);
+    border-top: 2px solid var(--ink-line);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px max(10px, env(safe-area-inset-bottom));
+    position: relative;
+    z-index: 3;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    color: var(--chalk);
+    background: var(--ink-raised);
+    box-shadow:
+      inset 0 0 0 1px var(--ink-line),
+      0 3px 0 0 var(--ink-line),
+      0 5px 8px -2px rgba(0,0,0,0.5);
+    clip-path: var(--cut-lg);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+  .btn:active {
+    transform: translateY(3px);
+    box-shadow: inset 0 0 0 1px var(--ink-line), 0 0 0 0 var(--ink-line);
+  }
+  .btn .k {
+    font: 400 11px/1 var(--font-display);
+    letter-spacing: 0.02em;
+  }
+  .btn .icon { font-size: 15px; line-height: 1; }
+
+  .btn.defesa {
+    flex: 1.15;
+    height: 100%;
+    background: var(--ink);
+    box-shadow:
+      inset 0 0 0 2px var(--ink-line),
+      0 3px 0 0 var(--ink-line);
+    color: var(--chalk-dim);
+  }
+  .btn.defesa:active { color: var(--chalk); }
+
+  .btn.attack {
+    flex: 1;
+    height: 82%;
+    background: linear-gradient(180deg, var(--ink-raised), var(--ink));
+  }
+  .btn.attack .k { color: var(--chalk); }
+
+  .btn.especial {
+    flex: 1.15;
+    height: 100%;
+    position: relative;
+    background: var(--ink);
+    color: var(--caramel-glow);
+    overflow: hidden;
+  }
+  .btn.especial::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    clip-path: var(--cut-lg);
+    background: conic-gradient(var(--caramel) 0deg, var(--caramel-glow) 245deg, var(--ink-line) 245deg 360deg);
+    opacity: 0.28;
+    animation: charge 5s linear infinite;
+  }
+  .btn.especial .k, .btn.especial .icon { position: relative; }
+  @keyframes charge {
+    to { transform: rotate(360deg); }
+  }
+
+  .btn.move {
+    flex: 0.85;
+    height: 78%;
+  }
+
+  .btn.action {
+    flex: 1.3;
+    height: 100%;
+    background: var(--ink);
+    color: var(--caramel-glow);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn.action::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    clip-path: var(--cut-lg);
+    background: var(--caramel);
+    opacity: 0.16;
+  }
+  .btn.action .k, .btn.action .icon { position: relative; }
+
+  /* ── legenda ─────────────────────────────────────────── */
+
+  .legend {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .legend-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--ink-raised);
+    box-shadow: inset 0 0 0 1px var(--ink-line);
+    clip-path: var(--cut-lg);
+  }
+  .legend-item .n {
+    flex: none;
+    font: 400 20px/1 var(--font-display);
+    color: var(--caramel);
+    width: 28px;
+  }
+  .legend-item .t {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .legend-item h3 {
+    margin: 0;
+    font: 700 11px/1.2 var(--font-body);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--chalk);
+  }
+  .legend-item p {
+    margin: 0;
+    font: 400 13px/1.5 var(--font-body);
+    color: var(--chalk-dim);
+  }
+  .legend-item p strong { color: var(--chalk); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="eyebrow"><strong>Rinha de Vira-Lata</strong> — proposta de layout</p>
+
+  <!-- LAÇO DO JOGO ─────────────────────────────────────── -->
+  <div class="loop">
+    <div class="loop-row">
+      <span class="loop-pill"><span class="icon">🐾</span>Anda pela cidade</span>
+      <span class="loop-arrow">→</span>
+      <span class="loop-pill"><span class="icon">🧗</span>Sobe / entra</span>
+      <span class="loop-arrow">→</span>
+      <span class="loop-pill hot"><span class="icon">❗</span>Encontra inimigo</span>
+      <span class="loop-arrow">→</span>
+      <span class="loop-pill"><span class="icon">👊</span>Luta corpo a corpo</span>
+    </div>
+    <p class="loop-note">Cada telhado alcançado e cada porta aberta empurra a história — e cada rua tem alguém disposto a brigar por ela. <strong>TOSTÃO</strong> é quem você controla nas duas telas.</p>
+  </div>
+
+  <!-- PAINEL 1 — MUNDO ─────────────────────────────────── -->
+  <div class="panel">
+    <div class="panel-title">
+      <span class="num">01</span>
+      <h2>EXPLORAR</h2>
+      <span class="sub">— anda, sobe, entra</span>
+    </div>
+
+    <div class="device">
+      <div class="screen">
+
+        <div class="hud">
+          <div class="fighter-tag solo">
+            <span class="name"><span class="corner-dot"></span>TOSTÃO</span>
+            <div class="health-track"><div class="health-fill" style="width: 84%"></div></div>
+          </div>
+          <span class="location-tag">📍 Rua das Flores</span>
+        </div>
+
+        <div class="arena mundo" id="arena-mundo">
+          <div class="layer sky" data-depth="0.02">
+            <div class="cloud" style="width:60px;height:18px;top:10%;left:10%"></div>
+          </div>
+
+          <div class="skyline" data-depth="0.04">
+            <svg viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true">
+              <polygon fill="var(--wall-deep)" points="0,100 0,55 26,55 26,30 52,30 52,60 80,60 80,15 112,15 112,48 140,48 140,38 172,38 172,70 202,70 202,25 232,25 232,55 262,55 262,42 292,42 292,12 322,12 322,50 352,50 352,36 382,36 382,100"/>
+            </svg>
+          </div>
+
+          <div class="layer facade" data-depth="0.06">
+            <div class="lit-window" style="left:14%; top:18%"></div>
+            <div class="lit-window" style="left:14%; top:44%"></div>
+            <div class="lit-window" style="left:64%; top:14%"></div>
+            <div class="lit-window" style="left:80%; top:32%"></div>
+            <div class="door">
+              <div class="awning"></div>
+              <div class="glow"></div>
+              <div class="frame"></div>
+            </div>
+            <div class="escape">
+              <svg viewBox="0 0 60 200" aria-hidden="true">
+                <path d="M8 190 L52 190 L52 150 L8 150 L8 110 L52 110 L52 70 L8 70 L8 30 L52 30" fill="none" stroke="var(--caramel-glow)" stroke-width="3" stroke-linejoin="round" opacity="0.85"/>
+                <circle cx="8" cy="150" r="2.4" fill="var(--caramel-glow)"/>
+                <circle cx="52" cy="110" r="2.4" fill="var(--caramel-glow)"/>
+                <circle cx="8" cy="70" r="2.4" fill="var(--caramel-glow)"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="layer street" data-depth="0.1">
+            <div class="prop-can"></div>
+            <div class="enemy-peek">
+              <span class="alert">!</span>
+              <svg viewBox="0 0 60 50" aria-hidden="true">
+                <ellipse cx="30" cy="46" rx="22" ry="4" fill="var(--shadow)"/>
+                <path d="M8 46 C4 30 8 14 22 10 C34 6 46 12 48 24 C50 36 42 46 30 46 Z" fill="var(--ink)"/>
+                <path d="M14 12 C10 4 18 2 20 10 Z" fill="var(--ink)"/>
+                <path d="M34 8 C40 0 48 4 44 12 Z" fill="var(--ink)"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="fighter explorer">
+            <svg viewBox="0 0 140 220" aria-hidden="true" style="--bandana: var(--bandana-p1)">
+              <ellipse cx="70" cy="205" rx="46" ry="7" fill="var(--shadow)"/>
+              <rect x="42" y="150" width="24" height="56" rx="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <rect x="76" y="150" width="24" height="56" rx="11" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M32 118 C24 108 26 96 36 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <ellipse cx="78" cy="122" rx="42" ry="36" transform="rotate(-6 78 122)" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <ellipse cx="62" cy="132" rx="10" ry="7" fill="var(--caramel-deep)" opacity="0.7"/>
+              <path d="M92 96 C104 78 116 76 122 86 C126 94 116 104 104 104 Z" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="118" cy="86" r="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M98 92 C108 68 120 78 118 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <circle cx="108" cy="78" r="27" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M88 58 C84 46 92 40 98 48" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M122 54 C132 50 138 60 130 70 C124 76 118 70 118 62 Z" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <ellipse cx="132" cy="86" rx="12" ry="8" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <circle cx="140" cy="85" r="2.6" fill="var(--ink)"/>
+              <circle cx="102" cy="76" r="3" fill="var(--ink)"/>
+              <path d="M92 68 L100 71" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+              <path d="M84 100 C94 108 108 108 116 100 L116 110 C108 118 94 118 84 110 Z" fill="var(--bandana)" stroke="var(--ink)" stroke-width="3.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="arena-vignette"></div>
+          <div class="zone-seam"></div>
+
+          <div class="climb-meter">
+            <span class="goal">🏠</span>
+            <span class="here"></span>
+          </div>
+          <div class="prompt"><span class="icon">🧗</span>SUBIR</div>
+          <div class="prompt dim"><span class="icon">🚪</span>ENTRAR</div>
+        </div>
+
+        <div class="controls">
+          <button class="btn move" type="button">
+            <span class="icon">◄</span>
+          </button>
+          <button class="btn move" type="button">
+            <span class="icon">►</span>
+          </button>
+          <button class="btn action" type="button">
+            <span class="icon">🧗</span>
+            <span class="k">AÇÃO</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <span class="n">A</span>
+        <div class="t">
+          <h3>Pontos de interação</h3>
+          <p>A escada de incêndio brilha em <strong>dourado</strong> quando alcançável — mesma cor do botão de ação, para o dedo e o olho concordarem. A porta já passada fica marcada, mas apagada.</p>
+        </div>
+      </div>
+      <div class="legend-item">
+        <span class="n">B</span>
+        <div class="t">
+          <h3>Medidor de altura</h3>
+          <p>Um traço fino na borda mostra <strong>quanto falta até o telhado</strong> — sem ele, "subir até o topo do prédio" é uma promessa que o jogador não consegue medir.</p>
+        </div>
+      </div>
+      <div class="legend-item">
+        <span class="n">C</span>
+        <div class="t">
+          <h3>Controles</h3>
+          <p>Só o essencial: <strong>◄ ►</strong> para andar e um <strong>AÇÃO</strong> que muda de sentido pelo contexto — subir, entrar, mais tarde talvez empurrar. Sem botão de ataque aqui: a briga tem tela própria.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL 2 — LUTA ──────────────────────────────────── -->
+  <div class="panel">
+    <div class="panel-title">
+      <span class="num">02</span>
+      <h2>LUTAR</h2>
+      <span class="sub">— quando um inimigo barra o caminho</span>
+    </div>
+
+    <div class="device">
+      <div class="screen">
+
+        <div class="hud">
+          <div class="fighter-tag left">
+            <span class="name"><span class="corner-dot"></span>TOSTÃO</span>
+            <div class="health-track"><div class="health-fill" style="width: 78%"></div></div>
+          </div>
+          <div class="round-badge">
+            <span class="label">Round 1</span>
+            <span class="time">43</span>
+          </div>
+          <div class="fighter-tag right">
+            <span class="name">FAROFA<span class="corner-dot"></span></span>
+            <div class="health-track"><div class="health-fill" style="width: 61%"></div></div>
+          </div>
+        </div>
+
+        <div class="arena" id="arena-luta">
+          <div class="layer sky" data-depth="0.02">
+            <div class="cloud" style="width:70px;height:22px;top:14%;left:8%"></div>
+            <div class="cloud" style="width:46px;height:16px;top:26%;left:32%"></div>
+          </div>
+          <div class="layer wall" data-depth="0.05">
+            <div class="lamp"></div>
+            <svg class="mural-tag" viewBox="0 0 60 60" aria-hidden="true">
+              <path fill="var(--mural)" d="M30 6c9 0 14 8 14 16 0 12-14 32-14 32S16 34 16 22c0-8 5-16 14-16z"/>
+              <circle cx="24" cy="20" r="3.4" fill="var(--wall-deep)"/>
+              <circle cx="36" cy="20" r="3.4" fill="var(--wall-deep)"/>
+              <path d="M18 30c4 5 20 5 24 0" stroke="var(--wall-deep)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="layer floor" data-depth="0.12">
+            <svg class="crack" viewBox="0 0 300 200" preserveAspectRatio="none" style="width:100%;height:100%">
+              <path d="M40 0 L55 40 L30 70 L50 110" />
+              <path d="M260 10 L245 55 L270 90" />
+            </svg>
+          </div>
+
+          <div class="fighter p1">
+            <svg viewBox="0 0 140 220" aria-hidden="true">
+              <ellipse cx="70" cy="205" rx="46" ry="7" fill="var(--shadow)"/>
+              <rect x="42" y="150" width="24" height="56" rx="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <rect x="76" y="150" width="24" height="56" rx="11" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M32 118 C24 108 26 96 36 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <ellipse cx="78" cy="122" rx="42" ry="36" transform="rotate(-6 78 122)" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <ellipse cx="62" cy="132" rx="10" ry="7" fill="var(--caramel-deep)" opacity="0.7"/>
+              <path d="M92 96 C104 78 116 76 122 86 C126 94 116 104 104 104 Z" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="118" cy="86" r="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M98 92 C108 68 120 78 118 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <circle cx="108" cy="78" r="27" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M88 58 C84 46 92 40 98 48" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M122 54 C132 50 138 60 130 70 C124 76 118 70 118 62 Z" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <ellipse cx="132" cy="86" rx="12" ry="8" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <circle cx="140" cy="85" r="2.6" fill="var(--ink)"/>
+              <circle cx="102" cy="76" r="3" fill="var(--ink)"/>
+              <path d="M92 68 L100 71" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+              <path d="M84 100 C94 108 108 108 116 100 L116 110 C108 118 94 118 84 110 Z" fill="var(--bandana)" stroke="var(--ink)" stroke-width="3.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="fighter p2">
+            <svg viewBox="0 0 140 220" aria-hidden="true">
+              <ellipse cx="70" cy="205" rx="46" ry="7" fill="var(--shadow)"/>
+              <rect x="42" y="150" width="24" height="56" rx="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <rect x="76" y="150" width="24" height="56" rx="11" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M32 118 C24 108 26 96 36 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <ellipse cx="78" cy="122" rx="42" ry="36" transform="rotate(-6 78 122)" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <ellipse cx="62" cy="132" rx="10" ry="7" fill="var(--caramel-deep)" opacity="0.7"/>
+              <path d="M92 96 C104 78 116 76 122 86 C126 94 116 104 104 104 Z" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="118" cy="86" r="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M98 92 C108 68 120 78 118 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <circle cx="108" cy="78" r="27" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <path d="M88 58 C84 46 92 40 98 48" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M122 54 C132 50 138 60 130 70 C124 76 118 70 118 62 Z" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              <ellipse cx="132" cy="86" rx="12" ry="8" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
+              <circle cx="140" cy="85" r="2.6" fill="var(--ink)"/>
+              <circle cx="102" cy="76" r="3" fill="var(--ink)"/>
+              <path d="M92 68 L100 71" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+              <path d="M84 100 C94 108 108 108 116 100 L116 110 C108 118 94 118 84 110 Z" fill="var(--bandana)" stroke="var(--ink)" stroke-width="3.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="arena-vignette"></div>
+          <div class="zone-seam"></div>
+        </div>
+
+        <div class="controls">
+          <button class="btn defesa" type="button">
+            <span class="icon">🛡</span>
+            <span class="k">DEFESA</span>
+          </button>
+          <button class="btn attack" type="button">
+            <span class="icon">👊</span>
+            <span class="k">SOCO</span>
+          </button>
+          <button class="btn attack" type="button">
+            <span class="icon">🦵</span>
+            <span class="k">CHUTE</span>
+          </button>
+          <button class="btn especial" type="button">
+            <span class="icon">⚡</span>
+            <span class="k">ESPECIAL</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <span class="n">A</span>
+        <div class="t">
+          <h3>Placar</h3>
+          <p>Nome e vida nas pontas, drenando <strong>para o centro</strong> — convenção clássica de jogo de luta. O cronômetro fica no meio, sem disputar espaço com a arena.</p>
+        </div>
+      </div>
+      <div class="legend-item">
+        <span class="n">B</span>
+        <div class="t">
+          <h3>Arena</h3>
+          <p>Mesma técnica da tela de mundo: fundo pintado em <strong>16:9</strong>, três camadas de paralaxe, chão como faixa própria. Muda o conteúdo, não a construção.</p>
+        </div>
+      </div>
+      <div class="legend-item">
+        <span class="n">C</span>
+        <div class="t">
+          <h3>Controles</h3>
+          <p><strong>Soco, chute, defesa</strong> e o especial carregando — troca completa dos controles de mundo, no mesmo espaço físico da tela. Sem direcional: aqui não se anda, se briga.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+
+    document.querySelectorAll('.arena').forEach(function (arena) {
+      var layers = arena.querySelectorAll('.layer');
+      var raf = null, tx = 0, ty = 0;
+
+      function apply() {
+        var rect = arena.getBoundingClientRect();
+        var nx = (tx - rect.width / 2) / rect.width;
+        var ny = (ty - rect.height / 2) / rect.height;
+        layers.forEach(function (l) {
+          var depth = parseFloat(l.dataset.depth || '0');
+          l.style.transform = 'translate(' + (nx * depth * 40) + 'px,' + (ny * depth * 18) + 'px)';
+        });
+        raf = null;
+      }
+
+      function onMove(x, y) {
+        var rect = arena.getBoundingClientRect();
+        tx = x - rect.left;
+        ty = y - rect.top;
+        if (!raf) raf = requestAnimationFrame(apply);
+      }
+
+      arena.addEventListener('pointermove', function (e) { onMove(e.clientX, e.clientY); });
+      arena.addEventListener('pointerleave', function () {
+        tx = arena.clientWidth / 2; ty = arena.clientHeight / 2;
+        if (!raf) raf = requestAnimationFrame(apply);
+      });
+    });
+  })();
+</script>
