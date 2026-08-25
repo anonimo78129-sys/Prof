@@ -2,1088 +2,853 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rinha de Vira-Lata</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='13'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;600;700;800&display=swap');
-
   :root {
-    /* chrome da interface */
-    --ink: #201417;
-    --ink-raised: #2C1C20;
-    --ink-line: #46302F;
-    --chalk: #F5EAD8;
-    --chalk-dim: #C7B3A0;
+    --ink:        #171016;
+    --hud-bg:     #1B1219;
+    --hud-line:   #4A2F2A;
+    --chalk:      #F4E9D6;
 
-    /* acento — a mesma cor do pelo dos cachorros */
-    --caramel: #E0913F;
-    --caramel-deep: #9A5420;
-    --caramel-glow: #FFD873;
+    --heart:      #D8433A;
+    --heart-off:  #3A2229;
+    --hp-good:    #6FBF3F;
+    --hp-bad:     #C9372C;
+    --hp-track:   #2A1A20;
 
-    /* corner P1 / P2, só nas bandanas e num traço fino */
-    --bandana-p1: #B0432A;
-    --bandana-p2: #C24E5C;
+    --panel-hi:   #E4E2DA;
+    --panel:      #C6C5BC;
+    --panel-lo:   #9E9D94;
+    --panel-edge: #6E6D66;
+    --dpad:       #B4B3AA;
+    --dpad-lo:    #86857D;
 
-    /* cenário */
-    --sky-high: #E67C3A;
-    --sky-low: #F7C36E;
-    --wall: #55394C;
-    --wall-deep: #3B2536;
-    --mural: #C24E5C;
-    --fence: rgba(20, 12, 16, 0.55);
-    --floor-far: #A98B68;
-    --floor-near: #7C6248;
-    --floor-line: rgba(32, 20, 16, 0.35);
+    --btn-red:    #D63A32;   --btn-red-lo:   #8E211C;
+    --btn-blue:   #3B7FD4;   --btn-blue-lo:  #22508D;
+    --btn-yellow: #E8C13C;   --btn-yellow-lo:#9C7A18;
+    --btn-green:  #4CA548;   --btn-green-lo: #2A6A29;
 
-    /* vida */
-    --health-fill: #B7C24A;
-    --health-mid: #E3A83E;
-    --health-low: #C4432E;
-
-    --shadow: rgba(18, 9, 7, 0.5);
-    --font-display: 'Bungee', 'Arial Narrow', sans-serif;
-    --font-body: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-    /* forma assinatura da interface: canto cortado, não arredondado */
-    --cut: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-    --cut-lg: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    --pixel: 'Press Start 2P', 'Courier New', monospace;
   }
 
   * { box-sizing: border-box; }
 
   html, body {
     margin: 0;
+    height: 100%;
     background: var(--ink);
     color: var(--chalk);
-    font-family: var(--font-body);
+    font-family: var(--pixel);
+    -webkit-font-smoothing: none;
   }
 
   body {
-    min-height: 100vh;
     display: flex;
+    align-items: center;
     justify-content: center;
-    padding: clamp(20px, 4vh, 56px) 16px;
-    background:
-      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(224, 145, 63, 0.10), transparent 60%),
-      var(--ink);
-    overflow-x: hidden;
+    padding: clamp(8px, 2.5vh, 32px);
+    overflow: hidden;
   }
 
-  .page {
-    width: 100%;
-    max-width: 640px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: clamp(28px, 5vh, 44px);
-  }
-
-  .eyebrow {
-    text-align: center;
-    font: 700 11px/1 var(--font-body);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--chalk-dim);
-  }
-  .eyebrow strong {
-    color: var(--caramel);
-    font-weight: 800;
-  }
-
-  /* ── laço do jogo ───────────────────────────────────── */
-
-  .loop {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-  .loop-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-  }
-  .loop-pill {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 14px;
-    background: var(--ink-raised);
-    box-shadow: inset 0 0 0 1px var(--ink-line);
-    clip-path: var(--cut);
-    font: 700 11px/1 var(--font-body);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--chalk);
-    white-space: nowrap;
-  }
-  .loop-pill .icon { font-size: 13px; }
-  .loop-pill.hot {
-    box-shadow: inset 0 0 0 1px var(--caramel-deep);
-    color: var(--caramel-glow);
-  }
-  .loop-arrow {
-    color: var(--chalk-dim);
-    font-size: 13px;
-    opacity: 0.6;
-  }
-  .loop-note {
-    max-width: 46ch;
-    text-align: center;
-    font: 400 13px/1.5 var(--font-body);
-    color: var(--chalk-dim);
-  }
-  .loop-note strong { color: var(--chalk); font-weight: 600; }
-
-  /* ── cada painel: nome + aparelho + legenda ────────────── */
-
-  .panel {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-  }
-  .panel-title {
-    display: flex;
-    align-items: baseline;
-    gap: 9px;
-  }
-  .panel-title .num {
-    font: 400 13px/1 var(--font-display);
-    color: var(--caramel);
-  }
-  .panel-title h2 {
-    margin: 0;
-    font: 400 15px/1 var(--font-display);
-    letter-spacing: 0.02em;
-    color: var(--chalk);
-  }
-  .panel-title span.sub {
-    font: 400 12px/1 var(--font-body);
-    color: var(--chalk-dim);
-  }
+  /* ── o aparelho: 9/16, três faixas ───────────────────── */
 
   .device {
-    position: relative;
-    width: auto;
-    height: min(68vh, 700px);
+    height: min(94vh, 900px);
     aspect-ratio: 9 / 16;
+    display: flex;
+    flex-direction: column;
     background: var(--ink);
-    border-radius: 30px;
-    padding: 3px;
+    border-radius: 14px;
+    overflow: hidden;
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.04),
-      0 30px 60px -20px rgba(0, 0, 0, 0.7),
-      0 10px 24px -12px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+      0 0 0 2px #0C070A,
+      0 24px 50px -18px rgba(0, 0, 0, 0.75);
+    image-rendering: pixelated;
   }
 
-  .screen {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-radius: 27px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  /* ── faixa 1: topo ──────────────────────────────────── */
+  /* ── FAIXA 1 — placar ────────────────────────────────── */
 
   .hud {
-    flex: 0 0 9.5%;
-    background: linear-gradient(180deg, var(--ink) 0%, var(--ink-raised) 100%);
-    border-bottom: 2px solid var(--ink-line);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: max(8px, env(safe-area-inset-top)) 10px 6px;
-    position: relative;
-    z-index: 3;
-  }
-
-  .fighter-tag {
-    flex: 1;
-    min-width: 0;
+    flex: 0 0 auto;
+    background: var(--hud-bg);
+    border-bottom: 3px solid #0C070A;
+    padding: 2.2% 2.6% 2.6%;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 5px;
   }
-  .fighter-tag.right { align-items: flex-end; }
-  .fighter-tag.solo { flex: 0 0 46%; }
 
-  .fighter-tag .name {
-    font: 400 12px/1 var(--font-display);
-    letter-spacing: 0.02em;
-    color: var(--chalk);
-    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  .hud-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .portrait {
+    width: 11%;
+    aspect-ratio: 1;
+    flex: none;
+    image-rendering: pixelated;
+  }
+
+  .hearts { display: flex; gap: 3px; }
+  .heart {
+    width: 11px; height: 10px;
+    image-rendering: pixelated;
+  }
+
+  .crowd { display: flex; gap: 3px; align-items: center; }
+  .crowd .portrait { width: 26px; }
+
+  .bars {
     display: flex;
     align-items: center;
     gap: 5px;
   }
-  .fighter-tag.right .name { flex-direction: row-reverse; }
-
-  .corner-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    flex: none;
+  .hp {
+    flex: 1;
+    height: 13px;
+    background: var(--hp-track);
+    box-shadow: inset 0 0 0 2px #0C070A;
+    padding: 2px;
+    display: flex;
   }
-  .fighter-tag.left .corner-dot, .fighter-tag.solo .corner-dot { background: var(--bandana-p1); }
-  .fighter-tag.right .corner-dot { background: var(--bandana-p2); }
-
-  .health-track {
-    width: 100%;
-    height: 9px;
-    background: var(--ink);
-    box-shadow: inset 0 0 0 1px var(--ink-line);
-    clip-path: var(--cut);
-    overflow: hidden;
-    position: relative;
-  }
-  .health-fill {
+  .hp i {
+    display: block;
     height: 100%;
-    background: linear-gradient(180deg, var(--health-fill), var(--health-mid));
+    background: var(--hp-good);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.25);
   }
-  .fighter-tag.left .health-track, .fighter-tag.solo .health-track { direction: ltr; }
-  .fighter-tag.right .health-track { direction: rtl; }
-  .fighter-tag.right .health-fill { margin-left: auto; }
+  .hp.right { justify-content: flex-end; }
+  .hp.right i { background: var(--hp-bad); }
 
-  .round-badge {
+  .names {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    font-size: clamp(6px, 1.55vh, 11px);
+    line-height: 1;
+    letter-spacing: 0.5px;
+    text-shadow: 2px 2px 0 #0C070A;
+  }
+  .names .round {
+    color: #E8C13C;
     flex: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
-    padding: 3px 10px 4px;
-    background: var(--ink-raised);
-    box-shadow: inset 0 0 0 1px var(--ink-line);
-    clip-path: var(--cut);
-  }
-  .round-badge .label {
-    font: 700 7px/1 var(--font-body);
-    letter-spacing: 0.16em;
-    color: var(--chalk-dim);
-    text-transform: uppercase;
-  }
-  .round-badge .time {
-    font: 400 17px/1 var(--font-display);
-    color: var(--caramel-glow);
   }
 
-  .location-tag {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
-    background: var(--ink-raised);
-    box-shadow: inset 0 0 0 1px var(--ink-line);
-    clip-path: var(--cut);
-    font: 700 9px/1 var(--font-body);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--chalk-dim);
-    white-space: nowrap;
-  }
+  /* ── FAIXA 2 — cena ──────────────────────────────────── */
 
-  /* ── faixa 2: arena, comum às duas telas ────────────── */
-
-  .arena {
-    flex: 1;
+  .stage {
+    flex: 1 1 auto;
+    min-height: 0;
     position: relative;
-    overflow: hidden;
-    background: var(--sky-low);
+    background: #2E4A63;
   }
-
-  .layer {
+  .stage canvas {
     position: absolute;
     inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: pixelated;
   }
 
-  .layer.sky {
-    background:
-      radial-gradient(ellipse 55% 40% at 78% 20%, rgba(255, 216, 115, 0.55), transparent 65%),
-      linear-gradient(180deg, var(--sky-high) 0%, var(--sky-low) 78%);
+  /* ── FAIXA 3 — controle ──────────────────────────────── */
+
+  .pad {
+    flex: 0 0 29%;
+    position: relative;
+    background: linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 45%, var(--panel-lo) 100%);
+    border-top: 3px solid #0C070A;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3% 5%;
+    gap: 4%;
   }
-  .layer.sky .cloud {
+
+  .screw {
     position: absolute;
-    background: rgba(255, 240, 210, 0.28);
+    width: 13px; height: 13px;
     border-radius: 50%;
-    filter: blur(1px);
+    background: var(--panel-lo);
+    box-shadow: inset 0 0 0 2px var(--panel-edge);
+    display: grid;
+    place-items: center;
   }
-
-  .arena-vignette {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 120% 80% at 50% 50%, transparent 55%, rgba(15, 8, 7, 0.4) 100%);
-    pointer-events: none;
-  }
-
-  .zone-seam {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--ink-line) 15%, var(--ink-line) 85%, transparent);
-  }
-
-  /* ── arena: tela de luta ────────────────────────────── */
-
-  .layer.wall {
-    top: 22%;
-    bottom: 40%;
-    background: linear-gradient(180deg, var(--wall) 0%, var(--wall-deep) 100%);
-  }
-  .layer.wall::before {
+  .screw::before,
+  .screw::after {
     content: '';
     position: absolute;
-    inset: 0;
-    background-image:
-      repeating-linear-gradient(58deg, var(--fence) 0 1.5px, transparent 1.5px 16px),
-      repeating-linear-gradient(122deg, var(--fence) 0 1.5px, transparent 1.5px 16px);
-    opacity: 0.5;
+    background: var(--panel-edge);
   }
-  .lamp {
-    position: absolute;
-    top: -6%;
-    left: 8%;
-    width: 3px;
-    height: 55%;
-    background: var(--fence);
-  }
-  .lamp::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: -7px;
-    width: 17px;
-    height: 10px;
-    background: var(--fence);
-    border-radius: 2px 2px 8px 8px;
-  }
-  .mural-tag {
-    position: absolute;
-    right: 6%;
-    bottom: 8%;
-    width: 30%;
-    max-width: 90px;
-    opacity: 0.85;
-  }
+  .screw::before { width: 8px; height: 2px; transform: rotate(45deg); }
+  .screw::after  { width: 8px; height: 2px; transform: rotate(-45deg); }
+  .screw.tl { top: 8px;    left: 8px; }
+  .screw.tr { top: 8px;    right: 8px; }
+  .screw.bl { bottom: 8px; left: 8px; }
+  .screw.br { bottom: 8px; right: 8px; }
 
-  .layer.floor {
-    top: 60%;
-    background: linear-gradient(180deg, var(--floor-far) 0%, var(--floor-near) 100%);
+  /* direcional */
+  .dpad {
+    position: relative;
+    width: 34%;
+    aspect-ratio: 1;
+    flex: none;
   }
-  .layer.floor::before {
-    content: '';
+  .dpad .arm {
     position: absolute;
-    inset: 0;
-    background-image: repeating-linear-gradient(
-      90deg, var(--floor-line) 0 1px, transparent 1px 13%
-    );
-    opacity: 0.6;
+    background: var(--dpad);
+    box-shadow:
+      inset 0 0 0 2px var(--panel-edge),
+      inset 0 -3px 0 rgba(0,0,0,0.18);
   }
-  .layer.floor::after {
-    content: '';
+  .dpad .arm.h { left: 0;  right: 0;  top: 33.5%; bottom: 33.5%; }
+  .dpad .arm.v { top: 0;   bottom: 0; left: 33.5%; right: 33.5%; }
+  .dpad .hub {
     position: absolute;
-    inset: 0 0 auto 0;
-    height: 14%;
-    background: linear-gradient(180deg, rgba(20, 10, 8, 0.35), transparent);
+    left: 33.5%; right: 33.5%; top: 33.5%; bottom: 33.5%;
+    background: var(--dpad-lo);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px var(--panel-edge);
+    z-index: 2;
   }
-  .crack {
+  .dpad .tri {
     position: absolute;
-    stroke: var(--floor-line);
-    stroke-width: 1.4;
-    fill: none;
-  }
-
-  .fighter {
-    position: absolute;
-    bottom: 12%;
-    width: 30%;
-    max-width: 130px;
-    filter: drop-shadow(0 6px 4px var(--shadow));
-    animation: bob 2.6s ease-in-out infinite;
-  }
-  .fighter svg { width: 100%; height: 100%; display: block; }
-  .fighter.p1 { left: 8%; --bandana: var(--bandana-p1); }
-  .fighter.p2 {
-    right: 8%;
-    --bandana: var(--bandana-p2);
-    transform: scaleX(-1);
-    animation-name: bob-flip;
-    animation-delay: -1.3s;
-  }
-  @keyframes bob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2.5%); }
-  }
-  @keyframes bob-flip {
-    0%, 100% { transform: scaleX(-1) translateY(0); }
-    50% { transform: scaleX(-1) translateY(-2.5%); }
-  }
-
-  /* ── arena: tela de mundo ───────────────────────────── */
-
-  .arena.mundo .layer.sky { background: linear-gradient(180deg, var(--sky-high) 0%, var(--sky-low) 60%); }
-
-  .skyline {
-    position: absolute;
-    left: 0; right: 0; bottom: 60%; height: 26%;
+    width: 0; height: 0;
+    z-index: 3;
     opacity: 0.55;
   }
-  .skyline svg { width: 100%; height: 100%; display: block; }
-
-  .layer.facade {
-    top: 34%;
-    bottom: 30%;
-    background: linear-gradient(180deg, var(--wall) 0%, var(--wall-deep) 100%);
-    background-image:
-      repeating-linear-gradient(0deg, transparent 0 20px, var(--ink-line) 20px 21px),
-      repeating-linear-gradient(90deg, transparent 0 20px, var(--ink-line) 20px 21px);
-    background-blend-mode: normal;
+  .dpad .tri.up {
+    top: 7%; left: 50%; transform: translateX(-50%);
+    border-left: 7px solid transparent; border-right: 7px solid transparent;
+    border-bottom: 9px solid var(--panel-edge);
   }
-  .lit-window {
-    position: absolute;
-    width: 9px; height: 12px;
-    background: var(--caramel-glow);
-    opacity: 0.75;
-    box-shadow: 0 0 6px rgba(255, 216, 115, 0.6);
+  .dpad .tri.down {
+    bottom: 7%; left: 50%; transform: translateX(-50%);
+    border-left: 7px solid transparent; border-right: 7px solid transparent;
+    border-top: 9px solid var(--panel-edge);
   }
-
-  .door {
-    position: absolute;
-    left: 6%;
-    bottom: 0;
-    width: 15%;
-    height: 62%;
+  .dpad .tri.left {
+    left: 7%; top: 50%; transform: translateY(-50%);
+    border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+    border-right: 9px solid var(--panel-edge);
   }
-  .door .frame {
-    position: absolute;
-    inset: 0;
-    background: var(--wall-deep);
-    box-shadow: inset 0 0 0 2px var(--ink-line);
-  }
-  .door .glow {
-    position: absolute;
-    left: 50%; bottom: 0;
-    width: 220%; height: 60%;
-    transform: translateX(-50%);
-    background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(255, 216, 115, 0.25), transparent 70%);
-  }
-  .door .awning {
-    position: absolute;
-    top: -10%; left: -20%; right: -20%;
-    height: 14%;
-    background: var(--caramel-deep);
-    clip-path: polygon(0 100%, 8% 0, 92% 0, 100% 100%);
+  .dpad .tri.right {
+    right: 7%; top: 50%; transform: translateY(-50%);
+    border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+    border-left: 9px solid var(--panel-edge);
   }
 
-  .escape {
-    position: absolute;
-    left: 46%;
-    top: 4%;
-    width: 20%;
-    height: 88%;
+  /* botões de ação */
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4% 10%;
+    flex: 1;
+    max-width: 52%;
   }
-  .escape svg { width: 100%; height: 100%; display: block; overflow: visible; }
-
-  .layer.street {
-    top: 62%;
-    background: linear-gradient(180deg, var(--floor-far) 0%, var(--floor-near) 100%);
-  }
-  .layer.street::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: repeating-linear-gradient(
-      90deg, var(--floor-line) 0 1px, transparent 1px 13%
-    );
-    opacity: 0.6;
-  }
-
-  .prop-can {
-    position: absolute;
-    left: 30%;
-    bottom: 8%;
-    width: 5%;
-    height: 16%;
-    background: var(--wall-deep);
-    border-radius: 2px 2px 5px 5px;
-    box-shadow: inset 0 0 0 1px var(--ink-line);
-  }
-
-  .enemy-peek {
-    position: absolute;
-    right: 4%;
-    bottom: 4%;
-    width: 15%;
-    opacity: 0.92;
-  }
-  .enemy-peek svg { width: 100%; display: block; }
-  .enemy-peek .alert {
-    position: absolute;
-    top: -34%;
-    left: 50%;
-    transform: translateX(-50%);
-    font: 400 15px/1 var(--font-display);
-    color: var(--caramel-glow);
-    animation: alert-pulse 1.4s ease-in-out infinite;
-  }
-  @keyframes alert-pulse {
-    0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
-    50% { opacity: 1; transform: translateX(-50%) translateY(-3px); }
-  }
-
-  .explorer {
-    left: 20%;
-    width: 24%;
-  }
-
-  .climb-meter {
-    position: absolute;
-    right: 12px;
-    top: 8%;
-    bottom: 8%;
-    width: 3px;
-    background: repeating-linear-gradient(to bottom, var(--chalk-dim) 0 2px, transparent 2px 7px);
-    opacity: 0.45;
-    z-index: 4;
-  }
-  .climb-meter .goal {
-    position: absolute;
-    top: -14px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 13px;
-  }
-  .climb-meter .here {
-    position: absolute;
-    bottom: 24%;
-    left: 50%;
-    width: 9px; height: 9px;
-    transform: translateX(-50%);
-    border-radius: 50%;
-    background: var(--caramel-glow);
-    box-shadow: 0 0 8px rgba(255, 216, 115, 0.8);
-  }
-
-  .prompt {
-    position: absolute;
-    left: 27%;
-    bottom: 46%;
-    transform: translateX(-50%);
+  .act {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
-    background: var(--ink);
-    box-shadow: inset 0 0 0 1.5px var(--caramel-glow);
-    clip-path: var(--cut);
-    font: 700 9px/1 var(--font-body);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--caramel-glow);
+    gap: 3px;
+  }
+  .act.flip { flex-direction: column-reverse; }
+  .act .lbl {
+    font-size: clamp(5px, 1.25vh, 9px);
+    line-height: 1;
+    color: #1C1A16;
+    letter-spacing: 0.5px;
     white-space: nowrap;
-    z-index: 4;
-    animation: prompt-pulse 1.8s ease-in-out infinite;
   }
-  .prompt.dim {
-    left: 13%;
-    bottom: 20%;
-    box-shadow: inset 0 0 0 1px var(--ink-line);
-    color: var(--chalk-dim);
-    opacity: 0.65;
-    animation: none;
-  }
-  @keyframes prompt-pulse {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.05); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .fighter, .btn.especial::before, .enemy-peek .alert, .prompt { animation: none !important; }
-  }
-
-  /* ── faixa 3: controles ─────────────────────────────── */
-
-  .controls {
-    flex: 0 0 22%;
-    background: linear-gradient(180deg, var(--ink-raised) 0%, var(--ink) 100%);
-    border-top: 2px solid var(--ink-line);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px max(10px, env(safe-area-inset-bottom));
-    position: relative;
-    z-index: 3;
-  }
-
-  .btn {
+  .act button {
     appearance: none;
     border: none;
     cursor: pointer;
-    font-family: var(--font-body);
-    color: var(--chalk);
-    background: var(--ink-raised);
-    box-shadow:
-      inset 0 0 0 1px var(--ink-line),
-      0 3px 0 0 var(--ink-line),
-      0 5px 8px -2px rgba(0,0,0,0.5);
-    clip-path: var(--cut-lg);
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-  }
-  .btn:active {
-    transform: translateY(3px);
-    box-shadow: inset 0 0 0 1px var(--ink-line), 0 0 0 0 var(--ink-line);
-  }
-  .btn .k {
-    font: 400 11px/1 var(--font-display);
-    letter-spacing: 0.02em;
-  }
-  .btn .icon { font-size: 15px; line-height: 1; }
-
-  .btn.defesa {
-    flex: 1.15;
-    height: 100%;
-    background: var(--ink);
-    box-shadow:
-      inset 0 0 0 2px var(--ink-line),
-      0 3px 0 0 var(--ink-line);
-    color: var(--chalk-dim);
-  }
-  .btn.defesa:active { color: var(--chalk); }
-
-  .btn.attack {
-    flex: 1;
-    height: 82%;
-    background: linear-gradient(180deg, var(--ink-raised), var(--ink));
-  }
-  .btn.attack .k { color: var(--chalk); }
-
-  .btn.especial {
-    flex: 1.15;
-    height: 100%;
-    position: relative;
-    background: var(--ink);
-    color: var(--caramel-glow);
-    overflow: hidden;
-  }
-  .btn.especial::before {
-    content: '';
-    position: absolute;
-    inset: 3px;
-    clip-path: var(--cut-lg);
-    background: conic-gradient(var(--caramel) 0deg, var(--caramel-glow) 245deg, var(--ink-line) 245deg 360deg);
-    opacity: 0.28;
-    animation: charge 5s linear infinite;
-  }
-  .btn.especial .k, .btn.especial .icon { position: relative; }
-  @keyframes charge {
-    to { transform: rotate(360deg); }
-  }
-
-  .btn.move {
-    flex: 0.85;
-    height: 78%;
-  }
-
-  .btn.action {
-    flex: 1.3;
-    height: 100%;
-    background: var(--ink);
-    color: var(--caramel-glow);
-    position: relative;
-    overflow: hidden;
-  }
-  .btn.action::before {
-    content: '';
-    position: absolute;
-    inset: 3px;
-    clip-path: var(--cut-lg);
-    background: var(--caramel);
-    opacity: 0.16;
-  }
-  .btn.action .k, .btn.action .icon { position: relative; }
-
-  /* ── legenda ─────────────────────────────────────────── */
-
-  .legend {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    max-width: 62px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0;
+    padding: 0;
+    background: var(--panel-lo);
+    box-shadow: inset 0 0 0 3px var(--panel-edge);
+    transition: transform .07s steps(2);
   }
-  .legend-item {
-    display: flex;
-    gap: 12px;
-    padding: 14px 16px;
-    background: var(--ink-raised);
-    box-shadow: inset 0 0 0 1px var(--ink-line);
-    clip-path: var(--cut-lg);
+  .act button span {
+    display: block;
+    width: 74%; height: 74%;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: clamp(13px, 3vh, 24px);
+    line-height: 1;
   }
-  .legend-item .n {
-    flex: none;
-    font: 400 20px/1 var(--font-display);
-    color: var(--caramel);
-    width: 28px;
+  .act button:active { transform: translateY(3px); }
+  .act.red    button span { background: var(--btn-red);    box-shadow: inset 0 -5px 0 var(--btn-red-lo); }
+  .act.blue   button span { background: var(--btn-blue);   box-shadow: inset 0 -5px 0 var(--btn-blue-lo); }
+  .act.yellow button span { background: var(--btn-yellow); box-shadow: inset 0 -5px 0 var(--btn-yellow-lo); }
+  .act.green  button span { background: var(--btn-green);  box-shadow: inset 0 -5px 0 var(--btn-green-lo); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .act button { transition: none; }
   }
-  .legend-item .t {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  .legend-item h3 {
-    margin: 0;
-    font: 700 11px/1.2 var(--font-body);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--chalk);
-  }
-  .legend-item p {
-    margin: 0;
-    font: 400 13px/1.5 var(--font-body);
-    color: var(--chalk-dim);
-  }
-  .legend-item p strong { color: var(--chalk); font-weight: 600; }
 </style>
 
-<div class="page">
-  <p class="eyebrow"><strong>Rinha de Vira-Lata</strong> — proposta de layout</p>
+<div class="device">
 
-  <!-- LAÇO DO JOGO ─────────────────────────────────────── -->
-  <div class="loop">
-    <div class="loop-row">
-      <span class="loop-pill"><span class="icon">🐾</span>Anda pela cidade</span>
-      <span class="loop-arrow">→</span>
-      <span class="loop-pill"><span class="icon">🧗</span>Sobe / entra</span>
-      <span class="loop-arrow">→</span>
-      <span class="loop-pill hot"><span class="icon">❗</span>Encontra inimigo</span>
-      <span class="loop-arrow">→</span>
-      <span class="loop-pill"><span class="icon">👊</span>Luta corpo a corpo</span>
-    </div>
-    <p class="loop-note">Cada telhado alcançado e cada porta aberta empurra a história — e cada rua tem alguém disposto a brigar por ela. <strong>TOSTÃO</strong> é quem você controla nas duas telas.</p>
-  </div>
-
-  <!-- PAINEL 1 — MUNDO ─────────────────────────────────── -->
-  <div class="panel">
-    <div class="panel-title">
-      <span class="num">01</span>
-      <h2>EXPLORAR</h2>
-      <span class="sub">— anda, sobe, entra</span>
-    </div>
-
-    <div class="device">
-      <div class="screen">
-
-        <div class="hud">
-          <div class="fighter-tag solo">
-            <span class="name"><span class="corner-dot"></span>TOSTÃO</span>
-            <div class="health-track"><div class="health-fill" style="width: 84%"></div></div>
-          </div>
-          <span class="location-tag">📍 Rua das Flores</span>
-        </div>
-
-        <div class="arena mundo" id="arena-mundo">
-          <div class="layer sky" data-depth="0.02">
-            <div class="cloud" style="width:60px;height:18px;top:10%;left:10%"></div>
-          </div>
-
-          <div class="skyline" data-depth="0.04">
-            <svg viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true">
-              <polygon fill="var(--wall-deep)" points="0,100 0,55 26,55 26,30 52,30 52,60 80,60 80,15 112,15 112,48 140,48 140,38 172,38 172,70 202,70 202,25 232,25 232,55 262,55 262,42 292,42 292,12 322,12 322,50 352,50 352,36 382,36 382,100"/>
-            </svg>
-          </div>
-
-          <div class="layer facade" data-depth="0.06">
-            <div class="lit-window" style="left:14%; top:18%"></div>
-            <div class="lit-window" style="left:14%; top:44%"></div>
-            <div class="lit-window" style="left:64%; top:14%"></div>
-            <div class="lit-window" style="left:80%; top:32%"></div>
-            <div class="door">
-              <div class="awning"></div>
-              <div class="glow"></div>
-              <div class="frame"></div>
-            </div>
-            <div class="escape">
-              <svg viewBox="0 0 60 200" aria-hidden="true">
-                <path d="M8 190 L52 190 L52 150 L8 150 L8 110 L52 110 L52 70 L8 70 L8 30 L52 30" fill="none" stroke="var(--caramel-glow)" stroke-width="3" stroke-linejoin="round" opacity="0.85"/>
-                <circle cx="8" cy="150" r="2.4" fill="var(--caramel-glow)"/>
-                <circle cx="52" cy="110" r="2.4" fill="var(--caramel-glow)"/>
-                <circle cx="8" cy="70" r="2.4" fill="var(--caramel-glow)"/>
-              </svg>
-            </div>
-          </div>
-
-          <div class="layer street" data-depth="0.1">
-            <div class="prop-can"></div>
-            <div class="enemy-peek">
-              <span class="alert">!</span>
-              <svg viewBox="0 0 60 50" aria-hidden="true">
-                <ellipse cx="30" cy="46" rx="22" ry="4" fill="var(--shadow)"/>
-                <path d="M8 46 C4 30 8 14 22 10 C34 6 46 12 48 24 C50 36 42 46 30 46 Z" fill="var(--ink)"/>
-                <path d="M14 12 C10 4 18 2 20 10 Z" fill="var(--ink)"/>
-                <path d="M34 8 C40 0 48 4 44 12 Z" fill="var(--ink)"/>
-              </svg>
-            </div>
-          </div>
-
-          <div class="fighter explorer">
-            <svg viewBox="0 0 140 220" aria-hidden="true" style="--bandana: var(--bandana-p1)">
-              <ellipse cx="70" cy="205" rx="46" ry="7" fill="var(--shadow)"/>
-              <rect x="42" y="150" width="24" height="56" rx="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <rect x="76" y="150" width="24" height="56" rx="11" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M32 118 C24 108 26 96 36 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
-              <ellipse cx="78" cy="122" rx="42" ry="36" transform="rotate(-6 78 122)" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <ellipse cx="62" cy="132" rx="10" ry="7" fill="var(--caramel-deep)" opacity="0.7"/>
-              <path d="M92 96 C104 78 116 76 122 86 C126 94 116 104 104 104 Z" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="118" cy="86" r="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M98 92 C108 68 120 78 118 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
-              <circle cx="108" cy="78" r="27" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M88 58 C84 46 92 40 98 48" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M122 54 C132 50 138 60 130 70 C124 76 118 70 118 62 Z" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <ellipse cx="132" cy="86" rx="12" ry="8" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <circle cx="140" cy="85" r="2.6" fill="var(--ink)"/>
-              <circle cx="102" cy="76" r="3" fill="var(--ink)"/>
-              <path d="M92 68 L100 71" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
-              <path d="M84 100 C94 108 108 108 116 100 L116 110 C108 118 94 118 84 110 Z" fill="var(--bandana)" stroke="var(--ink)" stroke-width="3.4" stroke-linejoin="round"/>
-            </svg>
-          </div>
-
-          <div class="arena-vignette"></div>
-          <div class="zone-seam"></div>
-
-          <div class="climb-meter">
-            <span class="goal">🏠</span>
-            <span class="here"></span>
-          </div>
-          <div class="prompt"><span class="icon">🧗</span>SUBIR</div>
-          <div class="prompt dim"><span class="icon">🚪</span>ENTRAR</div>
-        </div>
-
-        <div class="controls">
-          <button class="btn move" type="button">
-            <span class="icon">◄</span>
-          </button>
-          <button class="btn move" type="button">
-            <span class="icon">►</span>
-          </button>
-          <button class="btn action" type="button">
-            <span class="icon">🧗</span>
-            <span class="k">AÇÃO</span>
-          </button>
-        </div>
-
+  <!-- ── PLACAR ─────────────────────────────────────────── -->
+  <div class="hud">
+    <div class="hud-top">
+      <canvas class="portrait" data-face="furia" width="16" height="16"></canvas>
+      <div class="hearts">
+        <canvas class="heart" data-heart="full" width="11" height="10"></canvas>
+        <canvas class="heart" data-heart="full" width="11" height="10"></canvas>
+        <canvas class="heart" data-heart="half" width="11" height="10"></canvas>
+        <canvas class="heart" data-heart="off"  width="11" height="10"></canvas>
+        <canvas class="heart" data-heart="off"  width="11" height="10"></canvas>
+      </div>
+      <div class="crowd">
+        <canvas class="portrait" data-face="torcedor" width="16" height="16"></canvas>
+        <canvas class="portrait" data-face="bruto" width="16" height="16"></canvas>
       </div>
     </div>
 
-    <div class="legend">
-      <div class="legend-item">
-        <span class="n">A</span>
-        <div class="t">
-          <h3>Pontos de interação</h3>
-          <p>A escada de incêndio brilha em <strong>dourado</strong> quando alcançável — mesma cor do botão de ação, para o dedo e o olho concordarem. A porta já passada fica marcada, mas apagada.</p>
-        </div>
-      </div>
-      <div class="legend-item">
-        <span class="n">B</span>
-        <div class="t">
-          <h3>Medidor de altura</h3>
-          <p>Um traço fino na borda mostra <strong>quanto falta até o telhado</strong> — sem ele, "subir até o topo do prédio" é uma promessa que o jogador não consegue medir.</p>
-        </div>
-      </div>
-      <div class="legend-item">
-        <span class="n">C</span>
-        <div class="t">
-          <h3>Controles</h3>
-          <p>Só o essencial: <strong>◄ ►</strong> para andar e um <strong>AÇÃO</strong> que muda de sentido pelo contexto — subir, entrar, mais tarde talvez empurrar. Sem botão de ataque aqui: a briga tem tela própria.</p>
-        </div>
-      </div>
+    <div class="bars">
+      <div class="hp"><i style="width:74%"></i></div>
+      <div class="hp right"><i style="width:100%"></i></div>
+    </div>
+
+    <div class="names">
+      <span>CARAMELO FÚRIA</span>
+      <span class="round">ROUND 1 · 0:42</span>
+      <span>CARAMELO BRUTO</span>
     </div>
   </div>
 
-  <!-- PAINEL 2 — LUTA ──────────────────────────────────── -->
-  <div class="panel">
-    <div class="panel-title">
-      <span class="num">02</span>
-      <h2>LUTAR</h2>
-      <span class="sub">— quando um inimigo barra o caminho</span>
+  <!-- ── CENA ───────────────────────────────────────────── -->
+  <div class="stage">
+    <canvas id="cena" width="200" height="212"></canvas>
+  </div>
+
+  <!-- ── CONTROLE ───────────────────────────────────────── -->
+  <div class="pad">
+    <i class="screw tl"></i><i class="screw tr"></i>
+    <i class="screw bl"></i><i class="screw br"></i>
+
+    <div class="dpad">
+      <i class="arm h"></i>
+      <i class="arm v"></i>
+      <i class="hub"></i>
+      <i class="tri up"></i><i class="tri down"></i>
+      <i class="tri left"></i><i class="tri right"></i>
     </div>
 
-    <div class="device">
-      <div class="screen">
-
-        <div class="hud">
-          <div class="fighter-tag left">
-            <span class="name"><span class="corner-dot"></span>TOSTÃO</span>
-            <div class="health-track"><div class="health-fill" style="width: 78%"></div></div>
-          </div>
-          <div class="round-badge">
-            <span class="label">Round 1</span>
-            <span class="time">43</span>
-          </div>
-          <div class="fighter-tag right">
-            <span class="name">FAROFA<span class="corner-dot"></span></span>
-            <div class="health-track"><div class="health-fill" style="width: 61%"></div></div>
-          </div>
-        </div>
-
-        <div class="arena" id="arena-luta">
-          <div class="layer sky" data-depth="0.02">
-            <div class="cloud" style="width:70px;height:22px;top:14%;left:8%"></div>
-            <div class="cloud" style="width:46px;height:16px;top:26%;left:32%"></div>
-          </div>
-          <div class="layer wall" data-depth="0.05">
-            <div class="lamp"></div>
-            <svg class="mural-tag" viewBox="0 0 60 60" aria-hidden="true">
-              <path fill="var(--mural)" d="M30 6c9 0 14 8 14 16 0 12-14 32-14 32S16 34 16 22c0-8 5-16 14-16z"/>
-              <circle cx="24" cy="20" r="3.4" fill="var(--wall-deep)"/>
-              <circle cx="36" cy="20" r="3.4" fill="var(--wall-deep)"/>
-              <path d="M18 30c4 5 20 5 24 0" stroke="var(--wall-deep)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="layer floor" data-depth="0.12">
-            <svg class="crack" viewBox="0 0 300 200" preserveAspectRatio="none" style="width:100%;height:100%">
-              <path d="M40 0 L55 40 L30 70 L50 110" />
-              <path d="M260 10 L245 55 L270 90" />
-            </svg>
-          </div>
-
-          <div class="fighter p1">
-            <svg viewBox="0 0 140 220" aria-hidden="true">
-              <ellipse cx="70" cy="205" rx="46" ry="7" fill="var(--shadow)"/>
-              <rect x="42" y="150" width="24" height="56" rx="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <rect x="76" y="150" width="24" height="56" rx="11" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M32 118 C24 108 26 96 36 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
-              <ellipse cx="78" cy="122" rx="42" ry="36" transform="rotate(-6 78 122)" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <ellipse cx="62" cy="132" rx="10" ry="7" fill="var(--caramel-deep)" opacity="0.7"/>
-              <path d="M92 96 C104 78 116 76 122 86 C126 94 116 104 104 104 Z" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="118" cy="86" r="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M98 92 C108 68 120 78 118 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
-              <circle cx="108" cy="78" r="27" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M88 58 C84 46 92 40 98 48" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M122 54 C132 50 138 60 130 70 C124 76 118 70 118 62 Z" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <ellipse cx="132" cy="86" rx="12" ry="8" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <circle cx="140" cy="85" r="2.6" fill="var(--ink)"/>
-              <circle cx="102" cy="76" r="3" fill="var(--ink)"/>
-              <path d="M92 68 L100 71" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
-              <path d="M84 100 C94 108 108 108 116 100 L116 110 C108 118 94 118 84 110 Z" fill="var(--bandana)" stroke="var(--ink)" stroke-width="3.4" stroke-linejoin="round"/>
-            </svg>
-          </div>
-
-          <div class="fighter p2">
-            <svg viewBox="0 0 140 220" aria-hidden="true">
-              <ellipse cx="70" cy="205" rx="46" ry="7" fill="var(--shadow)"/>
-              <rect x="42" y="150" width="24" height="56" rx="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <rect x="76" y="150" width="24" height="56" rx="11" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M32 118 C24 108 26 96 36 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
-              <ellipse cx="78" cy="122" rx="42" ry="36" transform="rotate(-6 78 122)" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <ellipse cx="62" cy="132" rx="10" ry="7" fill="var(--caramel-deep)" opacity="0.7"/>
-              <path d="M92 96 C104 78 116 76 122 86 C126 94 116 104 104 104 Z" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="118" cy="86" r="11" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M98 92 C108 68 120 78 118 92" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
-              <circle cx="108" cy="78" r="27" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <path d="M88 58 C84 46 92 40 98 48" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M122 54 C132 50 138 60 130 70 C124 76 118 70 118 62 Z" fill="var(--caramel-deep)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
-              <ellipse cx="132" cy="86" rx="12" ry="8" fill="var(--caramel)" stroke="var(--ink)" stroke-width="4"/>
-              <circle cx="140" cy="85" r="2.6" fill="var(--ink)"/>
-              <circle cx="102" cy="76" r="3" fill="var(--ink)"/>
-              <path d="M92 68 L100 71" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
-              <path d="M84 100 C94 108 108 108 116 100 L116 110 C108 118 94 118 84 110 Z" fill="var(--bandana)" stroke="var(--ink)" stroke-width="3.4" stroke-linejoin="round"/>
-            </svg>
-          </div>
-
-          <div class="arena-vignette"></div>
-          <div class="zone-seam"></div>
-        </div>
-
-        <div class="controls">
-          <button class="btn defesa" type="button">
-            <span class="icon">🛡</span>
-            <span class="k">DEFESA</span>
-          </button>
-          <button class="btn attack" type="button">
-            <span class="icon">👊</span>
-            <span class="k">SOCO</span>
-          </button>
-          <button class="btn attack" type="button">
-            <span class="icon">🦵</span>
-            <span class="k">CHUTE</span>
-          </button>
-          <button class="btn especial" type="button">
-            <span class="icon">⚡</span>
-            <span class="k">ESPECIAL</span>
-          </button>
-        </div>
-
+    <div class="actions">
+      <div class="act red">
+        <span class="lbl">SOCO F.</span>
+        <button type="button" aria-label="Soco forte"><span>👊</span></button>
       </div>
-    </div>
-
-    <div class="legend">
-      <div class="legend-item">
-        <span class="n">A</span>
-        <div class="t">
-          <h3>Placar</h3>
-          <p>Nome e vida nas pontas, drenando <strong>para o centro</strong> — convenção clássica de jogo de luta. O cronômetro fica no meio, sem disputar espaço com a arena.</p>
-        </div>
+      <div class="act blue">
+        <span class="lbl">CHUTE F.</span>
+        <button type="button" aria-label="Chute forte"><span>🦵</span></button>
       </div>
-      <div class="legend-item">
-        <span class="n">B</span>
-        <div class="t">
-          <h3>Arena</h3>
-          <p>Mesma técnica da tela de mundo: fundo pintado em <strong>16:9</strong>, três camadas de paralaxe, chão como faixa própria. Muda o conteúdo, não a construção.</p>
-        </div>
+      <div class="act yellow flip">
+        <span class="lbl">SOCO L.</span>
+        <button type="button" aria-label="Soco leve"><span>✋</span></button>
       </div>
-      <div class="legend-item">
-        <span class="n">C</span>
-        <div class="t">
-          <h3>Controles</h3>
-          <p><strong>Soco, chute, defesa</strong> e o especial carregando — troca completa dos controles de mundo, no mesmo espaço físico da tela. Sem direcional: aqui não se anda, se briga.</p>
-        </div>
+      <div class="act green flip">
+        <span class="lbl">CHUTE L.</span>
+        <button type="button" aria-label="Chute leve"><span>🦶</span></button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  (function () {
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
+(function () {
+  'use strict';
 
-    document.querySelectorAll('.arena').forEach(function (arena) {
-      var layers = arena.querySelectorAll('.layer');
-      var raf = null, tx = 0, ty = 0;
+  // ── paleta ────────────────────────────────────────────
+  const P = {
+    ceuAlto: '#F2A05A', ceuMeio: '#F8C57E', ceuBaixo: '#FBE0AE',
+    ceuTopo: '#8FA9C4', ceuTopo2: '#B4B9C4',
+    sol: '#FFF0C4', solHalo: '#FFD98F',
+    longe1: '#7E93AC', longe2: '#6B819C', longe3: '#5B6F8B',
+    predio: '#8E9C99', predioEsc: '#6E7C7C', predioMaisEsc: '#556363',
+    predio2: '#A7ADA4', predio2Esc: '#828A83',
+    janela: '#243043', janelaLuz: '#F6C86A',
+    mato: '#4E7A44', matoEsc: '#3A5C34', matoClaro: '#6D9B57',
+    asfalto: '#4A4A50', asfaltoEsc: '#3B3B41', asfaltoClaro: '#5A5A61',
+    faixa: '#C9C6B4',
+    contorno: '#241608',
+    caramelo: '#C6883F', carameloClaro: '#E8C48E', carameloEsc: '#96601F',
+    branco: '#FFFFFF', preto: '#241608',
+    bandana: '#4C8B46', coleira: '#8E2F28', espinho: '#C3C8CE',
+    placa: '#E6DCC2', placaVerm: '#B33B31', placaEsc: '#7A6A4E',
+    orelhao: '#C0392B', orelhaoEsc: '#7E241A', vidro: '#7FA5B8',
+    grafite1: '#C2426A', grafite2: '#4C7FD1', grafite3: '#E0B33C',
+  };
 
-      function apply() {
-        var rect = arena.getBoundingClientRect();
-        var nx = (tx - rect.width / 2) / rect.width;
-        var ny = (ty - rect.height / 2) / rect.height;
-        layers.forEach(function (l) {
-          var depth = parseFloat(l.dataset.depth || '0');
-          l.style.transform = 'translate(' + (nx * depth * 40) + 'px,' + (ny * depth * 18) + 'px)';
-        });
-        raf = null;
+  const cv = document.getElementById('cena');
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  const W = cv.width, H = cv.height;
+  const CHAO = 152;            // topo do asfalto
+
+  // desenha só em retângulo inteiro: é isso que mantém a arte "em pixel"
+  function r(x, y, w, h, c) {
+    ctx.fillStyle = c;
+    ctx.fillRect(x | 0, y | 0, Math.max(1, w | 0), Math.max(1, h | 0));
+  }
+
+  // ruído preso à posição: mesma pedra, mesma janela, todo carregamento
+  function rnd(x, y, s) {
+    let n = (x * 374761393 + y * 668265263 + s * 2147483647) | 0;
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+  }
+
+  // ── sprite por mapa de caracteres ─────────────────────
+  function sprite(map, pal, x, y, flip) {
+    const w = map[0].length;
+    for (let j = 0; j < map.length; j++) {
+      for (let i = 0; i < w; i++) {
+        const ch = map[j][i];
+        if (ch === '.') continue;
+        const c = pal[ch];
+        if (!c) continue;
+        r(x + (flip ? w - 1 - i : i), y + j, 1, 1, c);
       }
+    }
+  }
 
-      function onMove(x, y) {
-        var rect = arena.getBoundingClientRect();
-        tx = x - rect.left;
-        ty = y - rect.top;
-        if (!raf) raf = requestAnimationFrame(apply);
+  // caramelo bípede em guarda, virado para a direita — 30x35
+  const LUTADOR = [
+    '..............................',
+    '...KK....................KK...',
+    '..KCCK..................KCCK..',
+    '..KCCK.....KKKKKK......KCCK...',
+    '..KCCCK..KKCCCCCCKK...KCCCK...',
+    '...KCCCKKCCCCCCCCCCKKKCCCK....',
+    '....KCCCCCCCCCCCCCCCCCCCK.....',
+    '....KCCCCCCCCCCCCCCCCCCK......',
+    '....KCCWWCCCCCCCWWCCCCCK......',
+    '....KCCWBCCCCCCCWBCCCCCK......',
+    '....KCCCCCCCCCCCCCCCLLLK......',
+    '.....KCCCCCCCCCCCLLLLLLLK.....',
+    '.....KCCCCCCCCCCLLLLBBLLK.....',
+    '.....KCCCCCCCCCCLLLLLLLLK.....',
+    '......KCCCCCCCCKLLLLLLLK......',
+    '......KKCCCCCCKKKLLLLKK.......',
+    '........KKCCKK...KKKK.........',
+    '.......KGGGGGGK...............',
+    '......KGGGGGGGGK..............',
+    '.....KKCCCCCCCCKK.............',
+    '....KCCCCCCCCCCCCK...KKK......',
+    '...KCCCCLLLLLLCCCCK.KCCCK.....',
+    '...KCCCLLLLLLLLCCCKKCCCCCK....',
+    '...KCCCLLLLLLLLCCCKKCCCCCK....',
+    '...KCCCCLLLLLLCCCCK.KCCCK.....',
+    '....KCCCCLLLLCCCCK...KKK......',
+    '.....KCCCCCCCCCCK.............',
+    '.....KCCCCCCCCCCK.............',
+    '.....KCCCK..KCCCK.............',
+    '.....KCCCK..KCCCK.............',
+    '.....KCCCK..KCCCK.............',
+    '....KCCCCK..KCCCCK............',
+    '....KLLLLK..KLLLLK............',
+    '....KKKKKK..KKKKKK............',
+  ];
+
+  const PAL_FURIA = {
+    K: P.contorno, C: P.caramelo, L: P.carameloClaro, D: P.carameloEsc,
+    W: P.branco, B: P.preto, G: P.bandana,
+  };
+  const PAL_BRUTO = {
+    K: P.contorno, C: '#B0742F', L: '#DCB77C', D: '#7E4E16',
+    W: P.branco, B: '#8E2F28', G: P.coleira,
+  };
+
+  // torcedor pequeno no telhado — 11x14
+  const TORCEDOR = [
+    '...........',
+    '..K.....K..',
+    '.KCK...KCK.',
+    '.KCCKKKCCK.',
+    '..KCCCCCK..',
+    '..KCWCWCK..',
+    '..KCCCCCK..',
+    '...KKKKK...',
+    '...KGGGK...',
+    '..KGGGGGK..',
+    '..KCCCCCK..',
+    '..KCK.KCK..',
+    '..KCK.KCK..',
+    '..KKK.KKK..',
+  ];
+
+  // ── camadas do cenário ────────────────────────────────
+
+  function ceu() {
+    // faixas discretas em vez de degradê contínuo: é o que dá cara de 16-bit
+    const faixas = [
+      [0,  16, P.ceuTopo], [16, 12, P.ceuTopo2], [28, 12, '#D6B79C'],
+      [40, 14, P.ceuAlto], [54, 16, P.ceuMeio],  [70, 20, P.ceuBaixo],
+      [90, 20, '#F6D9A6'], [110, 20, '#EBC894'],
+    ];
+    faixas.forEach(([y, h, c]) => r(0, y, W, h, c));
+  }
+
+  function solPoente() {
+    const cx = 100, cy = 86, raio = 15;
+    for (let y = -raio - 5; y <= raio + 5; y++) {
+      for (let x = -raio - 5; x <= raio + 5; x++) {
+        const d = Math.sqrt(x * x + y * y);
+        if (d <= raio) r(cx + x, cy + y, 1, 1, P.sol);
+        else if (d <= raio + 4) r(cx + x, cy + y, 1, 1, P.solHalo);
       }
+    }
+  }
 
-      arena.addEventListener('pointermove', function (e) { onMove(e.clientX, e.clientY); });
-      arena.addEventListener('pointerleave', function () {
-        tx = arena.clientWidth / 2; ty = arena.clientHeight / 2;
-        if (!raf) raf = requestAnimationFrame(apply);
+  function horizonte() {
+    // silhueta distante em azul, três profundidades
+    const linhas = [
+      { base: 118, alt: [10,18,8,22,14,9,20,12,16,7,19,11], c: P.longe1, larg: 9 },
+      { base: 124, alt: [16,9,24,12,7,18,10,21,13,8,17,14], c: P.longe2, larg: 11 },
+    ];
+    linhas.forEach(L => {
+      for (let i = 0; i < L.alt.length; i++) {
+        const x = i * L.larg, h = L.alt[i];
+        r(x, L.base - h, L.larg, h, L.c);
+        // janelinhas acesas
+        for (let jy = L.base - h + 3; jy < L.base - 2; jy += 4) {
+          for (let jx = x + 2; jx < x + L.larg - 2; jx += 3) {
+            if (rnd(jx, jy, 3) > 0.72) r(jx, jy, 1, 1, P.janelaLuz);
+          }
+        }
+      }
+    });
+    // passarela ligando os dois lados, bem ao fundo
+    r(72, 112, 56, 2, P.longe3);
+    for (let x = 74; x < 128; x += 6) r(x, 108, 1, 4, P.longe3);
+  }
+
+  function janelas(x0, y0, x1, y1, passoX, passoY, semente) {
+    for (let y = y0; y < y1; y += passoY) {
+      for (let x = x0; x < x1; x += passoX) {
+        const v = rnd(x, y, semente);
+        r(x, y, 5, 6, P.janela);
+        if (v > 0.80) r(x + 1, y + 1, 3, 4, P.janelaLuz);
+        else if (v > 0.62) r(x + 1, y + 1, 3, 4, '#3E5570');
+        // vidro quebrado
+        if (v < 0.18) {
+          r(x + 1, y + 1, 2, 2, P.predioMaisEsc);
+          r(x + 3, y + 3, 2, 2, P.predioMaisEsc);
+        }
+      }
+    }
+  }
+
+  function vinhas(x0, x1, yTopo, semente) {
+    for (let x = x0; x < x1; x++) {
+      const v = rnd(x, yTopo, semente);
+      if (v > 0.55) {
+        const comp = 3 + Math.floor(v * 14);
+        r(x, yTopo, 1, comp, v > 0.8 ? P.matoClaro : P.mato);
+        if (comp > 9) r(x, yTopo + comp, 1, 2, P.matoEsc);
+      }
+    }
+  }
+
+  function predioEsquerdo() {
+    // bloco principal
+    r(0, 60, 74, CHAO - 60, P.predio);
+    r(66, 60, 8, CHAO - 60, P.predioEsc);          // sombra da quina
+    r(0, 60, 74, 3, P.predioMaisEsc);
+
+    // terraço mais alto, onde a torcida fica
+    r(4, 40, 46, 22, P.predio2);
+    r(4, 40, 46, 3, P.predioMaisEsc);
+    r(44, 40, 6, 22, P.predio2Esc);
+    vinhas(4, 50, 62, 11);
+
+    // laje intermediária
+    r(0, 96, 62, 4, P.predioMaisEsc);
+    vinhas(0, 62, 100, 5);
+
+    janelas(6, 106, 60, CHAO - 12, 13, 15, 7);
+    janelas(8, 66, 44, 92, 12, 14, 9);
+
+    // escada externa
+    for (let i = 0; i < 5; i++) {
+      r(2 + i * 4, 118 + i * 6, 14, 3, P.predioMaisEsc);
+      r(2 + i * 4, 121 + i * 6, 2, 6, P.predioEsc);
+    }
+
+    // grafite no muro rente ao chão
+    r(2, CHAO - 24, 30, 18, '#7C8A88');
+    r(4, CHAO - 21, 12, 5, P.grafite1);
+    r(8, CHAO - 15, 16, 4, P.grafite2);
+    r(18, CHAO - 22, 10, 6, P.grafite3);
+    r(3, CHAO - 10, 22, 3, P.grafite1);
+
+    // palmeira na borda
+    r(4, 20, 4, 46, '#7A5B31');
+    [[-11, -3], [-8, -8], [0, -11], [8, -8], [11, -3], [-5, 2], [6, 2]].forEach(([dx, dy]) => {
+      r(6 + dx, 20 + dy, Math.abs(dx) > 7 ? 9 : 7, 4, dx % 2 ? P.mato : P.matoClaro);
+    });
+    r(2, 14, 8, 6, P.matoEsc);
+  }
+
+  function predioDireito() {
+    r(126, 44, W - 126, CHAO - 44, P.predio2);
+    r(126, 44, 7, CHAO - 44, P.predio2Esc);
+    r(126, 44, W - 126, 3, P.predioMaisEsc);
+
+    // laje com beiral
+    r(126, 74, W - 126, 4, P.predioMaisEsc);
+    vinhas(128, W, 78, 13);
+    vinhas(130, W, 48, 17);
+
+    janelas(134, 84, W - 6, 128, 14, 16, 21);
+
+    // placa do mercado
+    r(140, 132, 52, 12, P.placa);
+    r(140, 132, 52, 2, P.placaEsc);
+    r(140, 142, 52, 2, P.placaEsc);
+    txt('MERCADO', 145, 136, 5, '#4A3B22');
+    txt('- FECHADO -', 143, 141, 4, '#7A6A4E');
+
+    // aviso vermelho
+    r(150, 150, 44, 2, P.placaVerm);
+
+    // orelhão
+    r(178, 120, 18, 32, P.orelhao);
+    r(178, 120, 18, 3, P.orelhaoEsc);
+    r(192, 120, 4, 32, P.orelhaoEsc);
+    r(181, 126, 12, 16, P.vidro);
+    r(183, 130, 4, 8, '#2E4152');
+    txt('TEL', 181, 123, 4, '#FFE9C9');
+
+    // porta de aço fechada
+    r(132, 112, 22, 40, '#7E867F');
+    for (let y = 114; y < 150; y += 4) r(132, y, 22, 2, '#6A716B');
+  }
+
+  function torcida() {
+    // no terraço do prédio da esquerda
+    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo, W: P.branco, G: '#D8CBB0' }, 10, 26);
+    sprite(TORCEDOR, { K: P.contorno, C: '#B0742F', W: P.branco, G: '#6E8FBF' }, 26, 26, true);
+    // na laje do meio
+    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo, W: P.branco, G: '#C25A4A' }, 6, 82);
+    sprite(TORCEDOR, { K: P.contorno, C: '#D0A15E', W: P.branco, G: '#E0B33C' }, 22, 82, true);
+    sprite(TORCEDOR, { K: P.contorno, C: '#A9743A', W: P.branco, G: '#4C8B46' }, 38, 82);
+    // no beiral da direita
+    sprite(TORCEDOR, { K: P.contorno, C: P.caramelo, W: P.branco, G: '#D8CBB0' }, 150, 60, true);
+    sprite(TORCEDOR, { K: P.contorno, C: '#BE8438', W: P.branco, G: '#6E8FBF' }, 176, 30);
+  }
+
+  function rua() {
+    r(0, CHAO, W, H - CHAO, P.asfalto);
+    r(0, CHAO, W, 3, P.asfaltoEsc);
+    // calçada ao fundo
+    r(0, CHAO - 4, W, 4, '#8A8378');
+    r(0, CHAO - 1, W, 1, '#5F5A52');
+
+    // textura do asfalto
+    for (let y = CHAO + 4; y < H; y += 2) {
+      for (let x = 0; x < W; x += 3) {
+        const v = rnd(x, y, 31);
+        if (v > 0.88) r(x, y, 2, 1, P.asfaltoClaro);
+        else if (v < 0.10) r(x, y, 2, 1, P.asfaltoEsc);
+      }
+    }
+    // faixa central desbotada
+    for (let x = 6; x < W; x += 26) r(x, H - 16, 12, 3, P.faixa);
+  }
+
+  // chinelos espalhados — o detalhe que entrega o país
+  function chinelos() {
+    const cores = ['#3FA3C4', '#E0B33C', '#C2426A', '#4CA548', '#E36A2C', '#7B5BC4'];
+    const pos = [
+      [10, 176], [34, 190], [58, 170], [78, 198], [96, 178],
+      [118, 192], [140, 172], [162, 196], [182, 180], [24, 204],
+      [104, 206], [150, 206],
+    ];
+    pos.forEach(([x, y], i) => {
+      const c = cores[i % cores.length];
+      r(x, y, 9, 4, c);              // sola
+      r(x, y + 4, 9, 1, P.contorno); // sombra
+      r(x + 2, y - 1, 5, 1, '#F0E6D2'); // tira
+      r(x + 4, y, 1, 2, '#F0E6D2');
+    });
+  }
+
+  // texto minúsculo desenhado em pixel, sem depender de fonte
+  const GLIFOS = {
+    A:['010','101','111','101','101'], B:['110','101','110','101','110'],
+    C:['011','100','100','100','011'], D:['110','101','101','101','110'],
+    E:['111','100','110','100','111'], F:['111','100','110','100','100'],
+    G:['011','100','101','101','011'], H:['101','101','111','101','101'],
+    I:['111','010','010','010','111'], J:['001','001','001','101','010'],
+    K:['101','101','110','101','101'], L:['100','100','100','100','111'],
+    M:['101','111','111','101','101'], N:['101','111','111','111','101'],
+    O:['010','101','101','101','010'], P:['110','101','110','100','100'],
+    Q:['010','101','101','110','011'], R:['110','101','110','101','101'],
+    S:['011','100','010','001','110'], T:['111','010','010','010','010'],
+    U:['101','101','101','101','111'], V:['101','101','101','101','010'],
+    W:['101','101','111','111','101'], X:['101','101','010','101','101'],
+    Y:['101','101','010','010','010'], Z:['111','001','010','100','111'],
+    '-':['000','000','111','000','000'], ' ':['000','000','000','000','000'],
+    '.':['000','000','000','000','010'],
+  };
+
+  function txt(s, x, y, _size, cor) {
+    let cx = x;
+    for (const ch of s.toUpperCase()) {
+      const g = GLIFOS[ch];
+      if (!g) { cx += 4; continue; }
+      for (let j = 0; j < 5; j++) {
+        for (let i = 0; i < 3; i++) {
+          if (g[j][i] === '1') r(cx + i, y + j, 1, 1, cor);
+        }
+      }
+      cx += 4;
+    }
+  }
+
+  // ── montagem ──────────────────────────────────────────
+  const fundo = document.createElement('canvas');
+  fundo.width = W; fundo.height = H;
+
+  function pintaFundo() {
+    ceu();
+    solPoente();
+    horizonte();
+    predioEsquerdo();
+    predioDireito();
+    torcida();
+    rua();
+    chinelos();
+    // aviso vermelho por cima, para o texto não sumir sob as vinhas
+    r(148, 146, 50, 16, P.placaVerm);
+    r(148, 146, 50, 2, '#7E241A');
+    txt('CUIDADO', 152, 149, 4, '#FFE9C9');
+    txt('CARAMELOS', 152, 155, 4, '#FFE9C9');
+    // guarda o fundo pronto: o laço só reaproveita
+    fundo.getContext('2d').drawImage(cv, 0, 0);
+  }
+
+  function quadro(t) {
+    ctx.drawImage(fundo, 0, 0);
+
+    // respiração dos lutadores, em passo inteiro de pixel
+    const b1 = Math.floor(Math.sin(t / 420) * 1.4);
+    const b2 = Math.floor(Math.sin(t / 420 + 1.7) * 1.4);
+
+    // sombra de contato
+    r(58, 186, 26, 3, 'rgba(20,12,8,0.35)');
+    r(120, 186, 26, 3, 'rgba(20,12,8,0.35)');
+
+    sprite(LUTADOR, PAL_FURIA, 56, 154 + b1, false);
+    sprite(LUTADOR, PAL_BRUTO, 116, 154 + b2, true);
+
+    requestAnimationFrame(quadro);
+  }
+
+  pintaFundo();
+  requestAnimationFrame(quadro);
+
+  // ── retratos e corações do placar ─────────────────────
+  const CARA = [
+    '................',
+    '..KK........KK..',
+    '.KCCK......KCCK.',
+    '.KCCCKKKKKKCCCK.',
+    '..KCCCCCCCCCCK..',
+    '..KCCCCCCCCCCK..',
+    '..KCWBCCCCWBCK..',
+    '..KCCCCCCCCCCK..',
+    '..KCCCCCCCCLLK..',
+    '...KCCCCCCLLLK..',
+    '...KCCCCCLBBLK..',
+    '...KCCCCCLLLLK..',
+    '....KKCCCKLLK...',
+    '......KKKKKK....',
+    '................',
+    '................',
+  ];
+
+  document.querySelectorAll('[data-face]').forEach(el => {
+    const c = el.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    const alvo = ctx;                       // reaproveita o desenhador
+    const guarda = { fill: ctx.fillStyle };
+    const paleta = {
+      furia:     { K: P.contorno, C: P.caramelo, L: P.carameloClaro, W: P.branco, B: P.preto },
+      bruto:     { K: P.contorno, C: '#B0742F', L: '#DCB77C', W: P.branco, B: '#8E2F28' },
+      torcedor:  { K: P.contorno, C: '#D0A15E', L: '#EBD3A8', W: P.branco, B: P.preto },
+    }[el.dataset.face];
+
+    CARA.forEach((linha, j) => {
+      [...linha].forEach((ch, i) => {
+        if (ch === '.') return;
+        const cor = paleta[ch];
+        if (!cor) return;
+        c.fillStyle = cor;
+        c.fillRect(i, j, 1, 1);
       });
     });
-  })();
+    ctx.fillStyle = guarda.fill;
+    void alvo;
+  });
+
+  const CORACAO = [
+    '.11...11.',
+    '1111.1111',
+    '111111111',
+    '111111111',
+    '.1111111.',
+    '..11111..',
+    '...111...',
+    '....1....',
+  ];
+
+  document.querySelectorAll('[data-heart]').forEach(el => {
+    const c = el.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    const modo = el.dataset.heart;
+    CORACAO.forEach((linha, j) => {
+      [...linha].forEach((ch, i) => {
+        if (ch !== '1') return;
+        let cor = '#D8433A';
+        if (modo === 'off') cor = '#3A2229';
+        if (modo === 'half' && i > 4) cor = '#3A2229';
+        c.fillStyle = cor;
+        c.fillRect(i + 1, j + 1, 1, 1);
+      });
+    });
+    // contorno escuro
+    c.fillStyle = '#1A0E12';
+    CORACAO.forEach((linha, j) => {
+      [...linha].forEach((ch, i) => {
+        if (ch !== '1') return;
+        [[0,1],[2,1],[1,0],[1,2]].forEach(([dx,dy]) => {
+          const nx = i + dx, ny = j + dy;
+          const dentro = CORACAO[ny - 1] && CORACAO[ny - 1][nx - 1] === '1';
+          if (!dentro) c.fillRect(nx, ny, 1, 1);
+        });
+      });
+    });
+  });
+})();
 </script>
